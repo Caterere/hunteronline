@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://cb3ax801m18a3"]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_enemy_data"]
+
+[resource]
+script = ExtResource("1_enemy_data")
+enemy_id = &"great_stamp_pig"
+enemy_name = "Grande Javali Selvagem (Great Stamp)"
+level = 5
+max_health = 420
+defense = 14
+strength = 28
+xp_reward = 450
+is_boss = true
+knockback_resistance = 0.85
+hit_invulnerability_time = 0.2
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

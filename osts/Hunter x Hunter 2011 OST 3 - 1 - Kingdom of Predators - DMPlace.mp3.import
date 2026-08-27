@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b4blknnh8v10g"
+path="res://.godot/imported/Hunter x Hunter 2011 OST 3 - 1 - Kingdom of Predators - DMPlace.mp3-c54e7b8eec548fb4d99462f6bc5a0f0c.mp3str"
+
+[deps]
+
+source_file="res://osts/Hunter x Hunter 2011 OST 3 - 1 - Kingdom of Predators - DMPlace.mp3"
+dest_files=["res://.godot/imported/Hunter x Hunter 2011 OST 3 - 1 - Kingdom of Predators - DMPlace.mp3-c54e7b8eec548fb4d99462f6bc5a0f0c.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=3 uid="uid://cportalhunter01"]
+
+[ext_resource type="Script" path="res://entities/npc/portal_hunter/PortalHunter.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/player.png" id="2_tex"]
+[ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="2_interact"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 4.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 30.0
+
+[node name="PortalHunter" type="CharacterBody2D"]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_script")
+npc_name = "Guia do Portal"
+fala_padrao = "Eu posso te levar para o modo história!"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-0.5, -17)
+texture = ExtResource("2_tex")
+hframes = 6
+vframes = 10
+frame = 0
+modulate = Color(0.6, 0.85, 1.0, 1.0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="InteractionComponent" type="Area2D" parent="."]
+script = ExtResource("2_interact")
+interaction_text = "Falar com o Guia"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionComponent"]
+shape = SubResource("CircleShape2D_interact")

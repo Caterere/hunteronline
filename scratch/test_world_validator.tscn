@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dval1d4t0rpad0k1a"]
+
+[ext_resource type="Script" path="res://scratch/test_world_validator.gd" id="1_test"]
+
+[node name="TestWorldValidator" type="Node2D"]
+script = ExtResource("1_test")

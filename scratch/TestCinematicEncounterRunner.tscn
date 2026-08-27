@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://chwx24huefdh5"]
+
+[ext_resource type="Script" path="res://scratch/TestCinematicEncounterRunner.gd" id="1_cin_runner"]
+
+[node name="TestCinematicEncounterRunner" type="Node"]
+script = ExtResource("1_cin_runner")

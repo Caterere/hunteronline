@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://c5iinjvfwqmp3"]
+
+[ext_resource type="Script" uid="uid://c2w3eb5p842v7" path="res://world/catalog/test/TileCatalogTest.gd" id="1_test"]
+[ext_resource type="TileSet" uid="uid://cphvsmienx03c" path="res://world/tilesets/world_tileset.tres" id="2_tileset"]
+[ext_resource type="PackedScene" uid="uid://b7ulauygmxt3k" path="res://entities/Player/Player.tscn" id="3_player"]
+
+[node name="TileCatalogTest" type="Node2D" unique_id=432039701]
+script = ExtResource("1_test")
+
+[node name="Chao_TileMapLayer" type="TileMapLayer" parent="." unique_id=1552397152]
+tile_set = ExtResource("2_tileset")
+
+[node name="Paredes_TileMapLayer" type="TileMapLayer" parent="." unique_id=1332377195]
+tile_set = ExtResource("2_tileset")
+
+[node name="Decor_TileMapLayer" type="TileMapLayer" parent="." unique_id=525919036]
+tile_set = ExtResource("2_tileset")
+
+[node name="Player" parent="." unique_id=1091653891 instance=ExtResource("3_player")]
+position = Vector2(560, 136)
+
+[node name="Camera2D2" type="Camera2D" parent="Player" unique_id=595676693]
+position_smoothing_enabled = true

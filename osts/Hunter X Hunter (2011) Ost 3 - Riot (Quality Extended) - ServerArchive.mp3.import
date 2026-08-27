@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://drluet4vqfu5l"
+path="res://.godot/imported/Hunter X Hunter (2011) Ost 3 - Riot (Quality Extended) - ServerArchive.mp3-813d805daac5b34100971717d0bed7ec.mp3str"
+
+[deps]
+
+source_file="res://osts/Hunter X Hunter (2011) Ost 3 - Riot (Quality Extended) - ServerArchive.mp3"
+dest_files=["res://.godot/imported/Hunter X Hunter (2011) Ost 3 - Riot (Quality Extended) - ServerArchive.mp3-813d805daac5b34100971717d0bed7ec.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

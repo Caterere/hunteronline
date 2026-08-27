@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://b901824m7105k"]
+
+[ext_resource type="Script" path="res://ui/GreedIslandBinder/GreedIslandBinderUI.gd" id="1_gibui"]
+
+[node name="GreedIslandBinderUI" type="CanvasLayer"]
+process_mode = 3
+layer = 15
+script = ExtResource("1_gibui")

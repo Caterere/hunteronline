@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"formiga_lider"
+enemy_name = "Líder de Esquadrão Chimera"
+level = 72
+max_health = 4000
+defense = 70
+strength = 140
+xp_reward = 15000
+knockback_resistance = 0.85
+hit_invulnerability_time = 0.15
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

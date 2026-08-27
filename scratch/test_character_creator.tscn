@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bt3stch4r4ct3r"]
+
+[ext_resource type="Script" path="res://scratch/test_character_creator.gd" id="1_test"]
+
+[node name="TestCharacterCreator" type="Node2D"]
+script = ExtResource("1_test")

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cx6r0r1r1b8c"]
+
+[ext_resource type="Script" path="res://ui/Minigames/NenTrainingMinigame.gd" id="1_nen"]
+
+[node name="NenTrainingMinigame" type="CanvasLayer"]
+script = ExtResource("1_nen")

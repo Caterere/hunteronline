@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"monstro_greed"
+enemy_name = "Monstro de Greed Island"
+level = 45
+max_health = 900
+defense = 30
+strength = 55
+xp_reward = 2500
+knockback_resistance = 0.5
+hit_invulnerability_time = 0.15
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

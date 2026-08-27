@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Quest" format=3 uid="uid://bm5h77eov4ya"]
+
+[ext_resource type="Script" uid="uid://cqqkdcs357k7x" path="res://scripts/QuestObjective.gd" id="1_obj"]
+[ext_resource type="Script" uid="uid://dxx1qxcxeelby" path="res://scripts/Quest.gd" id="2_quest"]
+
+[sub_resource type="Resource" id="Resource_biscuit"]
+script = ExtResource("1_obj")
+target_npc_id = &"biscuit"
+target_npc_name = "Biscuit"
+
+[resource]
+script = ExtResource("2_quest")
+quest_name = "Arco 5: A Criação do Hatsu (Biscuit)"
+description = "Encontre Biscuit em Greed Island para treinar Nen avançado e criar sua habilidade Hatsu personalizada!"
+objectives = Array[ExtResource("1_obj")]([SubResource("Resource_biscuit")])
+auto_complete = true
+reward_xp = 1000
+reward_gold = 500

@@ -1,0 +1,157 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[animation]
+
+compatibility/default_parent_skeleton_in_mesh_instance_3d=true
+
+[application]
+
+config/name="HunterOnline"
+run/main_scene="res://ui/CharacterSelection/CharacterSelectionUI.tscn"
+config/features=PackedStringArray("4.6", "Forward Plus")
+
+[autoload]
+
+EventBus="*res://autoload/EventBus.gd"
+GameManager="*res://autoload/GameManager.gd"
+TimeManager="*res://autoload/TimeManager.gd"
+DataManager="*res://autoload/DataManager.gd"
+CombatEngine="*res://autoload/CombatEngine.gd"
+PowerScale="*res://autoload/PowerScale.gd"
+PlayerData="*res://autoload/PlayerData.gd"
+SaveManager="*res://autoload/SaveManager.gd"
+QuestSystem="*res://scripts/QuestManager.tscn"
+HatsuManager="*res://autoload/HatsuManager.gd"
+NenBeastManager="*res://autoload/NenBeastManager.gd"
+Economy="*res://autoload/Economy.gd"
+GameState="*res://autoload/GameState.gd"
+ReputationSystem="*res://autoload/ReputationSystem.gd"
+FactionManager="*res://autoload/FactionManager.gd"
+SurpriseQuestSystem="*res://autoload/SurpriseQuestSystem.gd"
+PersonalitySystem="*res://autoload/PersonalitySystem.gd"
+WorldEventManager="*res://autoload/WorldEventManager.gd"
+WorldState="*res://autoload/WorldState.gd"
+RelationshipSystem="*res://autoload/RelationshipSystem.gd"
+RumorSystem="*res://autoload/RumorSystem.gd"
+BountySystem="*res://autoload/BountySystem.gd"
+AchievementSystem="*res://autoload/AchievementSystem.gd"
+AudioManager="*res://autoload/AudioManager.gd"
+SceneTransition="*res://autoload/SceneTransition.gd"
+CinematicManager="*res://autoload/CinematicManager.gd"
+PlaytestTelemetry="*res://autoload/PlaytestTelemetry.gd"
+InputContextManager="*res://autoload/InputContextManager.gd"
+UIManager="*res://autoload/UIManager.gd"
+TutorialManager="*res://autoload/TutorialManager.gd"
+
+[display]
+
+window/size/viewport_width=640
+window/size/viewport_height=360
+window/size/window_width_override=1920
+window/size/window_height_override=1080
+window/stretch/mode="canvas_items"
+
+[input]
+
+move_left={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":65,"key_label":0,"unicode":97,"location":0,"echo":false,"script":null)
+]
+}
+move_right={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":68,"key_label":0,"unicode":100,"location":0,"echo":false,"script":null)
+]
+}
+move_up={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":87,"key_label":0,"unicode":119,"location":0,"echo":false,"script":null)
+]
+}
+move_down={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":83,"key_label":0,"unicode":115,"location":0,"echo":false,"script":null)
+]
+}
+dodge={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":32,"key_label":0,"unicode":32,"location":0,"echo":false,"script":null)
+]
+}
+attack={
+"deadzone": 0.2,
+"events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":0,"position":Vector2(0, 0),"global_position":Vector2(0, 0),"factor":1.0,"button_index":1,"canceled":false,"pressed":false,"double_click":false,"script":null)
+]
+}
+interact={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":69,"key_label":0,"unicode":101,"location":0,"echo":false,"script":null)
+]
+}
+open_status={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":67,"key_label":0,"unicode":99,"location":0,"echo":false,"script":null)
+]
+}
+hatsu_slot_1={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":49,"key_label":0,"unicode":49,"location":0,"echo":false,"script":null)
+]
+}
+hatsu_slot_2={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":50,"key_label":0,"unicode":50,"location":0,"echo":false,"script":null)
+]
+}
+hatsu_slot_3={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":51,"key_label":0,"unicode":51,"location":0,"echo":false,"script":null)
+]
+}
+hatsu_slot_4={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":52,"key_label":0,"unicode":52,"location":0,"echo":false,"script":null)
+]
+}
+open_hatsu_creation={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":72,"key_label":0,"unicode":104,"location":0,"echo":false,"script":null)
+]
+}
+open_nen_menu={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":78,"key_label":0,"unicode":110,"location":0,"echo":false,"script":null)
+]
+}
+dash={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":4194325,"physical_keycode":4194325,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
+]
+}
+open_inventory={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":73,"key_label":0,"unicode":105,"location":0,"echo":false,"script":null)
+]
+}
+open_hunter_license={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":76,"key_label":0,"unicode":108,"location":0,"echo":false,"script":null)
+]
+}
+open_binder={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":66,"key_label":0,"unicode":98,"location":0,"echo":false,"script":null)
+]
+}
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0

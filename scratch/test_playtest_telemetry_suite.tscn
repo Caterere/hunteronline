@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b8t4u9teltest1"]
+
+[ext_resource type="Script" path="res://scratch/test_playtest_telemetry_suite.gd" id="1_suite_script"]
+
+[node name="TestPlaytestTelemetrySuite" type="Node2D"]
+script = ExtResource("1_suite_script")

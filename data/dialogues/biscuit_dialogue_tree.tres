@@ -1,0 +1,257 @@
+[gd_resource type="Resource" script_class="DialogueTree" format=3 uid="uid://dkr2c8xjhvq9"]
+
+[ext_resource type="Script" uid="uid://d8q8lvsqcjhvq" path="res://scripts/dialogue/DialogueTree.gd" id="1_ujfgc"]
+[ext_resource type="Script" uid="uid://d8rz7c7qv7g8a" path="res://scripts/dialogue/DialogueNode.gd" id="2_jjh2q"]
+[ext_resource type="Script" uid="uid://dyokxclvxjgum" path="res://scripts/dialogue/DialogueBranch.gd" id="3_28ckf"]
+
+; ==================== RAMO TEN ====================
+[sub_resource type="Resource" id="ten_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"ten_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="ten_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"ten"
+speaker_name = "Biscuit"
+dialogue_text = "TEN é a técnica defensiva fundamental.
+
+Ela mantém sua aura estável e sob controle, criando uma camada protetora ao redor do seu corpo.
+
+Use TEN constantemente enquanto luta. Quanto melhor dominar TEN, melhor sua defesa!"
+branches = Array[ExtResource("3_28ckf")]([SubResource("ten_continue")])
+unlock_technique_on_enter = &"ten"
+
+; ==================== RAMO REN ====================
+[sub_resource type="Resource" id="ren_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"ren_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="ren_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"ren"
+speaker_name = "Biscuit"
+dialogue_text = "REN é o oposto de TEN.
+
+Enquanto TEN contém sua aura, REN a expande para fora de seu corpo, aumentando seu alcance e capacidade de ataque.
+
+Use REN para ampliar seus ataques. Quanto melhor dominar REN, maior seu alcance de combate!"
+branches = Array[ExtResource("3_28ckf")]([SubResource("ren_continue")])
+unlock_technique_on_enter = &"ren"
+
+; ==================== RAMO ZETSU ====================
+[sub_resource type="Resource" id="zetsu_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"zetsu_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="zetsu_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"zetsu"
+speaker_name = "Biscuit"
+dialogue_text = "ZETSU é o descanso da aura.
+
+Quando você paralisa completamente o fluxo de sua aura, entra em ZETSU. Nesse estado, você não emite nenhuma energia e se recupera mais rapidamente.
+
+Use ZETSU fora de combate para descansar. Ativa ZETSU para regenerar vida mais rápido!"
+branches = Array[ExtResource("3_28ckf")]([SubResource("zetsu_continue")])
+unlock_technique_on_enter = &"zetsu"
+
+; ==================== RAMO GYO ====================
+[sub_resource type="Resource" id="gyo_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"gyo_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="gyo_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"gyo"
+speaker_name = "Biscuit"
+dialogue_text = "GYO é a técnica de percepção.
+
+Você concentra sua aura nos olhos para enxergar melhor. Com GYO, você consegue ver coisas invisíveis ao olho nu e aumenta sua percepção em combate.
+
+Use GYO para esquivar melhor. Quanto melhor dominar GYO, maior sua capacidade de evasão!"
+branches = Array[ExtResource("3_28ckf")]([SubResource("gyo_continue")])
+unlock_technique_on_enter = &"gyo"
+
+; ==================== RAMO KO ====================
+[sub_resource type="Resource" id="ko_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"ko_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="ko_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"ko"
+speaker_name = "Biscuit"
+dialogue_text = "KO é a técnica ofensiva máxima.
+
+Você canaliza toda sua aura em uma parte específica do seu corpo para atacar com força devastadora. KO permite ataques extremamente poderosos, mas consome muita aura.
+
+Use KO para seus ataques mais fortes. Quanto melhor dominar KO, maior seu poder de ataque!"
+branches = Array[ExtResource("3_28ckf")]([SubResource("ko_continue")])
+unlock_technique_on_enter = &"ko"
+
+; ==================== RAMO SHU ====================
+[sub_resource type="Resource" id="shu_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"shu_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="shu_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"shu"
+speaker_name = "Biscuit"
+dialogue_text = "SHU é a técnica de manipulação externa.
+
+Com SHU, você consegue manipular objetos externos canalizando aura neles. Isso permite criar armas de aura ou controlar o ambiente ao seu redor.
+
+SHU é uma técnica avançada. Estude-a bem antes de tentar dominá-la!"
+branches = Array[ExtResource("3_28ckf")]([SubResource("shu_continue")])
+unlock_technique_on_enter = &"shu"
+
+; ==================== RAMO EN ====================
+[sub_resource type="Resource" id="en_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"en_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="en_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"en"
+speaker_name = "Biscuit"
+dialogue_text = "EN é a técnica de expansão sensorial.
+
+Com EN, você expande sua percepção de aura numa grande área ao seu redor, permitindo detectar inimigos e suas posições mesmo sem vê-los.
+
+EN é extremamente útil para exploração. Use-a para investigar áreas desconhecidas!"
+branches = Array[ExtResource("3_28ckf")]([SubResource("en_continue")])
+unlock_technique_on_enter = &"en"
+
+; ==================== RAMO RYU ====================
+[sub_resource type="Resource" id="ryu_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"ryu_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="ryu_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"ryu"
+speaker_name = "Biscuit"
+dialogue_text = "RYU é a técnica de fluxo de aura.
+
+Com RYU, você aprende a canalizar aura de forma contínua e fluida, combinando técnicas de forma harmoniosa. RYU permite criar ataques combinados e movimentos mais eficientes.
+
+RYU é a técnica mais avançada. Somente guerreiros muito experientes conseguem dominá-la!"
+branches = Array[ExtResource("3_28ckf")]([SubResource("ryu_continue")])
+unlock_technique_on_enter = &"ryu"
+
+; ==================== MENU PRINCIPAL ====================
+[sub_resource type="Resource" id="menu_ten"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_ten"
+choice_text = "TEN (Defesa)"
+next_node_id = &"ten"
+
+[sub_resource type="Resource" id="menu_ren"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_ren"
+choice_text = "REN (Expansão)"
+next_node_id = &"ren"
+
+[sub_resource type="Resource" id="menu_zetsu"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_zetsu"
+choice_text = "ZETSU (Recuperação)"
+next_node_id = &"zetsu"
+
+[sub_resource type="Resource" id="menu_gyo"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_gyo"
+choice_text = "GYO (Percepção)"
+next_node_id = &"gyo"
+
+[sub_resource type="Resource" id="menu_ko"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_ko"
+choice_text = "KO (Ataque)"
+next_node_id = &"ko"
+
+[sub_resource type="Resource" id="menu_shu"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_shu"
+choice_text = "SHU (Manipulação)"
+next_node_id = &"shu"
+
+[sub_resource type="Resource" id="menu_en"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_en"
+choice_text = "EN (Expansão Sensorial)"
+next_node_id = &"en"
+
+[sub_resource type="Resource" id="menu_ryu"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_ryu"
+choice_text = "RYU (Fluxo)"
+next_node_id = &"ryu"
+
+[sub_resource type="Resource" id="menu_goodbye"]
+script = ExtResource("3_28ckf")
+branch_id = &"menu_goodbye"
+choice_text = "Chega por hoje..."
+next_node_id = &""
+
+[sub_resource type="Resource" id="menu_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"menu"
+speaker_name = "Biscuit"
+dialogue_text = "Qual técnica deseja aprender?"
+branches = Array[ExtResource("3_28ckf")]([SubResource("menu_ten"), SubResource("menu_ren"), SubResource("menu_zetsu"), SubResource("menu_gyo"), SubResource("menu_ko"), SubResource("menu_shu"), SubResource("menu_en"), SubResource("menu_ryu"), SubResource("menu_goodbye")])
+
+; ==================== EXPLICAÇÃO INICIAL ====================
+[sub_resource type="Resource" id="intro_continue"]
+script = ExtResource("3_28ckf")
+branch_id = &"intro_continue"
+choice_text = "Continuar..."
+next_node_id = &"menu"
+
+[sub_resource type="Resource" id="intro_node"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"intro"
+speaker_name = "Biscuit"
+dialogue_text = "Olá! Eu sou Biscuit, sua treinadora de Nen.
+
+Nen é a energia vital que flui dentro de todos os seres vivos. Para se tornar um verdadeiro Hunter, você PRECISA dominar Nen.
+
+Existem 4 técnicas essenciais que todo aprendiz deve aprender: TEN, REN, ZETSU e GYO. E depois, técnicas avançadas: SHU, KO, EN e RYU.
+
+Vou ensinar cada uma delas. Escolha qual técnica deseja aprender primeiro."
+branches = Array[ExtResource("3_28ckf")]([SubResource("intro_continue")])
+
+[resource]
+script = ExtResource("1_ujfgc")
+tree_id = &"biscuit_dialogue"
+npc_name = "Biscuit"
+npc_id = &"biscuit"
+nodes = {&"intro": SubResource("intro_node"), &"menu": SubResource("menu_node"), &"ten": SubResource("ten_node"), &"ren": SubResource("ren_node"), &"zetsu": SubResource("zetsu_node"), &"gyo": SubResource("gyo_node"), &"ko": SubResource("ko_node"), &"shu": SubResource("shu_node"), &"en": SubResource("en_node"), &"ryu": SubResource("ryu_node")}
+root_node_id = &"intro"

@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://ritual_vaso_npc"]
+
+[ext_resource type="Script" path="res://entities/npc/ritual_vaso/RitualVasoNPC.gd" id="1_rv"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rv"]
+size = Vector2(64, 64)
+
+[node name="RitualVasoNPC" type="Area2D"]
+script = ExtResource("1_rv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_rv")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="InteractionLabel" type="Label" parent="."]
+offset_left = -150.0
+offset_top = -50.0
+offset_right = 150.0
+offset_bottom = -27.0
+text = "Pressione [E]"
+horizontal_alignment = 1

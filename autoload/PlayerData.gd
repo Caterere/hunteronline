@@ -1,0 +1,926 @@
+extends Node
+
+# ============================================================
+# HUNTER ONLINE - PLAYER DATA
+# ============================================================
+#
+# LEVEL NORMAL:
+# Vida
+# Força
+# Defesa
+# Velocidade
+#
+# LEVEL NEN:
+# Aura Máxima
+#
+# XP NORMAL e XP NEN são sistemas separados.
+#
+# ============================================================
+
+
+# ============================================================
+# ATRIBUTOS
+# ============================================================
+
+var attributes: Dictionary = {
+
+	"vida": 100,
+	"vida_max": 100,
+
+	"forca": 10,
+
+	"defesa": 10,
+
+	"velocidade": 10,
+
+	# ========================================================
+	# NEN
+	# ========================================================
+
+	"aura": 0.0,
+	"aura_max": 0.0,
+
+	"nivel_nen": 0,
+	"xp_nen": 0,
+
+	# ========================================================
+	# LEVEL NORMAL
+	# ========================================================
+
+	"nivel": 1
+}
+
+
+# ============================================================
+# QUESTS
+# ============================================================
+
+var quest_states: Dictionary = {}
+
+# ============================================================
+# PROGRESSÃO DE ARCO DA HISTÓRIA
+# ============================================================
+
+var arco_atual: int = 1
+var etapa_quest_arco: int = 1
+var max_arco_desbloqueado: int = 1
+var modo_historia_concluido: bool = false
+var torre_andar_atual: int = 1
+var casa_desbloqueada: bool = true
+var tour_lobby_concluido: bool = false
+var tutorial_concluido: bool = false
+var tutorial_etapa_atual: int = 0
+var tutorial_data: Dictionary = {
+	"tutorial_inicial_concluido": false,
+	"movimento": false,
+	"interacao": false,
+	"menus": false,
+	"inventario": false,
+	"combate": false,
+	"status": false,
+	"nen_conceito": false,
+	"nen_despertar_visto": false,
+	"hatsu_visto": false,
+	"gyo_visto": false,
+	"treinamento_visto": false
+}
+var conhecimentos_desbloqueados: Array[String] = [
+	"mundo_associacao_hunter",
+	"combate_basico",
+	"atributos_vitalidade",
+	"menus_sistema"
+]
+var mapa_atual_salvo: String = "res://world/lobby.tscn"
+var posicao_salva: Vector2 = Vector2.ZERO
+
+func avancar_arco() -> void:
+	if arco_atual < 9:
+		arco_atual += 1
+		etapa_quest_arco = 1
+	elif arco_atual == 9:
+		modo_historia_concluido = true
+		print("[PlayerData] MODO HISTÓRIA TOTALMENTE CONCLUÍDO!")
+		
+	max_arco_desbloqueado = max(max_arco_desbloqueado, arco_atual)
+	print("=================================")
+	print("[PlayerData] ARCO AVANÇADO PARA: ", arco_atual, " | MAX DESBLOQUEADO: ", max_arco_desbloqueado)
+	print("=================================")
+	
+	if GameState != null:
+		GameState.salvar_jogo()
+
+
+func completar_etapa_historia(arco: int = -1) -> void:
+	if arco > 0 and arco == arco_atual:
+		avancar_arco()
+	elif arco <= 0:
+		avancar_arco()
+
+
+
+# ============================================================
+# DADOS DO PERSONAGEM E SELEÇÃO
+# ============================================================
+
+enum Dificuldade { FACIL, NORMAL, DIFICIL, MUITO_DIFICIL, HUNTER_SUPREMO }
+
+@export var dificuldade: Dificuldade = Dificuldade.NORMAL
+var potencial: float = 1.0
+var reputacao_hunter: int = 0
+var titulo_equipado: String = "Hunter Novato"
+var titulos_desbloqueados: Array[String] = ["Hunter Novato"]
+var faccao_atual: String = ""
+var faccao_rank: int = 0
+var segredos_descobertos: Array[String] = []
+var socos_netero_contador: int = 0
+var fita_ging_ouvida: bool = false
+
+func obter_multiplicador_dificuldade() -> Dictionary:
+	match dificuldade:
+		Dificuldade.FACIL: return {"hp": 1.2, "dano": 1.2, "xp": 1.5}
+		Dificuldade.NORMAL: return {"hp": 1.0, "dano": 1.0, "xp": 1.0}
+		Dificuldade.DIFICIL: return {"hp": 0.8, "dano": 0.8, "xp": 0.8}
+		Dificuldade.MUITO_DIFICIL: return {"hp": 0.6, "dano": 0.6, "xp": 0.5}
+		Dificuldade.HUNTER_SUPREMO: return {"hp": 0.4, "dano": 0.4, "xp": 0.3}
+	return {"hp": 1.0, "dano": 1.0, "xp": 1.0}
+
+func obter_multiplicador_dificuldade_inimigo() -> Dictionary:
+	match dificuldade:
+		Dificuldade.FACIL: return {"hp": 0.8, "dano": 0.8, "defesa": 0.8}
+		Dificuldade.NORMAL: return {"hp": 1.0, "dano": 1.0, "defesa": 1.0}
+		Dificuldade.DIFICIL: return {"hp": 1.6, "dano": 1.5, "defesa": 1.4}
+		Dificuldade.MUITO_DIFICIL: return {"hp": 2.5, "dano": 2.2, "defesa": 2.0}
+		Dificuldade.HUNTER_SUPREMO: return {"hp": 4.0, "dano": 3.5, "defesa": 3.0}
+	return {"hp": 1.0, "dano": 1.0, "defesa": 1.0}
+
+func obter_nome_dificuldade() -> String:
+	match dificuldade:
+		Dificuldade.FACIL: return "Fácil"
+		Dificuldade.NORMAL: return "Normal"
+		Dificuldade.DIFICIL: return "Difícil"
+		Dificuldade.MUITO_DIFICIL: return "Muito Difícil"
+		Dificuldade.HUNTER_SUPREMO: return "Hunter Supremo"
+	return "Normal"
+
+var character_id: String = ""
+var nome_personagem: String = "Hunter"
+var afinidade_nen: NenAffinityData.CategoriaAfinidade = NenAffinityData.CategoriaAfinidade.INTENSIFICACAO
+var slot_ativo: int = 1
+var is_character_ready: bool = false
+
+var character_colors: Dictionary = {
+	"cabelo": Color(0.15, 0.15, 0.15, 1.0),
+	"roupa": Color(0.2, 0.6, 0.3, 1.0)
+}
+
+func gerar_novo_character_id() -> String:
+	var chars = "abcdef0123456789"
+	var rand_part = ""
+	for i in range(8):
+		rand_part += chars[randi() % chars.length()]
+	character_id = "hxr-%s-s%d" % [rand_part, slot_ativo]
+	return character_id
+
+
+
+
+# ============================================================
+# INVENTÁRIO
+# ============================================================
+
+
+var inventory: Dictionary = {}
+var tecnicas_nen: Dictionary = {}
+
+
+# ============================================================
+# PROGRESSÃO DE HISTÓRIA / LORE
+# ============================================================
+
+var despertou_nen: bool = false       # Desbloqueado com Wing na Arena Celestial
+var hatsu_desbloqueado: bool = false   # Desbloqueado com Biscuit em Greed Island
+var besta_nen_desbloqueada: bool = false
+var besta_nen_equipada: NenBeastData = null
+var bestas_nen_desbloqueadas: Array = []
+var conquistas_desbloqueadas: Array = []
+var conquistas_resgatadas: Array = []
+
+var stats_globais: Dictionary = {
+	"inimigos_derrotados": 0,
+	"perfect_dodges": 0,
+	"dano_maximo_golpe": 0,
+	"bounties_capturados": 0,
+	"equipamentos_mais_10": 0,
+	"cartas_coletadas": 0,
+	"hatsus_executados": 0,
+	"jenny_acumulado": 0
+}
+
+
+func registrar_estatistica(chave: String, valor: int = 1) -> void:
+	if not stats_globais.has(chave):
+		stats_globais[chave] = 0
+	stats_globais[chave] += valor
+	var ach_sys = Engine.get_main_loop().root.get_node_or_null("/root/AchievementSystem") if Engine.get_main_loop() else null
+	if ach_sys and ach_sys.has_method("verificar_todas_conquistas"):
+		ach_sys.verificar_todas_conquistas()
+
+
+
+func desbloquear_besta_nen(besta: NenBeastData) -> void:
+	if besta == null:
+		return
+	besta_nen_desbloqueada = true
+	var ja_tem = false
+	for b in bestas_nen_desbloqueadas:
+		if b is NenBeastData and b.nome_besta == besta.nome_besta:
+			ja_tem = true
+			break
+	if not ja_tem:
+		bestas_nen_desbloqueadas.append(besta)
+	if besta_nen_equipada == null:
+		equipar_besta_nen(besta)
+
+
+func equipar_besta_nen(besta: NenBeastData) -> void:
+	besta_nen_equipada = besta
+	besta_nen_desbloqueada = true
+	var n_sys = Engine.get_main_loop().root.get_tree().get_first_node_in_group("nen_beast_system") if Engine.get_main_loop() else null
+	if n_sys and n_sys.has_method("equipar_besta"):
+		n_sys.equipar_besta(besta)
+
+
+# MISSÕES PARALELAS (XENOVERSE STYLE)
+var parallel_quests_concluidas: Array = []
+var missao_paralela_ativa_id: int = -1
+
+func concluir_missao_paralela(pq_id: int) -> void:
+	if not parallel_quests_concluidas.has(pq_id):
+		parallel_quests_concluidas.append(pq_id)
+		print("[PlayerData] Missão Paralela PQ %d CONCLUÍDA COM SUCESSO!" % pq_id)
+	if GameState != null:
+		GameState.salvar_jogo()
+
+
+
+# ============================================================
+# HATSU
+# ============================================================
+
+var hatsu_criados: Array = []
+var hatsu_slots: Array = [-1, -1, -1, -1]
+
+
+func _ready() -> void:
+	hatsu_criados.clear()
+	hatsu_slots = [-1, -1, -1, -1]
+
+
+
+# ============================================================
+# STAT MODIFIERS & PIPELINE DE ATRIBUTOS
+# ============================================================
+
+var active_modifiers: Array = [] # Array de StatModifier
+
+func adicionar_modificador(mod) -> void:
+	if mod == null:
+		return
+	# Remover modificador anterior com mesmo ID se existir
+	remover_modificador(mod.id)
+	active_modifiers.append(mod)
+	recalcular_todos_atributos()
+
+func remover_modificador(mod_id: StringName) -> void:
+	if mod_id.is_empty():
+		return
+	for i in range(active_modifiers.size() - 1, -1, -1):
+		if active_modifiers[i].id == mod_id:
+			active_modifiers.remove_at(i)
+	recalcular_todos_atributos()
+
+func remover_modificadores_da_fonte(source: String) -> void:
+	for i in range(active_modifiers.size() - 1, -1, -1):
+		if active_modifiers[i].source == source:
+			active_modifiers.remove_at(i)
+	recalcular_todos_atributos()
+
+func obter_stat_calculado(stat_name: String) -> float:
+	var nivel: int = int(attributes.get("nivel", 1))
+	var nivel_nen: int = int(attributes.get("nivel_nen", 0))
+
+	var base_val: float = 10.0
+	match stat_name:
+		"vida_max": base_val = 100.0 + float((nivel - 1) * 10)
+		"forca": base_val = 10.0 + float((nivel - 1) * 2)
+		"defesa": base_val = 10.0 + float((nivel - 1) * 2)
+		"velocidade": base_val = 10.0 + float(nivel - 1)
+		"aura_max": base_val = float(nivel_nen) * 100.0
+
+	# 1. Bônus Base por Afinidade
+	var mult_afinidade: float = 1.0
+	match afinidade_nen:
+		NenAffinityData.CategoriaAfinidade.INTENSIFICACAO:
+			if stat_name == "forca" or stat_name == "vida_max": mult_afinidade = 1.20
+		NenAffinityData.CategoriaAfinidade.TRANSFORMACAO:
+			if stat_name == "aura_max": mult_afinidade = 1.25
+		NenAffinityData.CategoriaAfinidade.CONJURACAO:
+			if stat_name == "defesa": mult_afinidade = 1.30
+		NenAffinityData.CategoriaAfinidade.MANIPULACAO:
+			if stat_name == "velocidade": mult_afinidade = 1.25
+		NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+			if stat_name == "vida_max" or stat_name == "forca" or stat_name == "defesa": mult_afinidade = 1.50
+			elif stat_name == "aura_max": mult_afinidade = 1.60
+			elif stat_name == "velocidade": mult_afinidade = 1.40
+
+	base_val *= mult_afinidade
+
+	# 2. Pipeline de Modificadores (Flat -> Percentage -> Multiplicative)
+	var flat_sum: float = 0.0
+	var pct_sum: float = 0.0
+	var mult_product: float = 1.0
+
+	for m in active_modifiers:
+		if m == null or String(m.stat_name) != stat_name:
+			continue
+		match int(m.type):
+			0: # FLAT
+				flat_sum += m.value
+			1: # PERCENTAGE
+				pct_sum += m.value
+			2: # MULTIPLICATIVE
+				mult_product *= m.value
+
+	var final_val: float = (base_val + flat_sum) * (1.0 + pct_sum) * mult_product
+	return max(1.0, final_val) if stat_name != "aura_max" or nivel_nen > 0 else 0.0
+
+func recalcular_todos_atributos() -> void:
+	attributes["vida_max"] = int(obter_stat_calculado("vida_max"))
+	attributes["forca"] = int(obter_stat_calculado("forca"))
+	attributes["defesa"] = int(obter_stat_calculado("defesa"))
+	attributes["velocidade"] = int(obter_stat_calculado("velocidade"))
+	attributes["aura_max"] = obter_stat_calculado("aura_max")
+
+	# Ajustar vida e aura atuais aos novos limites
+	if attributes.has("vida"):
+		attributes["vida"] = clamp(attributes["vida"], 0, attributes["vida_max"])
+	if attributes.has("aura"):
+		attributes["aura"] = clamp(attributes["aura"], 0.0, attributes["aura_max"])
+
+# ============================================================
+# ATRIBUTOS
+# ============================================================
+
+func get_attributes() -> Dictionary:
+	return attributes
+
+# ============================================================
+# LEVEL NORMAL
+# ============================================================
+
+func aplicar_nivel(novo_nivel: int) -> void:
+	if novo_nivel < 1:
+		novo_nivel = 1
+
+	attributes["nivel"] = novo_nivel
+	recalcular_todos_atributos()
+	attributes["vida"] = attributes["vida_max"]
+
+	print("=================================")
+	print("ATRIBUTOS ATUALIZADOS")
+	print("LEVEL NORMAL: ", novo_nivel)
+	print("VIDA: ", attributes["vida"], "/", attributes["vida_max"])
+	print("FORÇA: ", attributes["forca"])
+	print("DEFESA: ", attributes["defesa"])
+	print("VELOCIDADE: ", attributes["velocidade"])
+	print("NÍVEL NEN: ", attributes["nivel_nen"])
+	print("AURA: ", attributes["aura"], "/", attributes["aura_max"])
+	print("=================================")
+
+
+
+# ============================================================
+# APLICAR LEVEL NEN
+# ============================================================
+#
+# Essa função é a ÚNICA responsável por alterar:
+#
+# nivel_nen
+# aura_max
+#
+# Regra:
+#
+# Nen Lv.0 → Aura Máxima 0
+# Nen Lv.1 → Aura Máxima 100
+# Nen Lv.2 → Aura Máxima 200
+# Nen Lv.3 → Aura Máxima 300
+#
+# etc.
+#
+# ============================================================
+
+func aplicar_nivel_nen(novo_nivel: int) -> void:
+	if novo_nivel < 0:
+		novo_nivel = 0
+
+	attributes["nivel_nen"] = novo_nivel
+	recalcular_todos_atributos()
+	attributes["aura"] = attributes["aura_max"]
+
+	print("=================================")
+	print("NEN LEVEL UP!")
+	print("NÍVEL NEN: ", novo_nivel)
+	print("AURA: ", attributes["aura"], "/", attributes["aura_max"])
+	print("=================================")
+
+
+
+# ============================================================
+# QUEST ID
+# ============================================================
+
+func _get_quest_id(quest: Quest) -> String:
+	if quest == null:
+		return ""
+	if not quest.resource_path.is_empty():
+		return quest.resource_path
+	if not quest.quest_name.is_empty():
+		return quest.quest_name
+	return str(quest.get_instance_id())
+
+
+# ============================================================
+# QUEST COMPLETADA
+# ============================================================
+
+func is_quest_completed(quest: Quest) -> bool:
+
+	if quest == null:
+		return false
+
+
+	var quest_id := _get_quest_id(quest)
+
+
+	if quest_id.is_empty():
+		return false
+
+
+	if not quest_states.has(quest_id):
+		return false
+
+
+	return (
+		quest_states[quest_id]["status"]
+		== "completed"
+	)
+
+
+# ============================================================
+# QUEST ATIVA
+# ============================================================
+
+func is_quest_active(quest: Quest) -> bool:
+
+	if quest == null:
+		return false
+
+
+	var quest_id := _get_quest_id(quest)
+
+
+	if quest_id.is_empty():
+		return false
+
+
+	if not quest_states.has(quest_id):
+		return false
+
+
+	return (
+		quest_states[quest_id]["status"]
+		== "active"
+	)
+
+
+# ============================================================
+# COMEÇAR QUEST
+# ============================================================
+
+func start_quest(quest: Quest) -> bool:
+
+	if quest == null:
+		return false
+
+
+	var quest_id := _get_quest_id(quest)
+
+
+	if quest_id.is_empty():
+		return false
+
+
+	if is_quest_active(quest):
+		return false
+
+
+	if is_quest_completed(quest):
+		return false
+
+
+	var progress: Array[int] = []
+
+
+	for objective in quest.objectives:
+
+		progress.append(0)
+
+
+	quest_states[quest_id] = {
+
+		"status": "active",
+
+		"progress": progress
+	}
+
+
+	print(
+		"Quest iniciada: ",
+		quest.quest_name
+	)
+
+
+	return true
+
+
+# ============================================================
+# PROGRESSO
+# ============================================================
+
+func get_quest_objective_progress(
+	quest: Quest,
+	objective_index: int
+) -> int:
+
+	if quest == null:
+		return 0
+
+
+	var quest_id := _get_quest_id(quest)
+
+
+	if quest_id.is_empty():
+		return 0
+
+
+	if not quest_states.has(quest_id):
+		return 0
+
+
+	var progress: Array = (
+		quest_states[quest_id]["progress"]
+	)
+
+
+	if (
+		objective_index < 0
+		or objective_index >= progress.size()
+	):
+
+		return 0
+
+
+	return progress[objective_index]
+
+
+# ============================================================
+# DEFINIR PROGRESSO
+# ============================================================
+
+func set_quest_objective_progress(
+	quest: Quest,
+	objective_index: int,
+	value: int
+) -> void:
+
+	if quest == null:
+		return
+
+
+	var quest_id := _get_quest_id(quest)
+
+
+	if quest_id.is_empty():
+		return
+
+
+	if not quest_states.has(quest_id):
+		return
+
+
+	var progress: Array = (
+		quest_states[quest_id]["progress"]
+	)
+
+
+	if (
+		objective_index < 0
+		or objective_index >= progress.size()
+	):
+
+		return
+
+
+	progress[objective_index] = value
+
+
+# ============================================================
+# COMPLETAR QUEST
+# ============================================================
+
+func complete_quest(quest: Quest) -> void:
+
+	if quest == null:
+		return
+
+
+	var quest_id := _get_quest_id(quest)
+
+
+	if quest_id.is_empty():
+		return
+
+
+	if not quest_states.has(quest_id):
+		return
+
+
+	quest_states[quest_id]["status"] = "completed"
+
+
+	print(
+		"Quest concluída: ",
+		quest.quest_name
+	)
+
+
+# ============================================================
+# INVENTÁRIO
+# ============================================================
+
+func adicionar_item(
+	item_id: StringName,
+	quantidade: int = 1
+) -> void:
+
+	if item_id.is_empty():
+		return
+
+	if quantidade <= 0:
+		return
+
+	if not inventory.has(item_id):
+		inventory[item_id] = 0
+
+	inventory[item_id] += quantidade
+
+	print(
+		"Item adicionado: ",
+		item_id,
+		" +",
+		quantidade
+	)
+
+
+# ============================================================
+# REMOVER ITEM
+# ============================================================
+
+func remover_item(
+	item_id: StringName,
+	quantidade: int = 1
+) -> bool:
+
+	if item_id.is_empty():
+		return false
+
+	if quantidade <= 0:
+		return false
+
+	if not inventory.has(item_id):
+		return false
+
+	if inventory[item_id] < quantidade:
+		return false
+
+	inventory[item_id] -= quantidade
+
+	if inventory[item_id] <= 0:
+		inventory.erase(item_id)
+
+	print(
+		"Item removido: ",
+		item_id,
+		" -",
+		quantidade
+	)
+
+	return true
+
+
+# ============================================================
+# OBTER QUANTIDADE DE ITEM
+# ============================================================
+
+func obter_item_quantidade(item_id: StringName) -> int:
+
+	if not inventory.has(item_id):
+		return 0
+
+	return inventory[item_id]
+
+
+# ============================================================
+# VERIFICAR ITEM
+# ============================================================
+
+func tem_item(
+	item_id: StringName,
+	quantidade: int = 1
+) -> bool:
+
+	return obter_item_quantidade(item_id) >= quantidade
+
+
+# ============================================================
+# BÔNUS DA AFINIDADE DE NEN
+# ============================================================
+
+func aplicar_bonuses_afinidade() -> void:
+	recalcular_todos_atributos()
+
+
+
+
+# ============================================================
+# ============================================================
+# HATSU MANAGEMENT
+# ============================================================
+
+func popular_hatsus_iniciais() -> void:
+	# Função utilitária/debug (NÃO é mais executada no boot de novo personagem)
+	hatsu_criados.clear()
+	for info in CanonHatsuCatalog.obter_hatsus_canonicos():
+		var h: HatsuData = HatsuManager.obter_hatsu_canonico(info["id"])
+		if h != null:
+			hatsu_criados.append(h)
+			
+	if hatsu_slots[0] == -1 and hatsu_criados.size() >= 4:
+		hatsu_slots = [0, 1, 2, 3]
+	hatsu_desbloqueado = true
+	print("[PlayerData] Popular Hatsus Iniciais concluído: ", hatsu_criados.size(), " habilidades disponíveis.")
+
+
+func obter_todos_hatsus_disponiveis() -> Array[HatsuData]:
+	var lista: Array[HatsuData] = []
+	for h in hatsu_criados:
+		if h is HatsuData:
+			lista.append(h)
+	return lista
+
+
+func adicionar_hatsu(hatsu: HatsuData) -> int:
+	if hatsu == null:
+		return -1
+		
+	hatsu_criados.append(hatsu)
+	hatsu_desbloqueado = true
+	var index: int = hatsu_criados.size() - 1
+	
+	# Auto-equipar no primeiro slot livre
+	for i in range(hatsu_slots.size()):
+		if hatsu_slots[i] == -1:
+			hatsu_slots[i] = index
+			print("[PlayerData] Hatsu auto-equipado no slot ", i + 1)
+			break
+			
+	return index
+
+
+func equipar_hatsu(slot: int, hatsu_index: int) -> bool:
+	if slot < 0 or slot >= hatsu_slots.size():
+		return false
+		
+	if hatsu_index < 0 or hatsu_index >= hatsu_criados.size():
+		return false
+		
+	hatsu_slots[slot] = hatsu_index
+	return true
+
+func equipar_hatsu_slot(slot: int, hatsu: HatsuData) -> bool:
+	if hatsu == null or slot < 0 or slot >= hatsu_slots.size():
+		return false
+	var idx: int = adicionar_hatsu(hatsu)
+	return equipar_hatsu(slot, idx)
+
+
+
+func desequipar_hatsu(slot: int) -> void:
+	if slot >= 0 and slot < hatsu_slots.size():
+		hatsu_slots[slot] = -1
+
+
+func obter_hatsu_slot(slot: int) -> HatsuData:
+	if slot < 0 or slot >= hatsu_slots.size():
+		return null
+		
+	var idx: int = hatsu_slots[slot]
+	if idx < 0 or idx >= hatsu_criados.size():
+		return null
+	return hatsu_criados[idx] as HatsuData
+
+
+func adicionar_gold(quantidade: int) -> void:
+	Economy.adicionar_gold(quantidade)
+
+
+func adicionar_ouro(quantidade: int) -> void:
+	Economy.adicionar_gold(quantidade)
+
+
+# ============================================================
+# TÍTULOS E SEGREDO
+# ============================================================
+
+func desbloquear_titulo(titulo: String) -> void:
+	if not titulos_desbloqueados.has(titulo):
+		titulos_desbloqueados.append(titulo)
+		print("[PlayerData] 🎖️ TÍTULO DESBLOQUEADO: ", titulo)
+		var ach_sys = Engine.get_main_loop().root.get_node_or_null("/root/AchievementSystem") if Engine.get_main_loop() else null
+		if ach_sys and ach_sys.has_method("verificar_todas_conquistas"):
+			ach_sys.verificar_todas_conquistas()
+
+
+func equipar_titulo(titulo: String) -> bool:
+	if titulos_desbloqueados.has(titulo):
+		titulo_equipado = titulo
+		print("[PlayerData] Título equipado: ", titulo)
+		
+		# Limpar modificadores de títulos anteriores
+		remover_modificadores_da_fonte("titulo")
+		
+		# Aplicar bônus passivo do título equipado
+		var t_lower = titulo.to_lower()
+		if "hunter" in t_lower:
+			adicionar_modificador(StatModifier.new(&"mod_titulo_hunter_forca", &"forca", StatModifier.Type.FLAT, 3.0, -1.0, "titulo"))
+			adicionar_modificador(StatModifier.new(&"mod_titulo_hunter_defesa", &"defesa", StatModifier.Type.FLAT, 3.0, -1.0, "titulo"))
+			adicionar_modificador(StatModifier.new(&"mod_titulo_hunter_vel", &"velocidade", StatModifier.Type.FLAT, 2.0, -1.0, "titulo"))
+		elif "pacificador" in t_lower or "zaban" in t_lower:
+			adicionar_modificador(StatModifier.new(&"mod_titulo_zaban_hp", &"vida_max", StatModifier.Type.FLAT, 25.0, -1.0, "titulo"))
+			adicionar_modificador(StatModifier.new(&"mod_titulo_zaban_def", &"defesa", StatModifier.Type.FLAT, 5.0, -1.0, "titulo"))
+		elif "ten" in t_lower:
+			adicionar_modificador(StatModifier.new(&"mod_titulo_ten_def", &"defesa", StatModifier.Type.FLAT, 6.0, -1.0, "titulo"))
+		elif "ko" in t_lower:
+			adicionar_modificador(StatModifier.new(&"mod_titulo_ko_forca", &"forca", StatModifier.Type.FLAT, 6.0, -1.0, "titulo"))
+			
+		recalcular_todos_atributos()
+		
+		var ply = Engine.get_main_loop().root.get_tree().get_first_node_in_group("player") if Engine.get_main_loop() else null
+		if ply and ply.has_node("PlayerNameLabel"):
+			var lbl = ply.get_node("PlayerNameLabel") as Label
+			if lbl:
+				lbl.text = "%s\n[%s]" % [nome_personagem, titulo_equipado]
+		return true
+	return false
+
+
+func registrar_segredo(segredo_id: String) -> void:
+	if not segredos_descobertos.has(segredo_id):
+		segredos_descobertos.append(segredo_id)
+		print("[PlayerData] 🔍 SEGREDO REGISTRADO: ", segredo_id)
+		if GameState != null:
+			GameState.salvar_jogo()
+
+
+# ============================================================
+# CONHECIMENTO & HUNTER GUIDE
+# ============================================================
+
+func desbloquear_conhecimento(conhecimento_id: String, categoria: String = "") -> bool:
+	if not conhecimentos_desbloqueados.has(conhecimento_id):
+		conhecimentos_desbloqueados.append(conhecimento_id)
+		print("[PlayerData] 📖 NOVO CONHECIMENTO DESBLOQUEADO: ", conhecimento_id, " (Cat: ", categoria, ")")
+		if EventBus != null:
+			EventBus.tutorial_knowledge_unlocked.emit(conhecimento_id, categoria)
+			EventBus.emit_toast("📖 Novo Conhecimento: " + conhecimento_id.replace("_", " ").capitalize(), Color(0.4, 0.9, 1.0))
+		return true
+	return false
+
+
+func tem_conhecimento(conhecimento_id: String) -> bool:
+	return conhecimentos_desbloqueados.has(conhecimento_id)
+
+
+func concluir_etapa_tutorial(etapa_id: String) -> void:
+	tutorial_data[etapa_id] = true
+	print("[PlayerData] Etapa de tutorial concluída: ", etapa_id)

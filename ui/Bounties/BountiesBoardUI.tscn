@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c_bounties"]
+
+[ext_resource type="Script" path="res://ui/Bounties/BountiesBoardUI.gd" id="1_bounties"]
+
+[node name="BountiesBoardUI" type="CanvasLayer"]
+script = ExtResource("1_bounties")

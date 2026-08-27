@@ -1,0 +1,225 @@
+[gd_scene format=3 uid="uid://ded1t0rcatpad0k1"]
+
+[ext_resource type="Script" path="res://world/catalog/editor/TileCatalogEditor.gd" id="1_editor"]
+
+[node name="TileCatalogEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_editor")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.12, 0.16, 1)
+
+[node name="MainLayout" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="TopBar" type="PanelContainer" parent="MainLayout"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+
+[node name="HBox" type="HBoxContainer" parent="MainLayout/TopBar"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="LblTitle" type="Label" parent="MainLayout/TopBar/HBox"]
+layout_mode = 2
+text = "🎨 TILE CATALOG EDITOR — MODERN INTERIORS"
+
+[node name="OptSource" type="OptionButton" parent="MainLayout/TopBar/HBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+
+[node name="BtnExportar" type="Button" parent="MainLayout/TopBar/HBox"]
+layout_mode = 2
+text = "💾 Exportar JSON"
+
+[node name="LblStatus" type="Label" parent="MainLayout/TopBar/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Selecione um tile na grade..."
+
+[node name="ContentSplit" type="HSplitContainer" parent="MainLayout"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TilesheetScroll" type="ScrollContainer" parent="MainLayout/ContentSplit"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="TilesheetContainer" type="Control" parent="MainLayout/ContentSplit/TilesheetScroll"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="MainLayout/ContentSplit/TilesheetScroll/TilesheetContainer"]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 0
+
+[node name="GridOverlay" type="Control" parent="MainLayout/ContentSplit/TilesheetScroll/TilesheetContainer"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="SelectionRect" type="ColorRect" parent="MainLayout/ContentSplit/TilesheetScroll/TilesheetContainer"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_right = 16.0
+offset_bottom = 16.0
+mouse_filter = 2
+color = Color(1, 0.9, 0.2, 0.45)
+
+[node name="InspectorPanel" type="PanelContainer" parent="MainLayout/ContentSplit"]
+custom_minimum_size = Vector2(280, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Margin" type="MarginContainer" parent="MainLayout/ContentSplit/InspectorPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="InspectorVBox" type="VBoxContainer" parent="MainLayout/ContentSplit/InspectorPanel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LblInspectorTitle" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+text = "PROPRIEDADES DO TILE"
+
+[node name="PreviewHBox" type="HBoxContainer" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+
+[node name="LblPreview" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/PreviewHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Preview:"
+
+[node name="PreviewRect" type="TextureRect" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/PreviewHBox"]
+unique_name_in_owner = true
+texture_filter = 1
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LblID" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+text = "ID Único:"
+
+[node name="TxtID" type="LineEdit" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "ex: wood_floor_01"
+
+[node name="LblCategory" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+text = "Categoria:"
+
+[node name="OptCategory" type="OptionButton" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="LblSubcategory" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+text = "Subcategoria:"
+
+[node name="TxtSubcategory" type="LineEdit" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "ex: wood, stone, bedroom"
+
+[node name="LblTags" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+text = "Tags (separadas por vírgula):"
+
+[node name="TxtTags" type="LineEdit" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+placeholder_text = "wood, interior, walkable"
+
+[node name="RulesHBox" type="HBoxContainer" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+
+[node name="ChkWalkable" type="CheckBox" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/RulesHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Walkable"
+
+[node name="ChkCollision" type="CheckBox" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/RulesHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Collision"
+
+[node name="ChkRepeatable" type="CheckBox" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Repeatable (Preenche Área)"
+
+[node name="SizeHBox" type="HBoxContainer" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+
+[node name="LblWidth" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/SizeHBox"]
+layout_mode = 2
+text = "Largura:"
+
+[node name="SpinWidth" type="SpinBox" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/SizeHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 16.0
+value = 1.0
+
+[node name="LblHeight" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/SizeHBox"]
+layout_mode = 2
+text = "Altura:"
+
+[node name="SpinHeight" type="SpinBox" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/SizeHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 1.0
+max_value = 16.0
+value = 1.0
+
+[node name="LblOrientation" type="Label" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+text = "Orientação:"
+
+[node name="OptOrientation" type="OptionButton" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="BtnSalvar" type="Button" parent="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox"]
+layout_mode = 2
+text = "✅ SALVAR TILE NO CATÁLOGO"
+
+[connection signal="pressed" from="MainLayout/TopBar/HBox/BtnExportar" to="." method="_on_btn_exportar_json_pressed"]
+[connection signal="gui_input" from="MainLayout/ContentSplit/TilesheetScroll/TilesheetContainer/TextureRect" to="." method="_gui_input_tilesheet"]
+[connection signal="pressed" from="MainLayout/ContentSplit/InspectorPanel/Margin/InspectorVBox/BtnSalvar" to="." method="_on_btn_salvar_pressed"]

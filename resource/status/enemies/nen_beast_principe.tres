@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"nen_beast_principe"
+enemy_name = "Besta de Nen do Príncipe"
+level = 88
+max_health = 8000
+defense = 90
+strength = 200
+xp_reward = 30000
+knockback_resistance = 0.9
+hit_invulnerability_time = 0.15
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

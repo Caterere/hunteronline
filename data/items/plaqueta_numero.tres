@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://d902948m7103p"]
+
+[ext_resource type="Script" path="res://resource/item/ItemData.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = &"plaqueta_numero"
+nome_item = "Plaqueta de Número do Exame"
+tipo = 1
+descricao = "Plaqueta coletada de outro candidato na 4ª Fase do Exame Hunter na Ilha Zevil. Vale 3 pontos para a classificação final."
+preco_venda = 0
+acumulavel = true

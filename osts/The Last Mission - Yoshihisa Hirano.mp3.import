@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://c64kfcp8qcysu"
+path="res://.godot/imported/The Last Mission - Yoshihisa Hirano.mp3-bf6b4d06c594f4e6f4f847027fb3f2a1.mp3str"
+
+[deps]
+
+source_file="res://osts/The Last Mission - Yoshihisa Hirano.mp3"
+dest_files=["res://.godot/imported/The Last Mission - Yoshihisa Hirano.mp3-bf6b4d06c594f4e6f4f847027fb3f2a1.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

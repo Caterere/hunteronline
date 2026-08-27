@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://bj7ijnfjrkufl"]
+
+[ext_resource type="Script" path="res://ui/hud/PlayerHUD.gd" id="1_gfnvi"]
+[ext_resource type="PackedScene" path="res://ui/dialogue/VisualDialogueUI.tscn" id="5_dialogueui"]
+[ext_resource type="PackedScene" path="res://ui/hud/QuestHUD.tscn" id="9_questhud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_gfnvi"]
+bg_color = Color(0, 0.25403073, 0.45445734, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vgx8b"]
+bg_color = Color(1.6244128e-07, 0.26874253, 0.01323509, 1)
+corner_radius_top_left = 1
+corner_radius_top_right = 1
+corner_radius_bottom_right = 1
+corner_radius_bottom_left = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_7q0so"]
+bg_color = Color(0.4090556, 0.36152047, 0.05793967, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="Hud" type="CanvasLayer" unique_id=1991270435]
+script = ExtResource("1_gfnvi")
+
+[node name="MarginContainer" type="MarginContainer" parent="." unique_id=1097280638]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer" unique_id=1527125318]
+layout_mode = 2
+
+[node name="LevelLabel" type="Label" parent="MarginContainer/VBoxContainer" unique_id=493977955]
+layout_mode = 2
+theme_override_font_sizes/font_size = 4
+text = "Lv. 1"
+
+[node name="XPBar" type="ProgressBar" parent="MarginContainer/VBoxContainer" unique_id=64115800]
+layout_mode = 2
+theme_override_font_sizes/font_size = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_gfnvi")
+show_percentage = false
+
+[node name="HPBar" type="ProgressBar" parent="MarginContainer/VBoxContainer" unique_id=960900710]
+layout_mode = 2
+theme_override_font_sizes/font_size = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_vgx8b")
+show_percentage = false
+
+[node name="AuraBar" type="ProgressBar" parent="MarginContainer/VBoxContainer" unique_id=633894490]
+layout_mode = 2
+theme_override_font_sizes/font_size = 4
+theme_override_styles/background = SubResource("StyleBoxFlat_7q0so")
+show_percentage = false
+
+[node name="VisualDialogueUI" parent="." instance=ExtResource("5_dialogueui")]
+
+[node name="QuestHUD" parent="." instance=ExtResource("9_questhud")]

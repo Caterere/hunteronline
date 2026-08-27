@@ -1,0 +1,352 @@
+class_name CanonHatsuCatalog
+extends Resource
+
+# ============================================================
+# HUNTER ONLINE - CANON HATSU CATALOG (100% FIEL AO ANIME E MANGÁ)
+# ============================================================
+#
+# Catálogo oficial calibrado e balanceado com base na escala de poder canônica:
+# - Ataque Básico: ~10 de Dano.
+# - Hatsus Decisivos (ex: Jajanken Pedra do Gon): ~150 de Dano (15x ataque comum),
+#   com cooldown tático (~14s) e consumo substancial de Aura (~45) para não ser spammável.
+# - Modos de Aura (ex: 100-Type Guanyin Bodhisattva de Netero / Godspeed de Killua):
+#   Transformam o ataque básico para causar 100 de Dano com Attack Speed ultrassônico,
+#   consumindo 20 de Aura por golpe (permitindo ~5 golpes no Lv.1 e até 25-30 golpes no Lv.100).
+#
+# ============================================================
+
+static func obter_hatsus_canonicos() -> Array[Dictionary]:
+	return [
+		# --- GON FREECSS ---
+		{
+			"id": "gon_jajanken_pedra",
+			"nome": "Jajanken: Pedra (Rock)",
+			"usuario": "Gon Freecss",
+			"categoria": HatsuData.Categoria.INTENSIFICACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.TOQUE,
+			"condicoes": [HatsuData.Condicao.PARADO_CANALIZACAO],
+			"poder_base": 150.0,
+			"custo_aura": 45.0,
+			"cooldown": 14.0,
+			"alcance": 40.0,
+			"descricao": "Intensificação. Concentra Ko supremo no punho ('Primeiro vem a pedra...') para desferir um impacto devastador de 150 de Dano."
+		},
+		{
+			"id": "gon_jajanken_tesoura",
+			"nome": "Jajanken: Tesoura (Scissors)",
+			"usuario": "Gon Freecss",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.TOQUE,
+			"condicoes": [],
+			"poder_base": 85.0,
+			"custo_aura": 28.0,
+			"cooldown": 8.0,
+			"alcance": 50.0,
+			"descricao": "Transformação. Transmuta a aura nos dedos indicador e médio em uma lâmina afiada de 85 de Dano."
+		},
+		{
+			"id": "gon_jajanken_papel",
+			"nome": "Jajanken: Papel (Paper)",
+			"usuario": "Gon Freecss",
+			"categoria": HatsuData.Categoria.EMISSAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PROJETIL,
+			"condicoes": [],
+			"poder_base": 65.0,
+			"custo_aura": 22.0,
+			"cooldown": 6.0,
+			"alcance": 180.0,
+			"descricao": "Emissão. Projétil veloz de aura concentrada disparado da palma aberta causando 65 de Dano."
+		},
+
+		# --- KILLUA ZOLDYCK ---
+		{
+			"id": "killua_kanmuru",
+			"nome": "Godspeed (Kanmuru)",
+			"usuario": "Killua Zoldyck",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.MOBILIDADE,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [],
+			"poder_base": 65.0,
+			"custo_aura": 35.0,
+			"cooldown": 15.0,
+			"duracao": 10.0,
+			"descricao": "Transformação. Reprograma o sistema nervoso com eletricidade (+100% Velocidade, ataques de 65 de dano a 12 de aura/golpe)."
+		},
+		{
+			"id": "killua_narukami",
+			"nome": "Narukami (Thunderbolt)",
+			"usuario": "Killua Zoldyck",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.PROJETIL,
+			"condicoes": [],
+			"poder_base": 95.0,
+			"custo_aura": 32.0,
+			"cooldown": 9.0,
+			"alcance": 190.0,
+			"descricao": "Transformação + Emissão. Dispara um raio elétrico concentrado de 95 de Dano que atordoa o alvo."
+		},
+
+		# --- KAITO (KITE) ---
+		{
+			"id": "kite_crazy_slots",
+			"nome": "Crazy Slots (Arma Maluca)",
+			"usuario": "Kaito",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.SUPORTE,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [],
+			"poder_base": 80.0,
+			"custo_aura": 30.0,
+			"cooldown": 12.0,
+			"duracao": 10.0,
+			"descricao": "Conjuração. Materializa o palhaço com roleta de armas (Foice Silent Waltz, Clava e Rifle)."
+		},
+
+		# --- ISAAC NETERO ---
+		{
+			"id": "netero_guanyin",
+			"nome": "100-Type Guanyin Bodhisattva (Estátua dos 100 Braços)",
+			"usuario": "Isaac Netero",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [HatsuData.Condicao.ORACAO_GRATIDAO],
+			"poder_base": 100.0,
+			"custo_aura": 40.0,
+			"cooldown": 18.0,
+			"duracao": 12.0,
+			"descricao": "Conjuração + Manipulação. Manifesta a Deusa Guanyin: transforma o ataque básico em 100 de Dano a 8 golpes/s consumindo 20 de Aura por ataque."
+		},
+
+		# --- KURAPIKA (TODAS AS CORRENTES + EMPEROR TIME) ---
+		{
+			"id": "kurapika_emperor_time",
+			"nome": "Emperor Time (Tempo do Imperador)",
+			"usuario": "Kurapika",
+			"categoria": HatsuData.Categoria.ESPECIALIZACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.SUPORTE,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [HatsuData.Condicao.AUTO_DANO],
+			"poder_base": 80.0,
+			"custo_aura": 40.0,
+			"cooldown": 20.0,
+			"duracao": 10.0,
+			"descricao": "Especialização (Olhos Escarlates). Concede 100% de Eficiência Absoluta em todas as categorias de Nen."
+		},
+		{
+			"id": "kurapika_holy_chain",
+			"nome": "Holy Chain (Corrente Curativa - Polegar)",
+			"usuario": "Kurapika",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.CURA,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [],
+			"poder_base": 60.0,
+			"cura_base": 70.0,
+			"custo_aura": 35.0,
+			"cooldown": 12.0,
+			"descricao": "Conjuração + Intensificação. Envolve o corpo em aura curativa, restaurando 45% do HP Máximo."
+		},
+		{
+			"id": "kurapika_chain_jail",
+			"nome": "Chain Jail (Corrente do Aprisionamento - Médio)",
+			"usuario": "Kurapika",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.TOQUE,
+			"condicoes": [HatsuData.Condicao.ALVO_ELITE_BOSS],
+			"poder_base": 110.0,
+			"custo_aura": 40.0,
+			"cooldown": 14.0,
+			"alcance": 60.0,
+			"descricao": "Conjuração. Envolve o inimigo em correntes inquebráveis, causando 110 de Dano e impondo Zetsu forçado por 3s."
+		},
+		{
+			"id": "kurapika_judgement_chain",
+			"nome": "Judgement Chain (Corrente do Julgamento - Mínimo)",
+			"usuario": "Kurapika",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.TOQUE,
+			"condicoes": [],
+			"poder_base": 135.0,
+			"custo_aura": 42.0,
+			"cooldown": 15.0,
+			"alcance": 45.0,
+			"descricao": "Conjuração + Emissão. Estaca de corrente no coração do oponente, causando 135 de Dano mortal."
+		},
+		{
+			"id": "kurapika_dowsing_chain",
+			"nome": "Dowsing Chain (Corrente de Rastreamento - Anelar)",
+			"usuario": "Kurapika",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PROJETIL,
+			"condicoes": [],
+			"poder_base": 60.0,
+			"custo_aura": 20.0,
+			"cooldown": 5.0,
+			"alcance": 160.0,
+			"descricao": "Conjuração. Disparo rápido com precisão absoluta de 60 de Dano."
+		},
+
+		# --- HISOKA MOROW ---
+		{
+			"id": "hisoka_bungee_gum",
+			"nome": "Bungee Gum (Goma Elástica)",
+			"usuario": "Hisoka Morow",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.PROJETIL,
+			"condicoes": [],
+			"poder_base": 70.0,
+			"custo_aura": 25.0,
+			"cooldown": 7.0,
+			"alcance": 165.0,
+			"descricao": "Transformação. Dispara um chiclete elétrico de aura de 70 de Dano que puxa o inimigo para perto."
+		},
+
+		# --- FEITAN PORTOR ---
+		{
+			"id": "feitan_pain_packer",
+			"nome": "Pain Packer: Rising Sun (Sol Nascente)",
+			"usuario": "Feitan Portor",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.AREA,
+			"condicoes": [HatsuData.Condicao.DOR_ACUMULADA],
+			"poder_base": 180.0,
+			"custo_aura": 60.0,
+			"cooldown": 20.0,
+			"raio": 110.0,
+			"descricao": "Transformação + Conjuração. Transmuta a dor sofrida em um sol incandescente de 180 a 350 de Dano em área."
+		},
+
+		# --- LEORIO PARADINIGHT ---
+		{
+			"id": "leorio_remote_punch",
+			"nome": "Remote Punch (Soco Remoto)",
+			"usuario": "Leorio Paradinight",
+			"categoria": HatsuData.Categoria.EMISSAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PROJETIL,
+			"condicoes": [],
+			"poder_base": 80.0,
+			"custo_aura": 26.0,
+			"cooldown": 7.5,
+			"alcance": 170.0,
+			"descricao": "Emissão. Soca o solo e projeta um punho colossal de 80 de Dano embaixo do inimigo."
+		},
+
+		# --- CHROLLO LUCILFER ---
+		{
+			"id": "chrollo_skill_hunter",
+			"nome": "Skill Hunter (Segredo do Roubo)",
+			"usuario": "Chrollo Lucilfer",
+			"categoria": HatsuData.Categoria.ESPECIALIZACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.SUPORTE,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [],
+			"poder_base": 75.0,
+			"custo_aura": 50.0,
+			"cooldown": 15.0,
+			"descricao": "Especialização. Livro de Nen que potencializa e sincroniza múltiplos Hatsus."
+		},
+		{
+			"id": "chrollo_indoor_fish",
+			"nome": "Indoor Fish (Peixes de Nen)",
+			"usuario": "Chrollo Lucilfer",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.AREA,
+			"condicoes": [],
+			"poder_base": 85.0,
+			"custo_aura": 30.0,
+			"cooldown": 9.0,
+			"raio": 70.0,
+			"descricao": "Conjuração. Invoca peixes carnívoros de Nen que devoram os alvos em área (85 de Dano)."
+		},
+
+		# --- ZENO ZOLDYCK ---
+		{
+			"id": "zeno_dragon_head",
+			"nome": "Dragon Head (Cabeça do Dragão)",
+			"usuario": "Zeno Zoldyck",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PROJETIL,
+			"condicoes": [],
+			"poder_base": 115.0,
+			"custo_aura": 38.0,
+			"cooldown": 10.0,
+			"alcance": 190.0,
+			"descricao": "Transformação. Modela a aura na cabeça de um dragão perfurante de 115 de Dano."
+		},
+		{
+			"id": "zeno_dragon_dive",
+			"nome": "Dragon Dive (Chuva de Dragões)",
+			"usuario": "Zeno Zoldyck",
+			"categoria": HatsuData.Categoria.EMISSAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.AREA,
+			"condicoes": [],
+			"poder_base": 140.0,
+			"custo_aura": 50.0,
+			"cooldown": 16.0,
+			"raio": 120.0,
+			"descricao": "Emissão + Transformação. Chuva de milhares de lanças de aura do dragão caindo do céu (140 de Dano em área)."
+		},
+
+		# --- SILVA ZOLDYCK ---
+		{
+			"id": "silva_explosive_orbs",
+			"nome": "Explosive Aura Orbs (Orbes de Energia)",
+			"usuario": "Silva Zoldyck",
+			"categoria": HatsuData.Categoria.EMISSAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PROJETIL,
+			"condicoes": [],
+			"poder_base": 130.0,
+			"custo_aura": 45.0,
+			"cooldown": 13.0,
+			"alcance": 180.0,
+			"descricao": "Emissão + Transformação. Arremessa orbes colossais de aura destrutiva gerando 130 de Dano explosivo."
+		},
+
+		# --- MOREL MACKERNASEY ---
+		{
+			"id": "morel_deep_purple",
+			"nome": "Deep Purple (Soldados de Fumaça)",
+			"usuario": "Morel Mackernasey",
+			"categoria": HatsuData.Categoria.MANIPULACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.AREA,
+			"condicoes": [],
+			"poder_base": 60.0,
+			"custo_aura": 28.0,
+			"cooldown": 8.0,
+			"raio": 70.0,
+			"descricao": "Manipulação + Emissão. Soldados de fumaça sólida que causam 60 de Dano e desorientam os inimigos."
+		},
+
+		# --- ILLUMI ZOLDYCK ---
+		{
+			"id": "illumi_needle_people",
+			"nome": "Needle People (Agulhas de Manipulação)",
+			"usuario": "Illumi Zoldyck",
+			"categoria": HatsuData.Categoria.MANIPULACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.PROJETIL,
+			"condicoes": [],
+			"poder_base": 65.0,
+			"custo_aura": 24.0,
+			"cooldown": 6.0,
+			"alcance": 170.0,
+			"descricao": "Manipulação. Disparo veloz de agulhas de Nen que causam 65 de Dano e paralisam o alvo."
+		}
+	]

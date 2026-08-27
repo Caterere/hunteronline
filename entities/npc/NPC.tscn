@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://coxuod1rro0oa"]
+
+[ext_resource type="Script" path="res://entities/npc/NPC.gd" id="1_dqo36"]
+[ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="1_vgkl5"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dqo36"]
+radius = 6.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_fq5x3"]
+radius = 28.0
+
+[node name="NPC" type="CharacterBody2D" unique_id=732265563]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_dqo36")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=411289399]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1879395661]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_dqo36")
+
+[node name="InteractionComponent" type="Area2D" parent="." unique_id=1059474910]
+script = ExtResource("1_vgkl5")
+metadata/_custom_type_script = "uid://dwov68e6r1hyb"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionComponent" unique_id=1472322133]
+shape = SubResource("CircleShape2D_fq5x3")

@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b375u4r4318da"
+path="res://.godot/imported/Hashire! - Yoshihisa Hirano.mp3-193c6b2c7b392268b39b2b5b1afa96bb.mp3str"
+
+[deps]
+
+source_file="res://osts/Hashire! - Yoshihisa Hirano.mp3"
+dest_files=["res://.godot/imported/Hashire! - Yoshihisa Hirano.mp3-193c6b2c7b392268b39b2b5b1afa96bb.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

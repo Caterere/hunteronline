@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dw5syhpkgrvdl"
+path="res://.godot/imported/In the Palace (Agitato) - Yoshihisa Hirano.mp3-2821b68ef905321757f3ae2fa9ce7956.mp3str"
+
+[deps]
+
+source_file="res://osts/In the Palace (Agitato) - Yoshihisa Hirano.mp3"
+dest_files=["res://.godot/imported/In the Palace (Agitato) - Yoshihisa Hirano.mp3-2821b68ef905321757f3ae2fa9ce7956.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://cx82m71kpokkle1"]
+
+[ext_resource type="Script" path="res://entities/npc/pokkle/Pokkle.gd" id="1_pokkle"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/player.png" id="2_tex"]
+[ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="3_interact"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 6.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_area"]
+radius = 28.0
+
+[node name="Pokkle" type="CharacterBody2D"]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_pokkle")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.3, 0.8, 0.7, 1.0)
+position = Vector2(-0.5, -17)
+texture = ExtResource("2_tex")
+hframes = 6
+vframes = 10
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -3)
+shape = SubResource("CircleShape2D_body")
+
+[node name="InteractionComponent" type="Area2D" parent="."]
+script = ExtResource("3_interact")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionComponent"]
+shape = SubResource("CircleShape2D_area")

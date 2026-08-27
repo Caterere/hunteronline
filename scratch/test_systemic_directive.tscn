@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://systemic_test_scene"]
+
+[ext_resource type="Script" path="res://scratch/test_systemic_directive.gd" id="1_runner"]
+
+[node name="TestSystemicDirective" type="Node2D"]
+script = ExtResource("1_runner")

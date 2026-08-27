@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dyo85vmcl2xno"
+path="res://.godot/imported/Dirge from Dark Side - Yoshihisa Hirano.mp3-cfa7944e53fd7174e5d91d1f5efa747f.mp3str"
+
+[deps]
+
+source_file="res://osts/Dirge from Dark Side - Yoshihisa Hirano.mp3"
+dest_files=["res://.godot/imported/Dirge from Dark Side - Yoshihisa Hirano.mp3-cfa7944e53fd7174e5d91d1f5efa747f.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

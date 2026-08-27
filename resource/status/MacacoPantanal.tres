@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://cb3ax801m18a2"]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_enemy_data"]
+
+[resource]
+script = ExtResource("1_enemy_data")
+enemy_id = &"criatura_pantanal"
+enemy_name = "Macaco de Rosto Humano"
+level = 3
+max_health = 160
+defense = 8
+strength = 18
+xp_reward = 130
+knockback_resistance = 0.6
+hit_invulnerability_time = 0.15
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

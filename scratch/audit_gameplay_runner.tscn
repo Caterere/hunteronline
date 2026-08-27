@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c9auditgameplay1"]
+
+[ext_resource type="Script" path="res://scratch/audit_gameplay_runner.gd" id="1_audit_script"]
+
+[node name="AuditGameplayRunner" type="Node2D"]
+script = ExtResource("1_audit_script")

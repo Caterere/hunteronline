@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"criatura_pantanal"
+enemy_name = "Criatura do Pantanal"
+level = 3
+max_health = 80
+defense = 3
+strength = 8
+xp_reward = 120
+knockback_resistance = 0.3
+hit_invulnerability_time = 0.15
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

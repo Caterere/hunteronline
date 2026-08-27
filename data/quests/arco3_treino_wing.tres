@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="Quest" format=3 uid="uid://c4a8104m73aq8"]
+
+[ext_resource type="Script" uid="uid://cqqkdcs357k7x" path="res://scripts/QuestObjective.gd" id="1_obj"]
+[ext_resource type="Script" uid="uid://dxx1qxcxeelby" path="res://scripts/Quest.gd" id="2_quest"]
+
+[sub_resource type="Resource" id="Resource_wing"]
+script = ExtResource("1_obj")
+target_npc_id = &"wing"
+target_npc_name = "Wing"
+
+[resource]
+script = ExtResource("2_quest")
+quest_name = "Arco 3: Despertar do Nen (Mestre Wing)"
+description = "Vá até o andar 200 da Arena Celestial e treine com o Mestre Wing para despertar seu Nen!"
+objectives = Array[ExtResource("1_obj")]([SubResource("Resource_wing")])
+auto_complete = true
+reward_xp = 300
+reward_gold = 100

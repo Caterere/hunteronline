@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://binb6pphnlm2h"
+path="res://.godot/imported/Hunter x Hunter OST  In The Palace~Lamentoso_In The Palace~Agitato - Ank Sun Amunn.mp3-4577fe0b2f40d38f8cb5e8574ba75bfa.mp3str"
+
+[deps]
+
+source_file="res://osts/Hunter x Hunter OST  In The Palace~Lamentoso_In The Palace~Agitato - Ank Sun Amunn.mp3"
+dest_files=["res://.godot/imported/Hunter x Hunter OST  In The Palace~Lamentoso_In The Palace~Agitato - Ank Sun Amunn.mp3-4577fe0b2f40d38f8cb5e8574ba75bfa.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

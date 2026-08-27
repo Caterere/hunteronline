@@ -1,0 +1,29 @@
+[gd_scene load_steps=6 format=3 uid="uid://m091823p4192k"]
+
+[ext_resource type="Script" path="res://entities/npc/chrollo/Chrollo.gd" id="1_chrollo"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/player.png" id="2_tex"]
+[ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="3_interact"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 8.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_area"]
+radius = 24.0
+
+[node name="Chrollo" type="CharacterBody2D"]
+script = ExtResource("1_chrollo")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-0.5, -17)
+texture = ExtResource("2_tex")
+hframes = 6
+vframes = 10
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
+
+[node name="InteractionComponent" type="Area2D" parent="."]
+script = ExtResource("3_interact")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionComponent"]
+shape = SubResource("CircleShape2D_area")

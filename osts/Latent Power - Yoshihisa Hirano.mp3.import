@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b52t05ck1uhd4"
+path="res://.godot/imported/Latent Power - Yoshihisa Hirano.mp3-24cc4b142495b15f00c0a6b847a588a1.mp3str"
+
+[deps]
+
+source_file="res://osts/Latent Power - Yoshihisa Hirano.mp3"
+dest_files=["res://.godot/imported/Latent Power - Yoshihisa Hirano.mp3-24cc4b142495b15f00c0a6b847a588a1.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

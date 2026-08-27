@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"guarda_black_whale"
+enemy_name = "Guarda do Black Whale"
+level = 80
+max_health = 3500
+defense = 60
+strength = 120
+xp_reward = 12000
+knockback_resistance = 0.7
+hit_invulnerability_time = 0.15
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

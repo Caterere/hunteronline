@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://df8house1am20"]
+
+[ext_resource type="Script" path="res://world/maps/PlayerHouse.gd" id="1_house"]
+[ext_resource type="PackedScene" path="res://entities/Player/Player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://ui/hud/HUD.tscn" id="3_hud"]
+
+[node name="PlayerHouse" type="Node2D"]
+script = ExtResource("1_house")
+
+[node name="Hud" parent="." instance=ExtResource("3_hud")]
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(50, 120)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position_smoothing_enabled = true

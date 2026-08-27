@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://bbttdmqeqhode"
+path="res://.godot/imported/Hunter x Hunter (2011) OST - Tomodachi ni Narouyo - Anime Content.mp3-ebd48518a4bd1effac09d7d549595f46.mp3str"
+
+[deps]
+
+source_file="res://osts/Hunter x Hunter (2011) OST - Tomodachi ni Narouyo - Anime Content.mp3"
+dest_files=["res://.godot/imported/Hunter x Hunter (2011) OST - Tomodachi ni Narouyo - Anime Content.mp3-ebd48518a4bd1effac09d7d549595f46.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

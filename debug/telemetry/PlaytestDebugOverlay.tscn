@@ -1,0 +1,342 @@
+[gd_scene format=3 uid="uid://c7t8u3ptele1ov"]
+
+[ext_resource type="Script" path="res://debug/telemetry/PlaytestDebugOverlay.gd" id="1_script"]
+
+[node name="PlaytestDebugOverlay" type="CanvasLayer"]
+layer = 125
+script = ExtResource("1_script")
+
+[node name="MainContainer" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = -20.0
+offset_bottom = -15.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderBar" type="HBoxContainer" parent="MainContainer/VBox"]
+layout_mode = 2
+
+[node name="LblHeaderStatus" type="Label" parent="MainContainer/VBox/HeaderBar"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.2, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "HUNTER ONLINE TELEMETRIA | FPS: 60"
+
+[node name="LblSessionBadge" type="Label" parent="MainContainer/VBox/HeaderBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.4, 0.4, 1)
+theme_override_font_sizes/font_size = 10
+text = "⚪ SESSÃO INATIVA"
+
+[node name="TabContainer" type="TabContainer" parent="MainContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 10
+current_tab = 0
+
+[node name="1. Overview" type="TabBar" parent="MainContainer/VBox/TabContainer"]
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="MainContainer/VBox/TabContainer/1. Overview"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OverviewHBox" type="HBoxContainer" parent="MainContainer/VBox/TabContainer/1. Overview/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="LblPlayerStats" type="Label" parent="MainContainer/VBox/TabContainer/1. Overview/Scroll/OverviewHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[PLAYER DATA] Carregando..."
+
+[node name="LblWorldStats" type="Label" parent="MainContainer/VBox/TabContainer/1. Overview/Scroll/OverviewHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[WORLD DATA] Carregando..."
+
+[node name="LblPerfStats" type="Label" parent="MainContainer/VBox/TabContainer/1. Overview/Scroll/OverviewHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[PERFORMANCE] Carregando..."
+
+[node name="2. Combat & NPC" type="TabBar" parent="MainContainer/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="MainContainer/VBox/TabContainer/2. Combat & NPC"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="CombatHBox" type="HBoxContainer" parent="MainContainer/VBox/TabContainer/2. Combat & NPC/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="LblCombatStats" type="Label" parent="MainContainer/VBox/TabContainer/2. Combat & NPC/Scroll/CombatHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[COMBAT DATA] Nenhum alvo em combate."
+
+[node name="LblNpcStats" type="Label" parent="MainContainer/VBox/TabContainer/2. Combat & NPC/Scroll/CombatHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[NPC DATA] Nenhum NPC próximo."
+
+[node name="3. Nen & Discovery" type="TabBar" parent="MainContainer/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="MainContainer/VBox/TabContainer/3. Nen & Discovery"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NenHBox" type="HBoxContainer" parent="MainContainer/VBox/TabContainer/3. Nen & Discovery/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="LblNenStats" type="Label" parent="MainContainer/VBox/TabContainer/3. Nen & Discovery/Scroll/NenHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[NEN DATA] Carregando..."
+
+[node name="LblDiscoveryStats" type="Label" parent="MainContainer/VBox/TabContainer/3. Nen & Discovery/Scroll/NenHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[DISCOVERY DATA] Carregando..."
+
+[node name="4. Content Director" type="TabBar" parent="MainContainer/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="MainContainer/VBox/TabContainer/4. Content Director"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DirectorHBox" type="HBoxContainer" parent="MainContainer/VBox/TabContainer/4. Content Director/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="LblDirectorStats" type="Label" parent="MainContainer/VBox/TabContainer/4. Content Director/Scroll/DirectorHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[DIRECTOR DATA] Carregando..."
+
+[node name="LblBreakdownStats" type="Label" parent="MainContainer/VBox/TabContainer/4. Content Director/Scroll/DirectorHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "[BREAKDOWN DATA] Carregando..."
+
+[node name="5. Inspector" type="TabBar" parent="MainContainer/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="InspectorVBox" type="VBoxContainer" parent="MainContainer/VBox/TabContainer/5. Inspector"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="ControlsHBox" type="HBoxContainer" parent="MainContainer/VBox/TabContainer/5. Inspector/InspectorVBox"]
+layout_mode = 2
+
+[node name="LblCoords" type="Label" parent="MainContainer/VBox/TabContainer/5. Inspector/InspectorVBox/ControlsHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Coordenadas (X, Y):"
+
+[node name="InspectorCoordsEdit" type="LineEdit" parent="MainContainer/VBox/TabContainer/5. Inspector/InspectorVBox/ControlsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+text = "1200, 4080"
+placeholder_text = "ex: 3500, 2500"
+
+[node name="BtnInspectPlayerPos" type="Button" parent="MainContainer/VBox/TabContainer/5. Inspector/InspectorVBox/ControlsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "📍 Usar Posição do Player"
+
+[node name="BtnInspectCoords" type="Button" parent="MainContainer/VBox/TabContainer/5. Inspector/InspectorVBox/ControlsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "🔍 Avaliar Ponto"
+
+[node name="InspectorResultsLabel" type="RichTextLabel" parent="MainContainer/VBox/TabContainer/5. Inspector/InspectorVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Clique em 'Avaliar Ponto' para simular candidatos a eventos e analisar recusas."
+
+[node name="6. History" type="TabBar" parent="MainContainer/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="HistoryTextLabel" type="RichTextLabel" parent="MainContainer/VBox/TabContainer/6. History"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+bbcode_enabled = true
+text = "Nenhum evento registrado no histórico."
+
+[node name="7. Session & Export" type="TabBar" parent="MainContainer/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="SessionVBox" type="VBoxContainer" parent="MainContainer/VBox/TabContainer/7. Session & Export"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 6
+
+[node name="LblSessionSummary" type="RichTextLabel" parent="MainContainer/VBox/TabContainer/7. Session & Export/SessionVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "Sessão inativa."
+
+[node name="SessionActionsHBox" type="HBoxContainer" parent="MainContainer/VBox/TabContainer/7. Session & Export/SessionVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="BtnToggleSession" type="Button" parent="MainContainer/VBox/TabContainer/7. Session & Export/SessionVBox/SessionActionsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "🔴 INICIAR NOVA SESSÃO"
+
+[node name="BtnExportSession" type="Button" parent="MainContainer/VBox/TabContainer/7. Session & Export/SessionVBox/SessionActionsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "💾 EXPORTAR JSON (res://debug/playtest/)"
+
+[node name="LblExportResult" type="Label" parent="MainContainer/VBox/TabContainer/7. Session & Export/SessionVBox/SessionActionsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 8
+
+[node name="8. Heatmap" type="TabBar" parent="MainContainer/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+
+[node name="HeatmapVBox" type="VBoxContainer" parent="MainContainer/VBox/TabContainer/8. Heatmap"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="HeatmapControlsHBox" type="HBoxContainer" parent="MainContainer/VBox/TabContainer/8. Heatmap/HeatmapVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BtnToggleHeatmap" type="Button" parent="MainContainer/VBox/TabContainer/8. Heatmap/HeatmapVBox/HeatmapControlsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "🗺️ Alternar Exibição no Mapa (F4)"
+
+[node name="LblMode" type="Label" parent="MainContainer/VBox/TabContainer/8. Heatmap/HeatmapVBox/HeatmapControlsHBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Modo de Camada:"
+
+[node name="OptHeatmapMode" type="OptionButton" parent="MainContainer/VBox/TabContainer/8. Heatmap/HeatmapVBox/HeatmapControlsHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+
+[node name="HeatmapHelpLabel" type="RichTextLabel" parent="MainContainer/VBox/TabContainer/8. Heatmap/HeatmapVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "[color=#00e1ff][b]GUIA DO MAPA DE CALOR (HEATMAP):[/b][/color]
+• [color=#ff3333]💀 Zonas Mortas (Vazias):[/color] Setores onde nenhum NPC, Monstro, Evento ou POI existe.
+• [color=#3388ff]🔵 Camada de NPCs:[/color] Mapeia a densidade da população urbana e vilas.
+• [color=#ff5555]🔴 Camada PvE:[/color] Mapeia o perigo de monstros e zonas de combate.
+• [color=#ffdd00]🟡 Camada de Eventos:[/color] Mapeia áreas com encontros dinâmicos e eventos mundiais.
+• [color=#00ff88]🟢 Camada de Descobertas:[/color] Mapeia baús, segredos, glifos Gyo e barreiras Ko.
+
+Atalho rápido para ligar/desligar durante o jogo: [b]F4[/b]."
+
+[node name="FooterBar" type="HBoxContainer" parent="MainContainer/VBox"]
+layout_mode = 2
+
+[node name="LblFooterHelp" type="Label" parent="MainContainer/VBox/FooterBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.6, 0.6, 0.6, 1)
+theme_override_font_sizes/font_size = 8
+text = "Atalhos: F3 (Fechar) | F4 (Heatmap) | F5 (Inspector) | F6 (Sessão Rápida)"

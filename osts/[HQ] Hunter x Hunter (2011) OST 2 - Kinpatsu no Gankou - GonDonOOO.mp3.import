@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dd2mq5a7anwjy"
+path="res://.godot/imported/[HQ] Hunter x Hunter (2011) OST 2 - Kinpatsu no Gankou - GonDonOOO.mp3-4b419f0a8661e829651108bd9b4d944a.mp3str"
+
+[deps]
+
+source_file="res://osts/[HQ] Hunter x Hunter (2011) OST 2 - Kinpatsu no Gankou - GonDonOOO.mp3"
+dest_files=["res://.godot/imported/[HQ] Hunter x Hunter (2011) OST 2 - Kinpatsu no Gankou - GonDonOOO.mp3-4b419f0a8661e829651108bd9b4d944a.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

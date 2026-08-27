@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://dapu07rwfkrfx"
+path="res://.godot/imported/New Mutation - Yoshihisa Hirano.mp3-5c7d67a961f0b3162537d00757d420ec.mp3str"
+
+[deps]
+
+source_file="res://osts/New Mutation - Yoshihisa Hirano.mp3"
+dest_files=["res://.godot/imported/New Mutation - Yoshihisa Hirano.mp3-5c7d67a961f0b3162537d00757d420ec.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

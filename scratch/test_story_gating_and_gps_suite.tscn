@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bg76161jp8i43"]
+
+[ext_resource type="Script" path="res://scratch/test_story_gating_and_gps_suite.gd" id="1_suite"]
+
+[node name="TestStoryGatingAndGpsSuite" type="Node2D"]
+script = ExtResource("1_suite")

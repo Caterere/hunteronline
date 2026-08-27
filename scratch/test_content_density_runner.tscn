@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bdensrun1pad0k1"]
+
+[ext_resource type="Script" path="res://scratch/test_content_density_runner.gd" id="1_test"]
+
+[node name="TestContentDensityRunner" type="Node2D"]
+script = ExtResource("1_test")

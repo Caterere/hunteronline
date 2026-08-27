@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://b6di0ls7vhf7l"
+path="res://.godot/imported/Nowhere to Escape - Yoshihisa Hirano.mp3-fedebddb062823026037c1f7775db62d.mp3str"
+
+[deps]
+
+source_file="res://osts/Nowhere to Escape - Yoshihisa Hirano.mp3"
+dest_files=["res://.godot/imported/Nowhere to Escape - Yoshihisa Hirano.mp3-fedebddb062823026037c1f7775db62d.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

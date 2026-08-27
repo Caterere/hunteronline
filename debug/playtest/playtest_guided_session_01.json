@@ -1,0 +1,41 @@
+{
+  "combats_count": 0,
+  "completed_quests_list": [
+    "padokia_01"
+  ],
+  "damage_dealt": 95,
+  "damage_received": 0,
+  "deaths": 0,
+  "discoveries_found": 0,
+  "distance_traveled_px": 0.0,
+  "distance_traveled_tiles": 0,
+  "duration_seconds": 0.187,
+  "encountered_events_list": [
+    "Grande Ponte de Pedra"
+  ],
+  "end_time_iso": "2026-08-27T13:18:53",
+  "enemies_killed": 1,
+  "enemy_kills_by_type": {
+    "slime": 1
+  },
+  "events_encountered": 1,
+  "found_discoveries_list": [],
+  "gold_gained": 1200,
+  "gold_spent": 0,
+  "hatsu_used": {
+
+  },
+  "interacted_npcs_list": [
+    "Mestre Wing"
+  ],
+  "max_single_hit": 95,
+  "nen_techniques_used": {
+    "REN_time_sec": 1.0,
+    "TEN_time_sec": 1.5
+  },
+  "npcs_interacted": 1,
+  "quests_completed": 1,
+  "session_id": "playtest_20260827T131853",
+  "start_time_iso": "2026-08-27T13:18:53",
+  "total_combat_duration_sec": 0.0
+}

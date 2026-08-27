@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://ch4r4ct3rcr34t0r"]
+
+[ext_resource type="Script" path="res://entities/character_creator/test/CharacterCreatorTest.gd" id="1_test"]
+[ext_resource type="Script" path="res://entities/character_creator/CharacterRenderer.gd" id="2_renderer"]
+
+[node name="CharacterCreatorTest" type="Node2D"]
+script = ExtResource("1_test")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2(320, 180)
+zoom = Vector2(1.5, 1.5)
+
+[node name="CharacterRenderer" type="Node2D" parent="."]
+position = Vector2(320, 220)
+scale = Vector2(2.5, 2.5)
+script = ExtResource("2_renderer")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="Panel" parent="UI"]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 460.0
+offset_bottom = 200.0
+
+[node name="InfoLabel" type="Label" parent="UI"]
+offset_left = 24.0
+offset_top = 22.0
+offset_right = 450.0
+offset_bottom = 190.0
+theme_override_font_sizes/font_size = 11
+text = "Iniciando..."

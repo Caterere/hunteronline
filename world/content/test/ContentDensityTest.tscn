@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://bdenscntpad0k1"]
+
+[ext_resource type="Script" path="res://world/content/test/ContentDensityTest.gd" id="1_test"]
+[ext_resource type="TileSet" path="res://world/tilesets/world_tileset.tres" id="2_tileset"]
+[ext_resource type="PackedScene" path="res://entities/Player/Player.tscn" id="3_player"]
+[ext_resource type="Script" path="res://world/content/ContentDirector.gd" id="4_director"]
+[ext_resource type="PackedScene" path="res://world/content/debug/ContentDebugOverlay.tscn" id="5_overlay"]
+
+[node name="ContentDensityTest" type="Node2D"]
+script = ExtResource("1_test")
+
+[node name="Chao_TileMapLayer" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tileset")
+
+[node name="Paredes_TileMapLayer" type="TileMapLayer" parent="."]
+tile_set = ExtResource("2_tileset")
+
+[node name="Player" parent="." instance=ExtResource("3_player")]
+position = Vector2(1200, 3800)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+position_smoothing_enabled = true
+
+[node name="ContentDirector" type="Node2D" parent="." groups=["content_director"]]
+script = ExtResource("4_director")
+
+[node name="ContentDebugOverlay" parent="." instance=ExtResource("5_overlay")]

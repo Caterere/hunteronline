@@ -1,0 +1,65 @@
+[gd_resource type="Resource" script_class="DialogueTree" format=3 uid="uid://cfr7c0nse6h5g"]
+
+[ext_resource type="Script" uid="uid://d8q8lvsqcjhvq" path="res://scripts/dialogue/DialogueTree.gd" id="1_ujfgc"]
+[ext_resource type="Script" uid="uid://d8rz7c7qv7g8a" path="res://scripts/dialogue/DialogueNode.gd" id="2_jjh2q"]
+[ext_resource type="Script" uid="uid://dyokxclvxjgum" path="res://scripts/dialogue/DialogueBranch.gd" id="3_28ckf"]
+[ext_resource type="Resource" uid="uid://cjwtnutmx7jgj" path="res://data/quests/conhecer_wing.tres" id="4_c7rpc"]
+
+[sub_resource type="Resource" id="Resource_jjh2q_1"]
+script = ExtResource("3_28ckf")
+branch_id = &"yes"
+choice_text = "Sim, quero aprender sobre Nen!"
+next_node_id = &"wing_teach"
+reward_xp = 100
+
+[sub_resource type="Resource" id="Resource_jjh2q_2"]
+script = ExtResource("3_28ckf")
+branch_id = &"no"
+choice_text = "Talvez mais tarde..."
+next_node_id = &""
+
+[sub_resource type="Resource" id="Resource_jjh2q_3"]
+script = ExtResource("3_28ckf")
+branch_id = &"continue"
+choice_text = "Continuar"
+next_node_id = &"wing_final"
+
+[sub_resource type="Resource" id="Resource_jjh2q_4"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"wing_teach"
+speaker_name = "Wing"
+dialogue_text = "Ótimo! Vou te ensinar o básico sobre Nen.
+
+Nen é a energia vital que flui dentro de você. Ao dominar Nen, você pode usar suas técnicas básicas e ganhar poder."
+branches = Array[ExtResource("3_28ckf")]([SubResource("Resource_jjh2q_3")])
+unlock_technique_on_enter = &"ten"
+
+[sub_resource type="Resource" id="Resource_jjh2q_5"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"wing_start"
+speaker_name = "Wing"
+dialogue_text = "Bem-vindo ao Exame Hunter! 
+
+Você está pronto para aprender sobre Nen?"
+branches = Array[ExtResource("3_28ckf")]([SubResource("Resource_jjh2q_1"), SubResource("Resource_jjh2q_2")])
+start_quest_on_enter = ExtResource("4_c7rpc")
+
+[sub_resource type="Resource" id="Resource_jjh2q_6"]
+script = ExtResource("2_jjh2q")
+script_class = "DialogueNode"
+node_id = &"wing_final"
+speaker_name = "Wing"
+dialogue_text = "Lembre-se: o Nen é uma jornada. Pratique constantemente e você se tornará um grande Hunter!
+
+Agora vá e treine suas habilidades!"
+auto_end = true
+
+[resource]
+script = ExtResource("1_ujfgc")
+tree_id = &"wing_dialogue"
+npc_name = "Wing"
+npc_id = &"wing"
+nodes = {&"wing_start": SubResource("Resource_jjh2q_5"), &"wing_teach": SubResource("Resource_jjh2q_4"), &"wing_final": SubResource("Resource_jjh2q_6")}
+root_node_id = &"wing_start"

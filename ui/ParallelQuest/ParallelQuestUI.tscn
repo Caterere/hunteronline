@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://b82pqm5x09m12"]
+
+[ext_resource type="Script" path="res://ui/ParallelQuest/ParallelQuestUI.gd" id="1_pqui"]
+
+[node name="ParallelQuestUI" type="CanvasLayer" unique_id=987214532]
+layer = 15
+script = ExtResource("1_pqui")

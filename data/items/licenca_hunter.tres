@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://b901924k8102m"]
+
+[ext_resource type="Script" path="res://resource/item/ItemData.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+item_id = &"licenca_hunter"
+nome_item = "Licença Hunter Oficial"
+tipo = 0
+descricao = "Prova irrefutável de ter passado no rigoroso Exame Hunter. Garante acesso livre a 90% dos países restritos do mundo e venda por bilhões de Jenny."
+preco_venda = 10000000
+acumulavel = false

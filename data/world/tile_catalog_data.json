@@ -1,0 +1,1206 @@
+{
+  "composite_objects": {
+    "bookcase_tall": {
+      "can_be_placed_inside": true,
+      "category": "FURNITURE",
+      "display_name": "Estante de Manuscritos de Nen",
+      "id": "bookcase_tall",
+      "parts": [
+        {
+          "atlas_coords": [
+            6.0,
+            2.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 0.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            6.0,
+            3.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 1.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        }
+      ],
+      "size_in_tiles": [
+        1,
+        2
+      ],
+      "subcategory": "library",
+      "tags": [
+        "bookcase",
+        "library",
+        "scholar"
+      ]
+    },
+    "double_bed_blue": {
+      "can_be_placed_inside": true,
+      "category": "FURNITURE",
+      "display_name": "Cama Dupla Azul",
+      "id": "double_bed_blue",
+      "parts": [
+        {
+          "atlas_coords": [
+            2.0,
+            2.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 0.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            3.0,
+            2.0
+          ],
+          "collision": true,
+          "dx": 1.0,
+          "dy": 0.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            2.0,
+            3.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 1.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            3.0,
+            3.0
+          ],
+          "collision": true,
+          "dx": 1.0,
+          "dy": 1.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            2.0,
+            4.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 2.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            3.0,
+            4.0
+          ],
+          "collision": true,
+          "dx": 1.0,
+          "dy": 2.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        }
+      ],
+      "size_in_tiles": [
+        2,
+        3
+      ],
+      "subcategory": "bedroom",
+      "tags": [
+        "bed",
+        "bedroom",
+        "rest",
+        "furniture"
+      ]
+    },
+    "shop_counter_wood": {
+      "can_be_placed_inside": true,
+      "category": "FURNITURE",
+      "display_name": "Balcão de Comércio de Madeira",
+      "id": "shop_counter_wood",
+      "parts": [
+        {
+          "atlas_coords": [
+            3.0,
+            2.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 0.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            4.0,
+            2.0
+          ],
+          "collision": true,
+          "dx": 1.0,
+          "dy": 0.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        }
+      ],
+      "size_in_tiles": [
+        2,
+        1
+      ],
+      "subcategory": "shop",
+      "tags": [
+        "counter",
+        "shop",
+        "merchant"
+      ]
+    },
+    "study_desk_pc": {
+      "can_be_placed_inside": true,
+      "category": "FURNITURE",
+      "display_name": "Mesa de Estudos com Computador",
+      "id": "study_desk_pc",
+      "parts": [
+        {
+          "atlas_coords": [
+            4.0,
+            2.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 0.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            5.0,
+            2.0
+          ],
+          "collision": true,
+          "dx": 1.0,
+          "dy": 0.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            4.0,
+            3.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 1.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            5.0,
+            3.0
+          ],
+          "collision": true,
+          "dx": 1.0,
+          "dy": 1.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        }
+      ],
+      "size_in_tiles": [
+        2,
+        2
+      ],
+      "subcategory": "office",
+      "tags": [
+        "desk",
+        "office",
+        "study",
+        "pc"
+      ]
+    },
+    "training_dummy_nen": {
+      "can_be_placed_inside": true,
+      "category": "OBJECT",
+      "display_name": "Boneco de Teste de Dano Nen",
+      "id": "training_dummy_nen",
+      "parts": [
+        {
+          "atlas_coords": [
+            8.0,
+            2.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 0.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        },
+        {
+          "atlas_coords": [
+            8.0,
+            3.0
+          ],
+          "collision": true,
+          "dx": 0.0,
+          "dy": 1.0,
+          "layer": 2.0,
+          "source_id": 1.0
+        }
+      ],
+      "size_in_tiles": [
+        1,
+        2
+      ],
+      "subcategory": "dojo",
+      "tags": [
+        "dummy",
+        "training",
+        "dojo",
+        "nen"
+      ]
+    }
+  },
+  "tiles": {
+    "carpet_blue": {
+      "atlas_coords": [
+        2,
+        13
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": true,
+      "can_form_boundary": false,
+      "category": "FLOOR",
+      "collision": false,
+      "id": "carpet_blue",
+      "layer": 0,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "carpet",
+      "tags": [
+        "carpet",
+        "bedroom",
+        "blue",
+        "floor",
+        "walkable",
+        "repeatable"
+      ],
+      "walkable": true
+    },
+    "carpet_red": {
+      "atlas_coords": [
+        1,
+        13
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": true,
+      "can_form_boundary": false,
+      "category": "FLOOR",
+      "collision": false,
+      "id": "carpet_red",
+      "layer": 0,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "carpet",
+      "tags": [
+        "carpet",
+        "luxury",
+        "red",
+        "floor",
+        "walkable",
+        "repeatable"
+      ],
+      "walkable": true
+    },
+    "ceramic_floor_white": {
+      "atlas_coords": [
+        1,
+        9
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": true,
+      "can_form_boundary": false,
+      "category": "FLOOR",
+      "collision": false,
+      "id": "ceramic_floor_white",
+      "layer": 0,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "ceramic",
+      "tags": [
+        "ceramic",
+        "interior",
+        "white",
+        "floor",
+        "walkable",
+        "repeatable"
+      ],
+      "walkable": true
+    },
+    "door_threshold_wood": {
+      "atlas_coords": [
+        1,
+        9
+      ],
+      "can_connect_rooms": true,
+      "can_fill_area": false,
+      "can_form_boundary": false,
+      "category": "DOOR",
+      "collision": false,
+      "id": "door_threshold_wood",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": false,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "door",
+      "tags": [
+        "door",
+        "threshold",
+        "walkable"
+      ],
+      "walkable": true
+    },
+    "house_plant_pot": {
+      "atlas_coords": [
+        7,
+        2
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": false,
+      "category": "DECORATION",
+      "collision": false,
+      "id": "house_plant_pot",
+      "layer": 2,
+      "orientation": "NONE",
+      "repeatable": false,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 1,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Interiors_free_16x16.png",
+      "subcategory": "living",
+      "tags": [
+        "plant",
+        "decor",
+        "green"
+      ],
+      "walkable": false
+    },
+    "iron_gate_ruins": {
+      "atlas_coords": [
+        4,
+        4
+      ],
+      "can_connect_rooms": true,
+      "can_fill_area": false,
+      "can_form_boundary": false,
+      "category": "DOOR",
+      "collision": false,
+      "id": "iron_gate_ruins",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": false,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "door",
+      "tags": [
+        "door",
+        "iron",
+        "dungeon"
+      ],
+      "walkable": true
+    },
+    "stone_floor_pavement": {
+      "atlas_coords": [
+        2,
+        9
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": true,
+      "can_form_boundary": false,
+      "category": "FLOOR",
+      "collision": false,
+      "id": "stone_floor_pavement",
+      "layer": 0,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "stone",
+        "urban",
+        "street",
+        "floor",
+        "walkable",
+        "repeatable"
+      ],
+      "walkable": true
+    },
+    "stone_wall_bottom": {
+      "atlas_coords": [
+        3,
+        2
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_bottom",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "bottom"
+      ],
+      "walkable": false
+    },
+    "stone_wall_center": {
+      "atlas_coords": [
+        4,
+        1
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_center",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "center"
+      ],
+      "walkable": false
+    },
+    "stone_wall_corner_bl": {
+      "atlas_coords": [
+        3,
+        2
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_corner_bl",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "corner",
+        "bottom_left"
+      ],
+      "walkable": false
+    },
+    "stone_wall_corner_br": {
+      "atlas_coords": [
+        5,
+        2
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_corner_br",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "corner",
+        "bottom_right"
+      ],
+      "walkable": false
+    },
+    "stone_wall_corner_tl": {
+      "atlas_coords": [
+        3,
+        0
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_corner_tl",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "corner",
+        "top_left"
+      ],
+      "walkable": false
+    },
+    "stone_wall_corner_tr": {
+      "atlas_coords": [
+        5,
+        0
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_corner_tr",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "corner",
+        "top_right"
+      ],
+      "walkable": false
+    },
+    "stone_wall_left": {
+      "atlas_coords": [
+        3,
+        1
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_left",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "left"
+      ],
+      "walkable": false
+    },
+    "stone_wall_right": {
+      "atlas_coords": [
+        5,
+        1
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_right",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "right"
+      ],
+      "walkable": false
+    },
+    "stone_wall_top": {
+      "atlas_coords": [
+        3,
+        0
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "stone_wall_top",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "stone",
+      "tags": [
+        "wall",
+        "stone",
+        "top"
+      ],
+      "walkable": false
+    },
+    "storage_chest_wood": {
+      "atlas_coords": [
+        4,
+        2
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": false,
+      "category": "OBJECT",
+      "collision": true,
+      "id": "storage_chest_wood",
+      "layer": 2,
+      "orientation": "NONE",
+      "repeatable": false,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 1,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Interiors_free_16x16.png",
+      "subcategory": "storage",
+      "tags": [
+        "chest",
+        "storage",
+        "loot"
+      ],
+      "walkable": false
+    },
+    "tatami_mat": {
+      "atlas_coords": [
+        3,
+        9
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": true,
+      "can_form_boundary": false,
+      "category": "FLOOR",
+      "collision": false,
+      "id": "tatami_mat",
+      "layer": 0,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "tatami",
+      "tags": [
+        "tatami",
+        "dojo",
+        "training",
+        "floor",
+        "walkable",
+        "repeatable"
+      ],
+      "walkable": true
+    },
+    "wood_door_simple": {
+      "atlas_coords": [
+        4,
+        3
+      ],
+      "can_connect_rooms": true,
+      "can_fill_area": false,
+      "can_form_boundary": false,
+      "category": "DOOR",
+      "collision": false,
+      "id": "wood_door_simple",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": false,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "door",
+      "tags": [
+        "door",
+        "wood",
+        "entrance"
+      ],
+      "walkable": true
+    },
+    "wood_floor_dark": {
+      "atlas_coords": [
+        2,
+        5
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": true,
+      "can_form_boundary": false,
+      "category": "FLOOR",
+      "collision": false,
+      "id": "wood_floor_dark",
+      "layer": 0,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wood",
+        "interior",
+        "dark",
+        "floor",
+        "walkable",
+        "repeatable"
+      ],
+      "walkable": true
+    },
+    "wood_floor_light": {
+      "atlas_coords": [
+        3,
+        5
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": true,
+      "can_form_boundary": false,
+      "category": "FLOOR",
+      "collision": false,
+      "id": "wood_floor_light",
+      "layer": 0,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wood",
+        "interior",
+        "light",
+        "floor",
+        "walkable",
+        "repeatable"
+      ],
+      "walkable": true
+    },
+    "wood_floor_parquet": {
+      "atlas_coords": [
+        1,
+        5
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": false,
+      "category": "FLOOR",
+      "collision": false,
+      "id": "wood_floor_parquet",
+      "layer": 0,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wood",
+        "interior",
+        "parquet",
+        "floor",
+        "walkable",
+        "repeatable"
+      ],
+      "walkable": true
+    },
+    "wood_wall_bottom": {
+      "atlas_coords": [
+        0,
+        2
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_bottom",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "bottom"
+      ],
+      "walkable": false
+    },
+    "wood_wall_center": {
+      "atlas_coords": [
+        1,
+        1
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_center",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "center"
+      ],
+      "walkable": false
+    },
+    "wood_wall_corner_bl": {
+      "atlas_coords": [
+        0,
+        2
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_corner_bl",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "corner",
+        "bottom_left"
+      ],
+      "walkable": false
+    },
+    "wood_wall_corner_br": {
+      "atlas_coords": [
+        2,
+        2
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_corner_br",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "corner",
+        "bottom_right"
+      ],
+      "walkable": false
+    },
+    "wood_wall_corner_tl": {
+      "atlas_coords": [
+        0,
+        0
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_corner_tl",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "corner",
+        "top_left"
+      ],
+      "walkable": false
+    },
+    "wood_wall_corner_tr": {
+      "atlas_coords": [
+        2,
+        0
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_corner_tr",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "corner",
+        "top_right"
+      ],
+      "walkable": false
+    },
+    "wood_wall_left": {
+      "atlas_coords": [
+        0,
+        1
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_left",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "left"
+      ],
+      "walkable": false
+    },
+    "wood_wall_right": {
+      "atlas_coords": [
+        2,
+        1
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_right",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "right"
+      ],
+      "walkable": false
+    },
+    "wood_wall_top": {
+      "atlas_coords": [
+        0,
+        0
+      ],
+      "can_connect_rooms": false,
+      "can_fill_area": false,
+      "can_form_boundary": true,
+      "category": "WALL",
+      "collision": true,
+      "id": "wood_wall_top",
+      "layer": 1,
+      "orientation": "NONE",
+      "repeatable": true,
+      "size_in_tiles": [
+        1,
+        1
+      ],
+      "source_id": 0,
+      "source_texture_path": "res://assets/sprites/tilesets/Modern_Interiors_Free_v2.2/Modern tiles_Free/Interiors_free/16x16/Room_Builder_free_16x16.png",
+      "subcategory": "wood",
+      "tags": [
+        "wall",
+        "wood",
+        "top"
+      ],
+      "walkable": false
+    }
+  },
+  "version": "1.0",
+  "wall_sets": {
+    "stone_wall_dark": {
+      "center": "stone_wall_center",
+      "corner_bottom_left": "stone_wall_corner_bl",
+      "corner_bottom_right": "stone_wall_corner_br",
+      "corner_top_left": "stone_wall_corner_tl",
+      "corner_top_right": "stone_wall_corner_tr",
+      "display_name": "Conjunto de Parede de Pedra Ancestral",
+      "id": "stone_wall_dark",
+      "subcategory": "stone",
+      "wall_bottom": "stone_wall_bottom",
+      "wall_left": "stone_wall_left",
+      "wall_right": "stone_wall_right",
+      "wall_top": "stone_wall_top"
+    },
+    "wood_wall_classic": {
+      "center": "wood_wall_center",
+      "corner_bottom_left": "wood_wall_corner_bl",
+      "corner_bottom_right": "wood_wall_corner_br",
+      "corner_top_left": "wood_wall_corner_tl",
+      "corner_top_right": "wood_wall_corner_tr",
+      "display_name": "Conjunto de Parede de Madeira Clássica",
+      "id": "wood_wall_classic",
+      "subcategory": "wood",
+      "wall_bottom": "wood_wall_bottom",
+      "wall_left": "wood_wall_left",
+      "wall_right": "wood_wall_right",
+      "wall_top": "wood_wall_top"
+    }
+  }
+}

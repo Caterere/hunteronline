@@ -1,0 +1,31 @@
+# Godot 4
+.godot/
+
+# Exportações/builds
+/export/
+/build/
+/dist/
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Logs
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+
+# Saves locais / dados de usuário
+save/
+saves/
+user://
+
+# Arquivos de sistema
+*.bak

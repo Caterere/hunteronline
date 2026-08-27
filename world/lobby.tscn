@@ -1,0 +1,35 @@
+[gd_scene format=3 uid="uid://bxea8oxfnovyv"]
+
+[ext_resource type="PackedScene" uid="uid://b7ulauygmxt3k" path="res://entities/Player/Player.tscn" id="1_e5ykq"]
+[ext_resource type="Script" uid="uid://cl16yc2irxgep" path="res://world/Lobby.gd" id="1_lobby"]
+[ext_resource type="PackedScene" uid="uid://cab4uyc07gd6v" path="res://ui/dialogue/DialogueBox.tscn" id="5_dt2ce"]
+[ext_resource type="PackedScene" uid="uid://bj7ijnfjrkufl" path="res://ui/hud/HUD.tscn" id="7_3xmcv"]
+[ext_resource type="PackedScene" uid="uid://drsc6330t58ki" path="res://entities/npc/portal_hunter/PortalHunter.tscn" id="8_portal"]
+[ext_resource type="PackedScene" uid="uid://df2pqm5x1am15" path="res://entities/npc/parallel_quest/ParallelQuestNPC.tscn" id="9_pqnpc"]
+[ext_resource type="PackedScene" uid="uid://b82pqm5x1am12" path="res://ui/ParallelQuest/ParallelQuestUI.tscn" id="10_pqui"]
+
+[node name="Lobby" type="Node2D" unique_id=1204631302]
+script = ExtResource("1_lobby")
+
+[node name="Fundo" type="CanvasModulate" parent="." unique_id=102938475]
+color = Color(0.95, 0.95, 0.95, 1)
+
+[node name="Player" parent="." unique_id=788090642 instance=ExtResource("1_e5ykq")]
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1823389705]
+
+[node name="DialogueBox" parent="." unique_id=1390847238 instance=ExtResource("5_dt2ce")]
+offset_left = 48.0
+offset_top = -30.0
+offset_right = 80.0
+offset_bottom = -18.0
+
+[node name="PortalHunter" parent="." unique_id=676438593 instance=ExtResource("8_portal")]
+position = Vector2(100, 30)
+
+[node name="ParallelQuestNPC" parent="." unique_id=918273645 instance=ExtResource("9_pqnpc")]
+position = Vector2(145, 30)
+
+[node name="ParallelQuestUI" parent="." unique_id=987214532 instance=ExtResource("10_pqui")]
+
+[node name="Hud" parent="." unique_id=1991270435 instance=ExtResource("7_3xmcv")]

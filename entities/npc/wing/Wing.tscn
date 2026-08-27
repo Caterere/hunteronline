@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://fo644s7kahkx"]
+
+[ext_resource type="PackedScene" path="res://entities/npc/NPC.tscn" id="1_8rpi0"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/player.png" id="2_3awom"]
+[ext_resource type="Script" path="res://entities/npc/wing/Wing.gd" id="2_mrwii"]
+[ext_resource type="Resource" path="res://data/quests/conhecer_wing.tres" id="3_qd8bb"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mrwii"]
+size = Vector2(6, 4)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3awom"]
+size = Vector2(28, 28)
+
+[node name="Wing" unique_id=293390699 instance=ExtResource("1_8rpi0")]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("2_mrwii")
+quest = ExtResource("3_qd8bb")
+
+[node name="Sprite2D" parent="." index="0"]
+position = Vector2(-0.5, -17)
+texture = ExtResource("2_3awom")
+hframes = 6
+vframes = 10
+
+[node name="CollisionShape2D" parent="." index="1"]
+position = Vector2(0, -2)
+shape = SubResource("RectangleShape2D_mrwii")
+
+[node name="CollisionShape2D" parent="InteractionComponent" index="0"]
+position = Vector2(-0.5, -9)
+shape = SubResource("RectangleShape2D_3awom")

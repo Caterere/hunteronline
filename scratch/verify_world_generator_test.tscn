@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://3p4c7o3p2p06"]
+
+[ext_resource type="Script" path="res://scratch/verify_world_generator_test.gd" id="1_verif"]
+
+[node name="VerifyWorldGeneratorTest" type="Node2D"]
+script = ExtResource("1_verif")

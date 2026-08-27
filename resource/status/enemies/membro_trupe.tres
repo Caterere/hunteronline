@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"membro_trupe"
+enemy_name = "Membro da Trupe Fantasma"
+level = 50
+max_health = 1500
+defense = 45
+strength = 80
+xp_reward = 5000
+knockback_resistance = 0.8
+hit_invulnerability_time = 0.15
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

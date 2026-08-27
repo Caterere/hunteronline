@@ -1,0 +1,146 @@
+[gd_scene load_steps=5 format=3 uid="uid://c8y37m21k48p9"]
+
+[ext_resource type="Script" path="res://ui/NenMenu/NenMenu.gd" id="1_nenmenu"]
+
+[sub_resource type="Theme" id="Theme_08air"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_08air"]
+bg_color = Color(0.08, 0.10, 0.16, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.7, 1, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="FontVariation" id="FontVariation_clqm4"]
+
+[node name="NenMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_nenmenu")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -135.0
+offset_top = -80.0
+offset_right = 135.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_08air")
+theme_override_styles/panel = SubResource("StyleBoxFlat_08air")
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxMain" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TituloLabel" type="Label" parent="Panel/MarginContainer/VBoxMain"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.8, 1, 1)
+theme_override_fonts/font = SubResource("FontVariation_clqm4")
+theme_override_font_sizes/font_size = 7
+text = "MENU DE NEN — STATUS DO PERSONAGEM"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Panel/MarginContainer/VBoxMain"]
+layout_mode = 2
+
+[node name="HBoxContent" type="HBoxContainer" parent="Panel/MarginContainer/VBoxMain"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="ColEsquerda" type="VBoxContainer" parent="Panel/MarginContainer/VBoxMain/HBoxContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="NenLevelLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColEsquerda"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 5
+text = "Nen Lv. 0"
+
+[node name="NenXPLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColEsquerda"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 4
+text = "XP Nen: 0 / 100"
+
+[node name="AuraLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColEsquerda"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 1, 0.5, 1)
+theme_override_font_sizes/font_size = 4
+text = "Aura: 0 / 0"
+
+[node name="TecnicasLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColEsquerda"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.9, 0.9, 0.9, 1)
+theme_override_font_sizes/font_size = 4
+text = "TÉCNICAS:"
+autowrap_mode = 2
+
+[node name="ColDireita" type="VBoxContainer" parent="Panel/MarginContainer/VBoxMain/HBoxContent"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+
+[node name="AfinidadeLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColDireita"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.3, 1)
+theme_override_font_sizes/font_size = 5
+text = "Afinidade Natal: Oculta"
+
+[node name="AfinidadeDescLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColDireita"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 4
+text = "Revele sua afinidade no Teste da Água."
+autowrap_mode = 2
+
+[node name="HatsusLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColDireita"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(1, 0.5, 0.7, 1)
+theme_override_font_sizes/font_size = 4
+text = "SLOTS HATSU:"
+autowrap_mode = 2
+
+[node name="BestaLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColDireita"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.4, 1, 1)
+theme_override_font_sizes/font_size = 4
+text = "Besta de Nen: Nenhuma"
+
+[node name="FecharLabel" type="Label" parent="Panel/MarginContainer/VBoxMain"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.6, 0.7, 1)
+theme_override_font_sizes/font_size = 4
+text = "[Pressione N para Fechar]"
+horizontal_alignment = 1

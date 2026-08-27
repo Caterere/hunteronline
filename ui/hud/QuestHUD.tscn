@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://b123984m1209q"]
+
+[ext_resource type="Script" path="res://ui/hud/QuestHUD.gd" id="1_questhud"]
+
+[node name="QuestHUD" type="PanelContainer"]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -114.0
+offset_top = 4.0
+offset_right = -4.0
+offset_bottom = 54.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("1_questhud")

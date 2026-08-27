@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://df8pqm5x1am20"]
+
+[ext_resource type="Script" path="res://world/maps/ParallelQuestArena.gd" id="1_arena"]
+[ext_resource type="TileSet" path="res://world/tilesets/world_tileset.tres" id="2_tileset"]
+[ext_resource type="PackedScene" path="res://entities/Player/Player.tscn" id="3_player"]
+[ext_resource type="PackedScene" path="res://ui/hud/HUD.tscn" id="4_hud"]
+[ext_resource type="Script" path="res://world/components/MapVisualDecorator.gd" id="5_decor"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_h"]
+size = Vector2(4000, 40)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall_v"]
+size = Vector2(40, 2500)
+
+[node name="ParallelQuestArena" type="Node2D" unique_id=948210384]
+script = ExtResource("1_arena")
+
+[node name="Chao_TileMapLayer" type="TileMapLayer" parent="." unique_id=184920194]
+tile_set = ExtResource("2_tileset")
+
+[node name="Paredes_TileMapLayer" type="TileMapLayer" parent="." unique_id=583920194]
+z_index = 1
+tile_set = ExtResource("2_tileset")
+
+[node name="MapVisualDecorator" type="Node2D" parent="." unique_id=382910482]
+script = ExtResource("5_decor")
+estilo = 1
+
+[node name="Hud" parent="." unique_id=294810294 instance=ExtResource("4_hud")]
+
+[node name="Player" parent="." unique_id=788090642 instance=ExtResource("3_player")]
+position = Vector2(0, 0)
+
+[node name="Camera2D" type="Camera2D" parent="Player" unique_id=1823389705]
+position_smoothing_enabled = true
+
+[node name="LimitesColisao" type="StaticBody2D" parent="." unique_id=184729104]
+collision_layer = 1
+collision_mask = 2
+
+[node name="ParedeNorte" type="CollisionShape2D" parent="LimitesColisao" unique_id=102938471]
+position = Vector2(0, -1200)
+shape = SubResource("RectangleShape2D_wall_h")
+
+[node name="ParedeSul" type="CollisionShape2D" parent="LimitesColisao" unique_id=102938472]
+position = Vector2(0, 1200)
+shape = SubResource("RectangleShape2D_wall_h")
+
+[node name="ParedeOeste" type="CollisionShape2D" parent="LimitesColisao" unique_id=102938473]
+position = Vector2(-1900, 0)
+shape = SubResource("RectangleShape2D_wall_v")
+
+[node name="ParedeLeste" type="CollisionShape2D" parent="LimitesColisao" unique_id=102938474]
+position = Vector2(1900, 0)
+shape = SubResource("RectangleShape2D_wall_v")

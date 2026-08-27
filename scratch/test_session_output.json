@@ -1,0 +1,34 @@
+{
+  "combats_count": 0,
+  "completed_quests_list": [],
+  "damage_dealt": 0,
+  "damage_received": 0,
+  "deaths": 0,
+  "discoveries_found": 0,
+  "distance_traveled_px": 0.0,
+  "distance_traveled_tiles": 0,
+  "duration_seconds": 0.001,
+  "encountered_events_list": [],
+  "end_time_iso": "2026-08-27T16:33:46",
+  "enemies_killed": 1,
+  "enemy_kills_by_type": {
+    "slime": 1
+  },
+  "events_encountered": 0,
+  "found_discoveries_list": [],
+  "gold_gained": 500,
+  "gold_spent": 0,
+  "hatsu_used": {
+
+  },
+  "interacted_npcs_list": [],
+  "max_single_hit": 0,
+  "nen_techniques_used": {
+
+  },
+  "npcs_interacted": 0,
+  "quests_completed": 0,
+  "session_id": "playtest_20260827T163346",
+  "start_time_iso": "2026-08-27T16:33:46",
+  "total_combat_duration_sec": 0.0
+}

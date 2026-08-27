@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3 uid="uid://bt65dkvfnduey"]
+
+[ext_resource type="Script" uid="uid://ue8ne7hptc1d" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"slime"
+enemy_name = "Slime"
+level = 1
+max_health = 90
+defense = 5
+strength = 12
+xp_reward = 40
+knockback_resistance = 0.6
+hit_invulnerability_time = 0.15
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

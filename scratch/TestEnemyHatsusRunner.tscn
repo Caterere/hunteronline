@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bw41pcnhyb525"]
+
+[ext_resource type="Script" path="res://scratch/TestEnemyHatsusRunner.gd" id="1_enm_runner"]
+
+[node name="TestEnemyHatsusRunner" type="Node"]
+script = ExtResource("1_enm_runner")

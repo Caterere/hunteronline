@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bplayr3g1onpad0k1"]
+
+[ext_resource type="Script" path="res://scratch/test_playable_region_runner.gd" id="1_test"]
+
+[node name="TestPlayableRegionRunner" type="Node2D"]
+script = ExtResource("1_test")

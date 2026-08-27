@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://c901824m7104k"]
+
+[ext_resource type="Script" path="res://ui/License/HunterLicenseUI.gd" id="1_licui"]
+
+[node name="HunterLicenseUI" type="CanvasLayer"]
+process_mode = 3
+layer = 16
+script = ExtResource("1_licui")

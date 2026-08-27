@@ -1,0 +1,19 @@
+[remap]
+
+importer="mp3"
+type="AudioStreamMP3"
+uid="uid://cy5pp5cp6d70n"
+path="res://.godot/imported/Hunter x Hunter 2011 OST 3 - 19 - Scariness - DMPlace.mp3-89a4f1e90c6083abce9a2446ff1a77a0.mp3str"
+
+[deps]
+
+source_file="res://osts/Hunter x Hunter 2011 OST 3 - 19 - Scariness - DMPlace.mp3"
+dest_files=["res://.godot/imported/Hunter x Hunter 2011 OST 3 - 19 - Scariness - DMPlace.mp3-89a4f1e90c6083abce9a2446ff1a77a0.mp3str"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4
