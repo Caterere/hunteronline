@@ -35,6 +35,10 @@ func _on_roll_pressed() -> void:
 	pot_label.text = "Potencial: %.0f%%" % (current_potential * 100)
 
 func _on_start_pressed() -> void:
+	PlayerData.slot_ativo = 1 if PlayerData.slot_ativo <= 0 else PlayerData.slot_ativo
+	if PlayerData.character_id.is_empty():
+		PlayerData.gerar_novo_character_id()
+
 	PlayerData.nome_personagem = name_input.text if name_input.text != "" else "Hunter"
 	
 	if not PlayerData.character_colors.has("pele"):
@@ -46,7 +50,15 @@ func _on_start_pressed() -> void:
 	
 	PlayerData.dificuldade = diff_dropdown.selected as PlayerData.Dificuldade
 	PlayerData.potencial = current_potential
-	
+	PlayerData.mapa_atual_salvo = "res://world/lobby.tscn"
+	PlayerData.posicao_salva = Vector2.ZERO
+	PlayerData.is_character_ready = true
+
+	if GameManager != null:
+		GameManager.set_flow_state(GameManager.GameFlowState.CHARACTER_CONFIRMATION)
+
+	SaveManager.salvar_jogo(PlayerData.slot_ativo)
+
 	var input_ctx = get_node_or_null("/root/InputContextManager")
 	if input_ctx != null:
 		input_ctx.set_context("GAMEPLAY")

@@ -20,7 +20,9 @@ signal jogo_carregado(slot: int)
 
 var current_slot: int = 1
 
+const SAVE_VERSION: String = "2.2"
 const MAPA_PADRAO_FALLBACK: String = "res://world/lobby.tscn"
+
 
 
 func obter_caminho_slot(slot: int) -> String:
@@ -141,7 +143,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 			hatsus_serialized.append(h.to_dict())
 
 	var save_data := {
-		"version": "2.1",
+		"version": SAVE_VERSION,
 		"slot": slot,
 		"character_id": PlayerData.character_id,
 		"timestamp": Time.get_datetime_string_from_system(),
@@ -378,10 +380,33 @@ func carregar_jogo(slot: int = -1) -> bool:
 		elif colors.has("roupa_html"):
 			PlayerData.character_colors["roupa"] = Color.html(colors["roupa_html"])
 
-	# Atributos
-	if data.has("attributes"):
-		for k in data["attributes"].keys():
-			PlayerData.attributes[k] = data["attributes"][k]
+	# Atributos com sanitização e defaults seguros
+	var attrs_padrao: Dictionary = {
+		"vida": 100,
+		"vida_max": 100,
+		"forca": 10,
+		"defesa": 10,
+		"velocidade": 10,
+		"aura": 0.0,
+		"aura_max": 0.0,
+		"nivel_nen": 0,
+		"xp_nen": 0,
+		"nivel": 1
+	}
+	if data.has("attributes") and data["attributes"] is Dictionary:
+		for k in attrs_padrao.keys():
+			PlayerData.attributes[k] = data["attributes"].get(k, attrs_padrao[k])
+	else:
+		PlayerData.attributes = attrs_padrao.duplicate()
+
+	# Garantir que vida e nivel estão dentro dos limites mínimos válidos
+	PlayerData.attributes["nivel"] = max(1, int(PlayerData.attributes.get("nivel", 1)))
+	var raw_vida = int(PlayerData.attributes.get("vida", 100))
+	var raw_vida_max = max(100, int(PlayerData.attributes.get("vida_max", 100)))
+	if raw_vida > raw_vida_max:
+		raw_vida_max = raw_vida
+	PlayerData.attributes["vida_max"] = raw_vida_max
+	PlayerData.attributes["vida"] = clamp(raw_vida, 1, raw_vida_max)
 
 	# InventÃ¡rio
 	if data.has("inventory"):

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://df78912345678"]
+
+[ext_resource type="Script" uid="uid://df78912345679" path="res://scratch/test_pre_release_master_audit.gd" id="1_master_audit"]
+
+[node name="TestPreReleaseMasterAudit" type="Node"]
+script = ExtResource("1_master_audit")

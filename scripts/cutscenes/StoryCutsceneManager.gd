@@ -420,3 +420,8 @@ static func executar_tour_lobby_cutscene(tree: SceneTree, elena: NPC, _player: C
 			if is_instance_valid(elena): elena.fechar_balao_atual()
 		PlayerData.tour_lobby_concluido = true
 		em_cutscene = false
+
+
+static func forcar_liberacao_cutscene() -> void:
+	em_cutscene = false
+	print("[StoryCutsceneManager] Estado de cutscene destravado com sucesso.")

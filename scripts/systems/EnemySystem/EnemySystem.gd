@@ -148,16 +148,31 @@ func _ready() -> void:
 			if res: enemy_data = res
 
 	if enemy_data == null:
-		push_error("EnemySystem: EnemyData não configurado!")
-		return
+		var fallback_res = load("res://resource/status/InimigoBase.tres")
+		if fallback_res != null:
+			enemy_data = fallback_res
+		elif ResourceLoader.exists("res://resource/status/enemies/candidato_exame.tres"):
+			enemy_data = load("res://resource/status/enemies/candidato_exame.tres")
+
+	if enemy_data == null:
+		push_warning("EnemySystem: Usando configuração padrão em memória para inimigo genérico.")
+		enemy_data = EnemyData.new()
+		enemy_data.enemy_id = &"inimigo_generico"
+		enemy_data.enemy_name = "Inimigo"
+		enemy_data.max_health = 100
+		enemy_data.strength = 10
+		enemy_data.defense = 5
+		enemy_data.xp_reward = 50
 
 
 	# -----------------------------------------------------
 	# CARREGAR DADOS DO ENEMY DATA
 	# -----------------------------------------------------
 
-	enemy_id = enemy_data.enemy_id
-	enemy_name = enemy_data.enemy_name
+	if enemy_id == &"" or enemy_id == &"inimigo":
+		enemy_id = enemy_data.enemy_id
+	if enemy_name.is_empty() or enemy_name == "Inimigo":
+		enemy_name = enemy_data.enemy_name
 	
 	if PlayerData != null:
 		var mult: Dictionary = PlayerData.obter_multiplicador_dificuldade_inimigo()

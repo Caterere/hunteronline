@@ -907,3 +907,45 @@ func _instanciar_overlay_ui() -> void:
 		overlay_instance = scn.instantiate() as CanvasLayer
 		add_child(overlay_instance)
 		print("[PlaytestTelemetry] PlaytestDebugOverlay instanciado com sucesso (Atalho: F3).")
+
+
+# ============================================================
+# DETECTOR DE ESTADOS IMPOSSÍVEIS (QA & AUDITORIA)
+# ============================================================
+func verificar_anomalias_de_estado() -> Array[String]:
+	var anomalias: Array[String] = []
+
+	if PlayerData == null:
+		anomalias.append("CRITICAL: PlayerData autoload não encontrado no SceneTree.")
+		return anomalias
+
+	# 1. Validação de Prontidão do Personagem
+	if PlayerData.is_character_ready:
+		if PlayerData.character_id.is_empty():
+			anomalias.append("ERROR: Personagem marcado como pronto, mas character_id está vazio.")
+		if PlayerData.nome_personagem.is_empty():
+			anomalias.append("WARNING: Personagem pronto mas sem nome definido.")
+		if PlayerData.attributes.get("nivel", 0) < 1:
+			anomalias.append("ERROR: Nível do personagem é menor que 1 (%d)." % PlayerData.attributes.get("nivel", 0))
+		if PlayerData.attributes.get("vida_max", 0) < 1:
+			anomalias.append("ERROR: Vida máxima do personagem inválida (%d)." % PlayerData.attributes.get("vida_max", 0))
+
+	# 2. Validação de História vs Quests
+	if PlayerData.arco_atual > 1 and PlayerData.max_arco_desbloqueado < PlayerData.arco_atual:
+		anomalias.append("ERROR: Arco atual (%d) é maior que max_arco_desbloqueado (%d)." % [PlayerData.arco_atual, PlayerData.max_arco_desbloqueado])
+
+	# 3. Validação de Quests Ativas
+	if QuestSystem != null and not QuestSystem.active_quests.is_empty():
+		var q: Quest = QuestSystem.active_quests[0]
+		if q != null:
+			for i in range(q.objectives.size()):
+				var obj: QuestObjective = q.objectives[i]
+				var prog: int = PlayerData.get_quest_objective_progress(q, i)
+				if prog > obj.required_amount:
+					anomalias.append("WARNING: Progresso da quest '%s' excedeu o requerido (%d/%d)." % [q.quest_name, prog, obj.required_amount])
+
+	# 4. Validação de Tutorial
+	if TutorialManager != null and TutorialManager.em_tutorial and PlayerData.tutorial_concluido:
+		anomalias.append("WARNING: TutorialManager em_tutorial=true mas PlayerData.tutorial_concluido=true.")
+
+	return anomalias
