@@ -27,7 +27,7 @@ signal player_died()
 
 # ------------------------------------------------------------
 # 2. EVENTOS DE NEN
-# ------------------------------------------------------------
+# ------------------------------------------------------------dw
 signal nen_technique_activated(tech_name: String)
 signal nen_technique_deactivated(tech_name: String)
 signal nen_aura_changed(current_aura: float, max_aura: float)

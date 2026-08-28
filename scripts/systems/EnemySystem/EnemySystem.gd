@@ -1014,3 +1014,9 @@ func get_level() -> int:
 
 
 	return enemy_data.level
+
+
+func obter_hatsu_real() -> HatsuData:
+	if enemy_data != null:
+		return enemy_data.obter_hatsu_real()
+	return null

@@ -532,7 +532,7 @@ func _exibir_tela_vitoria(rank: String, xp: int, gold: int, items: Array) -> voi
 
 	var item_str := ""
 	for it in items:
-		item_str += "+%dx %s  " % [it.get("qtd", 1), String(it.get("id", "")).capitalize()]
+		item_str += "+%dx %s  " % [it.get("qtd", 1), str(it.get("id", "")).capitalize()]
 
 	var lbl_recomp := Label.new()
 	lbl_recomp.text = "🎁 Recompensas Entregues:\n+ %d XP  |  + %d Jenny (Ouro)\n🎒 %s" % [xp, gold, item_str]

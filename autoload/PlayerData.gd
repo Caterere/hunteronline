@@ -104,19 +104,44 @@ func avancar_arco() -> void:
 		print("[PlayerData] MODO HISTÓRIA TOTALMENTE CONCLUÍDO!")
 		
 	max_arco_desbloqueado = max(max_arco_desbloqueado, arco_atual)
+
+	if is_greed_island_concluida():
+		desbloquear_hatsu_creator()
+
 	print("=================================")
 	print("[PlayerData] ARCO AVANÇADO PARA: ", arco_atual, " | MAX DESBLOQUEADO: ", max_arco_desbloqueado)
 	print("=================================")
 	
-	if GameState != null:
+	if GameState != null and GameState.has_method("salvar_jogo"):
 		GameState.salvar_jogo()
 
 
 func completar_etapa_historia(arco: int = -1) -> void:
+	if arco == 5:
+		desbloquear_hatsu_creator()
 	if arco > 0 and arco == arco_atual:
 		avancar_arco()
 	elif arco <= 0:
 		avancar_arco()
+
+
+func is_greed_island_concluida() -> bool:
+	if modo_historia_concluido:
+		return true
+	if arco_atual > 5 or max_arco_desbloqueado > 5:
+		return true
+	if quest_states.get("arco5_concluido", false) == true:
+		return true
+	return false
+
+
+func desbloquear_hatsu_creator() -> void:
+	if not hatsu_creation_unlocked or not hatsu_desbloqueado:
+		hatsu_creation_unlocked = true
+		hatsu_desbloqueado = true
+		print("[PlayerData] 🥋 HATSU CREATOR DESBLOQUEADO PERMANENTEMENTE!")
+		if GameState != null and GameState.has_method("salvar_jogo"):
+			GameState.salvar_jogo()
 
 
 
@@ -199,8 +224,9 @@ var tecnicas_nen: Dictionary = {}
 # PROGRESSÃO DE HISTÓRIA / LORE
 # ============================================================
 
-var despertou_nen: bool = false       # Desbloqueado com Wing na Arena Celestial
-var hatsu_desbloqueado: bool = false   # Desbloqueado com Biscuit em Greed Island
+var despertou_nen: bool = false            # Desbloqueado com Wing na Arena Celestial
+var hatsu_desbloqueado: bool = false        # Desbloqueado com Biscuit após Greed Island
+var hatsu_creation_unlocked: bool = false   # Flag canônica definitiva de criação de Hatsu
 var besta_nen_desbloqueada: bool = false
 var besta_nen_equipada: NenBeastData = null
 var bestas_nen_desbloqueadas: Array = []
@@ -271,9 +297,12 @@ func concluir_missao_paralela(pq_id: int) -> void:
 
 var hatsu_criados: Array = []
 var hatsu_slots: Array = [-1, -1, -1, -1]
+var stored_hatsus: Array[Dictionary] = []
 var absorbed_stats_registry: Dictionary = {} # {"enemy_id": int(count)} para diminishing returns
 var hatsu_fragments_discovered: Array[String] = [] # Modificadores e fragmentos descobertos
 var aura_visual_profile: AuraVisualProfile = null
+var is_debug_mode: bool = false
+var backup_state_before_debug: Dictionary = {}
 
 
 func _ready() -> void:
@@ -281,8 +310,13 @@ func _ready() -> void:
 
 
 func reset() -> void:
+	is_debug_mode = false
+	backup_state_before_debug.clear()
 	hatsu_criados.clear()
 	hatsu_slots = [-1, -1, -1, -1]
+	stored_hatsus.clear()
+	hatsu_creation_unlocked = false
+	hatsu_desbloqueado = false
 	absorbed_stats_registry.clear()
 	hatsu_fragments_discovered.clear()
 	active_modifiers.clear()
@@ -299,6 +333,9 @@ func reset() -> void:
 		"xp_nen": 0,
 		"nivel": 1
 	}
+	recalcular_todos_atributos()
+	attributes["vida"] = attributes["vida_max"]
+	attributes["aura"] = attributes["aura_max"]
 
 
 
@@ -366,7 +403,7 @@ func obter_stat_calculado(stat_name: String) -> float:
 	var mult_product: float = 1.0
 
 	for m in active_modifiers:
-		if m == null or String(m.stat_name) != stat_name:
+		if m == null or str(m.stat_name) != stat_name:
 			continue
 		match int(m.type):
 			0: # FLAT
@@ -865,6 +902,62 @@ func obter_hatsu_slot(slot: int) -> HatsuData:
 	return hatsu_criados[idx] as HatsuData
 
 
+# ============================================================
+# ARMAZENAMENTO DE HATSUS ROUBADOS / COPIADOS (LIVRO / STORAGE)
+# ============================================================
+
+func adicionar_hatsu_armazenado(hatsu: HatsuData, source_name: String = "Inimigo", remaining_uses: int = -1, max_capacity: int = 5) -> Dictionary:
+	if hatsu == null:
+		return {"sucesso": false, "mensagem": "Hatsu inválido"}
+	
+	if stored_hatsus.size() >= max_capacity:
+		return {"sucesso": false, "mensagem": "Capacidade do Livro cheia (%d/%d)" % [stored_hatsus.size(), max_capacity]}
+	
+	var entry := {
+		"id": "stored_" + str(Time.get_ticks_msec()) + "_" + str(randi() % 1000),
+		"source_name": source_name,
+		"hatsu_data": hatsu,
+		"remaining_uses": remaining_uses,
+		"acquired_at": Time.get_datetime_string_from_system(),
+		"active": true
+	}
+	stored_hatsus.append(entry)
+	print("[PlayerData] 📖 Hatsu armazenado no Livro com sucesso: %s (Fonte: %s)" % [hatsu.nome, source_name])
+	return {"sucesso": true, "mensagem": "Hatsu armazenado com sucesso!", "index": stored_hatsus.size() - 1, "entry": entry}
+
+
+func remover_hatsu_armazenado(index: int) -> bool:
+	if index < 0 or index >= stored_hatsus.size():
+		return false
+	stored_hatsus.remove_at(index)
+	return true
+
+
+func obter_todos_hatsus_armazenados() -> Array[Dictionary]:
+	return stored_hatsus
+
+
+func obter_hatsu_armazenado(index: int) -> Dictionary:
+	if index >= 0 and index < stored_hatsus.size():
+		return stored_hatsus[index]
+	return {}
+
+
+func consumir_uso_hatsu_armazenado(index: int) -> bool:
+	if index < 0 or index >= stored_hatsus.size():
+		return false
+	var entry = stored_hatsus[index]
+	var rem: int = int(entry.get("remaining_uses", -1))
+	if rem > 0:
+		rem -= 1
+		entry["remaining_uses"] = rem
+		if rem == 0:
+			print("[PlayerData] 📖 Usos de %s esgotados! Hatsu removido do Livro." % entry.get("hatsu_data").nome)
+			stored_hatsus.remove_at(index)
+			return true
+	return false
+
+
 func adicionar_gold(quantidade: int) -> void:
 	Economy.adicionar_gold(quantidade)
 
@@ -949,3 +1042,145 @@ func tem_conhecimento(conhecimento_id: String) -> bool:
 func concluir_etapa_tutorial(etapa_id: String) -> void:
 	tutorial_data[etapa_id] = true
 	print("[PlayerData] Etapa de tutorial concluída: ", etapa_id)
+
+
+# ============================================================
+# GERADOR DE HUNTER LEVEL 100 / DEBUG PLAYTEST ENGINE
+# ============================================================
+
+func debug_create_level_100_hunter(equip_all_hatsus: bool = true) -> Dictionary:
+	# 1. Snapshot de segurança antes da alteração
+	if backup_state_before_debug.is_empty():
+		backup_state_before_debug = {
+			"attributes": attributes.duplicate(true),
+			"tecnicas_nen": tecnicas_nen.duplicate(true),
+			"hatsu_slots": hatsu_slots.duplicate(true),
+			"despertou_nen": despertou_nen,
+			"hatsu_desbloqueado": hatsu_desbloqueado,
+			"hatsu_creation_unlocked": hatsu_creation_unlocked,
+			"besta_nen_desbloqueada": besta_nen_desbloqueada,
+			"titulo_equipado": titulo_equipado
+		}
+
+	var old_level: int = int(attributes.get("nivel", 1))
+	var old_xp: int = int(attributes.get("xp", 0))
+
+	# 2. Modo Debug Ativo
+	is_debug_mode = true
+
+	# 3. Progressão de Nível e Nível de Nen
+	attributes["nivel"] = 100
+	attributes["nivel_nen"] = 100
+	var xp_tabelado: int = 475467 # Base 300 * (100^1.6)
+	attributes["xp"] = xp_tabelado
+	attributes["xp_nen"] = 1000000
+	attributes["gold"] = max(int(attributes.get("gold", 0)), 999999)
+
+	despertou_nen = true
+	hatsu_creation_unlocked = true
+	hatsu_desbloqueado = true
+	besta_nen_desbloqueada = true
+	titulo_equipado = "Hunter Supremo (Lvl 100 Debug)"
+
+	# 4. Desbloqueio e Nível 100 em Todas as 9 Técnicas de Nen
+	tecnicas_nen = {
+		"ten": {"nivel": 100, "xp": 0, "desbloqueada": true},
+		"ren": {"nivel": 100, "xp": 0, "desbloqueada": true},
+		"zetsu": {"nivel": 100, "xp": 0, "desbloqueada": true},
+		"gyo": {"nivel": 100, "xp": 0, "desbloqueada": true},
+		"shu": {"nivel": 100, "xp": 0, "desbloqueada": true},
+		"ko": {"nivel": 100, "xp": 0, "desbloqueada": true},
+		"en": {"nivel": 100, "xp": 0, "desbloqueada": true},
+		"ken": {"nivel": 100, "xp": 0, "desbloqueada": true},
+		"ryu": {"nivel": 100, "xp": 0, "desbloqueada": true}
+	}
+
+	# 5. Recálculo Oficial de Atributos (Pipeline Canônica)
+	recalcular_todos_atributos()
+	attributes["vida"] = attributes["vida_max"]
+	attributes["aura"] = attributes["aura_max"]
+
+	# 6. Equipamento de Hatsus Modulares Canônicos se solicitado
+	var hatsu_status_str := "READY"
+	if equip_all_hatsus:
+		popular_hatsus_iniciais()
+		if hatsu_criados.size() >= 4:
+			hatsu_slots = [0, 1, 2, 3]
+	else:
+		if hatsu_criados.is_empty():
+			hatsu_status_str = "NOT AVAILABLE"
+
+	# 7. Sincronização com nós em cena (XPSystem, NenSystem, Player)
+	var nen_status_str := "READY"
+	var tree := get_tree()
+	if tree != null:
+		var xp_sys = tree.get_first_node_in_group("xp_system")
+		if xp_sys != null and xp_sys.has_method("sincronizar_com_player_data"):
+			xp_sys.sincronizar_com_player_data()
+		
+		var nen_sys = tree.get_first_node_in_group("nen_system")
+		if nen_sys != null and nen_sys.has_method("sincronizar_com_player_data"):
+			nen_sys.sincronizar_com_player_data()
+
+	# 8. Log Estruturado
+	print("========================================")
+	print("DEBUG HUNTER GENERATOR")
+	print("========================================")
+	print("DEBUG MODE: ON")
+	print("OLD LEVEL: %d" % old_level)
+	print("NEW LEVEL: 100")
+	print("OLD XP: %d" % old_xp)
+	print("NEW XP: %d" % xp_tabelado)
+	print("HP: %d / %d" % [attributes["vida"], attributes["vida_max"]])
+	print("FORÇA: %d" % attributes["forca"])
+	print("DEFESA: %d" % attributes["defesa"])
+	print("AURA: %d / %d" % [int(attributes["aura"]), int(attributes["aura_max"])])
+	print("NEN: %s" % nen_status_str)
+	print("HATSU SYSTEM: %s" % hatsu_status_str)
+	print("========================================")
+
+	return {
+		"status": "SUCCESS",
+		"old_level": old_level,
+		"new_level": 100,
+		"attributes": attributes.duplicate()
+	}
+
+
+func reset_debug_character() -> bool:
+	if not backup_state_before_debug.is_empty():
+		attributes = backup_state_before_debug.get("attributes", attributes).duplicate(true)
+		tecnicas_nen = backup_state_before_debug.get("tecnicas_nen", tecnicas_nen).duplicate(true)
+		hatsu_slots = backup_state_before_debug.get("hatsu_slots", hatsu_slots).duplicate(true)
+		despertou_nen = backup_state_before_debug.get("despertou_nen", false)
+		hatsu_desbloqueado = backup_state_before_debug.get("hatsu_desbloqueado", false)
+		hatsu_creation_unlocked = backup_state_before_debug.get("hatsu_creation_unlocked", false)
+		besta_nen_desbloqueada = backup_state_before_debug.get("besta_nen_desbloqueada", false)
+		titulo_equipado = backup_state_before_debug.get("titulo_equipado", "Novato")
+		backup_state_before_debug.clear()
+	else:
+		reset()
+
+	is_debug_mode = false
+	recalcular_todos_atributos()
+	attributes["vida"] = attributes["vida_max"]
+	attributes["aura"] = attributes["aura_max"]
+
+	var tree := get_tree()
+	if tree != null:
+		var xp_sys = tree.get_first_node_in_group("xp_system")
+		if xp_sys != null and xp_sys.has_method("sincronizar_com_player_data"):
+			xp_sys.sincronizar_com_player_data()
+		
+		var nen_sys = tree.get_first_node_in_group("nen_system")
+		if nen_sys != null and nen_sys.has_method("sincronizar_com_player_data"):
+			nen_sys.sincronizar_com_player_data()
+
+	var cur_lvl = int(attributes.get("nivel", 1))
+	print("========================================")
+	print("DEBUG HUNTER RESET")
+	print("========================================")
+	print("DEBUG MODE: OFF")
+	print("LEVEL: %d" % cur_lvl)
+	print("========================================")
+	return true

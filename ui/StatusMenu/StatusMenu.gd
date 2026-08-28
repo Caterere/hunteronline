@@ -5,12 +5,12 @@ extends Control
 # REFERÊNCIAS
 # ============================================================
 
-@onready var titulo_label: Label = $Panel/VBoxContainer/TituloLabel
-@onready var level_label: Label = $Panel/VBoxContainer/LevelLabel
-@onready var hp_label: Label = $Panel/VBoxContainer/HPLabel
-@onready var forca_label: Label = $Panel/VBoxContainer/ForcaLabel
-@onready var defesa_label: Label = $Panel/VBoxContainer/DefesaLabel
-@onready var aura_label: Label = $Panel/VBoxContainer/AuraLabel
+@onready var titulo_label: Label = find_child("TituloLabel", true, false) as Label
+@onready var level_label: Label = find_child("LevelLabel", true, false) as Label
+@onready var hp_label: Label = find_child("HPLabel", true, false) as Label
+@onready var forca_label: Label = find_child("ForcaLabel", true, false) as Label
+@onready var defesa_label: Label = find_child("DefesaLabel", true, false) as Label
+@onready var aura_label: Label = find_child("AuraLabel", true, false) as Label
 
 var lbl_titulo_personagem: Label = null
 var lbl_faccao: Label = null
@@ -29,12 +29,15 @@ var xp_system: XPSystem
 
 func _ready() -> void:
 	visible = false
-	var panel = get_node_or_null("Panel")
+	var panel = find_child("PanelContainer", true, false) as PanelContainer
+	if panel == null:
+		panel = get_node_or_null("Panel") as PanelContainer
 	if panel != null:
 		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
 	if titulo_label != null:
 		titulo_label.text = "STATUS DO CAÇADOR"
 		titulo_label.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+		titulo_label.add_theme_font_size_override("font_size", 11)
 	
 	_criar_labels_extras()
 	xp_system = get_tree().get_first_node_in_group("xp_system") as XPSystem
@@ -42,29 +45,30 @@ func _ready() -> void:
 
 
 func _criar_labels_extras() -> void:
-	var vbox = get_node_or_null("Panel/VBoxContainer")
+	var vbox = find_child("VBoxContainer", true, false) as VBoxContainer
 	if vbox == null:
 		return
 		
 	if lbl_titulo_personagem == null:
 		lbl_titulo_personagem = Label.new()
 		lbl_titulo_personagem.name = "TituloPersLabel"
-		lbl_titulo_personagem.add_theme_font_size_override("font_size", 3)
+		lbl_titulo_personagem.add_theme_font_size_override("font_size", 8)
 		lbl_titulo_personagem.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+		lbl_titulo_personagem.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_titulo_personagem)
-		vbox.move_child(lbl_titulo_personagem, 1)
+		vbox.move_child(lbl_titulo_personagem, 2)
 
 	if lbl_faccao == null:
 		lbl_faccao = Label.new()
 		lbl_faccao.name = "FaccaoLabel"
-		lbl_faccao.add_theme_font_size_override("font_size", 3)
+		lbl_faccao.add_theme_font_size_override("font_size", 8)
 		lbl_faccao.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
 		vbox.add_child(lbl_faccao)
 
 	if lbl_segredos == null:
 		lbl_segredos = Label.new()
 		lbl_segredos.name = "SegredosLabel"
-		lbl_segredos.add_theme_font_size_override("font_size", 3)
+		lbl_segredos.add_theme_font_size_override("font_size", 8)
 		lbl_segredos.add_theme_color_override("font_color", Color(0.9, 0.4, 1.0, 1.0))
 		vbox.add_child(lbl_segredos)
 

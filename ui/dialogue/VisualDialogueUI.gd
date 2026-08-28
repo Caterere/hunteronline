@@ -58,11 +58,18 @@ func exibir_fala(nome_falante: String, texto: String) -> void:
 	exibir_sequencia_falas([{"falante": nome_falante, "texto": texto}])
 
 
-func exibir_sequencia_falas(lista_falas: Array[Dictionary]) -> void:
-	fila_dialogos = lista_falas.duplicate()
+func exibir_sequencia_falas(lista_falas: Array) -> void:
+	fila_dialogos.clear()
+	for item in lista_falas:
+		if item is Dictionary:
+			fila_dialogos.append(item)
+		elif item is String:
+			fila_dialogos.append({"falante": "NPC", "texto": item})
+
 	_aberto_no_frame_atual = true
 	visible = true
-	get_tree().paused = true
+	if get_tree() != null:
+		get_tree().paused = true
 	var input_ctx = get_node_or_null("/root/InputContextManager")
 	if input_ctx != null:
 		input_ctx.push_context("DIALOGUE")
@@ -75,8 +82,8 @@ func _mostrar_proxima_fala() -> void:
 		return
 
 	var dados: Dictionary = fila_dialogos.pop_front()
-	var falante: String = dados.get("falante", "NPC")
-	texto_completo = dados.get("texto", "")
+	var falante: String = str(dados.get("falante", "NPC"))
+	texto_completo = str(dados.get("texto", ""))
 
 	if lbl_falante != null:
 		lbl_falante.text = "💬 " + falante.to_upper()
@@ -121,7 +128,8 @@ func _avancar_dialogo() -> void:
 
 func _fechar_dialogo() -> void:
 	visible = false
-	get_tree().paused = false
+	if get_tree() != null:
+		get_tree().paused = false
 	var input_ctx = get_node_or_null("/root/InputContextManager")
 	if input_ctx != null:
 		input_ctx.pop_context()

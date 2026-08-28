@@ -168,19 +168,40 @@ func xp_necessario() -> int:
 
 
 # ============================================================
-# UTILIDADES
+# UTILIDADES & SINCRONIZAÇÃO
 # ============================================================
 
-func obter_xp() -> int:
+func sincronizar_com_player_data() -> void:
+	var old_lvl = level
+	level = int(PlayerData.attributes.get("nivel", 1))
+	xp = int(PlayerData.attributes.get("xp", 0))
+	if level >= 100:
+		level = 100
+		xp = xp_necessario()
+		PlayerData.attributes["nivel"] = 100
+		PlayerData.attributes["xp"] = xp
+	
+	if old_lvl != level:
+		level_up.emit(level)
+	xp_changed.emit(xp, xp_necessario())
 
+
+static func obter_xp_acumulado_para_nivel(target_level: int, base_val: int = 300, growth_val: float = 1.6) -> int:
+	if target_level <= 1:
+		return 0
+	var total: int = 0
+	for l in range(1, target_level):
+		total += int(base_val * pow(l, growth_val))
+	return total
+
+
+func obter_xp() -> int:
 	return xp
 
 
 func obter_level() -> int:
-
 	return level
 
 
 func obter_xp_necessario() -> int:
-
 	return xp_necessario()

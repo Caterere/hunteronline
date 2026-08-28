@@ -291,7 +291,7 @@ func _cadastrar_piso(id: String, _nome: String, subcat: String, coords: Vector2i
 	t.atlas_coords = coords
 	t.category = TileDataEntryScript.Category.FLOOR
 	t.subcategory = subcat
-	for tag in tags: t.tags.append(String(tag))
+	for tag in tags: t.tags.append(str(tag))
 	for default_tag in ["floor", "walkable", "repeatable"]:
 		if not t.tags.has(default_tag): t.tags.append(default_tag)
 	t.layer = 0
@@ -310,7 +310,7 @@ func _cadastrar_parede(id: String, subcat: String, coords: Vector2i, tags: Array
 	t.atlas_coords = coords
 	t.category = TileDataEntryScript.Category.WALL
 	t.subcategory = subcat
-	for tag in tags: t.tags.append(String(tag))
+	for tag in tags: t.tags.append(str(tag))
 	t.layer = 1
 	t.walkable = false
 	t.collision = true
@@ -327,7 +327,7 @@ func _cadastrar_porta(id: String, _nome: String, coords: Vector2i, tags: Array) 
 	t.atlas_coords = coords
 	t.category = TileDataEntryScript.Category.DOOR
 	t.subcategory = "door"
-	for tag in tags: t.tags.append(String(tag))
+	for tag in tags: t.tags.append(str(tag))
 	t.layer = 1
 	t.walkable = true
 	t.collision = false
@@ -343,7 +343,7 @@ func _cadastrar_objeto_individual(id: String, _nome: String, cat: int, subcat: S
 	t.atlas_coords = coords
 	t.category = cat as TileDataEntryScript.Category
 	t.subcategory = subcat
-	for tag in tags: t.tags.append(String(tag))
+	for tag in tags: t.tags.append(str(tag))
 	t.layer = 2
 	t.walkable = is_walkable
 	t.collision = has_col
@@ -358,5 +358,5 @@ func _cadastrar_objeto_composto(id: String, nome: String, cat: String, subcat: S
 	obj.subcategory = subcat
 	obj.size_in_tiles = size
 	obj.parts = parts
-	for tag in tags: obj.tags.append(String(tag))
+	for tag in tags: obj.tags.append(str(tag))
 	register_composite_object(obj)

@@ -36,7 +36,7 @@ func _construir_ui() -> void:
 	add_child(bg)
 
 	panel_main = PanelContainer.new()
-	panel_main.custom_minimum_size = Vector2(280, 150)
+	panel_main.custom_minimum_size = Vector2(440, 240)
 	panel_main.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel_main.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	panel_main.grow_vertical = Control.GROW_DIRECTION_BOTH
@@ -44,10 +44,10 @@ func _construir_ui() -> void:
 	add_child(panel_main)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	panel_main.add_child(margin)
 
 	var vbox := VBoxContainer.new()
@@ -57,32 +57,36 @@ func _construir_ui() -> void:
 	# Cabeçalho
 	var lbl_titulo := Label.new()
 	lbl_titulo.text = "🎒 INVENTÁRIO HUNTER"
-	lbl_titulo.add_theme_font_size_override("font_size", 7)
-	lbl_titulo.add_theme_color_override("font_color", Color(1, 0.8, 0.2, 1))
+	lbl_titulo.add_theme_font_size_override("font_size", 11)
+	lbl_titulo.add_theme_color_override("font_color", Color(1, 0.85, 0.25, 1))
 	lbl_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_titulo)
 
 	var hbox_content := HBoxContainer.new()
 	hbox_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hbox_content.add_theme_constant_override("separation", 8)
 	vbox.add_child(hbox_content)
 
 	# Grid de Slots de Itens (Esq)
 	container_grid = GridContainer.new()
 	container_grid.columns = 4
-	container_grid.custom_minimum_size = Vector2(140, 0)
+	container_grid.custom_minimum_size = Vector2(220, 0)
+	container_grid.add_theme_constant_override("h_separation", 4)
+	container_grid.add_theme_constant_override("v_separation", 4)
 	hbox_content.add_child(container_grid)
 
 	# Detalhes do Item Selecionado (Dir)
 	lbl_detalhes = Label.new()
 	lbl_detalhes.text = "Selecione um item para ver detalhes."
-	lbl_detalhes.add_theme_font_size_override("font_size", 4)
+	lbl_detalhes.add_theme_font_size_override("font_size", 8)
+	lbl_detalhes.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_detalhes.autowrap_mode = TextServer.AUTOWRAP_WORD
 	lbl_detalhes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_content.add_child(lbl_detalhes)
 
 	var lbl_fechar := Label.new()
 	lbl_fechar.text = "[Pressione I para Fechar]"
-	lbl_fechar.add_theme_font_size_override("font_size", 4)
+	lbl_fechar.add_theme_font_size_override("font_size", 8)
 	lbl_fechar.add_theme_color_override("font_color", Color(0.5, 0.6, 0.7, 1))
 	lbl_fechar.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_fechar)
@@ -103,12 +107,13 @@ func _atualizar_inventario() -> void:
 	for item_id in inv.keys():
 		var qtd: int = inv[item_id]
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(30, 24)
-		btn.text = "%s x%d" % [item_id.left(4), qtd]
-		btn.add_theme_font_size_override("font_size", 4)
+		btn.custom_minimum_size = Vector2(48, 24)
+		btn.text = "%s x%d" % [item_id.left(6), qtd]
+		btn.add_theme_font_size_override("font_size", 8)
+		HunterUIStyle.aplicar_estilo_botao(btn, HunterUIStyle.COLOR_BORDER_GREEN)
 
 		btn.pressed.connect(func():
-			lbl_detalhes.text = "Item: %s\nQuantidade: %d" % [item_id.to_upper(), qtd]
+			lbl_detalhes.text = "📦 Item: %s\n📊 Quantidade: %d" % [item_id.to_upper(), qtd]
 		)
 
 		container_grid.add_child(btn)

@@ -86,16 +86,16 @@ func get_unmet_requirements() -> Array[String]:
 					var faltam: int = obj.required_amount - prog
 					match obj.type:
 						QuestObjective.Type.KILL:
-							var nome_e := String(obj.enemy_type).replace("_", " ").capitalize()
+							var nome_e := str(obj.enemy_type).replace("_", " ").capitalize()
 							if nome_e.is_empty(): nome_e = "Criaturas"
 							pendencias.append("Derrotar %s (%d/%d — Faltam %d)" % [
 								nome_e, prog, obj.required_amount, faltam
 							])
 						QuestObjective.Type.VISIT:
-							var nome_npc := obj.target_npc_name if not obj.target_npc_name.is_empty() else String(obj.target_npc_id).capitalize()
+							var nome_npc := obj.target_npc_name if not obj.target_npc_name.is_empty() else str(obj.target_npc_id).capitalize()
 							pendencias.append("Falar com %s" % nome_npc)
 						QuestObjective.Type.COLLECT:
-							var nome_item := String(obj.item_id).replace("_", " ").capitalize()
+							var nome_item := str(obj.item_id).replace("_", " ").capitalize()
 							pendencias.append("Coletar %s (%d/%d)" % [nome_item, prog, obj.required_amount])
 						_:
 							pendencias.append("%s (%d/%d)" % [obj.describe(), prog, obj.required_amount])
@@ -107,7 +107,7 @@ func get_unmet_requirements() -> Array[String]:
 		if current_count < req_count:
 			var faltam: int = req_count - current_count
 			pendencias.append("Derrotar %s (%d/%d — Faltam %d)" % [
-				String(enemy_id).replace("_", " ").capitalize(), current_count, req_count, faltam
+				str(enemy_id).replace("_", " ").capitalize(), current_count, req_count, faltam
 			])
 
 	# 5. Validação Customizada por Callable
@@ -150,7 +150,7 @@ func _obter_kills_do_inimigo(enemy_id: String) -> int:
 		var q: Quest = QuestSystem.active_quests[0]
 		for i in range(q.objectives.size()):
 			var obj: QuestObjective = q.objectives[i]
-			if obj.type == QuestObjective.Type.KILL and String(obj.enemy_type).to_lower() == enemy_id.to_lower():
+			if obj.type == QuestObjective.Type.KILL and str(obj.enemy_type).to_lower() == enemy_id.to_lower():
 				return PlayerData.get_quest_objective_progress(q, i)
 
 	return PlayerData.quest_states.get("kills_" + enemy_id.to_lower(), 0)

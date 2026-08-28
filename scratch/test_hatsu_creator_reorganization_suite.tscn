@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://df46avyrsh3mq"]
+
+[ext_resource type="Script" path="res://scratch/test_hatsu_creator_reorganization_suite.gd" id="1_test_hatsu"]
+
+[node name="TestHatsuCreatorReorganizationSuite" type="Node"]
+script = ExtResource("1_test_hatsu")

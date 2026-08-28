@@ -274,6 +274,7 @@ static func executar_greed_island_cutscene(tree: SceneTree, callback_fim: Callab
 		]
 		visual_dialogue.exibir_sequencia_falas(falas)
 		visual_dialogue.dialogo_concluido.connect(func():
+			PlayerData.desbloquear_hatsu_creator()
 			PlayerData.completar_etapa_historia(5)
 			em_cutscene = false
 			if callback_fim.is_valid(): callback_fim.call()

@@ -2,76 +2,93 @@
 
 [sub_resource type="Theme" id="Theme_08air"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_08air"]
-bg_color = Color(0.22670749, 0.22670749, 0.22670746, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0, 0, 0, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-corner_detail = 9
-
-[sub_resource type="FontVariation" id="FontVariation_clqm4"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+bg_color = Color(0.06, 0.08, 0.12, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(1, 0.82, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 4
 
 [node name="StatusMenu" type="Control" unique_id=531993195]
 layout_mode = 3
-anchors_preset = 0
-
-[node name="Panel" type="Panel" parent="." unique_id=656355512]
-layout_mode = 0
-offset_left = 1.0
-offset_top = 48.0
-offset_right = 49.0
-offset_bottom = 104.0
-theme = SubResource("Theme_08air")
-theme_override_styles/panel = SubResource("StyleBoxFlat_08air")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1053729822]
-layout_mode = 1
-anchors_preset = -1
-anchor_left = 0.062000003
+anchors_preset = 15
 anchor_right = 1.0
-anchor_bottom = 0.96400005
-offset_left = 1.0239999
-offset_top = 1.0070019
-offset_right = -3.0
-offset_bottom = 0.023002625
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="TituloLabel" type="Label" parent="Panel/VBoxContainer" unique_id=467879103]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.69803923, 0.10980392, 1)
-theme_override_fonts/font = SubResource("FontVariation_clqm4")
-theme_override_font_sizes/font_size = 5
-autowrap_trim_flags = 0
-justification_flags = 0
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=656355512]
+custom_minimum_size = Vector2(210, 170)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -105.0
+offset_top = -85.0
+offset_right = 105.0
+offset_bottom = 85.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_08air")
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
 
-[node name="LevelLabel" type="Label" parent="Panel/VBoxContainer" unique_id=1344810692]
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0, 0.8668069, 0.90980655, 1)
-theme_override_font_sizes/font_size = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
 
-[node name="HPLabel" type="Label" parent="Panel/VBoxContainer" unique_id=976476331]
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer" unique_id=1053729822]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.101960786, 0.69803923, 0.10980392, 1)
-theme_override_font_sizes/font_size = 3
+theme_override_constants/separation = 3
 
-[node name="ForcaLabel" type="Label" parent="Panel/VBoxContainer" unique_id=43089332]
+[node name="TituloLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=467879103]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.18039216, 0.21568628, 1)
-theme_override_font_sizes/font_size = 3
+theme_override_colors/font_color = Color(1, 0.85, 0.25, 1)
+theme_override_font_sizes/font_size = 11
+text = "STATUS DO CAÇADOR"
+horizontal_alignment = 1
 
-[node name="DefesaLabel" type="Label" parent="Panel/VBoxContainer" unique_id=350275508]
+[node name="Separator" type="HSeparator" parent="PanelContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.97059494, 0.97059506, 3.85046e-06, 1)
-theme_override_font_sizes/font_size = 3
 
-[node name="AuraLabel" type="Label" parent="Panel/VBoxContainer" unique_id=773987107]
+[node name="LevelLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=1344810692]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95596343, 0.9559633, 0.95596343, 1)
-theme_override_font_sizes/font_size = 3
+theme_override_colors/font_color = Color(0.2, 0.88, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "XP: 0 / 100"
+
+[node name="HPLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=976476331]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.25, 0.28, 1)
+theme_override_font_sizes/font_size = 8
+text = "HP: 100 / 100"
+
+[node name="ForcaLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=43089332]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.45, 0.2, 1)
+theme_override_font_sizes/font_size = 8
+text = "Força: 10"
+
+[node name="DefesaLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=350275508]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.2, 1)
+theme_override_font_sizes/font_size = 8
+text = "Defesa: 10"
+
+[node name="AuraLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=773987107]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "Aura (Nen Lv.0): 0 / 0"

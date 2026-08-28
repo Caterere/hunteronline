@@ -142,10 +142,24 @@ func salvar_jogo(slot: int = -1) -> bool:
 		if h is HatsuData and h.has_method("to_dict"):
 			hatsus_serialized.append(h.to_dict())
 
+	var stored_hatsus_serialized: Array = []
+	for sh in PlayerData.stored_hatsus:
+		if sh is Dictionary and sh.has("hatsu_data") and sh["hatsu_data"] is HatsuData:
+			var h_dict = sh["hatsu_data"].to_dict()
+			stored_hatsus_serialized.append({
+				"id": sh.get("id", ""),
+				"source_name": sh.get("source_name", ""),
+				"remaining_uses": sh.get("remaining_uses", -1),
+				"acquired_at": sh.get("acquired_at", ""),
+				"active": sh.get("active", true),
+				"hatsu_data": h_dict
+			})
+
 	var save_data := {
 		"version": SAVE_VERSION,
 		"slot": slot,
 		"character_id": PlayerData.character_id,
+		"is_debug_save": PlayerData.is_debug_mode,
 		"timestamp": Time.get_datetime_string_from_system(),
 		"mapa_atual": cena_atual,
 		"posicao_player": pos_array,
@@ -181,8 +195,10 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"tecnicas_nen": PlayerData.tecnicas_nen.duplicate(),
 		"hatsu_criados": hatsus_serialized,
 		"hatsu_slots": PlayerData.hatsu_slots.duplicate(),
+		"stored_hatsus": stored_hatsus_serialized,
 		"despertou_nen": PlayerData.despertou_nen,
 		"hatsu_desbloqueado": PlayerData.hatsu_desbloqueado,
+		"hatsu_creation_unlocked": PlayerData.hatsu_creation_unlocked,
 		"besta_nen_desbloqueada": PlayerData.besta_nen_desbloqueada,
 		"parallel_quests_concluidas": PlayerData.parallel_quests_concluidas.duplicate(),
 		"world_state": WorldState.salvar_dados() if WorldState != null else {},
@@ -307,6 +323,7 @@ func carregar_jogo(slot: int = -1) -> bool:
 	# --- RESTAURAÃ‡ÃƒO COMPLETA DE DADOS ---
 	PlayerData.slot_ativo = slot
 	PlayerData.character_id = data.get("character_id", "hxr-legacy-s%d" % slot)
+	PlayerData.is_debug_mode = bool(data.get("is_debug_save", false))
 	PlayerData.nome_personagem = data.get("nome_personagem", "Hunter")
 	PlayerData.afinidade_nen = data.get("afinidade_nen", 0) as NenAffinityData.CategoriaAfinidade
 	PlayerData.dificuldade = data.get("dificuldade", 1) as PlayerData.Dificuldade
@@ -316,21 +333,21 @@ func carregar_jogo(slot: int = -1) -> bool:
 
 	PlayerData.titulos_desbloqueados.clear()
 	for t in data.get("titulos_desbloqueados", ["Hunter Novato"]):
-		PlayerData.titulos_desbloqueados.append(String(t))
+		PlayerData.titulos_desbloqueados.append(str(t))
 
 	PlayerData.segredos_descobertos.clear()
 	for s in data.get("segredos_descobertos", []):
-		PlayerData.segredos_descobertos.append(String(s))
+		PlayerData.segredos_descobertos.append(str(s))
 
 	PlayerData.stats_globais = data.get("stats_globais", PlayerData.stats_globais)
 
 	PlayerData.conquistas_desbloqueadas.clear()
 	for c in data.get("conquistas_desbloqueadas", []):
-		PlayerData.conquistas_desbloqueadas.append(String(c))
+		PlayerData.conquistas_desbloqueadas.append(str(c))
 
 	PlayerData.conquistas_resgatadas.clear()
 	for cr in data.get("conquistas_resgatadas", []):
-		PlayerData.conquistas_resgatadas.append(String(cr))
+		PlayerData.conquistas_resgatadas.append(str(cr))
 
 	PlayerData.arco_atual = int(data.get("arco_atual", 1))
 	PlayerData.etapa_quest_arco = int(data.get("etapa_quest_arco", 1))
@@ -340,7 +357,7 @@ func carregar_jogo(slot: int = -1) -> bool:
 
 	PlayerData.parallel_quests_concluidas.clear()
 	for pq in data.get("parallel_quests_concluidas", []):
-		PlayerData.parallel_quests_concluidas.append(String(pq))
+		PlayerData.parallel_quests_concluidas.append(str(pq))
 
 	# SanitizaÃ§Ã£o Estrita do Mapa Salvo (Nunca permitir UI como mapa salvo)
 	var raw_mapa: String = data.get("mapa_atual", MAPA_PADRAO_FALLBACK)
@@ -421,13 +438,34 @@ func carregar_jogo(slot: int = -1) -> bool:
 	if data.has("tecnicas_nen"):
 		PlayerData.tecnicas_nen = data["tecnicas_nen"].duplicate()
 
-	# Hatsu
-	PlayerData.hatsu_desbloqueado = bool(data.get("hatsu_desbloqueado", false))
+	# Hatsu & Criação de Hatsu
+	var saved_unlock: bool = bool(data.get("hatsu_creation_unlocked", data.get("hatsu_desbloqueado", false)))
+	PlayerData.hatsu_creation_unlocked = saved_unlock
+	PlayerData.hatsu_desbloqueado = saved_unlock
+
+	# Migração canônica para saves antigos/legados: se Greed Island já foi concluída, desbloqueia imediatamente
+	if PlayerData.is_greed_island_concluida():
+		PlayerData.desbloquear_hatsu_creator()
+
 	PlayerData.hatsu_criados.clear()
 	if data.has("hatsu_criados"):
 		for hd in data["hatsu_criados"]:
 			if hd is Dictionary:
 				PlayerData.hatsu_criados.append(HatsuData.from_dict(hd))
+
+	PlayerData.stored_hatsus.clear()
+	if data.has("stored_hatsus"):
+		for sh in data["stored_hatsus"]:
+			if sh is Dictionary and sh.has("hatsu_data") and sh["hatsu_data"] is Dictionary:
+				var h_data = HatsuData.from_dict(sh["hatsu_data"])
+				PlayerData.stored_hatsus.append({
+					"id": sh.get("id", ""),
+					"source_name": sh.get("source_name", ""),
+					"remaining_uses": sh.get("remaining_uses", -1),
+					"acquired_at": sh.get("acquired_at", ""),
+					"active": sh.get("active", true),
+					"hatsu_data": h_data
+				})
 
 	if data.has("hatsu_slots"):
 		PlayerData.hatsu_slots.clear()
@@ -514,6 +552,10 @@ func deletar_save(slot: int) -> void:
 	print("[SaveManager] Save do Slot ", slot, " removido com sucesso.")
 
 
+func remover_save(slot: int) -> void:
+	deletar_save(slot)
+
+
 func novo_jogo(slot: int = 1) -> void:
 	current_slot = slot
 	if PlayerData != null:
@@ -541,6 +583,7 @@ func novo_jogo(slot: int = 1) -> void:
 		PlayerData.hatsu_slots = [-1, -1, -1, -1]
 		PlayerData.despertou_nen = false
 		PlayerData.hatsu_desbloqueado = false
+		PlayerData.hatsu_creation_unlocked = false
 		PlayerData.besta_nen_desbloqueada = false
 		PlayerData.tour_lobby_concluido = false
 		PlayerData.tutorial_concluido = false

@@ -134,13 +134,13 @@ func _inicializar_inimigos_canônicos() -> void:
 func get_item(id: StringName) -> Resource:
 	if items_registry.has(id):
 		return items_registry[id]
-	if Economy != null and Economy.ITEM_CATALOGO.has(String(id)):
-		var cat_info = Economy.ITEM_CATALOGO[String(id)]
+	if Economy != null and Economy.ITEM_CATALOGO.has(str(id)):
+		var cat_info = Economy.ITEM_CATALOGO[str(id)]
 		var item_script = load("res://resource/item/ItemData.gd")
 		if item_script:
 			var it = item_script.new()
 			it.item_id = id
-			it.nome_item = cat_info.get("nome", String(id))
+			it.nome_item = cat_info.get("nome", str(id))
 			it.descricao = cat_info.get("descricao", "")
 			it.preco_compra = cat_info.get("preco", 100)
 			items_registry[id] = it

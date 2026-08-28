@@ -86,7 +86,7 @@ static func from_dict(d: Dictionary) -> Resource:
 	var tags_raw = d.get("tags", [])
 	entry.tags = []
 	for t in tags_raw:
-		entry.tags.append(String(t))
+		entry.tags.append(str(t))
 		
 	entry.layer = d.get("layer", 0)
 	entry.walkable = d.get("walkable", true)

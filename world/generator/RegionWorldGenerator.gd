@@ -554,7 +554,7 @@ func _posicionar_pois_e_segredos() -> void:
 		var chunk = _obter_chunk_para_posicao(tile_pos)
 		
 		var marker = Marker2D.new()
-		marker.name = "POI_" + String(poi.poi_id)
+		marker.name = "POI_" + str(poi.poi_id)
 		marker.position = poi.world_position - chunk.position
 		marker.add_to_group("poi_marker")
 		chunk.add_child(marker)

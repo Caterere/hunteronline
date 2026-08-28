@@ -3,47 +3,83 @@
 [ext_resource type="Script" path="res://ui/dialogue/DialogueBox.gd" id="1_nc73h"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_nc73h"]
-bg_color = Color(0.758192, 0.758192, 0.758192, 1)
+bg_color = Color(0.06, 0.08, 0.12, 0.96)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0, 0, 0, 1)
-border_blend = true
-corner_radius_top_left = 2
-corner_radius_top_right = 2
-corner_radius_bottom_right = 2
-corner_radius_bottom_left = 2
+border_color = Color(1, 0.82, 0.2, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 4
 
-[node name="DialogueBox" type="Panel"]
-offset_left = -15.0
-offset_right = -5.0
-offset_bottom = 7.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_nc73h")
+[node name="DialogueBox" type="CanvasLayer" groups=["dialogue_box"]]
+layer = 20
 script = ExtResource("1_nc73h")
-metadata/_edit_group_ = true
 
-[node name="NameLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 1.0
-offset_right = 27.0
-offset_bottom = 21.0
-theme_override_font_sizes/font_size = 3
-text = "Wing"
+[node name="RootControl" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="DialogueLabel" type="Label" parent="."]
-layout_mode = 0
-offset_left = 1.0
-offset_top = 3.0
-offset_right = 44.0
-offset_bottom = 32.0
-theme_override_font_sizes/font_size = 2
-text = "Bem-Vindo Ao Exame Hunter!"
+[node name="PanelContainer" type="PanelContainer" parent="RootControl"]
+custom_minimum_size = Vector2(440, 82)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -92.0
+offset_right = 220.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_nc73h")
 
-[node name="ChoicesContainer" type="VBoxContainer" parent="."]
-layout_mode = 0
-offset_left = 1.0
-offset_top = 32.0
-offset_right = 44.0
-offset_bottom = 50.0
-separation = 2
+[node name="MarginContainer" type="MarginContainer" parent="RootControl/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="VBoxContainer" type="VBoxContainer" parent="RootControl/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="NameLabel" type="Label" parent="RootControl/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
+theme_override_font_sizes/font_size = 10
+text = "WING"
+
+[node name="HSeparator" type="HSeparator" parent="RootControl/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="DialogueLabel" type="Label" parent="RootControl/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_color = Color(0.96, 0.95, 0.9, 1)
+theme_override_font_sizes/font_size = 9
+text = "Bem-vindo ao Exame Hunter!"
+autowrap_mode = 3
+
+[node name="ChoicesContainer" type="VBoxContainer" parent="RootControl/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="ContinueIndicator" type="Label" parent="RootControl/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "▼ [E / Espaço]"
+horizontal_alignment = 2

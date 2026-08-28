@@ -102,16 +102,18 @@ func _criar_card_jogador_top_left() -> void:
 		old_margin.visible = false
 
 	player_card_panel = PanelContainer.new()
-	player_card_panel.position = Vector2(6, 6)
-	player_card_panel.custom_minimum_size = Vector2(165, 76)
+	player_card_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	player_card_panel.offset_left = 8.0
+	player_card_panel.offset_top = 8.0
+	player_card_panel.custom_minimum_size = Vector2(175, 74)
 	player_card_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GREEN, 3))
 	add_child(player_card_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 4)
-	margin.add_theme_constant_override("margin_top", 3)
-	margin.add_theme_constant_override("margin_right", 4)
-	margin.add_theme_constant_override("margin_bottom", 3)
+	margin.add_theme_constant_override("margin_left", 6)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 6)
+	margin.add_theme_constant_override("margin_bottom", 4)
 	player_card_panel.add_child(margin)
 
 	var vbox := VBoxContainer.new()
@@ -124,14 +126,14 @@ func _criar_card_jogador_top_left() -> void:
 
 	lbl_player_header = Label.new()
 	lbl_player_header.text = "🔰 HUNTER | LV. 1"
-	lbl_player_header.add_theme_font_size_override("font_size", 4)
+	lbl_player_header.add_theme_font_size_override("font_size", 9)
 	lbl_player_header.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_player_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_player_header)
 
 	lbl_gold = Label.new()
 	lbl_gold.text = "💰 0 J"
-	lbl_gold.add_theme_font_size_override("font_size", 4)
+	lbl_gold.add_theme_font_size_override("font_size", 9)
 	lbl_gold.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD)
 	hbox_header.add_child(lbl_gold)
 
@@ -172,24 +174,24 @@ func _criar_card_jogador_top_left() -> void:
 
 	lbl_nen_status = Label.new()
 	lbl_nen_status.text = "🥋 Nen: Inativo [N]"
-	lbl_nen_status.add_theme_font_size_override("font_size", 3)
+	lbl_nen_status.add_theme_font_size_override("font_size", 8)
 	lbl_nen_status.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
 	lbl_nen_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_status.add_child(lbl_nen_status)
 
 	lbl_beast_status = Label.new()
 	lbl_beast_status.text = ""
-	lbl_beast_status.add_theme_font_size_override("font_size", 3)
+	lbl_beast_status.add_theme_font_size_override("font_size", 8)
 	lbl_beast_status.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_PURPLE)
 	hbox_status.add_child(lbl_beast_status)
 
 
 func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: String) -> Dictionary:
 	var container := Control.new()
-	container.custom_minimum_size = Vector2(155, 9)
+	container.custom_minimum_size = Vector2(163, 11)
 
 	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(155, 9)
+	bar.custom_minimum_size = Vector2(163, 11)
 	bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bar.show_percentage = false
 	bar.min_value = 0
@@ -223,7 +225,7 @@ func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: Strin
 	lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 3)
+	lbl.add_theme_font_size_override("font_size", 8)
 	lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
 	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	lbl.add_theme_constant_override("shadow_offset_x", 1)
@@ -239,11 +241,11 @@ func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: Strin
 
 func _criar_boss_bar() -> void:
 	boss_bar_panel = PanelContainer.new()
-	boss_bar_panel.custom_minimum_size = Vector2(240, 24)
-	boss_bar_panel.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	boss_bar_panel.offset_left = 40.0
-	boss_bar_panel.offset_right = -40.0
-	boss_bar_panel.offset_top = 4.0
+	boss_bar_panel.custom_minimum_size = Vector2(260, 26)
+	boss_bar_panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	boss_bar_panel.offset_left = -130.0
+	boss_bar_panel.offset_right = 130.0
+	boss_bar_panel.offset_top = 8.0
 	boss_bar_panel.visible = false
 	boss_bar_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_HP_CRIMSON, 3))
 	add_child(boss_bar_panel)
@@ -261,13 +263,13 @@ func _criar_boss_bar() -> void:
 
 	lbl_boss_name = Label.new()
 	lbl_boss_name.text = "👑 CHEFE"
-	lbl_boss_name.add_theme_font_size_override("font_size", 4)
+	lbl_boss_name.add_theme_font_size_override("font_size", 9)
 	lbl_boss_name.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_boss_name)
 
 	var bar_box := Control.new()
-	bar_box.custom_minimum_size = Vector2(220, 8)
+	bar_box.custom_minimum_size = Vector2(244, 9)
 	vbox.add_child(bar_box)
 
 	boss_hp_bar = ProgressBar.new()
@@ -282,7 +284,7 @@ func _criar_boss_bar() -> void:
 	lbl_boss_hp.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	lbl_boss_hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_boss_hp.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl_boss_hp.add_theme_font_size_override("font_size", 3)
+	lbl_boss_hp.add_theme_font_size_override("font_size", 8)
 	lbl_boss_hp.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_boss_hp.add_theme_color_override("font_shadow_color", Color.BLACK)
 	bar_box.add_child(lbl_boss_hp)
@@ -315,9 +317,12 @@ func _criar_painel_hatsu_slots() -> void:
 
 	var margin_bottom := MarginContainer.new()
 	margin_bottom.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	margin_bottom.position = Vector2(96, 142)
-	margin_bottom.custom_minimum_size = Vector2(128, 34)
-	margin_bottom.add_theme_constant_override("margin_bottom", 2)
+	margin_bottom.offset_left = -78.0
+	margin_bottom.offset_right = 78.0
+	margin_bottom.offset_top = -44.0
+	margin_bottom.offset_bottom = -8.0
+	margin_bottom.custom_minimum_size = Vector2(156, 36)
+	margin_bottom.add_theme_constant_override("margin_bottom", 0)
 	add_child(margin_bottom)
 
 	hatsu_slots_container = HBoxContainer.new()
@@ -333,11 +338,11 @@ func _criar_painel_hatsu_slots() -> void:
 
 	for i in range(4):
 		var panel := PanelContainer.new()
-		panel.custom_minimum_size = Vector2(30, 32)
+		panel.custom_minimum_size = Vector2(36, 34)
 		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 3))
 
 		var slot_box := Control.new()
-		slot_box.custom_minimum_size = Vector2(28, 30)
+		slot_box.custom_minimum_size = Vector2(34, 32)
 		panel.add_child(slot_box)
 
 		# Overlay de Cooldown
@@ -357,7 +362,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Número do slot (1, 2, 3, 4)
 		var lbl_num := Label.new()
 		lbl_num.text = "[%d]" % (i + 1)
-		lbl_num.add_theme_font_size_override("font_size", 3)
+		lbl_num.add_theme_font_size_override("font_size", 8)
 		lbl_num.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 		lbl_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_num)
@@ -365,7 +370,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Nome do Hatsu
 		var lbl_name := Label.new()
 		lbl_name.text = "-"
-		lbl_name.add_theme_font_size_override("font_size", 3)
+		lbl_name.add_theme_font_size_override("font_size", 8)
 		lbl_name.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 		lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_name)
@@ -374,7 +379,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Custo de Aura (ex: 45 AP)
 		var lbl_cost := Label.new()
 		lbl_cost.text = ""
-		lbl_cost.add_theme_font_size_override("font_size", 3)
+		lbl_cost.add_theme_font_size_override("font_size", 7)
 		lbl_cost.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
 		lbl_cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_cost)
@@ -383,7 +388,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Texto de Cooldown (ex: 3.5s)
 		var lbl_cd := Label.new()
 		lbl_cd.text = ""
-		lbl_cd.add_theme_font_size_override("font_size", 4)
+		lbl_cd.add_theme_font_size_override("font_size", 9)
 		lbl_cd.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD)
 		lbl_cd.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_cd.visible = false
@@ -396,7 +401,7 @@ func _criar_painel_hatsu_slots() -> void:
 		bar.max_value = 100
 		bar.value = 0
 		bar.show_percentage = false
-		bar.custom_minimum_size = Vector2(26, 2)
+		bar.custom_minimum_size = Vector2(30, 2)
 		bar.add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(HunterUIStyle.COLOR_GOLD))
 		vbox.add_child(bar)
 		slot_progress_bars.append(bar)

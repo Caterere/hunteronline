@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c4y562stb7o3"]
+
+[ext_resource type="Script" path="res://scratch/test_hatsu_power_credits_suite.gd" id="1_test_hatcredits"]
+
+[node name="TestHatsuPowerCreditsSuite" type="Node"]
+script = ExtResource("1_test_hatcredits")

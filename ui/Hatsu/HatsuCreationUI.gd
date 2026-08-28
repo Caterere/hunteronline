@@ -2,24 +2,25 @@ class_name HatsuCreationUI
 extends CanvasLayer
 
 const VisualProfile = preload("res://resource/hatsu/VisualProfile.gd")
+const HatsuPresetLibrary = preload("res://resource/hatsu/HatsuPresetLibrary.gd")
 
 # ============================================================
-# HUNTER ONLINE - HATSU CREATION UI (10 ETAPAS CONTEXTUAIS & IA DE NEN)
+# HUNTER ONLINE - HATSU CREATION UI (v1.5: CRÉDITOS DE LIMITAÇÃO)
 # ============================================================
 #
-# Interface de criação de Hatsu com sistema de Vow & Limitation.
+# Interface de criação de Hatsu com sistema modular de Vow & Limitation.
 # Ajustada estritamente para viewport 320x180 (Painel 304x168 centralizado).
-# Passa por 10 etapas sequenciais guiadas e contextuais:
-# 1. Nome
-# 2. Objetivo Principal (Dano, Defesa, Cura, Mobilidade, Controle)
-# 3. Forma de Liberação (Adaptada ao objetivo)
-# 4. Elemento / Natureza (Efeitos ofensivos ou defensivos)
-# 5. Alvo (Auto-alvo, Aliado, Inimigo)
-# 6. Alcance / Raio de Proteção
-# 7. Consumo Desejado
-# 8. Condições de Ativação
-# 9. Juramentos & Avaliador de Regras de Nen (Vows & Limitations)
-# 10. Resumo & Medidor de Equilíbrio
+#
+# FLUXO EM 9 ETAPAS COM EQUILÍBRIO DE LIMITAÇÃO:
+# 1. Tipo de Nen (Reforço, Emissão, Transmutação, Conjuração, Manipulação, Especialização, Outro / Especial)
+# 2. Conceito / Preset (Biblioteca com 15 Conceitos Temáticos ou Criar do Zero)
+# 3. Nome & Identidade Visual
+# 4. Efeito Principal & Funcionamento (Parâmetros específicos do conceito)
+# 5. Efeitos Secundários & Modificadores
+# 6. Condições de Ativação & Cadeia de Preparação (Preparation Chain)
+# 7. Juramentos & Restrições (Vows & Limitations + IA de Nen)
+# 8. Custos, Alcance & Consumo
+# 9. Resumo, Auditoria de Créditos & Forjar Hatsu
 #
 # ============================================================
 
@@ -27,21 +28,22 @@ signal hatsu_criado(hatsu: HatsuData)
 signal menu_fechado
 
 enum Etapa {
-	NOME,
-	OBJETIVO,
-	FORMA,
-	ELEMENTO,
-	ALVO,
-	ALCANCE,
-	CONSUMO,
-	CONDICOES,
-	RESTRICOES,
-	RESUMO
+	TIPO_NEN,            # 1/9
+	CONCEITO,            # 2/9
+	NOME,                # 3/9
+	FUNCIONAMENTO,       # 4/9
+	EFEITOS_SECUNDARIOS, # 5/9
+	CONDICOES,           # 6/9
+	RESTRICOES,          # 7/9
+	CUSTOS,              # 8/9
+	RESUMO               # 9/9
 }
 
-var etapa_atual: Etapa = Etapa.NOME
+var etapa_atual: Etapa = Etapa.TIPO_NEN
 
-# Escolhas do Hatsu
+# Configurações do Hatsu
+var sel_tipo_especial: bool = false
+var sel_preset_id: HatsuPresetLibrary.PresetId = HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO
 var sel_nome: String = "Meu Hatsu"
 var sel_categoria: HatsuData.Categoria = HatsuData.Categoria.INTENSIFICACAO
 var sel_objetivo: HatsuData.ObjetivoPrincipal = HatsuData.ObjetivoPrincipal.DANO
@@ -50,16 +52,31 @@ var sel_elemento: HatsuData.Elemento = HatsuData.Elemento.NEN_PURO
 var sel_alvo: HatsuData.Alvo = HatsuData.Alvo.INIMIGO_UNICO
 var sel_alcance: HatsuData.AlcanceTipo = HatsuData.AlcanceTipo.MEDIO
 var sel_consumo: HatsuData.ConsumoDesejado = HatsuData.ConsumoDesejado.MEDIO
-var sel_condicoes: Array[HatsuData.Condicao] = []
+var sel_efeitos_secundarios: Array = []
+var sel_condicoes: Array = []
+var sel_restricoes: Array = []
+var sel_preparation_steps: Array = []
 var sel_arquetipo: HatsuData.Arquetipo = HatsuData.Arquetipo.SIMPLES
 var sel_cor_primaria: Color = Color(0.3, 0.7, 1.0, 1.0)
 var sel_cor_secundaria: Color = Color(1.0, 1.0, 1.0, 0.9)
 var sel_estilo_visual: HatsuData.EstiloVisual = HatsuData.EstiloVisual.PURO_PULSANTE
 var custom_vow_input: String = ""
+var sel_opcoes_preset: Dictionary = {}
+var sel_opcoes_preset_escolhidas: Dictionary = {}
 
-# UI Containers
+# Parâmetros Especializados de Storage & Roubo de Hatsu
+var sel_is_storage_hatsu: bool = false
+var sel_storage_capacity: int = 5
+var sel_storage_duration: String = "PERMANENT"
+var sel_storage_usage: String = "OPEN_BOOK"
+var sel_steal_conditions: Array[String] = []
+var sel_steal_target: String = "ANY"
+
+# Elementos da UI
 var panel_main: PanelContainer
 var vbox_content: VBoxContainer
+var hbox_tabs: HBoxContainer
+var tab_buttons: Array[Button] = []
 var lbl_titulo: Label
 var lbl_desc: Label
 var container_opcoes: VBoxContainer
@@ -68,6 +85,7 @@ var line_edit_custom_vow: LineEdit
 var lbl_vow_analise: Label
 var btn_proximo: Button
 var btn_anterior: Button
+var btn_salvar_rascunho: Button
 var btn_fechar: Button
 
 # Medidor de Equilíbrio (Gauge)
@@ -103,8 +121,12 @@ func toggle_menu() -> void:
 
 
 func abrir() -> void:
-	etapa_atual = Etapa.NOME
-	sel_nome = "Nova Técnica"
+	if panel_main == null:
+		_construir_ui()
+	etapa_atual = Etapa.TIPO_NEN
+	sel_tipo_especial = false
+	sel_preset_id = HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO
+	sel_nome = "Novo Hatsu"
 	sel_categoria = PlayerData.afinidade_nen as HatsuData.Categoria
 	sel_objetivo = HatsuData.ObjetivoPrincipal.DANO
 	sel_forma = HatsuData.Forma.TOQUE
@@ -112,17 +134,31 @@ func abrir() -> void:
 	sel_alvo = HatsuData.Alvo.INIMIGO_UNICO
 	sel_alcance = HatsuData.AlcanceTipo.MEDIO
 	sel_consumo = HatsuData.ConsumoDesejado.MEDIO
+	sel_efeitos_secundarios.clear()
 	sel_condicoes.clear()
+	sel_restricoes.clear()
+	sel_preparation_steps.clear()
+	sel_opcoes_preset.clear()
+	sel_opcoes_preset_escolhidas.clear()
 	custom_vow_input = ""
 	visible = true
-	get_tree().paused = true
+	if get_tree() != null:
+		get_tree().paused = true
 	_atualizar_etapa()
 
 
 func fechar() -> void:
 	visible = false
-	get_tree().paused = false
+	if get_tree() != null:
+		get_tree().paused = false
 	menu_fechado.emit()
+
+
+func _ir_para_etapa(nova_etapa: Etapa) -> void:
+	if etapa_atual == Etapa.NOME and line_edit_nome != null and not line_edit_nome.text.is_empty():
+		sel_nome = line_edit_nome.text
+	etapa_atual = nova_etapa
+	_atualizar_etapa()
 
 
 # ============================================================
@@ -160,20 +196,20 @@ func _construir_ui() -> void:
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 4)
-	margin.add_theme_constant_override("margin_top", 3)
+	margin.add_theme_constant_override("margin_top", 2)
 	margin.add_theme_constant_override("margin_right", 4)
-	margin.add_theme_constant_override("margin_bottom", 3)
+	margin.add_theme_constant_override("margin_bottom", 2)
 	panel_main.add_child(margin)
 
 	var hbox_colunas := HBoxContainer.new()
-	hbox_colunas.add_theme_constant_override("separation", 4)
+	hbox_colunas.add_theme_constant_override("separation", 3)
 	margin.add_child(hbox_colunas)
 
 	# Coluna Esquerda: Forjador (195px)
 	vbox_content = VBoxContainer.new()
-	vbox_content.custom_minimum_size = Vector2(195, 160)
+	vbox_content.custom_minimum_size = Vector2(195, 162)
 	vbox_content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox_content.add_theme_constant_override("separation", 2)
+	vbox_content.add_theme_constant_override("separation", 1)
 	hbox_colunas.add_child(vbox_content)
 
 	# Cabeçalho
@@ -181,10 +217,10 @@ func _construir_ui() -> void:
 	vbox_content.add_child(hbox_hdr)
 
 	lbl_titulo = Label.new()
-	lbl_titulo.add_theme_font_size_override("font_size", 5)
+	lbl_titulo.add_theme_font_size_override("font_size", 4)
 	lbl_titulo.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	lbl_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl_titulo.text = "⚡ FORJAR NOVO HATSU"
+	lbl_titulo.text = "⚡ FORJADOR DE HATSU"
 	hbox_hdr.add_child(lbl_titulo)
 
 	btn_fechar = Button.new()
@@ -192,6 +228,9 @@ func _construir_ui() -> void:
 	btn_fechar.add_theme_font_size_override("font_size", 4)
 	btn_fechar.pressed.connect(fechar)
 	hbox_hdr.add_child(btn_fechar)
+
+	# Barra Superior de 9 Abas Navegáveis
+	_construir_barra_abas()
 
 	lbl_desc = Label.new()
 	lbl_desc.add_theme_font_size_override("font_size", 4)
@@ -202,7 +241,7 @@ func _construir_ui() -> void:
 	# Scroll de Opções
 	var scroll_opcoes := ScrollContainer.new()
 	scroll_opcoes.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll_opcoes.custom_minimum_size = Vector2(195, 88)
+	scroll_opcoes.custom_minimum_size = Vector2(195, 80)
 	scroll_opcoes.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	vbox_content.add_child(scroll_opcoes)
 
@@ -212,7 +251,7 @@ func _construir_ui() -> void:
 	scroll_opcoes.add_child(container_opcoes)
 
 	line_edit_nome = LineEdit.new()
-	line_edit_nome.add_theme_font_size_override("font_size", 5)
+	line_edit_nome.add_theme_font_size_override("font_size", 4)
 	line_edit_nome.placeholder_text = "Digite o nome da habilidade..."
 	line_edit_nome.visible = false
 	container_opcoes.add_child(line_edit_nome)
@@ -220,8 +259,14 @@ func _construir_ui() -> void:
 	# Rodapé de Navegação
 	var hbox_nav := HBoxContainer.new()
 	hbox_nav.alignment = BoxContainer.ALIGNMENT_END
-	hbox_nav.add_theme_constant_override("separation", 3)
+	hbox_nav.add_theme_constant_override("separation", 2)
 	vbox_content.add_child(hbox_nav)
+
+	btn_salvar_rascunho = Button.new()
+	btn_salvar_rascunho.text = "💾 Rascunho"
+	btn_salvar_rascunho.add_theme_font_size_override("font_size", 4)
+	btn_salvar_rascunho.pressed.connect(func(): _finalizar_criacao(true))
+	hbox_nav.add_child(btn_salvar_rascunho)
 
 	btn_anterior = Button.new()
 	btn_anterior.text = "< Voltar"
@@ -239,9 +284,28 @@ func _construir_ui() -> void:
 	_construir_gauge(hbox_colunas)
 
 
+func _construir_barra_abas() -> void:
+	hbox_tabs = HBoxContainer.new()
+	hbox_tabs.add_theme_constant_override("separation", 1)
+	vbox_content.add_child(hbox_tabs)
+
+	var nomes_abas = ["1.Tipo", "2.Conceito", "3.Nome", "4.Função", "5.Efeitos", "6.Cond.", "7.Votos", "8.Custos", "9.Resumo"]
+	tab_buttons.clear()
+
+	for i in range(nomes_abas.size()):
+		var btn_tab := Button.new()
+		btn_tab.text = nomes_abas[i]
+		btn_tab.add_theme_font_size_override("font_size", 3)
+		btn_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var etapa_alvo = i as Etapa
+		btn_tab.pressed.connect(func(): _ir_para_etapa(etapa_alvo))
+		hbox_tabs.add_child(btn_tab)
+		tab_buttons.append(btn_tab)
+
+
 func _construir_gauge(parent: Control) -> void:
 	panel_gauge = PanelContainer.new()
-	panel_gauge.custom_minimum_size = Vector2(95, 160)
+	panel_gauge.custom_minimum_size = Vector2(95, 162)
 	var st_g := StyleBoxFlat.new()
 	st_g.bg_color = Color(0.09, 0.11, 0.16, 0.95)
 	st_g.border_width_left = 1
@@ -286,7 +350,7 @@ func _construir_gauge(parent: Control) -> void:
 
 	lbl_potencial = Label.new()
 	lbl_potencial.add_theme_font_size_override("font_size", 4)
-	lbl_potencial.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
+	lbl_potencial.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1.0))
 	vb.add_child(lbl_potencial)
 
 	lbl_complexidade = Label.new()
@@ -302,7 +366,7 @@ func _construir_gauge(parent: Control) -> void:
 
 
 # ============================================================
-# ATUALIZAÇÃO DAS 10 ETAPAS CONTEXTUAIS
+# MÁQUINA DE ESTADOS DAS 9 ETAPAS
 # ============================================================
 
 func _atualizar_etapa() -> void:
@@ -311,147 +375,426 @@ func _atualizar_etapa() -> void:
 			child.queue_free()
 
 	line_edit_nome.visible = false
-	btn_anterior.visible = (etapa_atual != Etapa.NOME)
+	btn_anterior.visible = (etapa_atual != Etapa.TIPO_NEN)
 	btn_proximo.text = "Avançar >"
+	btn_proximo.modulate = Color(1.0, 1.0, 1.0, 1.0)
+
+	# Atualizar estilo da barra de abas
+	for i in range(tab_buttons.size()):
+		var b = tab_buttons[i]
+		if i == int(etapa_atual):
+			b.modulate = Color(1.0, 0.85, 0.2, 1.0)
+		elif i < int(etapa_atual):
+			b.modulate = Color(0.5, 0.8, 1.0, 1.0)
+		else:
+			b.modulate = Color(0.6, 0.6, 0.7, 0.8)
 
 	match etapa_atual:
+		Etapa.TIPO_NEN:
+			lbl_titulo.text = "1/9: Tipo de Hatsu"
+			lbl_desc.text = "Escolha sua afinidade de Nen ou acesse o catálogo especial:"
+			_montar_etapa_tipo_nen()
+
+		Etapa.CONCEITO:
+			lbl_titulo.text = "2/9: Conceito Principal / Preset"
+			lbl_desc.text = "Defina O QUE seu Hatsu fará logo no início da criação:"
+			_montar_etapa_conceito()
+
 		Etapa.NOME:
-			lbl_titulo.text = "1/10: Nome da Habilidade"
+			lbl_titulo.text = "3/9: Nome & Identidade Visual"
 			lbl_desc.text = "Como se chamará sua técnica especial de Hatsu?"
 			_montar_etapa_nome()
 
-		Etapa.OBJETIVO:
-			lbl_titulo.text = "2/10: Objetivo Principal"
-			lbl_desc.text = "Qual é o foco tático desta técnica?"
-			_montar_etapa_objetivo()
+		Etapa.FUNCIONAMENTO:
+			lbl_titulo.text = "4/9: Efeito Principal & Funcionamento"
+			lbl_desc.text = "Configure objetivo, alvo, forma e parâmetros do conceito:"
+			_montar_etapa_funcionamento()
 
-		Etapa.FORMA:
-			lbl_titulo.text = "3/10: Manifestação de Aura"
-			lbl_desc.text = "Como a energia será moldada para cumprir o objetivo?"
-			_montar_etapa_forma()
-
-		Etapa.ELEMENTO:
-			lbl_titulo.text = "4/10: Propriedade / Elemento"
-			lbl_desc.text = "Qual natureza ou elemento é transmutado na aura?"
-			_montar_etapa_elemento()
-
-		Etapa.ALVO:
-			lbl_titulo.text = "5/10: Alvo do Hatsu"
-			lbl_desc.text = "Quem receberá o efeito da sua técnica?"
-			_montar_etapa_alvo()
-
-		Etapa.ALCANCE:
-			if sel_objetivo == HatsuData.ObjetivoPrincipal.DEFESA:
-				lbl_titulo.text = "6/10: Densidade da Blindagem"
-				lbl_desc.text = "Qual a cobertura e espessura do campo protetor?"
-			elif sel_objetivo == HatsuData.ObjetivoPrincipal.CURA:
-				lbl_titulo.text = "6/10: Potência Celular"
-				lbl_desc.text = "Qual a intensidade da regeneração de aura?"
-			else:
-				lbl_titulo.text = "6/10: Alcance Efetivo"
-				lbl_desc.text = "Qual distância a aura percorre?"
-			_montar_etapa_alcance()
-
-		Etapa.CONSUMO:
-			lbl_titulo.text = "7/10: Consumo de Aura Desejado"
-			lbl_desc.text = "Quanto maior o gasto de aura, mais densa e potente a técnica."
-			_montar_etapa_consumo()
+		Etapa.EFEITOS_SECUNDARIOS:
+			lbl_titulo.text = "5/9: Efeitos Secundários & Modificadores"
+			lbl_desc.text = "Adicione propriedades táticas acopláveis ao Hatsu:"
+			_montar_etapa_efeitos_secundarios()
 
 		Etapa.CONDICOES:
-			lbl_titulo.text = "8/10: Condições de Ativação"
-			lbl_desc.text = "Condições táticas de risco aumentam a potência (+30% a +65%)."
+			lbl_titulo.text = "6/9: Condições Táticas & Preparação"
+			lbl_desc.text = "Pague pelo poder com condições de ativação e passos prévios:"
 			_montar_etapa_condicoes()
 
 		Etapa.RESTRICOES:
-			lbl_titulo.text = "9/10: Juramentos & Vows (Mangá / IA)"
-			lbl_desc.text = "Pactos, sacrifícios ou digite seu juramento personalizado livre!"
+			lbl_titulo.text = "7/9: Juramentos & Restrições (Vows)"
+			lbl_desc.text = "Pactos rígidos, limitações de combate e avaliação de Nen:"
 			_montar_etapa_restricoes()
 
+		Etapa.CUSTOS:
+			lbl_titulo.text = "8/9: Custos, Alcance & Consumo"
+			lbl_desc.text = "Calibre consumo de aura, alcance e ritmo do Hatsu:"
+			_montar_etapa_custos()
+
 		Etapa.RESUMO:
-			lbl_titulo.text = "10/10: Selar Juramento & Criar Hatsu"
-			lbl_desc.text = "Confira a compatibilidade e o equilíbrio da sua criação:"
-			btn_proximo.text = "CRIAR HATSU!"
+			lbl_titulo.text = "9/9: Resumo & Auditoria de Créditos"
+			lbl_desc.text = "Confira o balanço entre poder funcional e limitações:"
+			btn_proximo.text = "⚡ FORJAR HATSU!"
 			_montar_etapa_resumo()
 
 	_atualizar_gauge()
 
 
 # ============================================================
-# MONTAGEM DE CADA ETAPA
+# ETAPA 1: TIPO DE NEN
+# ============================================================
+
+func _montar_etapa_tipo_nen() -> void:
+	var tipos = [
+		{"cat": HatsuData.Categoria.INTENSIFICACAO, "especial": false, "nome": "👊 1. Reforço (Intensificação)", "desc": "Fortalecimento físico, impacto devastador e cura."},
+		{"cat": HatsuData.Categoria.EMISSAO, "especial": false, "nome": "🎯 2. Emissão", "desc": "Projeção e sustentação de aura à distância."},
+		{"cat": HatsuData.Categoria.TRANSFORMACAO, "especial": false, "nome": "⚡ 3. Transmutação (Transformação)", "desc": "Alteração das propriedades da aura (eletricidade, calor)."},
+		{"cat": HatsuData.Categoria.CONJURACAO, "especial": false, "nome": "🗡️ 4. Conjuração (Materialização)", "desc": "Materialização física de objetos, armas e armaduras."},
+		{"cat": HatsuData.Categoria.MANIPULACAO, "especial": false, "nome": "🧵 5. Manipulação", "desc": "Controle de matéria, marionetes e comandos condicionais."},
+		{"cat": HatsuData.Categoria.ESPECIALIZACAO, "especial": false, "nome": "🌟 6. Especialização", "desc": "Habilidades singulares fora dos 5 arquétipos."},
+		{"cat": HatsuData.Categoria.ESPECIALIZACAO, "especial": true, "nome": "🔮 7. Outro / Especial (Biblioteca)", "desc": "Catálogo completo: Roubo, Dreno, Livro, Cópia, Selamento."}
+	]
+
+	for t in tipos:
+		var btn := Button.new()
+		btn.text = t["nome"] + "\n  " + t["desc"]
+		btn.add_theme_font_size_override("font_size", 4)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if sel_tipo_especial and t["especial"]:
+			btn.modulate = Color(1.0, 0.85, 0.2, 1.0)
+		elif not sel_tipo_especial and not t["especial"] and t["cat"] == sel_categoria:
+			btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+
+		btn.pressed.connect(func():
+			sel_tipo_especial = t["especial"]
+			sel_categoria = t["cat"]
+			_on_avancar_pressed()
+		)
+		container_opcoes.add_child(btn)
+
+
+# ============================================================
+# ETAPA 2: CONCEITO / PRESET
+# ============================================================
+
+func _montar_etapa_conceito() -> void:
+	var presets: Array[Dictionary] = []
+	if sel_tipo_especial:
+		presets = HatsuPresetLibrary.obter_presets_especiais()
+		presets.append(HatsuPresetLibrary.obter_preset(HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO))
+	else:
+		presets = HatsuPresetLibrary.obter_presets_por_categoria(sel_categoria)
+		presets.append(HatsuPresetLibrary.obter_preset(HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO))
+
+	for p in presets:
+		var btn := Button.new()
+		btn.text = p["nome"] + "\n  " + p["desc"]
+		btn.add_theme_font_size_override("font_size", 4)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if p["id"] == sel_preset_id:
+			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+
+		btn.pressed.connect(func():
+			_aplicar_preset(p)
+			_on_avancar_pressed()
+		)
+		container_opcoes.add_child(btn)
+
+
+func _aplicar_preset(preset: Dictionary) -> void:
+	sel_preset_id = preset["id"]
+	sel_opcoes_preset_escolhidas.clear()
+
+	if preset["id"] == HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO:
+		sel_nome = "Nova Técnica"
+		sel_efeitos_secundarios.clear()
+		sel_condicoes.clear()
+		sel_restricoes.clear()
+		sel_preparation_steps.clear()
+		sel_opcoes_preset.clear()
+		sel_is_storage_hatsu = false
+		sel_steal_conditions.clear()
+		custom_vow_input = ""
+		return
+
+	sel_nome = preset["nome"].replace("🗡️ ", "").replace("🩸 ", "").replace("📖 ", "").replace("🪞 ", "").replace("📦 ", "").replace("🌀 ", "").replace("⛓️ ", "").replace("🤝 ", "").replace("📉 ", "").replace("⚡ ", "").replace("📐 ", "").replace("🎲 ", "").replace("🧪 ", "").replace("🌱 ", "")
+	sel_categoria = preset["categoria"]
+	sel_arquetipo = preset["arquetipo"]
+	sel_objetivo = preset["objetivo"]
+	sel_forma = preset["forma"]
+	sel_elemento = preset["elemento"]
+	sel_alvo = preset["alvo"]
+	sel_efeitos_secundarios = preset["efeitos_secundarios"].duplicate()
+	sel_condicoes = preset["condicoes"].duplicate()
+	sel_restricoes = preset["restricoes"].duplicate()
+	sel_preparation_steps = preset.get("preparation_steps", []).duplicate(true)
+	custom_vow_input = preset["custom_vow_sugerido"]
+	sel_opcoes_preset = preset["opcoes_funcionamento"].duplicate(true)
+
+	sel_is_storage_hatsu = (sel_arquetipo == HatsuData.Arquetipo.LIVRO_COLECAO or preset["id"] in [HatsuPresetLibrary.PresetId.ROUBAR_HABILIDADES, HatsuPresetLibrary.PresetId.LIVRO_HABILIDADES, HatsuPresetLibrary.PresetId.ARMAZENAR_HATSU])
+	if sel_is_storage_hatsu:
+		sel_storage_capacity = 5
+		sel_storage_duration = "PERMANENT"
+		sel_storage_usage = "OPEN_BOOK"
+		sel_steal_conditions = ["TOUCH_REQUIRED", "OBSERVE_GYO", "TARGET_EXPLAINS"]
+
+	# Inicializar opções escolhidas com o primeiro valor de cada chave
+	for chave in sel_opcoes_preset.keys():
+		var arr = sel_opcoes_preset[chave]
+		if arr is Array and not arr.is_empty():
+			sel_opcoes_preset_escolhidas[chave] = arr[0]
+
+
+# ============================================================
+# ETAPA 3: NOME & ESTILO VISUAL
 # ============================================================
 
 func _montar_etapa_nome() -> void:
+	var lbl_n := Label.new()
+	lbl_n.text = "Nome da Técnica Especial:"
+	lbl_n.add_theme_font_size_override("font_size", 4)
+	container_opcoes.add_child(lbl_n)
+
 	line_edit_nome.visible = true
 	line_edit_nome.text = sel_nome
-	line_edit_nome.grab_focus()
 
+	var sep := HSeparator.new()
+	container_opcoes.add_child(sep)
 
-func _montar_etapa_objetivo() -> void:
-	var objetivos = [
-		{"id": HatsuData.ObjetivoPrincipal.DANO, "nome": "1. Dano Ofensivo", "desc": "Causar alto impacto, cortes ou rajadas elementais."},
-		{"id": HatsuData.ObjetivoPrincipal.DEFESA, "nome": "2. Defesa / Blindagem", "desc": "Criar armadura de aura, barreiras e absorção de dano."},
-		{"id": HatsuData.ObjetivoPrincipal.CURA, "nome": "3. Cura / Regeneração", "desc": "Acelerar recuperação biológica celular própria ou de aliados."},
-		{"id": HatsuData.ObjetivoPrincipal.MOBILIDADE, "nome": "4. Mobilidade Rápida", "desc": "Dash supersônico de aura, impulsão e reflexos aumentados."},
-		{"id": HatsuData.ObjetivoPrincipal.CONTROLE, "nome": "5. Controle / Imobilização", "desc": "Atordoar, paralisar ou restringir opositores."}
+	var lbl_v := Label.new()
+	lbl_v.text = "Estilo Visual da Manifestação:"
+	lbl_v.add_theme_font_size_override("font_size", 4)
+	container_opcoes.add_child(lbl_v)
+
+	var estilos = [
+		{"id": HatsuData.EstiloVisual.PURO_PULSANTE, "nome": "1. Puro Pulsante (Densidade de Nen)", "cor": Color(0.3, 0.7, 1.0, 1.0)},
+		{"id": HatsuData.EstiloVisual.CHAMAS_FOGO, "nome": "2. Chamas Ondulantes de Fogo", "cor": Color(1.0, 0.3, 0.1, 1.0)},
+		{"id": HatsuData.EstiloVisual.RELAMPAGOS_ELETRICOS, "nome": "3. Arcos e Raios Elétricos", "cor": Color(0.2, 0.9, 1.0, 1.0)},
+		{"id": HatsuData.EstiloVisual.LAMINA_CORTE, "nome": "4. Lâmina / Meia-Lua Cortante", "cor": Color(0.8, 0.9, 1.0, 1.0)},
+		{"id": HatsuData.EstiloVisual.SHURIKEN_GIRATORIO, "nome": "5. Shuriken Rotativo", "cor": Color(0.9, 0.8, 0.2, 1.0)},
+		{"id": HatsuData.EstiloVisual.ANEIS_IMPACTO, "nome": "6. Ondas Sísmicas de Choque", "cor": Color(0.9, 0.5, 0.2, 1.0)},
+		{"id": HatsuData.EstiloVisual.NEVOA_SOMBRIAS, "nome": "7. Névoa e Miasma Espectral", "cor": Color(0.4, 0.1, 0.5, 1.0)},
+		{"id": HatsuData.EstiloVisual.DRAGAO_SERPENTE, "nome": "8. Dragão / Serpente de Nen", "cor": Color(1.0, 0.8, 0.2, 1.0)}
 	]
-	for ob in objetivos:
-		var btn = Button.new()
-		btn.text = ob["nome"] + "\n  " + ob["desc"]
+
+	for est in estilos:
+		var btn := Button.new()
+		btn.text = est["nome"]
 		btn.add_theme_font_size_override("font_size", 4)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if ob["id"] == sel_objetivo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+		if est["id"] == sel_estilo_visual:
+			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
 		btn.pressed.connect(func():
-			sel_objetivo = ob["id"]
-			# Auto-ajustar forma e alvo para coerência imediata
-			if sel_objetivo == HatsuData.ObjetivoPrincipal.DEFESA or sel_objetivo == HatsuData.ObjetivoPrincipal.CURA or sel_objetivo == HatsuData.ObjetivoPrincipal.MOBILIDADE:
-				sel_alvo = HatsuData.Alvo.PROPRIO_USUARIO
-				sel_forma = HatsuData.Forma.PESSOAL
-			else:
-				sel_alvo = HatsuData.Alvo.INIMIGO_UNICO
-				sel_forma = HatsuData.Forma.TOQUE
+			sel_estilo_visual = est["id"]
+			sel_cor_primaria = est["cor"]
 			_atualizar_etapa()
 		)
 		container_opcoes.add_child(btn)
 
 
-func _montar_etapa_forma() -> void:
-	var formas: Array = []
-	match sel_objetivo:
-		HatsuData.ObjetivoPrincipal.DEFESA:
-			formas = [
-				{"id": HatsuData.Forma.PESSOAL, "nome": "1. Armadura Pessoal de Aura", "desc": "Envolve o corpo em blindagem densa de alta absorção."},
-				{"id": HatsuData.Forma.AREA, "nome": "2. Cúpula Protetora (Área 360°)", "desc": "Ergue um domo de aura que resguarda a área ao redor."},
-				{"id": HatsuData.Forma.TOQUE, "nome": "3. Barreira Reativa ao Impacto", "desc": "Escudo frontal que repele ataques com contra-golpe."}
-			]
-		HatsuData.ObjetivoPrincipal.CURA:
-			formas = [
-				{"id": HatsuData.Forma.PESSOAL, "nome": "1. Regeneração Celular (Em Si)", "desc": "Restaura instantaneamente seus pontos de vida."},
-				{"id": HatsuData.Forma.AREA, "nome": "2. Círculo Restaurador de Aura", "desc": "Onda de cura que restaura em área ao redor."},
-				{"id": HatsuData.Forma.TOQUE, "nome": "3. Toque Curativo Instantâneo", "desc": "Foco de Ko nas mãos para cura rápida de emergência."}
-			]
-		HatsuData.ObjetivoPrincipal.MOBILIDADE:
-			formas = [
-				{"id": HatsuData.Forma.PESSOAL, "nome": "1. Dash / Impulsão Rápida", "desc": "Avanço supersônico com I-frames temporários."},
-				{"id": HatsuData.Forma.PROJETIL, "nome": "2. Salto Dimensional / Teleporte", "desc": "Projeta a aura à frente e avança instantaneamente."}
-			]
-		HatsuData.ObjetivoPrincipal.CONTROLE:
-			formas = [
-				{"id": HatsuData.Forma.PROJETIL, "nome": "1. Disparo de Aprisionamento", "desc": "Agulhas ou fios de Nen que imobilizam o alvo."},
-				{"id": HatsuData.Forma.AREA, "nome": "2. Onda Sísmica / Pulso de Stun", "desc": "Explosão de intimidação que atordoa em 360°."}
-			]
-		HatsuData.ObjetivoPrincipal.DANO, _:
-			formas = [
-				{"id": HatsuData.Forma.TOQUE, "nome": "1. Golpe Direto / Toque Físico", "desc": "Concentração máxima de Nen no ponto de contato."},
-				{"id": HatsuData.Forma.PROJETIL, "nome": "2. Projétil de Aura (Disparo)", "desc": "Dispara esferas ou feixes na direção do olhar."},
-				{"id": HatsuData.Forma.AREA, "nome": "3. Onda de Choque em Área", "desc": "Libera explosão de Nen em 360° em volta do corpo."}
-			]
+# ============================================================
+# ETAPA 4: EFEITO PRINCIPAL & FUNCIONAMENTO (AUDITADO)
+# ============================================================
 
-	for f in formas:
-		var btn = Button.new()
-		btn.text = f["nome"] + "\n  " + f["desc"]
+func _montar_etapa_funcionamento() -> void:
+	if sel_is_storage_hatsu:
+		# FLUXO ESPECIALIZADO: GRIMÓRIO / LIVRO DE HABILIDADES / ARMAZENAMENTO
+		var lbl_cap := Label.new()
+		lbl_cap.text = "📖 1. CAPACIDADE DO GRIMÓRIO / ARMAZENAMENTO:"
+		lbl_cap.add_theme_font_size_override("font_size", 4)
+		lbl_cap.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+		container_opcoes.add_child(lbl_cap)
+
+		var capacidades = [
+			{"val": 3, "nome": "3 Slots / Páginas (+15 Demanda)", "desc": "Grimório compacto e balanceado."},
+			{"val": 5, "nome": "5 Slots / Páginas (+35 Demanda)", "desc": "Grimório avançado de média capacidade."},
+			{"val": 10, "nome": "10 Páginas com Marcador Duplo (+70 Demanda)", "desc": "Grimório lendário para mestres da Especialização."}
+		]
+		for c in capacidades:
+			var btn := Button.new()
+			var ativo: bool = (sel_storage_capacity == c["val"])
+			btn.text = ("✅ " if ativo else "⬜ ") + c["nome"] + "\n  " + c["desc"]
+			btn.add_theme_font_size_override("font_size", 4)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			if ativo: btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+			var cap_val: int = int(c["val"])
+			btn.pressed.connect(func():
+				sel_storage_capacity = cap_val
+				_atualizar_etapa()
+			)
+			container_opcoes.add_child(btn)
+
+		var sep1 := HSeparator.new()
+		container_opcoes.add_child(sep1)
+
+		var lbl_dur := Label.new()
+		lbl_dur.text = "⏳ 2. PERSISTÊNCIA DAS TÉCNICAS ROUBADAS:"
+		lbl_dur.add_theme_font_size_override("font_size", 4)
+		lbl_dur.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0, 1.0))
+		container_opcoes.add_child(lbl_dur)
+
+		var duracoes = [
+			{"id": "PERMANENT", "nome": "Permanente até Descarte (+40 Demanda)", "desc": "Permanece guardado no savegame até ser substituído."},
+			{"id": "CHARGES", "nome": "3 Usos por Técnica (+0 Demanda / Limitação de Cargas)", "desc": "A técnica é consumida e removida após 3 conjurações."},
+			{"id": "TIMED", "nome": "Temporário / 5 Minutos (+15 Demanda)", "desc": "Expira automaticamente após 5 minutos de combate."}
+		]
+		for d in duracoes:
+			var btn := Button.new()
+			var ativo: bool = (sel_storage_duration == d["id"])
+			btn.text = ("✅ " if ativo else "⬜ ") + d["nome"] + "\n  " + d["desc"]
+			btn.add_theme_font_size_override("font_size", 4)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			if ativo: btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+			var dur_id: String = str(d["id"])
+			btn.pressed.connect(func():
+				sel_storage_duration = dur_id
+				_atualizar_etapa()
+			)
+			container_opcoes.add_child(btn)
+
+		var sep2 := HSeparator.new()
+		container_opcoes.add_child(sep2)
+
+		var lbl_rule := Label.new()
+		lbl_rule.text = "✋ 3. REGRA DE UTILIZAÇÃO EM COMBATE:"
+		lbl_rule.add_theme_font_size_override("font_size", 4)
+		lbl_rule.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3, 1.0))
+		container_opcoes.add_child(lbl_rule)
+
+		var regras = [
+			{"id": "OPEN_BOOK", "nome": "Manter o Livro Aberto na Mão Direita (+0 Demanda / Canônico)", "desc": "Bloqueia o uso de outras armas ou técnicas enquanto ativo."},
+			{"id": "BOOKMARK", "nome": "Uso com Marcador de Página (+30 Demanda)", "desc": "Permite fechar o livro mantendo as duas mãos livres."},
+			{"id": "FREE_CAST", "nome": "Invocação Livre Instantânea (+50 Demanda)", "desc": "Dispara qualquer Hatsu roubado sem necessidade do livro físico."}
+		]
+		for r in regras:
+			var btn := Button.new()
+			var ativo: bool = (sel_storage_usage == r["id"])
+			btn.text = ("✅ " if ativo else "⬜ ") + r["nome"] + "\n  " + r["desc"]
+			btn.add_theme_font_size_override("font_size", 4)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			if ativo: btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+			var rule_id: String = str(r["id"])
+			btn.pressed.connect(func():
+				sel_storage_usage = rule_id
+				_atualizar_etapa()
+			)
+			container_opcoes.add_child(btn)
+		return
+
+	# 1. Objetivo Principal
+	var lbl_obj := Label.new()
+	lbl_obj.text = "🎯 OBJETIVO PRINCIPAL DO HATSU:"
+	lbl_obj.add_theme_font_size_override("font_size", 4)
+	lbl_obj.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+	container_opcoes.add_child(lbl_obj)
+
+	var objetivos = [
+		{"id": HatsuData.ObjetivoPrincipal.DANO, "nome": "💥 Dano / Impacto Destrutivo", "desc": "Foco ofensivo em eliminar oponentes."},
+		{"id": HatsuData.ObjetivoPrincipal.DEFESA, "nome": "🛡️ Defesa / Barreira de Aura", "desc": "Criação de escudos, cúpulas e armaduras de Nen."},
+		{"id": HatsuData.ObjetivoPrincipal.CURA, "nome": "💖 Cura / Regeneração Celular", "desc": "Restauração de vitalidade e estancamento celular."},
+		{"id": HatsuData.ObjetivoPrincipal.MOBILIDADE, "nome": "🏃 Mobilidade / Aceleração", "desc": "Passos rápidos, teletransporte e esquiva com I-frames."},
+		{"id": HatsuData.ObjetivoPrincipal.CONTROLE, "nome": "⛓️ Controle / Imobilização", "desc": "Paralisia, selamento de Hatsu, Zetsu e desaceleração."},
+		{"id": HatsuData.ObjetivoPrincipal.SUPORTE, "nome": "🤝 Suporte / Concessão de Nen", "desc": "Buffs de equipe, transferência e acumulação de aura."}
+	]
+	for obj in objetivos:
+		var btn := Button.new()
+		var ativo: bool = (obj["id"] == sel_objetivo)
+		btn.text = ("✅ " if ativo else "⬜ ") + obj["nome"] + "\n  " + obj["desc"]
 		btn.add_theme_font_size_override("font_size", 4)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if f["id"] == sel_forma: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+		if ativo:
+			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+		btn.pressed.connect(func():
+			sel_objetivo = obj["id"]
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(btn)
+
+	var sep0 := HSeparator.new()
+	container_opcoes.add_child(sep0)
+
+	# 2. Parâmetros Específicos do Conceito (Interativos)
+	if not sel_opcoes_preset.is_empty():
+		var lbl_opt_hdr := Label.new()
+		lbl_opt_hdr.text = "⚙️ PARÂMETROS ESPECÍFICOS DO CONCEITO:"
+		lbl_opt_hdr.add_theme_font_size_override("font_size", 4)
+		lbl_opt_hdr.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0, 1.0))
+		container_opcoes.add_child(lbl_opt_hdr)
+
+		for chave in sel_opcoes_preset.keys():
+			var opcoes_array = sel_opcoes_preset[chave]
+			var lbl_k := Label.new()
+			lbl_k.text = "• " + chave.capitalize().replace("_", " ") + ":"
+			lbl_k.add_theme_font_size_override("font_size", 4)
+			container_opcoes.add_child(lbl_k)
+
+			for opt in opcoes_array:
+				var btn_opt := Button.new()
+				var escolhida: bool = (sel_opcoes_preset_escolhidas.get(chave, "") == str(opt))
+				btn_opt.text = ("  [x] " if escolhida else "  [ ] ") + str(opt)
+				btn_opt.add_theme_font_size_override("font_size", 4)
+				btn_opt.alignment = HORIZONTAL_ALIGNMENT_LEFT
+				if escolhida:
+					btn_opt.modulate = Color(0.4, 1.0, 0.6, 1.0)
+
+				var chave_captura = chave
+				var opt_captura = str(opt)
+				btn_opt.pressed.connect(func():
+					sel_opcoes_preset_escolhidas[chave_captura] = opt_captura
+					_atualizar_etapa()
+				)
+				container_opcoes.add_child(btn_opt)
+
+		var sep := HSeparator.new()
+		container_opcoes.add_child(sep)
+
+	# 3. Alvo do Hatsu
+	var lbl_alvo := Label.new()
+	lbl_alvo.text = "🎯 Alvo do Hatsu:"
+	lbl_alvo.add_theme_font_size_override("font_size", 4)
+	container_opcoes.add_child(lbl_alvo)
+
+	var alvos = [
+		{"id": HatsuData.Alvo.INIMIGO_UNICO, "nome": "1. Inimigo Único (Foco)"},
+		{"id": HatsuData.Alvo.AREA, "nome": "2. Área / Múltiplos Inimigos (+25 Demanda)"},
+		{"id": HatsuData.Alvo.PROPRIO_USUARIO, "nome": "3. Próprio Usuário (Auto-alvo)"},
+		{"id": HatsuData.Alvo.ALIADO, "nome": "4. Aliado (Suporte)"}
+	]
+	for a in alvos:
+		var btn := Button.new()
+		var ativo: bool = (a["id"] == sel_alvo)
+		btn.text = ("✅ " if ativo else "⬜ ") + a["nome"]
+		btn.add_theme_font_size_override("font_size", 4)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if ativo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+		btn.pressed.connect(func():
+			sel_alvo = a["id"]
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(btn)
+
+	var sep2 := HSeparator.new()
+	container_opcoes.add_child(sep2)
+
+	# 4. Forma de Liberação
+	var lbl_forma := Label.new()
+	lbl_forma.text = "✨ Forma de Liberação:"
+	lbl_forma.add_theme_font_size_override("font_size", 4)
+	container_opcoes.add_child(lbl_forma)
+
+	var formas = [
+		{"id": HatsuData.Forma.TOQUE, "nome": "1. Toque Físico / Curto Alcance (Ko)"},
+		{"id": HatsuData.Forma.PROJETIL, "nome": "2. Projétil / Disparo à Distância"},
+		{"id": HatsuData.Forma.AREA, "nome": "3. Explosão / Cúpula em Área 360° (+30 Demanda)"},
+		{"id": HatsuData.Forma.PESSOAL, "nome": "4. Revestimento Corporal Pessoal"},
+		{"id": HatsuData.Forma.ZONA, "nome": "5. Domínio Territorial / Zona de En (+30 Demanda)"}
+	]
+	for f in formas:
+		var btn := Button.new()
+		var ativo: bool = (f["id"] == sel_forma)
+		btn.text = ("✅ " if ativo else "⬜ ") + f["nome"]
+		btn.add_theme_font_size_override("font_size", 4)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if ativo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
 		btn.pressed.connect(func():
 			sel_forma = f["id"]
 			_atualizar_etapa()
@@ -459,343 +802,209 @@ func _montar_etapa_forma() -> void:
 		container_opcoes.add_child(btn)
 
 
-func _montar_etapa_elemento() -> void:
-	var elementos = [
-		{"id": HatsuData.Elemento.NEN_PURO, "nome": "Nen Puro"},
-		{"id": HatsuData.Elemento.ELETRICIDADE, "nome": "Eletricidade"},
-		{"id": HatsuData.Elemento.FOGO, "nome": "Fogo / Calor"},
-		{"id": HatsuData.Elemento.GELO, "nome": "Gelo"},
-		{"id": HatsuData.Elemento.VENENO, "nome": "Veneno"},
-		{"id": HatsuData.Elemento.SOM, "nome": "Som / Vibração"},
-		{"id": HatsuData.Elemento.LUZ, "nome": "Luz / Clarão"},
-		{"id": HatsuData.Elemento.SOMBRA, "nome": "Sombra"}
+# ============================================================
+# ETAPA 5: EFEITOS SECUNDÁRIOS & MODIFICADORES
+# ============================================================
+
+func _montar_etapa_efeitos_secundarios() -> void:
+	if sel_is_storage_hatsu:
+		# FLUXO ESPECIALIZADO: CONDIÇÕES & REQUISITOS DE ROUBO DE HATSU
+		var lbl_hdr := Label.new()
+		lbl_hdr.text = "📖 REQUISITOS & CONDIÇÕES DE ROUBO DE HATSU:"
+		lbl_hdr.add_theme_font_size_override("font_size", 4)
+		lbl_hdr.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+		container_opcoes.add_child(lbl_hdr)
+
+		var lbl_sub := Label.new()
+		lbl_sub.text = "Selecione as condições táticas obrigatórias para extrair a habilidade do oponente (cada uma concede Créditos de Limitação):"
+		lbl_sub.add_theme_font_size_override("font_size", 4)
+		lbl_sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		container_opcoes.add_child(lbl_sub)
+
+		var requisitos = [
+			{"id": "TOUCH_REQUIRED", "nome": "1. Toque Físico Obrigatório (+35 Créditos)", "desc": "Requer encostar a palma da mão diretamente no oponente."},
+			{"id": "OBSERVE_GYO", "nome": "2. Observar Hatsu com Gyo (+30 Créditos)", "desc": "O usuário deve testemunhar o Hatsu do oponente em ação usando Gyo."},
+			{"id": "TARGET_EXPLAINS", "nome": "3. O Alvo Deve Revelar/Explicar (+45 Créditos)", "desc": "Fazer o oponente responder perguntas ou revelar como o Hatsu funciona."},
+			{"id": "TARGET_DEFEATED", "nome": "4. Derrota em Duelo Individual (+40 Créditos)", "desc": "A técnica só pode ser extraída com o alvo derrotado ou em stagger."},
+			{"id": "FOUR_STRICT_CONDITIONS", "nome": "5. Ritual Estrito de 4 Etapas Canônicas (+140 Créditos)", "desc": "Exige cumprir todas as 4 regras lendárias de Skill Hunter (Chrollo)."}
+		]
+
+		for req in requisitos:
+			var btn := Button.new()
+			var ativo: bool = (req["id"] in sel_steal_conditions)
+			btn.text = ("✅ " if ativo else "⬜ ") + req["nome"] + "\n  " + req["desc"]
+			btn.add_theme_font_size_override("font_size", 4)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			if ativo: btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+			var r_id: String = str(req["id"])
+			btn.pressed.connect(func():
+				if r_id in sel_steal_conditions:
+					sel_steal_conditions.erase(r_id)
+				else:
+					sel_steal_conditions.append(r_id)
+				_atualizar_etapa()
+			)
+			container_opcoes.add_child(btn)
+		return
+
+	var efeitos = [
+		{"id": HatsuComponentLibrary.EffectType.STUN, "nome": "⚡ Paralisia / Stun (+20 Demanda)", "desc": "Interrompe e imobiliza temporariamente o alvo."},
+		{"id": HatsuComponentLibrary.EffectType.KNOCKBACK, "nome": "💨 Impacto / Repulsão (+15 Demanda)", "desc": "Empurra inimigos com força cinética."},
+		{"id": HatsuComponentLibrary.EffectType.AURA_DRAIN, "nome": "🩸 Queima de Aura (+25 Demanda)", "desc": "Esgota a energia Nen do oponente."},
+		{"id": HatsuComponentLibrary.EffectType.AURA_GAIN, "nome": "🔋 Recuperação de Aura (+20 Demanda)", "desc": "Regenera aura através do contato ou impacto."},
+		{"id": HatsuComponentLibrary.EffectType.PIERCING, "nome": "🎯 Perfuração de Ten (+20 Demanda)", "desc": "Ignora 40% da defesa e blindagem do alvo."},
+		{"id": HatsuComponentLibrary.EffectType.TRACKING, "nome": "🧭 Perseguição Homing (+25 Demanda)", "desc": "Projétil rastreia o oponente em movimento."},
+		{"id": HatsuComponentLibrary.EffectType.AREA_BURST, "nome": "💥 Detonação em Área (+25 Demanda)", "desc": "Explosão secundária ao impactar."},
+		{"id": HatsuComponentLibrary.EffectType.STAT_MOD, "nome": "📊 Modificador de Status (+20 Demanda)", "desc": "Aplica buffs ou debuffs em atributos vitais."},
+		{"id": HatsuComponentLibrary.EffectType.MOVEMENT_DASH, "nome": "🏃 Avanço Rápido (Dash) (+20 Demanda)", "desc": "Concede impulsão veloz e esquiva com I-frames."},
+		{"id": HatsuComponentLibrary.EffectType.DEVOUR_STATS, "nome": "🌀 Devour / Extração Vital (+35 Demanda)", "desc": "Absorve frações de atributos de oponentes derrotados."}
 	]
-	for el in elementos:
-		var desc_ctx: String = HatsuManager.obter_desc_elemento_contextual(el["id"], sel_objetivo)
-		var btn = Button.new()
-		btn.text = el["nome"] + "\n  " + desc_ctx
+
+	for ef in efeitos:
+		var btn := Button.new()
+		var ativo: bool = (ef["id"] in sel_efeitos_secundarios)
+		btn.text = ("✅ " if ativo else "⬜ ") + ef["nome"] + "\n  " + ef["desc"]
 		btn.add_theme_font_size_override("font_size", 4)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if el["id"] == sel_elemento: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+		if ativo:
+			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+
 		btn.pressed.connect(func():
-			sel_elemento = el["id"]
-			# Auto-ajustar cor e estilo padrão pelo elemento
-			match el["id"]:
-				HatsuData.Elemento.ELETRICIDADE:
-					sel_cor_primaria = Color(0.2, 0.9, 1.0, 1.0)
-					sel_estilo_visual = HatsuData.EstiloVisual.RELAMPAGOS_ELETRICOS
-				HatsuData.Elemento.FOGO:
-					sel_cor_primaria = Color(1.0, 0.3, 0.1, 1.0)
-					sel_estilo_visual = HatsuData.EstiloVisual.CHAMAS_FOGO
-				HatsuData.Elemento.GELO:
-					sel_cor_primaria = Color(0.6, 0.9, 1.0, 1.0)
-					sel_estilo_visual = HatsuData.EstiloVisual.LAMINA_CORTE
-				HatsuData.Elemento.SOMBRA:
-					sel_cor_primaria = Color(0.3, 0.1, 0.4, 1.0)
-					sel_estilo_visual = HatsuData.EstiloVisual.NEVOA_SOMBRIAS
-				HatsuData.Elemento.SOM:
-					sel_cor_primaria = Color(0.9, 0.9, 0.3, 1.0)
-					sel_estilo_visual = HatsuData.EstiloVisual.ANEIS_IMPACTO
-				HatsuData.Elemento.LUZ:
-					sel_cor_primaria = Color(1.0, 1.0, 0.8, 1.0)
-					sel_estilo_visual = HatsuData.EstiloVisual.PURO_PULSANTE
-				_:
-					sel_cor_primaria = Color(0.3, 0.8, 1.0, 1.0)
+			if ef["id"] in sel_efeitos_secundarios:
+				sel_efeitos_secundarios.erase(ef["id"])
+			else:
+				sel_efeitos_secundarios.append(ef["id"])
 			_atualizar_etapa()
 		)
 		container_opcoes.add_child(btn)
 
-	# --- SEÇÃO DE CUSTOMIZAÇÃO VISUAL PROCEDURAL ---
+
+# ============================================================
+# ETAPA 6: CONDIÇÕES DE ATIVAÇÃO & PREPARAÇÃO
+# ============================================================
+
+func _montar_etapa_condicoes() -> void:
+	var lbl_p := Label.new()
+	lbl_p.text = "⛓️ PASSOS DE PREPARAÇÃO PRÉVIA (PREPARATION CHAIN):"
+	lbl_p.add_theme_font_size_override("font_size", 4)
+	lbl_p.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+	container_opcoes.add_child(lbl_p)
+
+	var passos_disponiveis = [
+		{"id": "step_toque", "description": "Tocar a palma da mão no oponente", "action": "TOQUE_FISICO", "credit_value": 30.0},
+		{"id": "step_observar", "description": "Observar o Hatsu do oponente com Gyo", "action": "OBSERVAR", "credit_value": 30.0},
+		{"id": "step_interrogar", "description": "O alvo precisa revelar voluntariamente sua técnica", "action": "INTERROGATORIO", "credit_value": 35.0},
+		{"id": "step_canalizar", "description": "Permanecer imóvel canalizando por 2.0s", "action": "CANALIZAR", "credit_value": 35.0}
+	]
+
+	for ps in passos_disponiveis:
+		var ativo: bool = false
+		for sp in sel_preparation_steps:
+			if sp.get("id") == ps["id"]:
+				ativo = true
+				break
+
+		var btn_p := Button.new()
+		btn_p.text = ("✅ [Passo] " if ativo else "⬜ [Passo] ") + ps["description"] + " (+%d Créditos)" % int(ps["credit_value"])
+		btn_p.add_theme_font_size_override("font_size", 4)
+		btn_p.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if ativo:
+			btn_p.modulate = Color(0.4, 1.0, 0.6, 1.0)
+
+		btn_p.pressed.connect(func():
+			if ativo:
+				for i in range(sel_preparation_steps.size() - 1, -1, -1):
+					if sel_preparation_steps[i].get("id") == ps["id"]:
+						sel_preparation_steps.remove_at(i)
+			else:
+				sel_preparation_steps.append(ps.duplicate())
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(btn_p)
+
 	var sep := HSeparator.new()
 	container_opcoes.add_child(sep)
 
-	var lbl_vis_hdr := Label.new()
-	lbl_vis_hdr.text = "🎨 APARÊNCIA & ESTILO VISUAL (PROCEDURAL):"
-	lbl_vis_hdr.add_theme_font_size_override("font_size", 4)
-	lbl_vis_hdr.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
-	container_opcoes.add_child(lbl_vis_hdr)
+	var lbl_c := Label.new()
+	lbl_c.text = "🎯 CONDIÇÕES TÁTICAS DE ATIVAÇÃO:"
+	lbl_c.add_theme_font_size_override("font_size", 4)
+	lbl_c.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0, 1.0))
+	container_opcoes.add_child(lbl_c)
 
-	# Paleta de Cores
-	var grid_cores := GridContainer.new()
-	grid_cores.columns = 4
-	container_opcoes.add_child(grid_cores)
-
-	var paleta_cores = [
-		{"nome": "🔵 Azul Celeste", "cor": Color(0.2, 0.7, 1.0)},
-		{"nome": "🔴 Carmesim", "cor": Color(1.0, 0.25, 0.2)},
-		{"nome": "🟡 Dourado", "cor": Color(1.0, 0.85, 0.2)},
-		{"nome": "🟣 Roxo Nen", "cor": Color(0.7, 0.2, 1.0)},
-		{"nome": "🟢 Esmeralda", "cor": Color(0.2, 0.9, 0.4)},
-		{"nome": "⚪ Radiante", "cor": Color(0.95, 0.95, 1.0)},
-		{"nome": "🌑 Trevas", "cor": Color(0.25, 0.15, 0.35)},
-		{"nome": "🌸 Rosa Choque", "cor": Color(1.0, 0.3, 0.7)}
+	var condicoes_catalogo = [
+		{"id": HatsuData.Condicao.HP_ABAIXO_50, "nome": "1. Vida Abaixo de 50% (+25 Créditos)", "desc": "Só ativa quando o usuário estiver ferido (< 50% HP)."},
+		{"id": HatsuData.Condicao.HP_ABAIXO_30, "nome": "2. Vida Crítica < 30% (+60 Créditos)", "desc": "Supernova desesperada ativada à beira da derrota."},
+		{"id": HatsuData.Condicao.AURA_MINIMA_50, "nome": "3. Aura Restante >= 50% (+20 Créditos)", "desc": "Requer disciplina e metade da barra de aura."},
+		{"id": HatsuData.Condicao.REQUER_TEN_ATIVO, "nome": "4. Manter Postura Ten (+20 Créditos)", "desc": "O usuário precisa estar mantendo Ten ativo."},
+		{"id": HatsuData.Condicao.REQUER_REN_ATIVO, "nome": "5. Manter Postura Ren (+30 Créditos)", "desc": "Requer explosão de Ren contínua."},
+		{"id": HatsuData.Condicao.APOS_ESQUIVA_PERFEITA, "nome": "6. Pós-Esquiva Perfeita (+35 Créditos)", "desc": "Janela de 2s após esquivar no momento exato."},
+		{"id": HatsuData.Condicao.CONTRA_QUEM_ATACOU_PRIMEIRO, "nome": "7. Apenas Contra Agressor (+70 Créditos)", "desc": "Só dispara contra quem desferiu o primeiro golpe."},
+		{"id": HatsuData.Condicao.PARADO_CANALIZACAO, "nome": "8. Canalização Estática (+35 Créditos)", "desc": "Requer permanecer completamente imóvel por 1.5s."},
+		{"id": HatsuData.Condicao.CURTO_ALCANCE_EXTREMO, "nome": "9. Toque / Proximidade Extrema (+30 Créditos)", "desc": "Requer contato direto a menos de 40px."},
+		{"id": HatsuData.Condicao.ALMAS_INIMIGOS, "nome": "10. Gatilho no Abate (+55 Créditos)", "desc": "Ativado imediatamente após eliminar um oponente."},
+		{"id": HatsuData.Condicao.REVELACAO_HABILIDADE, "nome": "11. Voto da Revelação (+30 Créditos)", "desc": "Explica a técnica em voz alta para ganhar multiplicador."},
+		{"id": HatsuData.Condicao.ALVO_ELITE_BOSS, "nome": "12. Exclusivo: Chefes / Elites (+80 Créditos)", "desc": "Juramento de Chain Jail — restrito a líderes e elites."}
 	]
 
-	for cp in paleta_cores:
-		var btn_c := Button.new()
-		btn_c.text = cp["nome"]
-		btn_c.add_theme_font_size_override("font_size", 4)
-		if sel_cor_primaria == cp["cor"]: btn_c.modulate = Color(1.5, 1.5, 1.5, 1.0)
-		btn_c.pressed.connect(func():
-			sel_cor_primaria = cp["cor"]
-			_atualizar_etapa()
-		)
-		grid_cores.add_child(btn_c)
-
-	# Seletor de Estilos Visuais
-	var grid_estilos := GridContainer.new()
-	grid_estilos.columns = 2
-	container_opcoes.add_child(grid_estilos)
-
-	var estilos = [
-		{"id": HatsuData.EstiloVisual.PURO_PULSANTE, "nome": "🌟 Pulso / Orbe Puro"},
-		{"id": HatsuData.EstiloVisual.CHAMAS_FOGO, "nome": "🔥 Chamas Ondulantes"},
-		{"id": HatsuData.EstiloVisual.RELAMPAGOS_ELETRICOS, "nome": "⚡ Raios Elétricos"},
-		{"id": HatsuData.EstiloVisual.LAMINA_CORTE, "nome": "🌙 Lâmina Cortante"},
-		{"id": HatsuData.EstiloVisual.SHURIKEN_GIRATORIO, "nome": "🌀 Shuriken Rotativo"},
-		{"id": HatsuData.EstiloVisual.ANEIS_IMPACTO, "nome": "💫 Anéis de Choque"},
-		{"id": HatsuData.EstiloVisual.NEVOA_SOMBRIAS, "nome": "🌫️ Névoa Sombria"},
-		{"id": HatsuData.EstiloVisual.DRAGAO_SERPENTE, "nome": "🐉 Dragão de Nen"}
-	]
-
-	for es in estilos:
-		var btn_e := Button.new()
-		btn_e.text = es["nome"]
-		btn_e.add_theme_font_size_override("font_size", 4)
-		if es["id"] == sel_estilo_visual: btn_e.modulate = Color(0.4, 0.9, 1.0, 1.0)
-		btn_e.pressed.connect(func():
-			sel_estilo_visual = es["id"]
-			_atualizar_etapa()
-		)
-		grid_estilos.add_child(btn_e)
-
-
-func _montar_etapa_alvo() -> void:
-	var alvos: Array = []
-	if sel_objetivo == HatsuData.ObjetivoPrincipal.DEFESA or sel_objetivo == HatsuData.ObjetivoPrincipal.CURA or sel_objetivo == HatsuData.ObjetivoPrincipal.MOBILIDADE:
-		alvos = [
-			{"id": HatsuData.Alvo.PROPRIO_USUARIO, "nome": "1. Próprio Usuário (Auto-alvo)", "desc": "Aplica o efeito diretamente no seu próprio corpo."},
-			{"id": HatsuData.Alvo.AREA, "nome": "2. Área ao Redor", "desc": "Cria o campo protetor/curativo ao redor de você."},
-			{"id": HatsuData.Alvo.ALIADO, "nome": "3. Aliado / Grupo", "desc": "Direciona a aura para fortalecer um companheiro."}
-		]
-	else:
-		alvos = [
-			{"id": HatsuData.Alvo.INIMIGO_UNICO, "nome": "1. Inimigo Único (Alvo Direto)", "desc": "Foco concentrado em um único oponente."},
-			{"id": HatsuData.Alvo.AREA, "nome": "2. Área de Inimigos (Múltiplos)", "desc": "Atinge todos os inimigos presentes na área de efeito."}
-		]
-
-	for a in alvos:
-		var btn = Button.new()
-		btn.text = a["nome"] + "\n  " + a["desc"]
+	for c in condicoes_catalogo:
+		var btn := Button.new()
+		var ativa: bool = (c["id"] in sel_condicoes)
+		btn.text = ("✅ " if ativa else "⬜ ") + c["nome"] + "\n  " + c["desc"]
 		btn.add_theme_font_size_override("font_size", 4)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if a["id"] == sel_alvo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+		if ativa:
+			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+
 		btn.pressed.connect(func():
-			sel_alvo = a["id"]
-			_atualizar_etapa()
-		)
-		container_opcoes.add_child(btn)
-
-
-func _montar_etapa_alcance() -> void:
-	var alcances: Array = []
-	if sel_objetivo == HatsuData.ObjetivoPrincipal.DEFESA:
-		alcances = [
-			{"id": HatsuData.AlcanceTipo.CURTO, "nome": "1. Blindagem Compacta", "desc": "Escudo aderido ao corpo (+20% resistência física)."},
-			{"id": HatsuData.AlcanceTipo.MEDIO, "nome": "2. Barreira Padrão", "desc": "Raio de proteção equilibrado (65px)."},
-			{"id": HatsuData.AlcanceTipo.LONGO, "nome": "3. Domo Expandido", "desc": "Grande cúpula protetora de área (95px)."}
-		]
-	elif sel_objetivo == HatsuData.ObjetivoPrincipal.CURA:
-		alcances = [
-			{"id": HatsuData.AlcanceTipo.CURTO, "nome": "1. Concentração Local", "desc": "Cura direta rápida de emergência."},
-			{"id": HatsuData.AlcanceTipo.MEDIO, "nome": "2. Regeneração Padrão", "desc": "Restauração contínua equilibrada."},
-			{"id": HatsuData.AlcanceTipo.LONGO, "nome": "3. Pulso Expandido", "desc": "Cura potente de ampla área."}
-		]
-	else:
-		alcances = [
-			{"id": HatsuData.AlcanceTipo.CURTO, "nome": "1. Curto Alcance (Corpo a corpo, 45px)", "desc": "Máximo impacto físico no ponto de impacto."},
-			{"id": HatsuData.AlcanceTipo.MEDIO, "nome": "2. Médio Alcance (Disparo Padrão, 130px)", "desc": "Projeção equilibrada de média distância."},
-			{"id": HatsuData.AlcanceTipo.LONGO, "nome": "3. Longo Alcance (Sniper de Nen, 220px)", "desc": "Disparo veloz de longa distância."}
-		]
-
-	for alc in alcances:
-		var btn = Button.new()
-		btn.text = alc["nome"] + "\n  " + alc["desc"]
-		btn.add_theme_font_size_override("font_size", 4)
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if alc["id"] == sel_alcance: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
-		btn.pressed.connect(func():
-			sel_alcance = alc["id"]
-			_atualizar_etapa()
-		)
-		container_opcoes.add_child(btn)
-
-
-func _montar_etapa_consumo() -> void:
-	var consumos = [
-		{"id": HatsuData.ConsumoDesejado.BAIXO, "nome": "Baixo Consumo (~15 Aura, spammável)", "desc": "Rápida utilização e recarga veloz."},
-		{"id": HatsuData.ConsumoDesejado.MEDIO, "nome": "Médio Consumo (~28 Aura, equilibrado)", "desc": "Excelente custo-benefício para batalhas normais."},
-		{"id": HatsuData.ConsumoDesejado.ALTO, "nome": "Alto Consumo (~48 Aura, devastador/impenetrável)", "desc": "Densidade máxima de Nen para momentos decisivos."}
-	]
-	for cons in consumos:
-		var btn = Button.new()
-		btn.text = cons["nome"] + "\n  " + cons["desc"]
-		btn.add_theme_font_size_override("font_size", 4)
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if cons["id"] == sel_consumo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
-		btn.pressed.connect(func():
-			sel_consumo = cons["id"]
-			_atualizar_etapa()
-		)
-		container_opcoes.add_child(btn)
-
-
-func _montar_etapa_condicoes() -> void:
-	var condicoes_disponiveis = [
-		{"id": HatsuData.Condicao.HP_ABAIXO_50, "nome": "🟢 Risco Moderado: HP < 50% (+30% poder)"},
-		{"id": HatsuData.Condicao.HP_CHEIO, "nome": "🟢 Plenitude: HP Intacto 100% (+25% poder)"},
-		{"id": HatsuData.Condicao.AURA_MINIMA_50, "nome": "🟢 Reserva Estável: Aura >= 50% (+20% poder)"},
-		{"id": HatsuData.Condicao.PARADO_CANALIZACAO, "nome": "🟢 Foco Estático: Parado por 1.5s (+35% poder)"},
-		{"id": HatsuData.Condicao.MOVIMENTO_CONTINUO, "nome": "🟢 Dança dos Passos: Correr por 2.5s (+30% poder)"},
-		{"id": HatsuData.Condicao.CURTO_ALCANCE_EXTREMO, "nome": "🟢 Ponto Zero: Toque Físico < 40px (+35% poder)"},
-		{"id": HatsuData.Condicao.LONGO_ALCANCE_SNIPER, "nome": "🟢 Sniper: Longa Distância > 220px (+25% poder)"},
-		{"id": HatsuData.Condicao.APOS_ESQUIVA_PERFEITA, "nome": "🟢 Contra-Golpe: Pós-Esquiva Perfeita (+35% poder)"},
-		{"id": HatsuData.Condicao.REQUER_TEN_ATIVO, "nome": "🟢 Manto de Ten: Requer Ten Ativo (+20% poder)"},
-		{"id": HatsuData.Condicao.REQUER_REN_ATIVO, "nome": "🟢 Explosão de Ren: Requer Ren Ativo (+30% poder)"},
-		{"id": HatsuData.Condicao.COOLDOWN_LONGO, "nome": "🟢 Tempo de Recarga Duplicado 2x (+35% poder)"},
-		{"id": HatsuData.Condicao.REVELACAO_HABILIDADE, "nome": "🟢 Voto da Revelação: Explica a técnica (+30% poder)"}
-	]
-	for c in condicoes_disponiveis:
-		var chk = CheckBox.new()
-		chk.text = c["nome"]
-		chk.add_theme_font_size_override("font_size", 4)
-		chk.button_pressed = (c["id"] in sel_condicoes)
-		chk.toggled.connect(func(toggled: bool):
-			if toggled:
-				if not (c["id"] in sel_condicoes): sel_condicoes.append(c["id"])
-			else:
+			if c["id"] in sel_condicoes:
 				sel_condicoes.erase(c["id"])
-			_atualizar_gauge()
+			else:
+				sel_condicoes.append(c["id"])
+			_atualizar_etapa()
 		)
-		container_opcoes.add_child(chk)
+		container_opcoes.add_child(btn)
 
+
+# ============================================================
+# ETAPA 7: JURAMENTOS & RESTRIÇÕES (VOWS)
+# ============================================================
 
 func _montar_etapa_restricoes() -> void:
-	# --- SEÇÃO: JURAMENTOS SÉRIOS ---
-	var lbl_jur_hdr := Label.new()
-	lbl_jur_hdr.text = "🟡 JURAMENTOS SÉRIOS (+40% a +90%):"
-	lbl_jur_hdr.add_theme_font_size_override("font_size", 4)
-	lbl_jur_hdr.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
-	container_opcoes.add_child(lbl_jur_hdr)
-
-	var juramentos = [
-		{"id": HatsuData.Condicao.CONTRA_QUEM_ATACOU_PRIMEIRO, "nome": "🟡 Voto do Retorno: Só contra quem me atacou primeiro (+75%)"},
-		{"id": HatsuData.Condicao.HP_ABAIXO_30, "nome": "🟡 Juramento do Desespero: HP Crítico < 30% (+65%)"},
-		{"id": HatsuData.Condicao.IMOVEL_DURANTE_USO, "nome": "🟡 Canhão Fixo: Totalmente imóvel durante o uso (+85%)"},
-		{"id": HatsuData.Condicao.ZETSU_POS_USO_15S, "nome": "🟡 Exaustão: Entra em Zetsu por 15s pós-uso (+90%)"},
-		{"id": HatsuData.Condicao.BLOQUEIO_NEN_10S, "nome": "🟡 Sobrecarga: Bloqueia Nen por 10s pós-uso (+70%)"},
-		{"id": HatsuData.Condicao.DOR_ACUMULADA, "nome": "🟡 Pain Packer: Escala com o dano sofrido (+80% a +180%)"},
-		{"id": HatsuData.Condicao.ALMAS_INIMIGOS, "nome": "🟡 Colheita de Almas: Abates acumulam cargas (+15%/alma)"},
-		{"id": HatsuData.Condicao.ORACAO_GRATIDAO, "nome": "🟡 Oração de Netero: 0.7s de postura de oração (+60%)"},
-		{"id": HatsuData.Condicao.ALVO_ELITE_BOSS, "nome": "🟡 Chain Jail: Apenas contra Chefes e Elites (+85% + Stun)"},
-		{"id": HatsuData.Condicao.NAO_VIOLENCIA, "nome": "🟡 Defesa Pacífica: Não ataca durante o escudo (+80% e reflete)"},
-		{"id": HatsuData.Condicao.NAO_ESQUIVAR_DURANTE_EFEITO, "nome": "🟡 Sem Esquiva: Bloqueia Dash durante o efeito (+55%)"},
-		{"id": HatsuData.Condicao.AUTO_DANO, "nome": "🟡 Pacto de Sangue: Consome 10% do HP próprio (+55%)"},
-		{"id": HatsuData.Condicao.CUSTO_DUPLO, "nome": "🟡 Sacrifício de Aura: Consome 2x Aura (+45%)"}
+	var restricoes_catalogo = [
+		{"id": HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE, "nome": "1. Imóvel Durante o Golpe (+40 Créditos)", "desc": "Velocidade zerada durante a execução da habilidade."},
+		{"id": HatsuComponentLibrary.RestrictionType.CANNOT_DODGE, "nome": "2. Bloqueio de Esquiva (+45 Créditos)", "desc": "Não pode realizar Dash durante o efeito."},
+		{"id": HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU, "nome": "3. Trava de Outros Hatsus (+35 Créditos)", "desc": "Trava outros 3 slots enquanto este estiver ativo."},
+		{"id": HatsuComponentLibrary.RestrictionType.ONCE_PER_COMBAT, "nome": "4. 1 Uso por Combate (+140 Créditos)", "desc": "Apenas um único disparo em toda a batalha."},
+		{"id": HatsuComponentLibrary.RestrictionType.TOUCH_REQUIRED, "nome": "5. Requer Toque Físico (+35 Créditos)", "desc": "Requer encostar a palma da mão no oponente."},
+		{"id": HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY, "nome": "6. Voto da Revelação (+35 Créditos)", "desc": "O personagem anuncia em voz alta o funcionamento do golpe."},
+		{"id": HatsuComponentLibrary.RestrictionType.SACRIFICE_HP, "nome": "7. Sacrifício Vital (-20% HP) (+70 Créditos)", "desc": "Consome frações de vida máxima própria ao disparar."},
+		{"id": HatsuComponentLibrary.RestrictionType.SACRIFICE_AURA_MAX, "nome": "8. Zero Ko (Dreno Total de Aura) (+150 Créditos)", "desc": "Zera completamente a barra de energia Nen."},
+		{"id": HatsuComponentLibrary.RestrictionType.DEATH_PENALTY_ON_MISS, "nome": "9. Voto do Cadafalso (+200 Créditos)", "desc": "Se errar ou for interrompido, sofre 50% HP e Zetsu forçado."}
 	]
-	for j in juramentos:
-		var chk = CheckBox.new()
-		chk.text = j["nome"]
-		chk.add_theme_font_size_override("font_size", 4)
-		chk.button_pressed = (j["id"] in sel_condicoes)
-		chk.toggled.connect(func(toggled: bool):
-			if toggled:
-				if not (j["id"] in sel_condicoes): sel_condicoes.append(j["id"])
+
+	for r in restricoes_catalogo:
+		var btn := Button.new()
+		var ativa: bool = (r["id"] in sel_restricoes)
+		btn.text = ("✅ " if ativa else "⬜ ") + r["nome"] + "\n  " + r["desc"]
+		btn.add_theme_font_size_override("font_size", 4)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if ativa:
+			btn.modulate = Color(1.0, 0.85, 0.2, 1.0)
+
+		btn.pressed.connect(func():
+			if r["id"] in sel_restricoes:
+				sel_restricoes.erase(r["id"])
 			else:
-				sel_condicoes.erase(j["id"])
-			_atualizar_gauge()
+				sel_restricoes.append(r["id"])
+			_atualizar_etapa()
 		)
-		container_opcoes.add_child(chk)
+		container_opcoes.add_child(btn)
 
-	# --- SEÇÃO: VOTOS EXTREMOS ---
-	var sep1 := HSeparator.new()
-	container_opcoes.add_child(sep1)
-
-	var lbl_voto_hdr := Label.new()
-	lbl_voto_hdr.text = "🔴 VOTOS EXTREMOS / RISCO CRÍTICO (+100% a +220%):"
-	lbl_voto_hdr.add_theme_font_size_override("font_size", 4)
-	lbl_voto_hdr.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3, 1.0))
-	container_opcoes.add_child(lbl_voto_hdr)
-
-	var votos_extremos = [
-		{"id": HatsuData.Condicao.HP_ABAIXO_20, "nome": "🔴 À Beira da Morte: HP Crítico < 20% (+120%)"},
-		{"id": HatsuData.Condicao.USO_UNICO_POR_COMBATE, "nome": "🔴 Decisão Única: 1x por combate inteiro (+140%)"},
-		{"id": HatsuData.Condicao.DRENO_TOTAL_AURA, "nome": "🔴 Zero Ko: Consome 100% da Aura atual (+150%)"},
-		{"id": HatsuData.Condicao.AUTO_DANO_30_SANGUE, "nome": "🔴 Sacrifício Vital Extremo: Consome 30% HP próprio (+160%)"},
-		{"id": HatsuData.Condicao.PENALIDADE_MORTE_ERRO, "nome": "🔴 Voto do Cadafalso: Se falhar perde 50% HP e 30s Zetsu (+200%)"},
-		{"id": HatsuData.Condicao.VOTO_ABSOLUTO_CHAIN, "nome": "🔴 Julgamento Absoluto: Exclusivo Boss + 1x Combate (+220%)"}
-	]
-	for v in votos_extremos:
-		var chk = CheckBox.new()
-		chk.text = v["nome"]
-		chk.add_theme_font_size_override("font_size", 4)
-		chk.button_pressed = (v["id"] in sel_condicoes)
-		chk.toggled.connect(func(toggled: bool):
-			if toggled:
-				if not (v["id"] in sel_condicoes): sel_condicoes.append(v["id"])
-			else:
-				sel_condicoes.erase(v["id"])
-			_atualizar_gauge()
-		)
-		container_opcoes.add_child(chk)
-
-	# --- SEÇÃO: GRANDES ARQUÉTIPOS CANÔNICOS ---
-	var sep0 := HSeparator.new()
-	container_opcoes.add_child(sep0)
-
-	var lbl_arq_hdr := Label.new()
-	lbl_arq_hdr.text = "🏛️ ATALHOS DE ARQUÉTIPOS CANÔNICOS:"
-	lbl_arq_hdr.add_theme_font_size_override("font_size", 4)
-	lbl_arq_hdr.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
-	container_opcoes.add_child(lbl_arq_hdr)
-
-	var grid_arqs := GridContainer.new()
-	grid_arqs.columns = 2
-	container_opcoes.add_child(grid_arqs)
-
-	var arquetipos_presets = [
-		{"nome": "🎲 Roleta (Crazy Slots)", "vow": "roleta de armas aleatórias estilo crazy slots de kite", "arq": HatsuData.Arquetipo.ARSENAL_ROLETA},
-		{"nome": "📖 Coleção (Skill Hunter)", "vow": "livro de hatsu para armazenar habilidades de hunters", "arq": HatsuData.Arquetipo.LIVRO_COLECAO},
-		{"nome": "🌐 Território de En", "vow": "território com círculo no chão que desacelera inimigos", "arq": HatsuData.Arquetipo.TERRITORIO_EN},
-		{"nome": "🎯 Marcação (Tag 3x)", "vow": "tocar 3 vezes no alvo para detonar explosão de nen", "arq": HatsuData.Arquetipo.MARCA_TAG},
-		{"nome": "🪙 Moeda da Sorte", "vow": "jogar moeda de nen: cara velocidade, coroa escudo", "arq": HatsuData.Arquetipo.OBJETO_MOEDA},
-		{"nome": "🃏 Cartas (5 Naipes)", "vow": "baralho de cartas com naipes de cura, dano e velocidade", "arq": HatsuData.Arquetipo.OBJETO_CARTAS},
-		{"nome": "🎲 Dado Místico (1 a 6)", "vow": "dado de 6 faces: face 6 supernova, face 1 zetsu forçado", "arq": HatsuData.Arquetipo.OBJETO_DADO},
-		{"nome": "🩸 Troca Vital (HP ↔ Dano)", "vow": "trocar 30% de hp por 100% de dano durante 5 segundos", "arq": HatsuData.Arquetipo.TROCA_SACRIFICIO},
-		{"nome": "⚔️ Lâmina com Cargas", "vow": "espada que ganha cargas a cada inimigo derrotado", "arq": HatsuData.Arquetipo.CONJURACAO_ARMA}
-	]
-
-	for ap in arquetipos_presets:
-		var btn_arq := Button.new()
-		btn_arq.text = ap["nome"]
-		btn_arq.add_theme_font_size_override("font_size", 4)
-		btn_arq.pressed.connect(func():
-			sel_arquetipo = ap["arq"]
-			line_edit_custom_vow.text = ap["vow"]
-			custom_vow_input = ap["vow"]
-			var analise = HatsuManager.analisar_juramento_inteligente(custom_vow_input)
-			if not (HatsuData.Condicao.CUSTOMIZADO in sel_condicoes):
-				sel_condicoes.append(HatsuData.Condicao.CUSTOMIZADO)
-			_atualizar_gauge()
-		)
-		grid_arqs.add_child(btn_arq)
-
-	# --- SEÇÃO: JURAMENTO LIVRE / AVALIADOR DE NEN ---
-	var sep2 := HSeparator.new()
-	container_opcoes.add_child(sep2)
+	var sep := HSeparator.new()
+	container_opcoes.add_child(sep)
 
 	var lbl_custom_title := Label.new()
-	lbl_custom_title.text = "✍️ JURAMENTO PERSONALIZADO (MOTOR DE IA DE NEN):"
+	lbl_custom_title.text = "✍️ JURAMENTO PERSONALIZADO LIVRE (MOTOR DE IA DE NEN):"
 	lbl_custom_title.add_theme_font_size_override("font_size", 4)
 	lbl_custom_title.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0, 1.0))
 	container_opcoes.add_child(lbl_custom_title)
@@ -820,20 +1029,19 @@ func _montar_etapa_restricoes() -> void:
 				lbl_vow_analise.text = "🚫 REJEITADO PELA REGRA DE NEN:\n%s" % analise.get("analise_mestre", "")
 				sel_condicoes.erase(HatsuData.Condicao.CUSTOMIZADO)
 			else:
-				var t_nome: String = "🟢 Condição"
+				var t_nome: String = "🟢 Condição (+30 cr)"
 				var t_cor: Color = Color(0.4, 1.0, 0.6, 1.0)
 				if analise.get("tier") == HatsuData.Tier.VOTO_EXTREMO:
-					t_nome = "🔴 Voto Extremo"
+					t_nome = "🔴 Voto Extremo (+120 cr)"
 					t_cor = Color(1.0, 0.3, 0.3, 1.0)
 				elif analise.get("tier") == HatsuData.Tier.JURAMENTO:
-					t_nome = "🟡 Juramento Sério"
+					t_nome = "🟡 Juramento Sério (+65 cr)"
 					t_cor = Color(1.0, 0.85, 0.2, 1.0)
 
 				lbl_vow_analise.add_theme_color_override("font_color", t_cor)
-				lbl_vow_analise.text = "[%s] %s (x%.2f)\n%s\nImpacto: %s" % [
+				lbl_vow_analise.text = "[%s] %s\n%s\nImpacto: %s" % [
 					t_nome,
 					analise.get("nome_reconhecido", ""),
-					analise.get("multiplicador", 1.0),
 					analise.get("analise_mestre", ""),
 					analise.get("impacto_jogo", "")
 				]
@@ -851,12 +1059,76 @@ func _montar_etapa_restricoes() -> void:
 		atualizar_custom.call(custom_vow_input)
 
 
+# ============================================================
+# ETAPA 8: CUSTOS & ALCANCE
+# ============================================================
+
+func _montar_etapa_custos() -> void:
+	var lbl_c := Label.new()
+	lbl_c.text = "💧 Consumo de Aura Desejado:"
+	lbl_c.add_theme_font_size_override("font_size", 4)
+	container_opcoes.add_child(lbl_c)
+
+	var consumos = [
+		{"id": HatsuData.ConsumoDesejado.BAIXO, "nome": "1. Baixo Consumo (~15 Aura)", "desc": "Spam frequente de golpes leves (+0 créditos)."},
+		{"id": HatsuData.ConsumoDesejado.MEDIO, "nome": "2. Médio Consumo (~30 Aura)", "desc": "Equilíbrio padrão (+10 créditos de limitação)."},
+		{"id": HatsuData.ConsumoDesejado.ALTO, "nome": "3. Alto Consumo (~55 Aura)", "desc": "Golpes decisivos de impacto (+30 créditos de limitação)."}
+	]
+	for cs in consumos:
+		var btn := Button.new()
+		btn.text = cs["nome"] + "\n  " + cs["desc"]
+		btn.add_theme_font_size_override("font_size", 4)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if cs["id"] == sel_consumo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+		btn.pressed.connect(func():
+			sel_consumo = cs["id"]
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(btn)
+
+	var sep := HSeparator.new()
+	container_opcoes.add_child(sep)
+
+	var lbl_a := Label.new()
+	lbl_a.text = "📏 Alcance Efetivo:"
+	lbl_a.add_theme_font_size_override("font_size", 4)
+	container_opcoes.add_child(lbl_a)
+
+	var alcances = [
+		{"id": HatsuData.AlcanceTipo.CURTO, "nome": "1. Curto Alcance (45px)", "desc": "Impacto corpo a corpo concentrado."},
+		{"id": HatsuData.AlcanceTipo.MEDIO, "nome": "2. Médio Alcance (130px)", "desc": "Distância tática intermediária."},
+		{"id": HatsuData.AlcanceTipo.LONGO, "nome": "3. Longo Alcance (220px)", "desc": "Projeção estendida de artilharia sniper (+25 Demanda)."}
+	]
+	for al in alcances:
+		var btn := Button.new()
+		btn.text = al["nome"] + "\n  " + al["desc"]
+		btn.add_theme_font_size_override("font_size", 4)
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if al["id"] == sel_alcance: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+		btn.pressed.connect(func():
+			sel_alcance = al["id"]
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(btn)
+
+
+# ============================================================
+# ETAPA 9: RESUMO, AUDITORIA DE CRÉDITOS & CRIAÇÃO
+# ============================================================
+
 func _montar_etapa_resumo() -> void:
 	var h_temp := HatsuManager.criar_hatsu(
 		sel_nome, sel_categoria, sel_forma, sel_condicoes,
-		sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo
+		sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
+		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
+		sel_preparation_steps, sel_efeitos_secundarios,
+		sel_restricoes, sel_opcoes_preset_escolhidas,
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
 	)
 	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
+	var f_power := h_temp.calcular_functional_power()
+	var l_credits := h_temp.calcular_limitation_credits()
+	var deficit := int(h_temp.credit_deficit)
 
 	var lbl_res := Label.new()
 	lbl_res.add_theme_font_size_override("font_size", 4)
@@ -868,20 +1140,55 @@ func _montar_etapa_resumo() -> void:
 		HatsuData.ObjetivoPrincipal.CURA: obj_nome = "Cura / Regeneração"
 		HatsuData.ObjetivoPrincipal.MOBILIDADE: obj_nome = "Mobilidade Rápida"
 		HatsuData.ObjetivoPrincipal.CONTROLE: obj_nome = "Controle / Imobilização"
+		HatsuData.ObjetivoPrincipal.SUPORTE: obj_nome = "Suporte / Concessão"
 
-	lbl_res.text = "Nome: %s\nObjetivo: %s\nCategoria: %s (%d%% Eficiência)\nForma: %s\nPotência Final: %d | Custo: %d Aura\nRecarga: %.1fs | Juramentos: %d" % [
-		sel_nome,
-		obj_nome,
-		HatsuManager.obter_nome_categoria(sel_categoria),
-		int(ef * 100),
-		HatsuManager.obter_nome_forma_contextual(sel_forma, sel_objetivo),
-		int(h_temp.obter_poder_final()),
-		int(h_temp.obter_custo_final()),
-		h_temp.obter_cooldown_final(),
-		h_temp.condicoes.size()
-	]
+	var status_text: String = "✨ TÉCNICA 100%% EQUILIBRADA (Pronta para Forjar!)" if deficit == 0 else "⚠️ DÉFICIT DE %d CRÉDITOS (Bloqueado para Forja)" % deficit
+
+	if sel_is_storage_hatsu:
+		lbl_res.text = "Nome: %s\nTipo: %s (%d%% Eficiência)\nArquétipo: Grimório / Armazenamento de Hatsu\nCapacidade: %d Páginas | Duração: %s\nRegra: %s | Exigências de Roubo: %d\nDemanda Funcional: %d pts | Créditos Obtidos: %d pts\nDéficit de Limitações: %d pts\nStatus: %s\nPassos: %d | Condições: %d | Restrições: %d" % [
+			sel_nome,
+			HatsuManager.obter_nome_categoria(sel_categoria),
+			int(ef * 100),
+			sel_storage_capacity,
+			sel_storage_duration,
+			sel_storage_usage,
+			sel_steal_conditions.size(),
+			int(f_power),
+			int(l_credits),
+			deficit,
+			status_text,
+			sel_preparation_steps.size(),
+			h_temp.condicoes.size(),
+			sel_restricoes.size()
+		]
+	else:
+		lbl_res.text = "Nome: %s\nTipo: %s (%d%% Eficiência)\nObjetivo: %s | Forma: %s\nDemanda Funcional: %d pts | Créditos Obtidos: %d pts\nDéficit de Limitações: %d pts\nStatus: %s\nPassos: %d | Condições: %d | Restrições: %d" % [
+			sel_nome,
+			HatsuManager.obter_nome_categoria(sel_categoria),
+			int(ef * 100),
+			obj_nome,
+			HatsuManager.obter_nome_forma_contextual(sel_forma, sel_objetivo),
+			int(f_power),
+			int(l_credits),
+			deficit,
+			status_text,
+			sel_preparation_steps.size(),
+			h_temp.condicoes.size(),
+			sel_restricoes.size()
+		]
 	container_opcoes.add_child(lbl_res)
 
+	if deficit > 0:
+		btn_proximo.modulate = Color(1.0, 0.4, 0.4, 1.0)
+		btn_proximo.text = "⚠️ Déficit Pendente"
+	else:
+		btn_proximo.modulate = Color(0.4, 1.0, 0.6, 1.0)
+		btn_proximo.text = "⚡ FORJAR HATSU!"
+
+
+# ============================================================
+# ATUALIZAÇÃO DO GAUGE DE EQUILÍBRIO (v1.6)
+# ============================================================
 
 func _atualizar_gauge() -> void:
 	if not is_instance_valid(panel_gauge): return
@@ -892,94 +1199,74 @@ func _atualizar_gauge() -> void:
 	var h_temp := HatsuManager.criar_hatsu(
 		sel_nome, sel_categoria, sel_forma, sel_condicoes,
 		sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
-		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual
+		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
+		sel_preparation_steps, sel_efeitos_secundarios,
+		sel_restricoes, sel_opcoes_preset_escolhidas,
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
 	)
 
-	var base_aura: int = int(h_temp.obter_custo_final())
-	var pot: int = int(h_temp.obter_poder_final())
-	var mult: float = h_temp.obter_multiplicador_poder()
-	var complex: String = "Baixa"
-	var tier_label: String = "Padrão"
-	var dica: String = "Habilidade equilibrada com a sua afinidade de Nen."
+	var f_power: int = int(h_temp.calcular_functional_power())
+	var l_credits: int = int(h_temp.calcular_limitation_credits())
+	var deficit: int = int(h_temp.credit_deficit)
+	var v_score: int = int(h_temp.calcular_versatility_score())
+	var equilibrado: bool = (deficit == 0)
 
-	var rests: int = h_temp.condicoes.size()
-	if rests > 0 or not custom_vow_input.is_empty():
-		var tem_extremo: bool = false
-		var tem_juramento: bool = false
-		for c in h_temp.condicoes:
-			var inf = HatsuData.obter_info_condicao(c)
-			if inf.get("tier") == HatsuData.Tier.VOTO_EXTREMO:
-				tem_extremo = true
-			elif inf.get("tier") == HatsuData.Tier.JURAMENTO:
-				tem_juramento = true
-		if h_temp.vow_custom_tier == HatsuData.Tier.VOTO_EXTREMO:
-			tem_extremo = true
-		elif h_temp.vow_custom_tier == HatsuData.Tier.JURAMENTO:
-			tem_juramento = true
+	lbl_compat.text = "Compatib.: " + str(compat_pct) + "%"
+	lbl_aura.text = "Demanda: %d cr" % f_power
+	lbl_potencial.text = "Créditos: %d cr" % l_credits
+	lbl_complexidade.text = "Déficit: %d cr" % deficit
 
-		if tem_extremo:
-			tier_label = "🔴 Voto Extremo"
-			complex = "Suprema (x%.2f)" % mult
-			dica = "🔴 Risco Crítico: Multiplicador extremo em troca de sacrifício vital ou uso único!"
-		elif tem_juramento:
-			tier_label = "🟡 Juramento"
-			complex = "Alta (x%.2f)" % mult
-			dica = "🟡 Juramento Sério: Bônus massivo vinculado a restrições rígidas de combate."
-		else:
-			tier_label = "🟢 Condição"
-			complex = "Média (x%.2f)" % mult
-			dica = "🟢 Condição Tática: Limitação moderada que amplia o dano/cura."
+	if equilibrado:
+		lbl_dica_dinamica.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1.0))
+		lbl_dica_dinamica.text = "✅ TÉCNICA 100%% EQUILIBRADA\nNecessários: %d cr | Pagos: %d cr\nDéficit: 0 cr\nPronto para forjar!" % [f_power, l_credits]
+	else:
+		lbl_dica_dinamica.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
+		lbl_dica_dinamica.text = "⚠️ DÉFICIT DE %d CRÉDITOS:\nNecessários: %d cr | Pagos: %d cr\nAdicione condições, restrições ou passos de preparação!" % [deficit, f_power, l_credits]
 
-	if sel_objetivo == HatsuData.ObjetivoPrincipal.DEFESA:
-		dica = "🛡️ Modo Defensivo: Fornece escudo de absorção ativa com contra-ataques elementais."
-	elif sel_objetivo == HatsuData.ObjetivoPrincipal.CURA:
-		dica = "❤️ Modo Regenerativo: Recupera pontos de vida com base na afinidade celular."
-	elif sel_objetivo == HatsuData.ObjetivoPrincipal.MOBILIDADE:
-		dica = "⚡ Modo Velocidade: Dash rápido com I-frames para esquivas perfeitas."
 
-	if HatsuData.Condicao.ALMAS_INIMIGOS in h_temp.condicoes:
-		dica = "💀 Colheita de Almas: Derrotar monstros em combate aumentará o poder até +150%!"
-	elif HatsuData.Condicao.DOR_ACUMULADA in h_temp.condicoes:
-		dica = "🔥 Pain Packer: Quanto mais dano você sofrer em batalha, mais destruição causará!"
-	elif HatsuData.Condicao.CONTRA_QUEM_ATACOU_PRIMEIRO in h_temp.condicoes:
-		dica = "⚔️ Voto do Retorno: Só dispara contra quem tiver iniciado o ataque contra você (+75%)!"
-
-	lbl_compat.text = "Compatib.: %d%%" % compat_pct
-	lbl_aura.text = "Custo Aura: %d" % base_aura
-	lbl_potencial.text = "Potência: %d" % pot
-	lbl_complexidade.text = "Tier: " + tier_label
-	lbl_dica_dinamica.text = "[%s - %s]\n%s" % [HatsuData.obter_nome_arquetipo(h_temp.arquetipo), HatsuData.obter_nome_estilo_visual(h_temp.estilo_visual), dica]
-
+# ============================================================
+# NAVEGAÇÃO & FINALIZAÇÃO
+# ============================================================
 
 func _on_voltar_pressed() -> void:
-	if etapa_atual > Etapa.NOME:
+	if etapa_atual > Etapa.TIPO_NEN:
 		etapa_atual = (int(etapa_atual) - 1) as Etapa
 		_atualizar_etapa()
 
 
 func _on_avancar_pressed() -> void:
 	if etapa_atual == Etapa.NOME:
-		if not line_edit_nome.text.is_empty():
+		if line_edit_nome != null and not line_edit_nome.text.is_empty():
 			sel_nome = line_edit_nome.text
 
 	if etapa_atual < Etapa.RESUMO:
 		etapa_atual = (int(etapa_atual) + 1) as Etapa
 		_atualizar_etapa()
 	else:
-		_finalizar_criacao()
+		_finalizar_criacao(false)
 
 
-func _finalizar_criacao() -> void:
+func _finalizar_criacao(is_draft: bool = false) -> void:
+	if line_edit_nome != null and not line_edit_nome.text.is_empty():
+		sel_nome = line_edit_nome.text
+
 	var novo_hatsu := HatsuManager.criar_hatsu(
 		sel_nome, sel_categoria, sel_forma, sel_condicoes,
 		sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
-		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual
+		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
+		sel_preparation_steps, sel_efeitos_secundarios,
+		sel_restricoes, sel_opcoes_preset_escolhidas,
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
 	)
 
-	# Integrar componentes modulares
 	novo_hatsu.is_custom_created = true
+	novo_hatsu.is_draft = is_draft
 	novo_hatsu.hatsu_version = 2
 	novo_hatsu.creator_id = str(PlayerData.nome_personagem)
+	novo_hatsu.preparation_steps = sel_preparation_steps.duplicate(true)
+	novo_hatsu.sub_effects = sel_efeitos_secundarios.duplicate()
+	novo_hatsu.modular_restrictions = sel_restricoes.duplicate()
+	novo_hatsu.parametros_conceito = sel_opcoes_preset_escolhidas.duplicate(true)
 
 	# Mapear Core Component
 	match sel_forma:
@@ -1010,14 +1297,23 @@ func _finalizar_criacao() -> void:
 		_: vp.shape = VisualProfile.VisualShape.SPHERE
 	novo_hatsu.visual_profile = vp
 
-	# Validar Power Budget
+	# Validar Power & Limitation Budget
 	var validacao = HatsuManager.validate_hatsu(novo_hatsu)
 	HatsuManager.calculate_power_budget(novo_hatsu)
 
-	if validacao.get("status") == "OVERPOWERED":
-		print("[HatsuCreationUI] ⚠️ Atenção: Hatsu criado com aviso de Overpowered: ", validacao.get("reason"))
+	# Se NÃO for rascunho e houver déficit pendente, BLOQUEIA a forja
+	if not is_draft and novo_hatsu.credit_deficit > 0:
+		lbl_desc.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
+		lbl_desc.text = "❌ DÉFICIT DE %d CRÉDITOS: Não é possível forjar o Hatsu até pagar todas as limitações! Adicione condições/restrições ou salve como Rascunho." % int(novo_hatsu.credit_deficit)
+		print("[HatsuCreationUI] ❌ Criação bloqueada devido a Déficit de Créditos: ", novo_hatsu.credit_deficit)
+		return
 
 	var index: int = PlayerData.adicionar_hatsu(novo_hatsu)
 	hatsu_criado.emit(novo_hatsu)
-	print("[HatsuCreationUI] Novo Hatsu Definitivo forjado com sucesso! Slot index: ", index, " | Core: ", novo_hatsu.core_component, " | Visual: ", vp.primary_color)
+
+	if is_draft:
+		print("[HatsuCreationUI] 💾 Rascunho de Hatsu salvo com sucesso! Slot index: ", index, " | Déficit: ", novo_hatsu.credit_deficit)
+	else:
+		print("[HatsuCreationUI] ⚡ Novo Hatsu v1.6 forjado com sucesso! Slot index: ", index, " | Demanda: ", novo_hatsu.functional_power, " | Créditos: ", novo_hatsu.limitation_credits)
+
 	fechar()

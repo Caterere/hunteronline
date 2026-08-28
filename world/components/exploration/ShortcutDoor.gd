@@ -29,7 +29,7 @@ func _ready() -> void:
 	collision_mask = 0
 	
 	# Verificar se já foi destrancado em save anterior
-	if PlayerData.quest_states.get("atalho_" + String(shortcut_id), false):
+	if PlayerData.quest_states.get("atalho_" + str(shortcut_id), false):
 		abrir_silenciosamente()
 	else:
 		_configurar_interacao()
@@ -55,7 +55,7 @@ func abrir() -> void:
 		return
 		
 	esta_aberto = true
-	PlayerData.quest_states["atalho_" + String(shortcut_id)] = true
+	PlayerData.quest_states["atalho_" + str(shortcut_id)] = true
 	
 	if collision != null:
 		collision.set_deferred("disabled", true)

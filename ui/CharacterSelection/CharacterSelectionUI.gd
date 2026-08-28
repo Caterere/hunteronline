@@ -422,41 +422,16 @@ func _gerar_save_teste_lvl100() -> void:
 	PlayerData.dificuldade = PlayerData.Dificuldade.NORMAL
 	PlayerData.potencial = 1.0
 	PlayerData.reputacao_hunter = 99999
-	PlayerData.titulo_equipado = "Mestre Supremo de Nen (Lvl 100)"
 	PlayerData.arco_atual = 9
 	PlayerData.etapa_quest_arco = 1
 	PlayerData.max_arco_desbloqueado = 9
 	PlayerData.modo_historia_concluido = true
-	PlayerData.despertou_nen = true
-	PlayerData.hatsu_desbloqueado = true
-	PlayerData.besta_nen_desbloqueada = true
 	PlayerData.parallel_quests_concluidas = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 	PlayerData.mapa_atual_salvo = "res://world/lobby.tscn"
 	PlayerData.posicao_salva = Vector2.ZERO
 	
 	PlayerData.character_colors["cabelo"] = Color(1.0, 0.85, 0.2, 1.0)
 	PlayerData.character_colors["roupa"] = Color(0.12, 0.56, 1.0, 1.0)
-	
-	# Status Normais Nível 100 + Nen Nível 100 no Máximo (GDD Vol 2)
-	PlayerData.attributes = {
-		"vida": 25000, "vida_max": 25000,
-		"forca": 1000, "defesa": 1000, "velocidade": 1000,
-		"aura": 50000.0, "aura_max": 50000.0,
-		"nivel_nen": 100, "xp_nen": 1000000, "nivel": 100, "gold": 99999999
-	}
-	
-	# Todas as Técnicas de Nen no Nível 100 Máximo
-	PlayerData.tecnicas_nen = {
-		"ten": {"nivel": 100, "xp": 0, "desbloqueada": true},
-		"ren": {"nivel": 100, "xp": 0, "desbloqueada": true},
-		"zetsu": {"nivel": 100, "xp": 0, "desbloqueada": true},
-		"gyo": {"nivel": 100, "xp": 0, "desbloqueada": true},
-		"shu": {"nivel": 100, "xp": 0, "desbloqueada": true},
-		"ko": {"nivel": 100, "xp": 0, "desbloqueada": true},
-		"en": {"nivel": 100, "xp": 0, "desbloqueada": true},
-		"ken": {"nivel": 100, "xp": 0, "desbloqueada": true},
-		"ryu": {"nivel": 100, "xp": 0, "desbloqueada": true}
-	}
 	
 	PlayerData.inventory = {
 		"item_licenca_hunter": 1,
@@ -469,26 +444,8 @@ func _gerar_save_teste_lvl100() -> void:
 		"elixir_deus_nen": 10
 	}
 	
-	PlayerData.hatsu_criados.clear()
-	var list = [
-		HatsuManager.obter_hatsu_canonico("gon_jajanken_pedra"),
-		HatsuManager.obter_hatsu_canonico("killua_narukami"),
-		HatsuManager.obter_hatsu_canonico("kurapika_emperor_time"),
-		HatsuManager.obter_hatsu_canonico("netero_guanyin"),
-		HatsuManager.obter_hatsu_canonico("killua_kanmuru"),
-		HatsuManager.obter_hatsu_canonico("leorio_remote_punch"),
-		HatsuManager.obter_hatsu_canonico("hisoka_bungee_gum"),
-		HatsuManager.obter_hatsu_canonico("kite_crazy_slots"),
-		HatsuManager.obter_hatsu_canonico("feitan_rising_sun"),
-		HatsuManager.obter_hatsu_canonico("kurapika_chain_jail"),
-		HatsuManager.obter_hatsu_canonico("kurapika_holy_chain"),
-		HatsuManager.obter_hatsu_canonico("chrollo_skill_hunter")
-	]
-	for h in list:
-		if h != null:
-			PlayerData.hatsu_criados.append(h)
-			
-	PlayerData.hatsu_slots = [0, 1, 2, 3]
+	# Elevar e configurar personagem com pipeline canônica
+	PlayerData.debug_create_level_100_hunter(true)
 	
 	SaveManager.salvar_jogo(3)
 	_atualizar_slots()

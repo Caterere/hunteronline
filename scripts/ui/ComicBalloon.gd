@@ -49,37 +49,40 @@ func _configurar_visual(texto: String, duracao: float) -> void:
 
 	# Container Central
 	panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(40, 16)
+	panel.custom_minimum_size = Vector2(50, 20)
 	
-	# Estilo Mangá: Fundo Branco com borda preta grossa
+	# Estilo Mangá: Fundo Branco com borda preta sólida
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(1.0, 1.0, 1.0, 0.98)
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
 	style.border_color = Color(0.04, 0.04, 0.06, 1.0)
-	style.corner_radius_top_left = 5
-	style.corner_radius_top_right = 5
-	style.corner_radius_bottom_right = 5
-	style.corner_radius_bottom_left = 5
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	style.shadow_color = Color(0, 0, 0, 0.35)
+	style.shadow_size = 2
 	panel.add_theme_stylebox_override("panel", style)
 	add_child(panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_top", 3)
-	margin.add_theme_constant_override("margin_bottom", 3)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
 	panel.add_child(margin)
 
 	label = Label.new()
 	label.text = texto
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.custom_minimum_size = Vector2(min(140, texto.length() * 6 + 10), 0)
+	var calculated_width: float = clamp(float(texto.length()) * 6.0 + 16.0, 50.0, 180.0)
+	label.custom_minimum_size = Vector2(calculated_width, 0)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 4)
+	label.add_theme_font_size_override("font_size", 8)
 	label.add_theme_color_override("font_color", Color(0.06, 0.06, 0.08, 1.0))
 	margin.add_child(label)
 
@@ -100,7 +103,7 @@ func _ajustar_posicao_e_rabicho(duracao: float) -> void:
 	var pts := PackedVector2Array([
 		Vector2(-4, 0),
 		Vector2(4, 0),
-		Vector2(-2, 7)
+		Vector2(-1, 6)
 	])
 	tail_polygon.polygon = pts
 	tail_polygon.position = Vector2(0, 0)
@@ -108,11 +111,11 @@ func _ajustar_posicao_e_rabicho(duracao: float) -> void:
 
 	# Borda do rabicho
 	var line := Line2D.new()
-	line.width = 2.0
+	line.width = 1.5
 	line.default_color = Color(0.04, 0.04, 0.06, 1.0)
 	line.points = PackedVector2Array([
 		Vector2(-4, 0),
-		Vector2(-2, 7),
+		Vector2(-1, 6),
 		Vector2(4, 0)
 	])
 	add_child(line)
@@ -120,7 +123,7 @@ func _ajustar_posicao_e_rabicho(duracao: float) -> void:
 	# Animação estilo Mangá Pop-in
 	scale = Vector2(0.2, 0.2)
 	var tween := create_tween()
-	tween.tween_property(self, "scale", Vector2(1.08, 1.08), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "scale", Vector2(1.06, 1.06), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "scale", Vector2(1.0, 1.0), 0.06)
 	
 	# Tempo de leitura antes de sumir

@@ -39,13 +39,11 @@ const ARCO_NOMES: Dictionary = {
 
 
 func _ready() -> void:
-	# Garantir estilo e limpeza de nÃ³s duplicados
 	for child in get_children():
 		child.queue_free()
 
 	_construir_ui()
 
-	# Ativar automaticamente a quest do modo histÃ³ria para o arco atual
 	if QuestSystem != null and PlayerData != null:
 		QuestSystem.garantir_quest_do_arco(PlayerData.arco_atual)
 
@@ -53,14 +51,13 @@ func _ready() -> void:
 
 
 func _construir_ui() -> void:
-	custom_minimum_size = Vector2(110, 20)
-	size = Vector2(110, 48)
+	custom_minimum_size = Vector2(142, 24)
 	set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	offset_left = -114.0
-	offset_top = 4.0
-	offset_right = -4.0
-	offset_bottom = 52.0
+	offset_left = -150.0
+	offset_top = 8.0
+	offset_right = -8.0
+	offset_bottom = 68.0
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.06, 0.08, 0.12, 0.92)
@@ -76,65 +73,65 @@ func _construir_ui() -> void:
 	add_theme_stylebox_override("panel", style)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 3)
-	margin.add_theme_constant_override("margin_top", 2)
-	margin.add_theme_constant_override("margin_right", 3)
-	margin.add_theme_constant_override("margin_bottom", 2)
+	margin.add_theme_constant_override("margin_left", 6)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 6)
+	margin.add_theme_constant_override("margin_bottom", 4)
 	add_child(margin)
 
 	var vbox_main := VBoxContainer.new()
-	vbox_main.add_theme_constant_override("separation", 1)
+	vbox_main.add_theme_constant_override("separation", 2)
 	margin.add_child(vbox_main)
 
-	# Header (Arco + BotÃ£o Jornal + BotÃ£o Minimizar)
+	# Header (Arco + Botão Jornal + Botão Minimizar)
 	var hbox_header := HBoxContainer.new()
 	vbox_main.add_child(hbox_header)
 
 	lbl_arco = Label.new()
-	lbl_arco.text = "ðŸ¹ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÃ“RIA")]
-	lbl_arco.add_theme_font_size_override("font_size", 4)
+	lbl_arco.text = "🏛️ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
+	lbl_arco.add_theme_font_size_override("font_size", 9)
 	lbl_arco.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	lbl_arco.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_arco)
 
 	var btn_jornal := Button.new()
-	btn_jornal.text = "ðŸ“œ"
-	btn_jornal.tooltip_text = "Abrir Jornal de MissÃµes [J / Q]"
-	btn_jornal.add_theme_font_size_override("font_size", 4)
-	btn_jornal.custom_minimum_size = Vector2(10, 10)
+	btn_jornal.text = "📜"
+	btn_jornal.tooltip_text = "Abrir Jornal de Missões [J]"
+	btn_jornal.add_theme_font_size_override("font_size", 8)
+	btn_jornal.custom_minimum_size = Vector2(16, 14)
 	btn_jornal.pressed.connect(_abrir_jornal)
 	hbox_header.add_child(btn_jornal)
 
 	btn_toggle = Button.new()
-	btn_toggle.text = "âˆ’"
-	btn_toggle.add_theme_font_size_override("font_size", 4)
-	btn_toggle.custom_minimum_size = Vector2(10, 10)
+	btn_toggle.text = "−"
+	btn_toggle.add_theme_font_size_override("font_size", 8)
+	btn_toggle.custom_minimum_size = Vector2(14, 14)
 	btn_toggle.pressed.connect(_toggle_expandir)
 	hbox_header.add_child(btn_toggle)
 
-	# Detalhes da MissÃ£o
+	# Detalhes da Missão
 	vbox_detalhes = VBoxContainer.new()
-	vbox_detalhes.add_theme_constant_override("separation", 1)
+	vbox_detalhes.add_theme_constant_override("separation", 2)
 	vbox_main.add_child(vbox_detalhes)
 
 	lbl_quest_nome = Label.new()
-	lbl_quest_nome.text = "ðŸ“œ MissÃ£o Ativa"
-	lbl_quest_nome.add_theme_font_size_override("font_size", 4)
+	lbl_quest_nome.text = "📜 Missão Ativa"
+	lbl_quest_nome.add_theme_font_size_override("font_size", 8)
 	lbl_quest_nome.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
 	lbl_quest_nome.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_quest_nome)
 
 	lbl_objetivo = Label.new()
 	lbl_objetivo.text = "- Carregando objetivo..."
-	lbl_objetivo.add_theme_font_size_override("font_size", 4)
+	lbl_objetivo.add_theme_font_size_override("font_size", 8)
 	lbl_objetivo.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
 	lbl_objetivo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_objetivo)
 
-	# BÃºssola & Direcionador de Rota
+	# Bússola & Direcionador de Rota
 	lbl_bussola = Label.new()
-	lbl_bussola.text = "ðŸ§­ DireÃ§Ã£o: Buscando..."
-	lbl_bussola.add_theme_font_size_override("font_size", 4)
+	lbl_bussola.text = "🧭 Direção: Buscando..."
+	lbl_bussola.add_theme_font_size_override("font_size", 8)
 	lbl_bussola.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1.0))
 	lbl_bussola.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_bussola)
@@ -143,7 +140,7 @@ func _construir_ui() -> void:
 func _toggle_expandir() -> void:
 	_expandido = not _expandido
 	vbox_detalhes.visible = _expandido
-	btn_toggle.text = "âˆ’" if _expandido else "+"
+	btn_toggle.text = "−" if _expandido else "+"
 
 
 func _process(delta: float) -> void:
@@ -262,7 +259,7 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 	match obj.type:
 		QuestObjective.Type.VISIT:
 			var npcs := get_tree().get_nodes_in_group("npc")
-			var target_str: String = String(obj.target_npc_id).to_lower()
+			var target_str: String = str(obj.target_npc_id).to_lower()
 			var target_name_str: String = obj.target_npc_name.to_lower()
 			nome_alvo = obj.target_npc_name if not obj.target_npc_name.is_empty() else "NPC"
 
@@ -271,7 +268,7 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 					var n_name: String = n.name.to_lower()
 					var n_custom: String = ""
 					if "npc_name" in n:
-						n_custom = String(n.npc_name).to_lower()
+						n_custom = str(n.npc_name).to_lower()
 
 					var bateu: bool = (
 						target_str in n_name
@@ -291,7 +288,7 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 				encontrou_alvo = true
 
 		QuestObjective.Type.KILL:
-			var enemy_type_str = String(obj.enemy_type).to_lower()
+			var enemy_type_str = str(obj.enemy_type).to_lower()
 			nome_alvo = "Inimigos" if enemy_type_str.is_empty() else enemy_type_str.replace("_", " ").capitalize()
 			var enemies := get_tree().get_nodes_in_group("enemies")
 			if enemies.is_empty():
@@ -307,8 +304,8 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 					if esys != null and ("is_dead" in esys and esys.is_dead):
 						continue
 					living_all.append(e)
-					var e_id = String(esys.enemy_id).to_lower() if esys != null and "enemy_id" in esys else ""
-					var e_name = String(esys.enemy_name).to_lower() if esys != null and "enemy_name" in esys else ""
+					var e_id = str(esys.enemy_id).to_lower() if esys != null and "enemy_id" in esys else ""
+					var e_name = str(esys.enemy_name).to_lower() if esys != null and "enemy_name" in esys else ""
 					var n_name = e.name.to_lower()
 					var bate: bool = (enemy_type_str.is_empty() or enemy_type_str in e_id or e_id in enemy_type_str or enemy_type_str in n_name or enemy_type_str in e_name)
 					if not bate:
@@ -328,11 +325,11 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 					alvo_pos = e.global_position
 					encontrou_alvo = true
 					var esys = e.get_node_or_null("EnemySystem")
-					if esys != null and "enemy_name" in esys and not String(esys.enemy_name).is_empty():
-						nome_alvo = String(esys.enemy_name)
+					if esys != null and "enemy_name" in esys and not str(esys.enemy_name).is_empty():
+						nome_alvo = str(esys.enemy_name)
 
 		QuestObjective.Type.COLLECT:
-			nome_alvo = String(obj.item_id).replace("_", " ").capitalize()
+			nome_alvo = str(obj.item_id).replace("_", " ").capitalize()
 			var drops := get_tree().get_nodes_in_group("loot")
 			if not drops.is_empty() and drops[0] is Node2D:
 				alvo_pos = drops[0].global_position

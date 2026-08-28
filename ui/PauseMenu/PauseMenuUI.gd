@@ -98,17 +98,17 @@ func _construir_ui() -> void:
 	center_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root_control.add_child(center_container)
 
-	# Painel Centralizado (170x150 em tela 320x180)
+	# Painel Centralizado
 	painel_principal = PanelContainer.new()
-	painel_principal.custom_minimum_size = Vector2(170, 150)
+	painel_principal.custom_minimum_size = Vector2(250, 230)
 	painel_principal.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
 	center_container.add_child(painel_principal)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_top", 5)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_bottom", 5)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	painel_principal.add_child(margin)
 
 	var vbox := VBoxContainer.new()
@@ -119,7 +119,7 @@ func _construir_ui() -> void:
 	var lbl_titulo := Label.new()
 	lbl_titulo.text = "⏸️ JOGO PAUSADO"
 	lbl_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_titulo.add_theme_font_size_override("font_size", 6)
+	lbl_titulo.add_theme_font_size_override("font_size", 11)
 	lbl_titulo.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_titulo.add_theme_color_override("font_shadow_color", Color.BLACK)
 	vbox.add_child(lbl_titulo)
@@ -128,14 +128,14 @@ func _construir_ui() -> void:
 	lbl_info_player = Label.new()
 	lbl_info_player.text = "👤 Hunter (Lv. 1)"
 	lbl_info_player.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_info_player.add_theme_font_size_override("font_size", 4)
+	lbl_info_player.add_theme_font_size_override("font_size", 9)
 	lbl_info_player.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	vbox.add_child(lbl_info_player)
 
 	lbl_info_local = Label.new()
 	lbl_info_local.text = "📍 Local: Capital dos Hunters"
 	lbl_info_local.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_info_local.add_theme_font_size_override("font_size", 4)
+	lbl_info_local.add_theme_font_size_override("font_size", 8)
 	lbl_info_local.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
 	vbox.add_child(lbl_info_local)
 
@@ -156,7 +156,7 @@ func _construir_ui() -> void:
 	lbl_status_save = Label.new()
 	lbl_status_save.text = ""
 	lbl_status_save.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_status_save.add_theme_font_size_override("font_size", 4)
+	lbl_status_save.add_theme_font_size_override("font_size", 8)
 	lbl_status_save.add_theme_color_override("font_color", HunterUIStyle.COLOR_HUNTER_GREEN_LIGHT)
 	vbox.add_child(lbl_status_save)
 
@@ -164,8 +164,8 @@ func _construir_ui() -> void:
 func _criar_botao(texto: String, parent: Node, callback: Callable) -> Button:
 	var btn := Button.new()
 	btn.text = texto
-	btn.add_theme_font_size_override("font_size", 4)
-	btn.custom_minimum_size = Vector2(0, 12)
+	btn.add_theme_font_size_override("font_size", 8)
+	btn.custom_minimum_size = Vector2(0, 20)
 	HunterUIStyle.aplicar_estilo_botao(btn, HunterUIStyle.COLOR_BORDER_GREEN)
 	btn.pressed.connect(callback)
 	parent.add_child(btn)

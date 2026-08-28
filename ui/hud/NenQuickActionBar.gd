@@ -54,20 +54,30 @@ func _ready() -> void:
 
 func _construir_ui() -> void:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(300, 36)
+	panel.custom_minimum_size = Vector2(320, 42)
 	panel.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	panel.position = Vector2(10, 104)
+	panel.offset_left = -160.0
+	panel.offset_right = 160.0
+	panel.offset_top = -92.0
+	panel.offset_bottom = -50.0
 	panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_AURA_CYAN, 4))
 	add_child(panel)
 
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_top", 2)
+	margin.add_theme_constant_override("margin_bottom", 2)
+	panel.add_child(margin)
+
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 2)
-	panel.add_child(vbox)
+	margin.add_child(vbox)
 
 	lbl_instrucao = Label.new()
 	lbl_instrucao.text = "⚡ NEN QUICK SELECT (SEGURE Q + TECLA)"
 	lbl_instrucao.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl_instrucao.add_theme_font_size_override("font_size", 3)
+	lbl_instrucao.add_theme_font_size_override("font_size", 8)
 	lbl_instrucao.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
 	vbox.add_child(lbl_instrucao)
 
@@ -78,9 +88,9 @@ func _construir_ui() -> void:
 
 	for cfg in TECNICAS_CONFIG:
 		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(30, 22)
+		btn.custom_minimum_size = Vector2(32, 22)
 		btn.text = "[%s]\n%s" % [cfg["tecla"], cfg["nome"]]
-		btn.add_theme_font_size_override("font_size", 3)
+		btn.add_theme_font_size_override("font_size", 8)
 		HunterUIStyle.aplicar_estilo_botao(btn, cfg["cor"])
 		btn.add_theme_color_override("font_color", cfg["cor"])
 		btn.pressed.connect(func(): _acionar_tecnica(cfg))

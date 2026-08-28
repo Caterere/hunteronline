@@ -30,28 +30,33 @@ mouse_filter = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="ControlContainer"]
 layout_mode = 1
-anchors_preset = 12
+anchors_preset = 7
+anchor_left = 0.5
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.5
 anchor_bottom = 1.0
-offset_top = -60.0
+offset_left = -220.0
+offset_top = -92.0
+offset_right = 220.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 4
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
 
 [node name="PanelContainer" type="PanelContainer" parent="ControlContainer/MarginContainer"]
+custom_minimum_size = Vector2(440, 82)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_dialogue")
 
 [node name="MarginContent" type="MarginContainer" parent="ControlContainer/MarginContainer/PanelContainer"]
 layout_mode = 2
-theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 4
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ControlContainer/MarginContainer/PanelContainer/MarginContent"]
 layout_mode = 2
@@ -59,20 +64,24 @@ theme_override_constants/separation = 2
 
 [node name="SpeakerLabel" type="Label" parent="ControlContainer/MarginContainer/PanelContainer/MarginContent/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
-theme_override_font_sizes/font_size = 6
+theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
+theme_override_font_sizes/font_size = 10
 text = "💬 FALANTE"
+
+[node name="HSeparator" type="HSeparator" parent="ControlContainer/MarginContainer/PanelContainer/MarginContent/VBoxContainer"]
+layout_mode = 2
 
 [node name="TextLabel" type="Label" parent="ControlContainer/MarginContainer/PanelContainer/MarginContent/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 5
+theme_override_colors/font_color = Color(0.96, 0.95, 0.9, 1)
+theme_override_font_sizes/font_size = 9
 text = "Texto do diálogo de Hunter x Hunter..."
-autowrap_mode = 2
+autowrap_mode = 3
 
 [node name="IndicatorLabel" type="Label" parent="ControlContainer/MarginContainer/PanelContainer/MarginContent/VBoxContainer"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.9, 1, 0.9)
-theme_override_font_sizes/font_size = 4
-text = "[Pressione E / ESPAÇO ▶]"
+theme_override_colors/font_color = Color(0.25, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 8
+text = "▼ [E / Espaço]"
 horizontal_alignment = 2

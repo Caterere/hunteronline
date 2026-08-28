@@ -38,6 +38,6 @@ class_name ItemResource
 func get_display_name() -> String:
 
 	if item_name.is_empty():
-		return String(item_id)
+		return str(item_id)
 
 	return item_name

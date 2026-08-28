@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://df8aa12uylay1"]
+
+[ext_resource type="Script" path="res://scratch/test_ui_layout_suite.gd" id="1_test_ui"]
+
+[node name="TestUILayoutSuite" type="Node"]
+script = ExtResource("1_test_ui")

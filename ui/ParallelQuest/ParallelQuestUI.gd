@@ -58,12 +58,13 @@ func _construir_ui() -> void:
 	bg.color = Color(0, 0, 0, 0.75)
 	add_child(bg)
 
-	panel_main = PanelContainer.new()
-	panel_main.custom_minimum_size = Vector2(300, 164)
-	panel_main.set_anchors_preset(Control.PRESET_CENTER)
-	panel_main.position = Vector2(10, 8)
-	panel_main.size = Vector2(300, 164)
+	var center_container := CenterContainer.new()
+	center_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(center_container)
 
+	panel_main = PanelContainer.new()
+	panel_main.custom_minimum_size = Vector2(460, 260)
+	
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.07, 0.12, 0.96)
 	style.border_width_left = 1
@@ -71,22 +72,22 @@ func _construir_ui() -> void:
 	style.border_width_right = 1
 	style.border_width_bottom = 1
 	style.border_color = Color(0.2, 0.8, 1.0, 0.95) # Ciano dimensional de Nen
-	style.corner_radius_top_left = 3
-	style.corner_radius_top_right = 3
-	style.corner_radius_bottom_right = 3
-	style.corner_radius_bottom_left = 3
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
 	panel_main.add_theme_stylebox_override("panel", style)
-	add_child(panel_main)
+	center_container.add_child(panel_main)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 4)
-	margin.add_theme_constant_override("margin_top", 3)
-	margin.add_theme_constant_override("margin_right", 4)
-	margin.add_theme_constant_override("margin_bottom", 3)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	panel_main.add_child(margin)
 
 	var vbox_root := VBoxContainer.new()
-	vbox_root.add_theme_constant_override("separation", 2)
+	vbox_root.add_theme_constant_override("separation", 3)
 	margin.add_child(vbox_root)
 
 	# Header Superior
@@ -95,14 +96,14 @@ func _construir_ui() -> void:
 
 	var lbl_titulo := Label.new()
 	lbl_titulo.text = "🌌 FENDAS DIMENSIONAIS DE NEN — MISSÕES PARALELAS"
-	lbl_titulo.add_theme_font_size_override("font_size", 5)
+	lbl_titulo.add_theme_font_size_override("font_size", 11)
 	lbl_titulo.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
 	lbl_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_titulo)
 
 	var btn_fechar := Button.new()
 	btn_fechar.text = " ✕ "
-	btn_fechar.add_theme_font_size_override("font_size", 4)
+	btn_fechar.add_theme_font_size_override("font_size", 8)
 	btn_fechar.pressed.connect(fechar)
 	hbox_header.add_child(btn_fechar)
 
@@ -287,7 +288,7 @@ func _selecionar_missao(id: int) -> void:
 	var items: Array = m.get("reward_items", [])
 	var item_str := ""
 	for it in items:
-		item_str += "+%dx %s  " % [it.get("qtd", 1), String(it.get("id", "")).capitalize()]
+		item_str += "+%dx %s  " % [it.get("qtd", 1), str(it.get("id", "")).capitalize()]
 
 	lbl_detalhe_recompensas.text = "🎁 XP: %d | Jenny: %d\n🎒 Drops: %s" % [xp, gold, item_str]
 

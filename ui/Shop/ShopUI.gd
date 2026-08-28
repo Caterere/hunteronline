@@ -59,33 +59,33 @@ func fechar() -> void:
 
 func _construir_ui() -> void:
 	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.7)
+	bg.color = Color(0, 0, 0, 0.75)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 
 	panel_main = PanelContainer.new()
-	panel_main.custom_minimum_size = Vector2(290, 165)
+	panel_main.custom_minimum_size = Vector2(460, 260)
 	panel_main.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.1, 0.12, 0.16, 0.95)
+	style.bg_color = Color(0.06, 0.08, 0.12, 0.96)
 	style.border_width_left = 1
 	style.border_width_top = 1
 	style.border_width_right = 1
 	style.border_width_bottom = 1
-	style.border_color = Color(0.9, 0.7, 0.2, 1.0)
-	style.corner_radius_top_left = 3
-	style.corner_radius_top_right = 3
-	style.corner_radius_bottom_right = 3
-	style.corner_radius_bottom_left = 3
+	style.border_color = Color(1.0, 0.82, 0.2, 1.0)
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
 	panel_main.add_theme_stylebox_override("panel", style)
 	add_child(panel_main)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	panel_main.add_child(margin)
 
 	vbox_content = VBoxContainer.new()
@@ -97,9 +97,9 @@ func _construir_ui() -> void:
 	vbox_content.add_child(hbox_header)
 
 	var lbl_titulo := Label.new()
-	lbl_titulo.text = "LOJA DO VENDEDOR (JENNY)"
-	lbl_titulo.add_theme_font_size_override("font_size", 8)
-	lbl_titulo.add_theme_color_override("font_color", Color(1, 0.8, 0.2, 1))
+	lbl_titulo.text = "🏛️ LOJA DO VENDEDOR (JENNY)"
+	lbl_titulo.add_theme_font_size_override("font_size", 11)
+	lbl_titulo.add_theme_color_override("font_color", Color(1, 0.85, 0.25, 1))
 	hbox_header.add_child(lbl_titulo)
 
 	var spacer := Control.new()
@@ -107,13 +107,13 @@ func _construir_ui() -> void:
 	hbox_header.add_child(spacer)
 
 	lbl_gold = Label.new()
-	lbl_gold.add_theme_font_size_override("font_size", 6)
+	lbl_gold.add_theme_font_size_override("font_size", 9)
 	lbl_gold.add_theme_color_override("font_color", Color(0.4, 0.9, 1, 1))
 	hbox_header.add_child(lbl_gold)
 	
 	tab_container = TabContainer.new()
 	tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	tab_container.add_theme_font_size_override("font_size", 6)
+	tab_container.add_theme_font_size_override("font_size", 8)
 	tab_container.tab_changed.connect(func(_tab): _atualizar_loja())
 	vbox_content.add_child(tab_container)
 	
@@ -134,15 +134,17 @@ func _construir_ui() -> void:
 	tab_container.add_child(tab_vender)
 
 	btn_fechar = Button.new()
-	btn_fechar.text = "Fechar Loja"
-	btn_fechar.add_theme_font_size_override("font_size", 5)
+	btn_fechar.text = "Fechar Loja [ESC]"
+	btn_fechar.add_theme_font_size_override("font_size", 8)
+	btn_fechar.custom_minimum_size = Vector2(0, 20)
+	HunterUIStyle.aplicar_estilo_botao(btn_fechar, HunterUIStyle.COLOR_BORDER_GREEN)
 	btn_fechar.pressed.connect(fechar)
 	vbox_content.add_child(btn_fechar)
 
 
 func _atualizar_loja() -> void:
 	if lbl_gold != null:
-		lbl_gold.text = "Jenny: " + str(Economy.obter_gold())
+		lbl_gold.text = "💰 Jenny: " + str(Economy.obter_gold())
 		
 	var aba_atual = tab_container.get_current_tab_control()
 	if aba_atual == null:
@@ -173,8 +175,10 @@ func _preencher_lista(container: Control, itens: Array) -> void:
 
 		var btn := Button.new()
 		btn.text = "%s (%d Jenny%s) - %s" % [info["nome"], preco_ajustado, tag_rep, info["descricao"]]
-		btn.add_theme_font_size_override("font_size", 5)
+		btn.add_theme_font_size_override("font_size", 8)
+		btn.custom_minimum_size = Vector2(0, 22)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		HunterUIStyle.aplicar_estilo_botao(btn, HunterUIStyle.COLOR_BORDER_GREEN)
 
 		btn.pressed.connect(func():
 			if Economy.comprar_item(info["id"], "associacao_hunter"):
@@ -188,7 +192,8 @@ func _preencher_venda(container: Control) -> void:
 	if PlayerData.inventory.is_empty():
 		var lbl = Label.new()
 		lbl.text = "Inventário Vazio"
-		lbl.add_theme_font_size_override("font_size", 5)
+		lbl.add_theme_font_size_override("font_size", 8)
+		lbl.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_SECONDARY)
 		container.add_child(lbl)
 		return
 		
@@ -198,8 +203,10 @@ func _preencher_venda(container: Control) -> void:
 		var preco_venda = 50 # Base
 		var btn := Button.new()
 		btn.text = "Vender %s x%d (+%d Jenny)" % [str(item_id).capitalize(), qtd, preco_venda]
-		btn.add_theme_font_size_override("font_size", 5)
+		btn.add_theme_font_size_override("font_size", 8)
+		btn.custom_minimum_size = Vector2(0, 22)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		HunterUIStyle.aplicar_estilo_botao(btn, HunterUIStyle.COLOR_BORDER_GOLD)
 
 		btn.pressed.connect(func():
 			if PlayerData.remover_item(item_id, 1):

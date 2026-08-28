@@ -97,6 +97,9 @@ func _input(event: InputEvent) -> void:
 			KEY_F6:
 				_on_btn_toggle_session_pressed()
 				get_viewport().set_input_as_handled()
+			KEY_F10:
+				_on_ativar_hunter_lvl100()
+				get_viewport().set_input_as_handled()
 
 
 func toggle_overlay(forced_state: Variant = null) -> bool:
@@ -127,6 +130,25 @@ func _process(_delta: float) -> void:
 
 
 func _configurar_conexoes_botoes() -> void:
+	# Botões de Debug Hunter Level 100 no Header
+	var header_node = get_node_or_null("MainContainer/VBox/HeaderBar")
+	if header_node != null:
+		var btn_lvl100 := Button.new()
+		btn_lvl100.name = "BtnLvl100"
+		btn_lvl100.text = "⚡ Lvl 100 (F10)"
+		btn_lvl100.add_theme_font_size_override("font_size", 9)
+		btn_lvl100.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1.0))
+		btn_lvl100.pressed.connect(_on_ativar_hunter_lvl100)
+		header_node.add_child(btn_lvl100)
+
+		var btn_reset_lvl100 := Button.new()
+		btn_reset_lvl100.name = "BtnResetLvl100"
+		btn_reset_lvl100.text = "🔄 Reset Debug"
+		btn_reset_lvl100.add_theme_font_size_override("font_size", 9)
+		btn_reset_lvl100.add_theme_color_override("font_color", Color(1.0, 0.5, 0.3, 1.0))
+		btn_reset_lvl100.pressed.connect(_on_resetar_hunter_debug)
+		header_node.add_child(btn_reset_lvl100)
+
 	if btn_inspect_player_pos:
 		btn_inspect_player_pos.pressed.connect(_on_inspect_player_position)
 	if btn_inspect_coords:
@@ -145,6 +167,20 @@ func _configurar_conexoes_botoes() -> void:
 		opt_heatmap_mode.add_item("🟡 Densidade de Eventos", 3)
 		opt_heatmap_mode.add_item("🟢 Densidade de POIs/Segredos", 4)
 		opt_heatmap_mode.item_selected.connect(_on_heatmap_mode_selected)
+
+
+func _on_ativar_hunter_lvl100() -> void:
+	PlayerData.debug_create_level_100_hunter(true)
+	_atualizar_dados_aba_ativa()
+	if EventBus != null and EventBus.has_signal("toast_requested"):
+		EventBus.emit_toast("⚡ Hunter Level 100 Ativado com Sucesso!", Color(0.3, 1.0, 0.5))
+
+
+func _on_resetar_hunter_debug() -> void:
+	PlayerData.reset_debug_character()
+	_atualizar_dados_aba_ativa()
+	if EventBus != null and EventBus.has_signal("toast_requested"):
+		EventBus.emit_toast("🔄 Personagem de Debug Resetado!", Color(1.0, 0.5, 0.3))
 
 
 func _criar_heatmap_se_necessario() -> void:

@@ -388,6 +388,10 @@ func _process(delta: float) -> void:
 #
 # ============================================================
 
+func sincronizar_com_player_data() -> void:
+	sincronizar_nen_com_player_data()
+
+
 func sincronizar_nen_com_player_data() -> void:
 
 	var nivel_nen: int = int(

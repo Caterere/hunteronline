@@ -110,7 +110,7 @@ func inspecionar(player: Node2D) -> Dictionary:
 	}
 	
 	# Registrar segredo descoberto no PlayerData
-	var cid_str = String(clue_id)
+	var cid_str = str(clue_id)
 	if not cid_str.is_empty() and PlayerData != null:
 		if not PlayerData.segredos_descobertos.has(cid_str):
 			PlayerData.segredos_descobertos.append(cid_str)

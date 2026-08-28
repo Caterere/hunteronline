@@ -287,7 +287,17 @@ func criar_hatsu(
 	arquetipo: HatsuData.Arquetipo = HatsuData.Arquetipo.SIMPLES,
 	cor_primaria: Color = Color(-1, -1, -1, -1),
 	cor_secundaria: Color = Color(-1, -1, -1, -1),
-	estilo_visual: HatsuData.EstiloVisual = HatsuData.EstiloVisual.PURO_PULSANTE
+	estilo_visual: HatsuData.EstiloVisual = HatsuData.EstiloVisual.PURO_PULSANTE,
+	preparation_steps: Array = [],
+	sub_effects: Array = [],
+	modular_restrictions: Array = [],
+	parametros_conceito: Dictionary = {},
+	is_storage_hatsu: bool = false,
+	storage_capacity: int = 3,
+	storage_duration_type: String = "PERMANENT",
+	storage_usage_rule: String = "OPEN_BOOK",
+	steal_conditions: Array = [],
+	steal_target_type: String = "ANY"
 ) -> HatsuData:
 
 	var hatsu := HatsuData.new()
@@ -301,10 +311,27 @@ func criar_hatsu(
 	hatsu.consumo_desejado = consumo_desejado
 	hatsu.arquetipo = arquetipo
 	hatsu.estilo_visual = estilo_visual
+	hatsu.parametros_conceito = parametros_conceito.duplicate(true)
+
+	# Configurações de Armazenamento e Roubo de Hatsu
+	hatsu.is_storage_hatsu = is_storage_hatsu or (arquetipo == HatsuData.Arquetipo.LIVRO_COLECAO)
+	hatsu.storage_capacity = storage_capacity
+	hatsu.storage_duration_type = storage_duration_type
+	hatsu.storage_usage_rule = storage_usage_rule
+	var typed_sc: Array[String] = []
+	for sc in steal_conditions:
+		typed_sc.append(str(sc))
+	hatsu.steal_conditions = typed_sc
+	hatsu.steal_target_type = steal_target_type
 
 	var typed_condicoes: Array[HatsuData.Condicao] = []
 	for c in condicoes:
 		typed_condicoes.append(c as HatsuData.Condicao)
+
+	var typed_restrictions: Array = []
+	for r in modular_restrictions:
+		typed_restrictions.append(r)
+	hatsu.modular_restrictions = typed_restrictions
 
 	# Processar juramento customizado e arquétipo se presente
 	if not custom_vow_text.is_empty():
@@ -314,7 +341,7 @@ func criar_hatsu(
 				typed_condicoes.append(HatsuData.Condicao.CUSTOMIZADO)
 			hatsu.vow_custom_text = custom_vow_text
 			hatsu.vow_custom_mult = float(analise.get("multiplicador", 1.30))
-			hatsu.vow_custom_cat = String(analise.get("categoria_voto", "LIVRE"))
+			hatsu.vow_custom_cat = str(analise.get("categoria_voto", "LIVRE"))
 			hatsu.vow_custom_tier = analise.get("tier", HatsuData.Tier.CONDICAO)
 			if hatsu.arquetipo == HatsuData.Arquetipo.SIMPLES and analise.has("arquetipo"):
 				hatsu.arquetipo = analise.get("arquetipo")
@@ -368,6 +395,20 @@ func criar_hatsu(
 		HatsuData.AlcanceTipo.LONGO:
 			hatsu.alcance = 220.0
 			hatsu.raio = 95.0
+
+	var typed_prep: Array[Dictionary] = []
+	for p in preparation_steps:
+		if p is Dictionary: typed_prep.append(p)
+	hatsu.preparation_steps = typed_prep
+
+	var typed_sub: Array[int] = []
+	for s in sub_effects:
+		typed_sub.append(int(s))
+	hatsu.sub_effects = typed_sub
+
+	hatsu.calcular_versatility_score()
+	hatsu.calcular_functional_power()
+	hatsu.calcular_limitation_credits()
 
 	return hatsu
 
@@ -846,6 +887,92 @@ func avaliar_balanceamento_livro(config: Dictionary) -> Dictionary:
 	}
 
 
+# ============================================================
+# AQUISIÇÃO REAL & ROUBO DE HATSU (SKILL HUNTER ENGINE)
+# ============================================================
+
+func tentar_roubar_hatsu(usuario: Node, alvo: Node, hatsu_roubo: HatsuData, context: Dictionary = {}) -> Dictionary:
+	if hatsu_roubo == null:
+		return {"sucesso": false, "mensagem": "Hatsu de roubo inválido"}
+
+	if alvo == null or not is_instance_valid(alvo):
+		return {"sucesso": false, "mensagem": "Nenhum alvo selecionado para roubo"}
+
+	# 1. Obter Hatsu real do alvo
+	var alvo_hatsu: HatsuData = null
+	var alvo_nome: String = alvo.name
+
+	if alvo.has_node("EnemySystem"):
+		var es = alvo.get_node("EnemySystem")
+		if es.has_method("obter_hatsu_real"):
+			alvo_hatsu = es.obter_hatsu_real()
+		elif es.enemy_data != null and es.enemy_data.has_method("obter_hatsu_real"):
+			alvo_hatsu = es.enemy_data.obter_hatsu_real()
+		alvo_nome = es.enemy_name if not es.enemy_name.is_empty() else alvo.name
+	elif alvo.has_method("obter_hatsu_slot"):
+		alvo_hatsu = alvo.obter_hatsu_slot(0)
+	elif alvo is CharacterBody2D and alvo.get_parent() != null and alvo.get_parent().has_node("EnemySystem"):
+		var es2 = alvo.get_parent().get_node("EnemySystem")
+		alvo_hatsu = es2.obter_hatsu_real()
+		alvo_nome = es2.enemy_name
+
+	if alvo_hatsu == null:
+		return {"sucesso": false, "mensagem": "O alvo '%s' não possui nenhuma técnica de Nen para ser roubada!" % alvo_nome}
+
+	# 2. Verificar Condições e Requisitos de Roubo configurados no Hatsu
+	var condicoes_roubo = hatsu_roubo.steal_conditions
+	var dist: float = 999.0
+	if usuario is Node2D and alvo is Node2D:
+		dist = usuario.global_position.distance_to(alvo.global_position)
+	elif context.has("distance"):
+		dist = float(context["distance"])
+
+	for sc in condicoes_roubo:
+		match str(sc):
+			"TOUCH_REQUIRED":
+				if dist > 55.0 and not context.get("toque_realizado", false):
+					return {"sucesso": false, "mensagem": "Falha: Requer toque físico direto (Distância: %dpx > 55px)" % int(dist)}
+			"OBSERVE_GYO":
+				var viu: bool = context.get("observou_gyo", false) or context.get("gyo_ativo", false)
+				if not viu:
+					return {"sucesso": false, "mensagem": "Falha: É necessário testemunhar o Hatsu do oponente usando Gyo!"}
+			"TARGET_EXPLAINS":
+				var explicou: bool = context.get("alvo_explicou", false) or context.get("interrogado", false) or context.get("stagger", false)
+				if not explicou:
+					return {"sucesso": false, "mensagem": "Falha: O oponente precisa revelar ou explicar sua técnica!"}
+			"TARGET_DEFEATED":
+				var derrotado: bool = context.get("alvo_derrotado", false) or (alvo.has_node("EnemySystem") and alvo.get_node("EnemySystem").health <= 0)
+				if not derrotado:
+					return {"sucesso": false, "mensagem": "Falha: A técnica só pode ser extraída com o alvo derrotado!"}
+
+	# 3. Criar cópia profunda do Hatsu original preservando todas as definições
+	var hatsu_copiado: HatsuData = alvo_hatsu.duplicate(true)
+	hatsu_copiado.usuario_original = alvo_nome
+	hatsu_copiado.is_custom_created = false
+
+	# 4. Determinar usos restantes conforme regra do livro
+	var remaining_uses: int = -1
+	if hatsu_roubo.storage_duration_type == "CHARGES":
+		remaining_uses = 3
+	elif hatsu_roubo.storage_duration_type == "TIMED":
+		remaining_uses = 5
+
+	# 5. Adicionar ao armazenamento do jogador
+	var cap: int = hatsu_roubo.storage_capacity if hatsu_roubo.storage_capacity > 0 else 5
+	var res_storage = PlayerData.adicionar_hatsu_armazenado(hatsu_copiado, alvo_nome, remaining_uses, cap)
+
+	if not res_storage.get("sucesso", false):
+		return {"sucesso": false, "mensagem": res_storage.get("mensagem", "Falha ao armazenar")}
+
+	print("[HatsuManager] 🌟 ROUBO DE HATSU BEM-SUCEDIDO: %s capturou '%s' de %s!" % [usuario.name, hatsu_copiado.nome, alvo_nome])
+	return {
+		"sucesso": true,
+		"mensagem": "📖 Hatsu Roubado: %s (%s)!" % [hatsu_copiado.nome, HatsuManager.obter_nome_categoria(hatsu_copiado.categoria)],
+		"hatsu_roubado": hatsu_copiado,
+		"alvo_nome": alvo_nome
+	}
+
+
 func criar_livro_hatsu(
 	nome: String,
 	capacidade: int = 10,
@@ -1018,7 +1145,9 @@ func calculate_power_budget(hatsu: HatsuData, player_context: Dictionary = {}) -
 		return {
 			"budget_base": 100.0, "vows_multiplier": 1.0, "total_budget": 100.0,
 			"budget_consumed": 50.0, "power_score": 50.0, "complexity_score": 10.0,
-			"risk_score": 10.0, "efficiency_score": 50.0
+			"risk_score": 10.0, "efficiency_score": 50.0,
+			"functional_power": 50.0, "limitation_credits": 50.0, "versatility_score": 10.0,
+			"condition_credits": 0.0, "restriction_credits": 0.0, "vow_credits": 0.0, "preparation_credits": 0.0
 		}
 
 	var nivel: int = int(player_context.get("nivel", PlayerData.attributes.get("nivel", 1)))
@@ -1031,29 +1160,25 @@ func calculate_power_budget(hatsu: HatsuData, player_context: Dictionary = {}) -
 
 	# 2. Multiplicador de Votos, Condições, Restrições e Consequências
 	var vows_multiplier: float = hatsu.obter_multiplicador_poder()
-
 	var total_budget: float = budget_base * vows_multiplier
 
-	# 3. Orçamento Consumido pelos Parâmetros
+	# 3. Hatsu Creator v1.5 — Demanda Funcional vs Créditos de Limitação
+	var functional_power: float = hatsu.calcular_functional_power()
+	var limitation_credits: float = hatsu.calcular_limitation_credits()
+	var versatility_score: float = hatsu.calcular_versatility_score()
+	var credit_deficit: float = hatsu.credit_deficit
+
+	# Orçamento Consumido pelos Parâmetros
 	var core_info = HatsuComponentLibrary.get_core_info(hatsu.core_component as HatsuComponentLibrary.CoreType)
 	var core_weight: float = float(core_info.get("budget_weight", 1.0))
-
-	var dmg: float = hatsu.custom_damage if hatsu.custom_damage > 0.0 else hatsu.poder_base
-	var rng: float = hatsu.custom_range if hatsu.custom_range > 0.0 else hatsu.alcance
-	var rad: float = hatsu.custom_radius if hatsu.custom_radius > 0.0 else hatsu.raio
-	var dur: float = hatsu.custom_duration if hatsu.custom_duration > 0.0 else hatsu.duracao
-	var cd: float = hatsu.custom_cooldown if hatsu.custom_cooldown > 0.0 else hatsu.cooldown_base
-	var cost: float = hatsu.custom_aura_cost if hatsu.custom_aura_cost > 0.0 else hatsu.custo_aura_base
-
-	var budget_consumed: float = ((dmg * 1.5) + (rng * 0.35) + (rad * 0.8) + (dur * 6.0) - (cd * 5.0) - (cost * 0.6)) * core_weight
-	budget_consumed = max(20.0, budget_consumed)
+	var budget_consumed: float = functional_power * core_weight
 
 	# 4. Avaliação de Pontuações (Scores)
+	var dmg: float = hatsu.custom_damage if hatsu.custom_damage > 0.0 else hatsu.poder_base
 	var power_score: float = clamp((dmg / 120.0) * 100.0, 10.0, 350.0)
-	var spec_core_bonus: float = 30.0 if hatsu.core_component in [HatsuComponentLibrary.CoreType.ABSORPTION, HatsuComponentLibrary.CoreType.MEMORY_ROLLBACK, HatsuComponentLibrary.CoreType.RULE_ZONE, HatsuComponentLibrary.CoreType.EXCHANGE] else 0.0
-	var complexity_score: float = clamp(float(hatsu.effect_modules.size() * 15 + hatsu.modular_conditions.size() * 10 + hatsu.modular_restrictions.size() * 10 + spec_core_bonus), 10.0, 100.0)
+	var complexity_score: float = clamp(versatility_score, 10.0, 100.0)
 	var risk_score: float = clamp((vows_multiplier - 1.0) * 80.0, 5.0, 100.0)
-	var efficiency_score: float = clamp((total_budget / max(1.0, budget_consumed)) * 60.0, 10.0, 100.0)
+	var efficiency_score: float = clamp((limitation_credits / max(1.0, functional_power)) * 100.0, 10.0, 100.0)
 
 	hatsu.power_score = power_score
 	hatsu.complexity_score = complexity_score
@@ -1068,7 +1193,17 @@ func calculate_power_budget(hatsu: HatsuData, player_context: Dictionary = {}) -
 		"power_score": power_score,
 		"complexity_score": complexity_score,
 		"risk_score": risk_score,
-		"efficiency_score": efficiency_score
+		"efficiency_score": efficiency_score,
+		"functional_power": functional_power,
+		"limitation_credits": limitation_credits,
+		"versatility_score": versatility_score,
+		"required_credits": functional_power,
+		"available_credits": limitation_credits,
+		"credit_deficit": credit_deficit,
+		"condition_credits": hatsu.condition_credits,
+		"restriction_credits": hatsu.restriction_credits,
+		"vow_credits": hatsu.vow_credits,
+		"preparation_credits": hatsu.preparation_credits
 	}
 
 
@@ -1078,7 +1213,7 @@ func calculate_power_budget(hatsu: HatsuData, player_context: Dictionary = {}) -
 
 func validate_hatsu(hatsu: HatsuData, player_context: Dictionary = {}) -> Dictionary:
 	if hatsu == null:
-		return {"status": "INVALID", "reason": "Definição de Hatsu vazia.", "excess_power": 0.0}
+		return {"status": "INVALID", "reason": "Definição de Hatsu vazia.", "excess_power": 0.0, "credit_deficit": 0.0, "sugestoes": []}
 
 	var cd: float = hatsu.custom_cooldown if hatsu.custom_cooldown > 0.0 else hatsu.cooldown_base
 	var cost: float = hatsu.custom_aura_cost if hatsu.custom_aura_cost > 0.0 else hatsu.custo_aura_base
@@ -1088,40 +1223,86 @@ func validate_hatsu(hatsu: HatsuData, player_context: Dictionary = {}) -> Dictio
 		return {
 			"status": "INVALID",
 			"reason": "❌ Inválido: Cooldown e Custo de Aura excessivamente baixos. A lei de Nen exige compensação de esforço.",
-			"excess_power": 999.0
+			"excess_power": 999.0,
+			"credit_deficit": 999.0,
+			"sugestoes": obter_sugestoes_balanceamento(hatsu)
 		}
 
 	var pb = calculate_power_budget(hatsu, player_context)
-	var total_budget: float = float(pb["total_budget"])
-	var budget_consumed: float = float(pb["budget_consumed"])
+	var functional_power: float = float(pb.get("functional_power", 50.0))
+	var limitation_credits: float = float(pb.get("limitation_credits", 50.0))
+	var deficit: float = float(pb.get("credit_deficit", max(0.0, functional_power - limitation_credits)))
 
-	# Tolerância de 8%
-	if budget_consumed > total_budget * 1.08:
-		var excesso: float = budget_consumed - total_budget
+	# Se a Demanda Funcional exceder os Créditos (Déficit > 0)
+	if deficit > 0.0:
 		return {
 			"status": "OVERPOWERED",
-			"reason": "⚠️ Overpowered: A habilidade excede o Power Budget permitido em %d pontos. Aumente o custo de Aura, o cooldown ou aceite restrições de Nen mais severas." % int(excesso),
-			"excess_power": excesso,
-			"budget_consumed": budget_consumed,
-			"total_budget": total_budget
+			"reason": "⚠️ Déficit de Limitações: A demanda da técnica (%d pts) excede as limitações pagas (%d pts) em %d créditos. Adicione condições, restrições ou passos de preparação." % [int(functional_power), int(limitation_credits), int(deficit)],
+			"excess_power": deficit,
+			"credit_deficit": deficit,
+			"required_credits": functional_power,
+			"available_credits": limitation_credits,
+			"functional_power": functional_power,
+			"limitation_credits": limitation_credits,
+			"sugestoes": obter_sugestoes_balanceamento(hatsu)
 		}
 
-	if budget_consumed < total_budget * 0.45:
+	if limitation_credits > (functional_power * 2.2):
 		return {
 			"status": "INEFFICIENT",
-			"reason": "💡 Ineficiente: A habilidade possui restrições severas mas números subutilizados. Você pode aumentar o dano ou alcance com segurança.",
+			"reason": "💡 Super Limitado: Você impôs muitas restrições severas (%d créditos para %d de demanda)! Você tem créditos de sobra." % [int(limitation_credits), int(functional_power)],
 			"excess_power": 0.0,
-			"budget_consumed": budget_consumed,
-			"total_budget": total_budget
+			"credit_deficit": 0.0,
+			"required_credits": functional_power,
+			"available_credits": limitation_credits,
+			"functional_power": functional_power,
+			"limitation_credits": limitation_credits,
+			"sugestoes": []
 		}
 
 	return {
 		"status": "VALID",
-		"reason": "✨ Válido: A técnica respeita as leis de conservação e troca equivalente de Nen.",
+		"reason": "✨ Técnica 100% Equilibrada: As limitações pagam perfeitamente pelo poder funcional do Hatsu (Déficit: 0).",
 		"excess_power": 0.0,
-		"budget_consumed": budget_consumed,
-		"total_budget": total_budget
+		"credit_deficit": 0.0,
+		"required_credits": functional_power,
+		"available_credits": limitation_credits,
+		"functional_power": functional_power,
+		"limitation_credits": limitation_credits,
+		"sugestoes": []
 	}
+
+
+func obter_sugestoes_balanceamento(hatsu: HatsuData) -> Array[Dictionary]:
+	var sugestoes: Array[Dictionary] = []
+	if hatsu == null: return sugestoes
+
+	var cd: float = hatsu.custom_cooldown if hatsu.custom_cooldown > 0.0 else hatsu.cooldown_base
+	var cost: float = hatsu.custom_aura_cost if hatsu.custom_aura_cost > 0.0 else hatsu.custo_aura_base
+
+	# 1. Sugerir Condições
+	if not (HatsuData.Condicao.HP_ABAIXO_50 in hatsu.condicoes):
+		sugestoes.append({"tipo": "CONDICAO", "texto": "[+] Adicionar Condição: Vida < 50% (+25 pts de crédito)", "acao": "adicionar_condicao", "valor": HatsuData.Condicao.HP_ABAIXO_50})
+	if not (HatsuData.Condicao.CURTO_ALCANCE_EXTREMO in hatsu.condicoes) and hatsu.forma == HatsuData.Forma.TOQUE:
+		sugestoes.append({"tipo": "CONDICAO", "texto": "[+] Adicionar Condição: Toque Físico Obrigatório (+35 pts de crédito)", "acao": "adicionar_condicao", "valor": HatsuData.Condicao.CURTO_ALCANCE_EXTREMO})
+
+	# 2. Sugerir Restrições
+	if not (HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU in hatsu.modular_restrictions):
+		sugestoes.append({"tipo": "RESTRICAO", "texto": "[+] Adicionar Restrição: Travar outros 3 Hatsus (+30 pts de crédito)", "acao": "adicionar_restricao", "valor": HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU})
+	if not (HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE in hatsu.modular_restrictions) and hatsu.duracao > 3.0:
+		sugestoes.append({"tipo": "RESTRICAO", "texto": "[+] Adicionar Restrição: Ficar Imóvel durante o golpe (+40 pts de crédito)", "acao": "adicionar_restricao", "valor": HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE})
+
+	# 3. Sugerir Passo de Preparação (Preparation Chain)
+	if hatsu.preparation_steps.size() < 3:
+		sugestoes.append({"tipo": "PREPARACAO", "texto": "[+] Adicionar Passo de Preparação Prévia (+30 pts de crédito)", "acao": "adicionar_passo_preparacao", "valor": "Passo tático prévio"})
+
+	# 4. Sugerir Ajuste de Cooldown ou Custo
+	if cd < 5.0:
+		sugestoes.append({"tipo": "COOLDOWN", "texto": "[+] Aumentar Cooldown para 8.0s (+20 pts de crédito)", "acao": "ajustar_cooldown", "valor": 8.0})
+	if cost < 35.0:
+		sugestoes.append({"tipo": "AURA", "texto": "[+] Aumentar Consumo de Aura para 40 (+15 pts de crédito)", "acao": "ajustar_custo", "valor": 40.0})
+
+	return sugestoes
 
 
 # ============================================================
@@ -1137,8 +1318,8 @@ func execute_absorption_devour(
 		return {"sucesso": false, "motivo": "Hatsu de absorção inválido"}
 
 	var target_stat: String = hatsu.absorption_target_stat if not hatsu.absorption_target_stat.is_empty() else "aura_max"
-	var enemy_id: String = String(enemy_info.get("enemy_id", enemy_info.get("id", "enemy")))
-	var enemy_name: String = String(enemy_info.get("name", enemy_info.get("enemy_name", "Inimigo")))
+	var enemy_id: String = str(enemy_info.get("enemy_id", enemy_info.get("id", "enemy")))
+	var enemy_name: String = str(enemy_info.get("name", enemy_info.get("enemy_name", "Inimigo")))
 	var enemy_level: int = int(enemy_info.get("level", 1))
 	var is_boss: bool = bool(enemy_info.get("is_boss", false))
 

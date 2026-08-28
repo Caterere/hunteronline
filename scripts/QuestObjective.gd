@@ -44,16 +44,16 @@ func describe() -> String:
 	match type:
 
 		Type.KILL:
-			var nome_inimigo := String(enemy_type)
+			var nome_inimigo := str(enemy_type)
 			if nome_inimigo.is_empty() or nome_inimigo == "any" or nome_inimigo == "inimigo" or nome_inimigo == "monstro":
 				return "⚔️ Derrote Criaturas / Inimigos da Área"
 			return "⚔️ Derrote %s" % nome_inimigo.replace("_", " ").capitalize()
 
 		Type.COLLECT:
-			return "🎒 Colete %s" % String(item_id).replace("_", " ").capitalize()
+			return "🎒 Colete %s" % str(item_id).replace("_", " ").capitalize()
 
 		Type.CRAFT:
-			return "🔨 Forje/Crie %s" % String(item_id).replace("_", " ").capitalize()
+			return "🔨 Forje/Crie %s" % str(item_id).replace("_", " ").capitalize()
 
 		Type.VISIT:
 			if target_npc_name.is_empty():
@@ -62,12 +62,12 @@ func describe() -> String:
 			return "💬 Fale com %s" % target_npc_name
 
 		Type.INVESTIGATE:
-			return "🔍 [GYO] Investigue a pista '%s'" % String(target_clue_id).replace("_", " ").capitalize()
+			return "🔍 [GYO] Investigue a pista '%s'" % str(target_clue_id).replace("_", " ").capitalize()
 
 		Type.STEALTH_PASS:
-			return "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % String(target_zone_id).replace("_", " ").capitalize()
+			return "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
 
 		Type.PERSUASION:
-			return "🤝 Convença / Negocie com %s" % (target_npc_name if not target_npc_name.is_empty() else String(target_npc_id).capitalize())
+			return "🤝 Convença / Negocie com %s" % (target_npc_name if not target_npc_name.is_empty() else str(target_npc_id).capitalize())
 
 	return "Objetivo da Missão"

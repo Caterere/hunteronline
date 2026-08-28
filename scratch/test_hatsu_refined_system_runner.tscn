@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://c83k1p4m2x8j"]
+[gd_scene format=3 uid="uid://c83k1p4m2x8j"]
 
 [ext_resource type="Script" path="res://scratch/test_hatsu_refined_system_runner.gd" id="1_test"]
 

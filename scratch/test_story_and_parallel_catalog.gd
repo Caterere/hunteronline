@@ -107,7 +107,7 @@ func _init() -> void:
 				print("❌ ERRO: ID de PQ incorreto no índice %d: %d" % [i, id])
 				pq_valid = false
 				break
-			if String(m.get("title", "")).is_empty():
+			if str(m.get("title", "")).is_empty():
 				print("❌ ERRO: Título vazio na PQ %d" % id)
 				pq_valid = false
 				break

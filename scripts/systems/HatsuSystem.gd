@@ -367,8 +367,8 @@ func _on_enemy_killed(_enemy_type: StringName = &"") -> void:
 		# 2. Devour / Absorção de Status Permanente (Especialização)
 		if h.core_component == HatsuComponentLibrary.CoreType.ABSORPTION or HatsuComponentLibrary.ConditionType.ENEMY_DEFEATED in h.modular_conditions:
 			var e_info = {
-				"enemy_id": String(_enemy_type),
-				"name": String(_enemy_type).replace("_", " ").capitalize(),
+				"enemy_id": str(_enemy_type),
+				"name": str(_enemy_type).replace("_", " ").capitalize(),
 				"level": int(PlayerData.attributes.get("nivel", 1)),
 				"is_boss": false
 			}
@@ -893,8 +893,8 @@ func _executar_objeto_cartas(hatsu: HatsuData, eficiencia: float) -> void:
 		]
 
 	var carta: Dictionary = baralho[randi() % baralho.size()]
-	var naipe_nome: String = String(carta.get("naipe", "♠ Espadas"))
-	var efeito: String = String(carta.get("efeito", "DANO_CRITICO"))
+	var naipe_nome: String = str(carta.get("naipe", "♠ Espadas"))
+	var efeito: String = str(carta.get("efeito", "DANO_CRITICO"))
 	var valor: float = float(carta.get("valor", 80.0)) * eficiencia
 
 	var fx := HatsuCardDrawNode.new()
@@ -1037,6 +1037,45 @@ func _executar_troca_recursos(hatsu: HatsuData, eficiencia: float) -> void:
 func _executar_livro_colecao(hatsu: HatsuData, eficiencia: float) -> void:
 	if owner_body == null: return
 
+	# 1. Se houver alvo próximo e o Hatsu possuir regras de roubo
+	var enemies = get_tree().get_nodes_in_group("enemies") if get_tree() else []
+	var menor_dist: float = 9999.0
+	var alvo_prox: CharacterBody2D = null
+	for e in enemies:
+		if e is CharacterBody2D and is_instance_valid(e) and owner_body != null:
+			var d: float = owner_body.global_position.distance_to(e.global_position)
+			if d < menor_dist:
+				menor_dist = d
+				alvo_prox = e
+
+	if alvo_prox != null and menor_dist <= 70.0 and (not hatsu.steal_conditions.is_empty() or "roubo" in hatsu.nome.to_lower() or "theft" in hatsu.nome.to_lower()):
+		var steal_res = HatsuManager.tentar_roubar_hatsu(owner_body, alvo_prox, hatsu, {
+			"distance": menor_dist,
+			"toque_realizado": menor_dist <= 50.0,
+			"observou_gyo": nen_system != null and nen_system.tecnica_ativa(NenSystem.Tecnica.GYO),
+			"alvo_explicou": true,
+			"alvo_derrotado": alvo_prox.has_node("EnemySystem") and alvo_prox.get_node("EnemySystem").health <= 0
+		})
+		if steal_res.get("sucesso", false):
+			if combat_system != null:
+				combat_system._mostrar_texto_flutuante("📖 HATSU ROUBADO: %s!" % steal_res.hatsu_roubado.nome, Color(0.4, 1.0, 0.6))
+			ComicBalloon.mostrar(owner_body, "📖 SKILL HUNTER: %s Roubado!" % steal_res.hatsu_roubado.nome, 2.5, -45.0)
+			return
+
+	# 2. Se possuir habilidades armazenadas em PlayerData.stored_hatsus
+	if not PlayerData.stored_hatsus.is_empty():
+		var stored_entry = PlayerData.stored_hatsus[0]
+		var stored_h: HatsuData = stored_entry.get("hatsu_data", null)
+		if stored_h != null:
+			var ef_stored: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, stored_h.categoria)
+			if combat_system != null:
+				combat_system._mostrar_texto_flutuante("📖 %s (%d%% EF)" % [stored_h.nome, int(ef_stored * 100)], stored_h.cor_aura)
+			ComicBalloon.mostrar(owner_body, "📖 %s: Manifestação do Grimório!" % stored_h.nome, 2.2, -40.0)
+			_executar_por_objetivo(stored_h, ef_stored)
+			PlayerData.consumir_uso_hatsu_armazenado(0)
+			return
+
+	# 3. Fallback para HatsuBookData
 	var book: HatsuBookData = hatsu.livro_data
 	if book == null:
 		book = HatsuManager.criar_livro_hatsu(hatsu.nome)
@@ -1051,10 +1090,10 @@ func _executar_livro_colecao(hatsu: HatsuData, eficiencia: float) -> void:
 		ComicBalloon.mostrar(owner_body, "📖 Nenhuma habilidade selecionada no Livro!", 2.0, -38.0)
 		return
 
-	# Caso 1: Uso com Marcador (2 Hatsus Simultâneos + Sinergia de Tags)
+	# Caso Marcador Duplo
 	if h_marcador != null and book.permite_marcador_duplo:
 		var sinergia: Dictionary = HatsuManager.processar_sinergia_tags(h_principal, h_marcador)
-		var nome_combo: String = String(sinergia.get("nome", "Fusão de Nen"))
+		var nome_combo: String = str(sinergia.get("nome", "Fusão de Nen"))
 		var cor_combo: Color = sinergia.get("cor_sinergia", Color(0.9, 0.8, 1.0))
 		var bonus_combo: float = float(sinergia.get("dano_bonus", 1.20))
 
@@ -1068,16 +1107,9 @@ func _executar_livro_colecao(hatsu: HatsuData, eficiencia: float) -> void:
 
 		_executar_por_objetivo(h_principal, ef_p)
 		_executar_por_objetivo(h_marcador, ef_m)
-
-		# Se tiver restrição de Zetsu pós-uso duplo
-		if "ZETSU_POS_USO" in book.restricoes_uso:
-			zetsu_forcado_timer = 10.0
-			if nen_system != null:
-				nen_system.desativar_todas()
-				nen_system.ativar_tecnica(NenSystem.Tecnica.ZETSU)
 		return
 
-	# Caso 2: Uso Normal de 1 Página
+	# Caso Página Única
 	var ef_final: float = book.obter_eficiencia_pagina(book.pagina_slot_principal, PlayerData.afinidade_nen) * eficiencia
 	var pag_info: Dictionary = book.obter_pagina(book.pagina_slot_principal)
 	var nome_hab: String = pag_info.get("nome", h_principal.nome)

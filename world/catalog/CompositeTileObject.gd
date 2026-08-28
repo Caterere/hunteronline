@@ -42,7 +42,7 @@ static func from_dict(d: Dictionary) -> Resource:
 	var tags_raw = d.get("tags", [])
 	obj.tags = []
 	for t in tags_raw:
-		obj.tags.append(String(t))
+		obj.tags.append(str(t))
 		
 	obj.parts = d.get("parts", [])
 	obj.can_be_placed_inside = d.get("can_be_placed_inside", true)

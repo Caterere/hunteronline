@@ -74,15 +74,15 @@ func _construir_ui() -> void:
 	root_control.add_child(center_container)
 
 	panel_main = PanelContainer.new()
-	panel_main.custom_minimum_size = Vector2(310, 175)
+	panel_main.custom_minimum_size = Vector2(460, 260)
 	panel_main.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
 	center_container.add_child(panel_main)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	panel_main.add_child(margin)
 
 	var vbox := VBoxContainer.new()
@@ -95,7 +95,7 @@ func _construir_ui() -> void:
 
 	var lbl_title := Label.new()
 	lbl_title.text = "📜 HUNTER MENU"
-	lbl_title.add_theme_font_size_override("font_size", 6)
+	lbl_title.add_theme_font_size_override("font_size", 11)
 	lbl_title.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	hbox_header.add_child(lbl_title)
 
@@ -105,14 +105,14 @@ func _construir_ui() -> void:
 
 	var lbl_hints := Label.new()
 	lbl_hints.text = "[Q/E] Abas  |  [ESC/TAB] Fechar"
-	lbl_hints.add_theme_font_size_override("font_size", 4)
+	lbl_hints.add_theme_font_size_override("font_size", 8)
 	lbl_hints.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_SECONDARY)
 	hbox_header.add_child(lbl_hints)
 
 	# Tab Container Estilizado
 	tab_container = TabContainer.new()
 	tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	tab_container.add_theme_font_size_override("font_size", 4)
+	tab_container.add_theme_font_size_override("font_size", 8)
 	HunterUIStyle.aplicar_estilo_tab_container(tab_container)
 	tab_container.tab_changed.connect(func(_idx): _atualizar_aba_atual())
 	vbox.add_child(tab_container)
@@ -134,12 +134,12 @@ func _criar_aba_status() -> void:
 	tab_container.add_child(tab_status)
 
 	lbl_status_header = Label.new()
-	lbl_status_header.add_theme_font_size_override("font_size", 4)
+	lbl_status_header.add_theme_font_size_override("font_size", 9)
 	lbl_status_header.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	tab_status.add_child(lbl_status_header)
 
 	lbl_status_attrs = Label.new()
-	lbl_status_attrs.add_theme_font_size_override("font_size", 4)
+	lbl_status_attrs.add_theme_font_size_override("font_size", 8)
 	lbl_status_attrs.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	tab_status.add_child(lbl_status_attrs)
 

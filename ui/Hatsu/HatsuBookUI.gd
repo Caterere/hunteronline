@@ -93,26 +93,26 @@ func _construir_ui() -> void:
 	add_child(bg_overlay)
 
 	panel_main = PanelContainer.new()
-	panel_main.custom_minimum_size = Vector2(304, 168)
+	panel_main.custom_minimum_size = Vector2(460, 260)
 	panel_main.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel_main.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
 	add_child(panel_main)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 4)
-	margin.add_theme_constant_override("margin_top", 3)
-	margin.add_theme_constant_override("margin_right", 4)
-	margin.add_theme_constant_override("margin_bottom", 3)
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
 	panel_main.add_child(margin)
 
 	vbox_content = VBoxContainer.new()
-	vbox_content.add_theme_constant_override("separation", 2)
+	vbox_content.add_theme_constant_override("separation", 3)
 	margin.add_child(vbox_content)
 
 	# Cabeçalho
 	lbl_titulo = Label.new()
 	lbl_titulo.text = "📖 GRIMÓRIO DE NEN — ARQUIVO DE HATSUS"
-	lbl_titulo.add_theme_font_size_override("font_size", 5)
+	lbl_titulo.add_theme_font_size_override("font_size", 11)
 	lbl_titulo.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 	lbl_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox_content.add_child(lbl_titulo)
@@ -120,17 +120,17 @@ func _construir_ui() -> void:
 	# Livro Aberto (2 Lados)
 	hbox_book = HBoxContainer.new()
 	hbox_book.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	hbox_book.add_theme_constant_override("separation", 6)
+	hbox_book.add_theme_constant_override("separation", 8)
 	vbox_content.add_child(hbox_book)
 
 	# Lado Esquerdo: Lista de Páginas
 	vbox_left = VBoxContainer.new()
-	vbox_left.custom_minimum_size = Vector2(110, 0)
+	vbox_left.custom_minimum_size = Vector2(160, 0)
 	hbox_book.add_child(vbox_left)
 
 	var lbl_idx := Label.new()
 	lbl_idx.text = "ÍNDICE DE PÁGINAS:"
-	lbl_idx.add_theme_font_size_override("font_size", 4)
+	lbl_idx.add_theme_font_size_override("font_size", 8)
 	lbl_idx.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0, 1.0))
 	vbox_left.add_child(lbl_idx)
 

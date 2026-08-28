@@ -83,7 +83,7 @@ func _obter_active_objective_idx(quest: Quest) -> int:
 # =========================================================
 
 func register_npc_visit(npc_id: StringName) -> void:
-	var id_str := String(npc_id).to_lower()
+	var id_str := str(npc_id).to_lower()
 
 	for quest in active_quests:
 		if quest == null:
@@ -97,7 +97,7 @@ func register_npc_visit(npc_id: StringName) -> void:
 		if objective.type != QuestObjective.Type.VISIT:
 			continue
 
-		var target_str := String(objective.target_npc_id).to_lower()
+		var target_str := str(objective.target_npc_id).to_lower()
 		var target_name_str := objective.target_npc_name.to_lower()
 
 		var corresponde: bool = (
@@ -192,7 +192,7 @@ func register_item_collected(
 	item_id: StringName,
 	amount: int = 1
 ) -> void:
-	var id_str := String(item_id).to_lower()
+	var id_str := str(item_id).to_lower()
 
 	for quest in active_quests:
 		if quest == null:
@@ -206,7 +206,7 @@ func register_item_collected(
 		if objective.type != QuestObjective.Type.COLLECT:
 			continue
 
-		var target_str := String(objective.item_id).to_lower()
+		var target_str := str(objective.item_id).to_lower()
 		if target_str != id_str and target_str not in id_str and id_str not in target_str:
 			continue
 
@@ -241,7 +241,7 @@ func register_item_collected(
 # =========================================================
 
 func register_investigation(clue_id: StringName) -> void:
-	var id_str := String(clue_id).to_lower()
+	var id_str := str(clue_id).to_lower()
 
 	for quest in active_quests:
 		if quest == null:
@@ -255,7 +255,7 @@ func register_investigation(clue_id: StringName) -> void:
 		if objective.type != QuestObjective.Type.INVESTIGATE:
 			continue
 
-		var target_str := String(objective.target_clue_id).to_lower()
+		var target_str := str(objective.target_clue_id).to_lower()
 		if target_str.is_empty() or target_str == id_str or id_str in target_str or target_str in id_str:
 			var progress := PlayerData.get_quest_objective_progress(quest, active_idx)
 			if progress >= objective.required_amount:
@@ -275,7 +275,7 @@ func register_investigation(clue_id: StringName) -> void:
 # =========================================================
 
 func register_stealth_pass(zone_id: StringName) -> void:
-	var id_str := String(zone_id).to_lower()
+	var id_str := str(zone_id).to_lower()
 
 	for quest in active_quests:
 		if quest == null:
@@ -289,7 +289,7 @@ func register_stealth_pass(zone_id: StringName) -> void:
 		if objective.type != QuestObjective.Type.STEALTH_PASS:
 			continue
 
-		var target_str := String(objective.target_zone_id).to_lower()
+		var target_str := str(objective.target_zone_id).to_lower()
 		if target_str.is_empty() or target_str == id_str or id_str in target_str or target_str in id_str:
 			var progress := PlayerData.get_quest_objective_progress(quest, active_idx)
 			if progress >= objective.required_amount:
@@ -309,7 +309,7 @@ func register_stealth_pass(zone_id: StringName) -> void:
 # =========================================================
 
 func register_persuasion(npc_id: StringName) -> void:
-	var id_str := String(npc_id).to_lower()
+	var id_str := str(npc_id).to_lower()
 
 	for quest in active_quests:
 		if quest == null:
@@ -323,7 +323,7 @@ func register_persuasion(npc_id: StringName) -> void:
 		if objective.type != QuestObjective.Type.PERSUASION:
 			continue
 
-		var target_str := String(objective.target_npc_id).to_lower()
+		var target_str := str(objective.target_npc_id).to_lower()
 		var target_name_str := objective.target_npc_name.to_lower()
 		if target_str == id_str or target_str in id_str or target_name_str in id_str or id_str in target_name_str:
 			var progress := PlayerData.get_quest_objective_progress(quest, active_idx)
@@ -431,6 +431,8 @@ func complete_quest(quest: Quest) -> void:
 				start_quest(prox_quest)
 		else:
 			print("[QuestManager] Todas as ", total_etapas, " etapas do Arco ", PlayerData.arco_atual, " foram Concluídas com Sucesso!")
+			if PlayerData.arco_atual == 5:
+				PlayerData.desbloquear_hatsu_creator()
 			var hud = get_tree().get_first_node_in_group("player_hud")
 			if hud != null and hud.has_method("exibir_notificacao"):
 				hud.exibir_notificacao("🏆 Saga Concluída! Dirija-se ao Portal de Transição para o próximo Arco.")
@@ -531,8 +533,8 @@ func is_all_active_objectives_completed() -> bool:
 # =========================================================
 
 func _enemy_id_corresponde(target: StringName, actual: StringName) -> bool:
-	var target_str := String(target).to_lower()
-	var actual_str := String(actual).to_lower()
+	var target_str := str(target).to_lower()
+	var actual_str := str(actual).to_lower()
 
 	if target_str.is_empty() or target_str == "any" or target_str == "all" or target_str == "inimigo" or target_str == "monstro":
 		return true
@@ -739,14 +741,14 @@ func _instanciar_inimigos_reconciliacao(obj: QuestObjective, obj_idx: int, quant
 			spawn_pos = posicoes_candidatas[i % posicoes_candidatas.size()] + Vector2(randf_range(-10, 10), randf_range(-10, 10))
 
 		var enemy_inst = enemy_scn.instantiate() as CharacterBody2D
-		enemy_inst.name = "MissionEnemy_%s_%d_%d" % [String(obj.enemy_type), obj_idx, Time.get_ticks_msec() + i]
+		enemy_inst.name = "MissionEnemy_%s_%d_%d" % [str(obj.enemy_type), obj_idx, Time.get_ticks_msec() + i]
 		enemy_inst.position = spawn_pos
 		target_parent.add_child(enemy_inst)
 
 		var es: EnemySystem = enemy_inst.get_node_or_null("EnemySystem") as EnemySystem
 		if es != null:
 			es.enemy_id = obj.enemy_type
-			es.enemy_name = template_nome if not template_nome.is_empty() else String(obj.enemy_type).replace("_", " ").capitalize()
+			es.enemy_name = template_nome if not template_nome.is_empty() else str(obj.enemy_type).replace("_", " ").capitalize()
 			es.is_mission_enemy = true
 			es.quest_arc = cur_arc
 			es.quest_etapa = cur_etapa

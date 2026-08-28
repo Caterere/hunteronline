@@ -214,7 +214,7 @@ func _atualizar_alvo_ativo() -> void:
 	match obj_pendente.type:
 		QuestObjective.Type.VISIT:
 			current_target_type = "npc"
-			var target_id_str = String(obj_pendente.target_npc_id).to_lower()
+			var target_id_str = str(obj_pendente.target_npc_id).to_lower()
 			var target_name_str = obj_pendente.target_npc_name.to_lower()
 			current_target_name = obj_pendente.target_npc_name if not obj_pendente.target_npc_name.is_empty() else "NPC de Missão"
 
@@ -228,7 +228,7 @@ func _atualizar_alvo_ativo() -> void:
 					var n_name = n.name.to_lower()
 					var custom_name = ""
 					if "npc_name" in n and n.npc_name != null:
-						custom_name = String(n.npc_name).to_lower()
+						custom_name = str(n.npc_name).to_lower()
 					
 					var bate: bool = (
 						target_id_str == n_name
@@ -259,7 +259,7 @@ func _atualizar_alvo_ativo() -> void:
 
 		QuestObjective.Type.KILL:
 			current_target_type = "enemy"
-			var enemy_type_str = String(obj_pendente.enemy_type).to_lower()
+			var enemy_type_str = str(obj_pendente.enemy_type).to_lower()
 			current_target_name = "Inimigo de Missão" if enemy_type_str.is_empty() else enemy_type_str.replace("_", " ").capitalize()
 			
 			var all_enemies: Array[Node2D] = []
@@ -288,8 +288,8 @@ func _atualizar_alvo_ativo() -> void:
 
 			for e in living_enemies:
 				var e_sys = e.get_node_or_null("EnemySystem")
-				var e_id = String(e_sys.enemy_id).to_lower() if e_sys != null and "enemy_id" in e_sys else ""
-				var e_nome = String(e_sys.enemy_name).to_lower() if e_sys != null and "enemy_name" in e_sys else ""
+				var e_id = str(e_sys.enemy_id).to_lower() if e_sys != null and "enemy_id" in e_sys else ""
+				var e_nome = str(e_sys.enemy_name).to_lower() if e_sys != null and "enemy_name" in e_sys else ""
 				var n_name = e.name.to_lower()
 
 				var bate: bool = false
@@ -315,12 +315,12 @@ func _atualizar_alvo_ativo() -> void:
 					current_target_pos = e.global_position
 					target_found = true
 					var esys = e.get_node_or_null("EnemySystem")
-					if esys != null and "enemy_name" in esys and not String(esys.enemy_name).is_empty():
-						current_target_name = String(esys.enemy_name)
+					if esys != null and "enemy_name" in esys and not str(esys.enemy_name).is_empty():
+						current_target_name = str(esys.enemy_name)
 
 		QuestObjective.Type.COLLECT:
 			current_target_type = "loot"
-			current_target_name = String(obj_pendente.item_id).replace("_", " ").capitalize()
+			current_target_name = str(obj_pendente.item_id).replace("_", " ").capitalize()
 			var loots = get_tree().get_nodes_in_group("loot")
 			if not loots.is_empty() and loots[0] is Node2D:
 				current_target_node = loots[0]
@@ -445,7 +445,7 @@ func _buscar_no_recursivo_por_nome(parent: Node, target_id: String, target_name:
 		var p_name: String = parent.name.to_lower() if parent.name != null else ""
 		if target_id in p_name or p_name in target_id or target_name in p_name:
 			return parent
-		if "npc_name" in parent and parent.npc_name != null and String(parent.npc_name).to_lower() in target_name:
+		if "npc_name" in parent and parent.npc_name != null and str(parent.npc_name).to_lower() in target_name:
 			return parent
 			
 	for child in parent.get_children():

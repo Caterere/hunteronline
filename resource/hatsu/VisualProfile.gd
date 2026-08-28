@@ -111,7 +111,7 @@ static func get_palette_color(color_name: String) -> Color:
 static func get_palette_names() -> Array[String]:
 	var names: Array[String] = []
 	for k in PALETTE.keys():
-		names.append(String(k))
+		names.append(str(k))
 	return names
 
 
