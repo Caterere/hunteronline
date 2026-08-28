@@ -48,12 +48,28 @@ signal boss_phase_changed(boss_name: String, new_phase: int)
 
 
 
+var _hitstop_end_time_msec: int = 0
+
+
 func emit_hitstop(duration: float = 0.04) -> void:
 	hitstop_requested.emit(duration)
-	if duration > 0.0:
-		Engine.time_scale = 0.05
-		var timer = get_tree().create_timer(duration, true, false, true)
-		timer.timeout.connect(func(): Engine.time_scale = 1.0)
+	if duration <= 0.0:
+		return
+	var tree = get_tree()
+	if tree == null:
+		return
+	
+	var now := Time.get_ticks_msec()
+	var new_end := now + int(duration * 1000.0)
+	if new_end > _hitstop_end_time_msec:
+		_hitstop_end_time_msec = new_end
+
+	Engine.time_scale = 0.05
+	var timer = tree.create_timer(duration, true, false, true)
+	timer.timeout.connect(func():
+		if Time.get_ticks_msec() >= _hitstop_end_time_msec:
+			Engine.time_scale = 1.0
+	)
 
 
 func emit_camera_shake(intensity: float = 0.3, duration: float = 0.2) -> void:

@@ -1,6 +1,8 @@
 class_name AudioManagerClass
 extends Node
 
+const AudioSynthScript = preload("res://autoload/AudioSynth.gd")
+
 # ============================================================
 # HUNTER ONLINE — AUDIO & MUSIC MANAGER (AUTOLOAD SINGLETON)
 # ============================================================
@@ -266,8 +268,49 @@ func _ready() -> void:
 	
 	player_a.finished.connect(_on_musica_finalizada)
 	player_b.finished.connect(_on_musica_finalizada)
+
+	# Conectar ao EventBus para disparar SFX automaticamente
+	_conectar_eventos_audio()
 	
-	print("[AudioManager] Inicializado com 28 faixas canônicas de Hunter x Hunter.")
+	print("[AudioManager] Inicializado com 28 faixas canônicas e Síntese Procedural de SFX.")
+
+
+func _conectar_eventos_audio() -> void:
+	if EventBus == null:
+		return
+	if not EventBus.combat_hit_landed.is_connected(_on_combat_hit_landed):
+		EventBus.combat_hit_landed.connect(_on_combat_hit_landed)
+	if not EventBus.nen_level_up.is_connected(_on_nen_level_up):
+		EventBus.nen_level_up.connect(_on_nen_level_up)
+	if not EventBus.quest_completed.is_connected(_on_quest_completed):
+		EventBus.quest_completed.connect(_on_quest_completed)
+	if not EventBus.item_obtained.is_connected(_on_item_obtained):
+		EventBus.item_obtained.connect(_on_item_obtained)
+	if not EventBus.enemy_staggered.is_connected(_on_enemy_staggered):
+		EventBus.enemy_staggered.connect(_on_enemy_staggered)
+
+
+func _on_combat_hit_landed(_atacante: Node, _alvo: Node, _dano: int, is_crit: bool) -> void:
+	if is_crit:
+		tocar_sfx_tipo("hit_crit", 1.15)
+	else:
+		tocar_sfx_tipo("hit_light", 0.90)
+
+
+func _on_nen_level_up(_novo_nivel: int) -> void:
+	tocar_sfx_tipo("level_up", 1.20)
+
+
+func _on_quest_completed(_quest_id: String, _xp: int, _gold: int) -> void:
+	tocar_sfx_tipo("quest_complete", 1.10)
+
+
+func _on_item_obtained(_item_id: String, _qtd: int) -> void:
+	tocar_sfx_tipo("item_pickup", 0.95)
+
+
+func _on_enemy_staggered(_enemy_node: Node) -> void:
+	tocar_sfx_tipo("stagger_break", 1.10)
 
 
 func _process(_delta: float) -> void:
@@ -486,4 +529,32 @@ func tocar_sfx_path(path: String, volume_scale: float = 1.0) -> void:
 		var res = load(path)
 		if res is AudioStream:
 			tocar_sfx(res, volume_scale)
+			return
+	# Se não encontrar arquivo no disco, busca pelo nome no sintetizador procedural
+	var file_name = path.get_file().get_basename().replace("audio_", "").replace("sfx_", "")
+	tocar_sfx_tipo(file_name, volume_scale)
+
+
+func tocar_sfx_tipo(tipo: String, volume_scale: float = 1.0) -> void:
+	var stream: AudioStreamWAV = AudioSynthScript.obter_sfx(tipo)
+	if stream != null:
+		tocar_sfx(stream, volume_scale)
+
+
+# Atalhos rápidos de jogabilidade
+func tocar_hit(is_crit: bool = false) -> void:
+	tocar_sfx_tipo("hit_crit" if is_crit else "hit_light")
+
+func tocar_slash() -> void:
+	tocar_sfx_tipo("slash")
+
+func tocar_dodge() -> void:
+	tocar_sfx_tipo("dodge")
+
+func tocar_perfect_dodge() -> void:
+	tocar_sfx_tipo("perfect_dodge", 1.25)
+
+func tocar_ui_click(is_confirm: bool = false) -> void:
+	tocar_sfx_tipo("ui_confirm" if is_confirm else "ui_click", 0.8)
+
 

@@ -928,13 +928,20 @@ func ativar_tecnica(
 
 	tecnicas[tecnica]["ativo"] = true
 	tecnica_ativada.emit(tecnica)
+	var t_nome := nome_tecnica(tecnica)
+	if EventBus != null:
+		EventBus.nen_technique_activated.emit(t_nome)
+
+	if AudioManager != null:
+		var sfx_id := "nen_" + t_nome.to_lower()
+		AudioManager.tocar_sfx_tipo(sfx_id, 0.95)
 
 	if tecnica == Tecnica.GYO:
 		_notificar_nos_gyo(true)
 
 	print(
 		"NEN ATIVADO: ",
-		nome_tecnica(tecnica)
+		t_nome
 	)
 
 	return true
@@ -955,13 +962,16 @@ func desativar_tecnica(
 
 	tecnicas[tecnica]["ativo"] = false
 	tecnica_desativada.emit(tecnica)
+	var t_nome := nome_tecnica(tecnica)
+	if EventBus != null:
+		EventBus.nen_technique_deactivated.emit(t_nome)
 
 	if tecnica == Tecnica.GYO:
 		_notificar_nos_gyo(false)
 
 	print(
 		"NEN DESATIVADO: ",
-		nome_tecnica(tecnica)
+		t_nome
 	)
 
 
@@ -1770,9 +1780,17 @@ var modulo_ryu: ModuloRyu = ModuloRyu.ATAQUE
 func alternar_modulo_ryu() -> void:
 	if modulo_ryu == ModuloRyu.ATAQUE:
 		modulo_ryu = ModuloRyu.DEFESA
+		if AudioManager != null:
+			AudioManager.tocar_sfx_tipo("nen_ten", 1.0)
+		if EventBus != null:
+			EventBus.emit_toast("🛡️ RYU: FOCO EM DEFESA (20% Atq / 80% Def)", Color(0.3, 0.8, 1.0))
 		print("[RYU] Foco alterado para: DEFESA (20/80)")
 	else:
 		modulo_ryu = ModuloRyu.ATAQUE
+		if AudioManager != null:
+			AudioManager.tocar_sfx_tipo("nen_ren", 1.0)
+		if EventBus != null:
+			EventBus.emit_toast("⚔️ RYU: FOCO EM ATAQUE (80% Atq / 20% Def)", Color(1.0, 0.4, 0.2))
 		print("[RYU] Foco alterado para: ATAQUE (80/20)")
 
 

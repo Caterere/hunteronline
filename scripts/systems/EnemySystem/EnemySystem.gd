@@ -463,6 +463,8 @@ func take_damage(
 			em_stagger = true
 			stagger_timer = stagger_duracao
 			entrou_em_stagger.emit()
+			if EventBus != null:
+				EventBus.enemy_staggered.emit(enemy_body if enemy_body != null else self)
 			ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "⚡ STAGGER! (VULNERÁVEL)", 2.2, -45.0)
 			if enemy_sprite != null:
 				enemy_sprite.modulate = Color(0.6, 0.9, 2.0, 1.0)
@@ -929,36 +931,27 @@ func heal(amount: int) -> void:
 # =========================================================
 
 func _show_damage_number(
-	damage: int
+	damage: int,
+	tipo: String = "fisico",
+	is_crit: bool = false
 ) -> void:
 
-	if damage_number_scene == null:
+	if enemy_body == null or not is_instance_valid(enemy_body):
 		return
 
+	var scn = damage_number_scene
+	if scn == null and ResourceLoader.exists("res://scripts/ui/Damage/DamageNumber.tscn"):
+		scn = load("res://scripts/ui/Damage/DamageNumber.tscn")
 
-	if enemy_body == null:
+	if scn == null:
 		return
 
-
-	var damage_number = (
-		damage_number_scene.instantiate()
-	)
-
-
-	enemy_body.get_parent().add_child(
-		damage_number
-	)
-
-
-	damage_number.global_position = (
-		enemy_body.global_position
-		+ Vector2(0, -30)
-	)
-
-
-	damage_number.mostrar_dano(
-		damage
-	)
+	var damage_number = scn.instantiate()
+	if enemy_body.get_parent() != null:
+		enemy_body.get_parent().add_child(damage_number)
+		damage_number.global_position = enemy_body.global_position + Vector2(0, -28)
+		if damage_number.has_method("mostrar_dano"):
+			damage_number.mostrar_dano(damage, tipo, is_crit)
 
 
 # =========================================================

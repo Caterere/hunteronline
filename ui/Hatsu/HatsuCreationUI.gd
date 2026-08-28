@@ -1,6 +1,8 @@
 class_name HatsuCreationUI
 extends CanvasLayer
 
+const VisualProfile = preload("res://resource/hatsu/VisualProfile.gd")
+
 # ============================================================
 # HUNTER ONLINE - HATSU CREATION UI (10 ETAPAS CONTEXTUAIS & IA DE NEN)
 # ============================================================
@@ -974,7 +976,48 @@ func _finalizar_criacao() -> void:
 		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual
 	)
 
+	# Integrar componentes modulares
+	novo_hatsu.is_custom_created = true
+	novo_hatsu.hatsu_version = 2
+	novo_hatsu.creator_id = str(PlayerData.nome_personagem)
+
+	# Mapear Core Component
+	match sel_forma:
+		HatsuData.Forma.PROJETIL: novo_hatsu.core_component = HatsuComponentLibrary.CoreType.PROJECTILE
+		HatsuData.Forma.AREA, HatsuData.Forma.ZONA: novo_hatsu.core_component = HatsuComponentLibrary.CoreType.ZONE
+		HatsuData.Forma.PESSOAL:
+			if sel_categoria == HatsuData.Categoria.TRANSFORMACAO:
+				novo_hatsu.core_component = HatsuComponentLibrary.CoreType.TRANSFORMATION
+			elif sel_categoria == HatsuData.Categoria.CONJURACAO:
+				novo_hatsu.core_component = HatsuComponentLibrary.CoreType.SUMMON
+			else:
+				novo_hatsu.core_component = HatsuComponentLibrary.CoreType.STRIKE
+		_: novo_hatsu.core_component = HatsuComponentLibrary.CoreType.STRIKE
+
+	# Configurar Perfil Visual Customizado
+	var vp := VisualProfile.new()
+	vp.primary_color = sel_cor_primaria
+	vp.secondary_color = sel_cor_secundaria
+	vp.core_color = Color(1.0, 1.0, 1.0, 1.0)
+	vp.glow_color = sel_cor_primaria
+	vp.glow_intensity = 0.85
+	vp.trail_enabled = (sel_forma == HatsuData.Forma.PROJETIL)
+	vp.trail_color = sel_cor_primaria
+	match sel_forma:
+		HatsuData.Forma.PROJETIL: vp.shape = VisualProfile.VisualShape.SPHERE
+		HatsuData.Forma.AREA, HatsuData.Forma.ZONA: vp.shape = VisualProfile.VisualShape.RING
+		HatsuData.Forma.TOQUE: vp.shape = VisualProfile.VisualShape.BLADE
+		_: vp.shape = VisualProfile.VisualShape.SPHERE
+	novo_hatsu.visual_profile = vp
+
+	# Validar Power Budget
+	var validacao = HatsuManager.validate_hatsu(novo_hatsu)
+	HatsuManager.calculate_power_budget(novo_hatsu)
+
+	if validacao.get("status") == "OVERPOWERED":
+		print("[HatsuCreationUI] ⚠️ Atenção: Hatsu criado com aviso de Overpowered: ", validacao.get("reason"))
+
 	var index: int = PlayerData.adicionar_hatsu(novo_hatsu)
 	hatsu_criado.emit(novo_hatsu)
-	print("[HatsuCreationUI] Novo Hatsu forjado com sucesso! Slot index: ", index)
+	print("[HatsuCreationUI] Novo Hatsu Definitivo forjado com sucesso! Slot index: ", index, " | Core: ", novo_hatsu.core_component, " | Visual: ", vp.primary_color)
 	fechar()

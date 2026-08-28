@@ -1,5 +1,7 @@
 extends Node
 
+const HatsuComponentLibrary = preload("res://resource/hatsu/HatsuComponentLibrary.gd")
+
 # ============================================================
 # HUNTER ONLINE - HATSU MANAGER (AUTOLOAD & NEN JUDGE ENGINE)
 # ============================================================
@@ -518,6 +520,14 @@ func obter_hatsu_canonico(id_hatsu: String) -> HatsuData:
 			h.duracao = info.get("duracao", 0.0)
 			h.alcance = info.get("alcance", 60.0)
 			h.raio = info.get("raio", 50.0)
+			h.activation_type = info.get("activation_type", HatsuData.ActivationType.INSTANT)
+			h.duration_type = info.get("duration_type", HatsuData.DurationType.INSTANT)
+			h.channel = info.get("channel", HatsuData.HatsuChannel.OFFENSIVE)
+			h.exclusive_group = info.get("exclusive_group", "")
+			h.concurrent_allowed = info.get("concurrent_allowed", true)
+			h.aura_drain_per_sec = float(info.get("aura_drain_per_sec", 0.0))
+			h.aura_drain_per_hit = float(info.get("aura_drain_per_hit", 0.0))
+			h.skill_hunter_compatible = bool(info.get("skill_hunter_compatible", true))
 
 			var typed_condicoes: Array[HatsuData.Condicao] = []
 			for c in info.get("condicoes", []):
@@ -525,6 +535,134 @@ func obter_hatsu_canonico(id_hatsu: String) -> HatsuData:
 			h.condicoes = typed_condicoes
 			return h
 	return null
+
+
+# ============================================================
+# MATRIZ CENTRAL DE COMPATIBILIDADE DE HATSU (COMPATIBILITY ENGINE)
+# ============================================================
+
+func can_activate(
+	hatsu_alvo: HatsuData,
+	active_sustained_list: Array,
+	context: Dictionary = {}
+) -> Dictionary:
+	if hatsu_alvo == null:
+		return {"allowed": false, "reason": "Habilidade inválida", "conflicting": ""}
+
+	# 1. Zetsu Forçado ou Bloqueio de Nós de Nen
+	if bool(context.get("in_zetsu", false)):
+		return {"allowed": false, "reason": "❌ Em Zetsu forçado! Nós de Nen desligados.", "conflicting": "Zetsu"}
+	if bool(context.get("nen_blocked", false)):
+		return {"allowed": false, "reason": "❌ Nós de Nen sobreaquecidos!", "conflicting": "Sobrecarga"}
+
+	# 2. Cooldown
+	var cd_restante: float = float(context.get("cooldown", 0.0))
+	if cd_restante > 0.0:
+		return {"allowed": false, "reason": "⏳ Em tempo de recarga (%.1fs restantes)" % cd_restante, "conflicting": "Cooldown"}
+
+	# 3. Custo de Aura
+	var aura_atual: float = float(context.get("aura", 100.0))
+	var custo_aura: float = hatsu_alvo.obter_custo_final()
+	if aura_atual < custo_aura:
+		return {"allowed": false, "reason": "⚡ Aura insuficiente (%d necessária)" % int(custo_aura), "conflicting": "Aura"}
+
+	# 4. Condições e Juramentos do Hatsu
+	var player_ctx: Dictionary = context.get("player_context", {})
+	var target_ctx: Dictionary = context.get("target_context", {})
+	var cond_check: Dictionary = hatsu_alvo.pode_usar(player_ctx, target_ctx)
+	if not cond_check.get("pode", true):
+		return {"allowed": false, "reason": cond_check.get("motivo", "Condição de Nen não atendida"), "conflicting": "Juramento"}
+
+	# 5. Exclusividade e Matriz de Canais contra Habilidades Ativas
+	var is_skill_hunter_override: bool = bool(context.get("is_skill_hunter_override", false))
+
+	for active_entry in active_sustained_list:
+		var active_h: HatsuData = active_entry.get("hatsu", null) if active_entry is Dictionary else active_entry as HatsuData
+		if active_h == null or not is_instance_valid(active_h):
+			continue
+
+		# Regra A: Habilidade Instantânea sempre pode coexistir com Transformações e Sustentadas
+		if hatsu_alvo.activation_type == HatsuData.ActivationType.INSTANT:
+			continue
+
+		# Regra B: Grupo Exclusivo idêntico (ex: "transformation_mode" entre Godspeed e Guanyin)
+		if not hatsu_alvo.exclusive_group.is_empty() and hatsu_alvo.exclusive_group == active_h.exclusive_group:
+			if not is_skill_hunter_override:
+				return {
+					"allowed": false,
+					"reason": "❌ Incompatível: Outra transformação já está ativa (%s)!" % active_h.nome,
+					"conflicting": active_h.nome
+				}
+
+		# Regra C: Transformação com Transformação (mesmo sem grupo explícito)
+		if hatsu_alvo.activation_type == HatsuData.ActivationType.TRANSFORMATION and active_h.activation_type == HatsuData.ActivationType.TRANSFORMATION:
+			if not is_skill_hunter_override and not (hatsu_alvo.concurrent_allowed and active_h.concurrent_allowed):
+				return {
+					"allowed": false,
+					"reason": "❌ Duas transformações de Nen não podem coexistir simultaneamente (%s ativa)!" % active_h.nome,
+					"conflicting": active_h.nome
+				}
+
+		# Regra D: Canal idêntico sem permissão de concorrência
+		if hatsu_alvo.channel == active_h.channel and hatsu_alvo.channel != HatsuData.HatsuChannel.OFFENSIVE:
+			if not (hatsu_alvo.concurrent_allowed and active_h.concurrent_allowed) and not is_skill_hunter_override:
+				return {
+					"allowed": false,
+					"reason": "❌ Conflito de Canal de Nen com %s!" % active_h.nome,
+					"conflicting": active_h.nome
+				}
+
+	return {"allowed": true, "reason": "", "conflicting": ""}
+
+
+# ============================================================
+# MECÂNICA DE ROUBO DE HATSU (CHROLLO / SKILL HUNTER)
+# ============================================================
+
+func processar_roubo_hatsu(
+	book: HatsuBookData,
+	enemy_info: Dictionary,
+	condicoes_cumpridas: Array[String] = []
+) -> Dictionary:
+	if book == null:
+		return {"sucesso": false, "motivo": "Grimório não disponível"}
+
+	var nome_alvo: String = enemy_info.get("nome", "Inimigo")
+	var hatsu_alvo: HatsuData = enemy_info.get("hatsu", null)
+	if hatsu_alvo == null:
+		return {"sucesso": false, "motivo": "%s não possui um Hatsu roubável!" % nome_alvo}
+
+	# Validar restrições de aquisição do livro
+	for req in book.restricoes_aquisicao:
+		if not (req in condicoes_cumpridas):
+			match req:
+				"OBSERVAR_USO": return {"sucesso": false, "motivo": "Condição pendente: Você precisa ver o Hatsu sendo usado em combate!"}
+				"DESCOBRIR_REGRAS": return {"sucesso": false, "motivo": "Condição pendente: Você precisa descobrir o nome e regras da técnica!"}
+				"TOQUE_FISICO": return {"sucesso": false, "motivo": "Condição pendente: Requer tocar a palma da mão na capa do livro e no oponente!"}
+				"RITUAL_TEMPO": return {"sucesso": false, "motivo": "Condição pendente: O tempo do ritual expirou!"}
+
+	var nova_pagina: Dictionary = {
+		"id": "stolen_" + hatsu_alvo.nome.to_lower().replace(" ", "_"),
+		"nome": hatsu_alvo.nome,
+		"categoria": hatsu_alvo.categoria,
+		"usuario_original": nome_alvo,
+		"descricao": "Hatsu roubado de %s e selado nas páginas do livro." % nome_alvo,
+		"tags": hatsu_alvo.tags.duplicate() if not hatsu_alvo.tags.is_empty() else ["stolen"],
+		"status_descoberta": "COMPLETO",
+		"condicoes_descobertas": ["Habilidade roubada via Skill Hunter"],
+		"eficiencia_base": 1.0,
+		"hatsu_ref": hatsu_alvo
+	}
+
+	var adicionou = book.adicionar_pagina(nova_pagina)
+	if not adicionou:
+		return {"sucesso": false, "motivo": "O Grimório está com a capacidade máxima de páginas cheia!"}
+
+	return {
+		"sucesso": true,
+		"motivo": "✨ HABILIDADE ROUBADA COM SUCESSO: %s foi adicionado ao Livro!" % hatsu_alvo.nome,
+		"pagina": nova_pagina
+	}
 
 
 # ============================================================
@@ -869,3 +1007,314 @@ func processar_sinergia_tags(hatsu_a: HatsuData, hatsu_b: HatsuData) -> Dictiona
 		"cor_sinergia": Color(1.0, 1.0, 1.0),
 		"desc": "Duplo disparo combinado com ressonância de aura (+20% Dano)."
 	}
+
+
+# ============================================================
+# MOTOR DE POWER BUDGET & SCORES (DEFINITIVE HATSU ENGINE)
+# ============================================================
+
+func calculate_power_budget(hatsu: HatsuData, player_context: Dictionary = {}) -> Dictionary:
+	if hatsu == null:
+		return {
+			"budget_base": 100.0, "vows_multiplier": 1.0, "total_budget": 100.0,
+			"budget_consumed": 50.0, "power_score": 50.0, "complexity_score": 10.0,
+			"risk_score": 10.0, "efficiency_score": 50.0
+		}
+
+	var nivel: int = int(player_context.get("nivel", PlayerData.attributes.get("nivel", 1)))
+	var nivel_nen: int = int(player_context.get("nivel_nen", PlayerData.attributes.get("nivel_nen", 1)))
+	var afinidade_jogador = player_context.get("afinidade_nen", PlayerData.afinidade_nen)
+	var afinidade_mult: float = 1.25 if afinidade_jogador == hatsu.categoria else (1.40 if afinidade_jogador == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO else 1.0)
+
+	# 1. Orçamento Base
+	var budget_base: float = 100.0 * (1.0 + (float(nivel - 1) * 0.04) + (float(nivel_nen) * 0.06)) * afinidade_mult
+
+	# 2. Multiplicador de Votos, Condições, Restrições e Consequências
+	var vows_multiplier: float = hatsu.obter_multiplicador_poder()
+
+	var total_budget: float = budget_base * vows_multiplier
+
+	# 3. Orçamento Consumido pelos Parâmetros
+	var core_info = HatsuComponentLibrary.get_core_info(hatsu.core_component as HatsuComponentLibrary.CoreType)
+	var core_weight: float = float(core_info.get("budget_weight", 1.0))
+
+	var dmg: float = hatsu.custom_damage if hatsu.custom_damage > 0.0 else hatsu.poder_base
+	var rng: float = hatsu.custom_range if hatsu.custom_range > 0.0 else hatsu.alcance
+	var rad: float = hatsu.custom_radius if hatsu.custom_radius > 0.0 else hatsu.raio
+	var dur: float = hatsu.custom_duration if hatsu.custom_duration > 0.0 else hatsu.duracao
+	var cd: float = hatsu.custom_cooldown if hatsu.custom_cooldown > 0.0 else hatsu.cooldown_base
+	var cost: float = hatsu.custom_aura_cost if hatsu.custom_aura_cost > 0.0 else hatsu.custo_aura_base
+
+	var budget_consumed: float = ((dmg * 1.5) + (rng * 0.35) + (rad * 0.8) + (dur * 6.0) - (cd * 5.0) - (cost * 0.6)) * core_weight
+	budget_consumed = max(20.0, budget_consumed)
+
+	# 4. Avaliação de Pontuações (Scores)
+	var power_score: float = clamp((dmg / 120.0) * 100.0, 10.0, 350.0)
+	var spec_core_bonus: float = 30.0 if hatsu.core_component in [HatsuComponentLibrary.CoreType.ABSORPTION, HatsuComponentLibrary.CoreType.MEMORY_ROLLBACK, HatsuComponentLibrary.CoreType.RULE_ZONE, HatsuComponentLibrary.CoreType.EXCHANGE] else 0.0
+	var complexity_score: float = clamp(float(hatsu.effect_modules.size() * 15 + hatsu.modular_conditions.size() * 10 + hatsu.modular_restrictions.size() * 10 + spec_core_bonus), 10.0, 100.0)
+	var risk_score: float = clamp((vows_multiplier - 1.0) * 80.0, 5.0, 100.0)
+	var efficiency_score: float = clamp((total_budget / max(1.0, budget_consumed)) * 60.0, 10.0, 100.0)
+
+	hatsu.power_score = power_score
+	hatsu.complexity_score = complexity_score
+	hatsu.risk_score = risk_score
+	hatsu.efficiency_score = efficiency_score
+
+	return {
+		"budget_base": budget_base,
+		"vows_multiplier": vows_multiplier,
+		"total_budget": total_budget,
+		"budget_consumed": budget_consumed,
+		"power_score": power_score,
+		"complexity_score": complexity_score,
+		"risk_score": risk_score,
+		"efficiency_score": efficiency_score
+	}
+
+
+# ============================================================
+# VALIDADOR INTELIGENTE DE HATSU (HATSU VALIDATOR)
+# ============================================================
+
+func validate_hatsu(hatsu: HatsuData, player_context: Dictionary = {}) -> Dictionary:
+	if hatsu == null:
+		return {"status": "INVALID", "reason": "Definição de Hatsu vazia.", "excess_power": 0.0}
+
+	var cd: float = hatsu.custom_cooldown if hatsu.custom_cooldown > 0.0 else hatsu.cooldown_base
+	var cost: float = hatsu.custom_aura_cost if hatsu.custom_aura_cost > 0.0 else hatsu.custo_aura_base
+
+	# Verificações de limites ilegais
+	if cd < 0.2 and cost < 5.0:
+		return {
+			"status": "INVALID",
+			"reason": "❌ Inválido: Cooldown e Custo de Aura excessivamente baixos. A lei de Nen exige compensação de esforço.",
+			"excess_power": 999.0
+		}
+
+	var pb = calculate_power_budget(hatsu, player_context)
+	var total_budget: float = float(pb["total_budget"])
+	var budget_consumed: float = float(pb["budget_consumed"])
+
+	# Tolerância de 8%
+	if budget_consumed > total_budget * 1.08:
+		var excesso: float = budget_consumed - total_budget
+		return {
+			"status": "OVERPOWERED",
+			"reason": "⚠️ Overpowered: A habilidade excede o Power Budget permitido em %d pontos. Aumente o custo de Aura, o cooldown ou aceite restrições de Nen mais severas." % int(excesso),
+			"excess_power": excesso,
+			"budget_consumed": budget_consumed,
+			"total_budget": total_budget
+		}
+
+	if budget_consumed < total_budget * 0.45:
+		return {
+			"status": "INEFFICIENT",
+			"reason": "💡 Ineficiente: A habilidade possui restrições severas mas números subutilizados. Você pode aumentar o dano ou alcance com segurança.",
+			"excess_power": 0.0,
+			"budget_consumed": budget_consumed,
+			"total_budget": total_budget
+		}
+
+	return {
+		"status": "VALID",
+		"reason": "✨ Válido: A técnica respeita as leis de conservação e troca equivalente de Nen.",
+		"excess_power": 0.0,
+		"budget_consumed": budget_consumed,
+		"total_budget": total_budget
+	}
+
+
+# ============================================================
+# MOTOR DE DEVOUR & ABSORÇÃO DE STATUS COM DIMINISHING RETURNS
+# ============================================================
+
+func execute_absorption_devour(
+	hatsu: HatsuData,
+	enemy_info: Dictionary,
+	_player_context: Dictionary = {}
+) -> Dictionary:
+	if hatsu == null:
+		return {"sucesso": false, "motivo": "Hatsu de absorção inválido"}
+
+	var target_stat: String = hatsu.absorption_target_stat if not hatsu.absorption_target_stat.is_empty() else "aura_max"
+	var enemy_id: String = String(enemy_info.get("enemy_id", enemy_info.get("id", "enemy")))
+	var enemy_name: String = String(enemy_info.get("name", enemy_info.get("enemy_name", "Inimigo")))
+	var enemy_level: int = int(enemy_info.get("level", 1))
+	var is_boss: bool = bool(enemy_info.get("is_boss", false))
+
+	# 1. Obter contagem de absorções anteriores para Diminishing Returns
+	var registry: Dictionary = PlayerData.absorbed_stats_registry
+	var times_absorbed: int = int(registry.get(enemy_id, 0))
+
+	# 2. Calcular multiplicador de rendimento decrescente: 1.0 / (1.0 + 0.15 * N)
+	var diminishing_mult: float = 1.0 / (1.0 + (0.15 * float(times_absorbed)))
+	var boss_mult: float = 2.5 if is_boss else 1.0
+	var rate: float = hatsu.absorption_rate if hatsu.absorption_rate > 0.0 else 0.05
+
+	# 3. Ganho base proporcional ao nível e tipo do alvo
+	var base_stat_pool: float = float(enemy_level * 10) if target_stat == "aura_max" else float(enemy_level * 2)
+	var stat_gain: int = max(1, int(round(base_stat_pool * rate * diminishing_mult * boss_mult)))
+
+	# 4. Registrar absorção permanente no PlayerData
+	registry[enemy_id] = times_absorbed + 1
+	PlayerData.absorbed_stats_registry = registry
+
+	var cur_val = PlayerData.attributes.get(target_stat, 10)
+	PlayerData.attributes[target_stat] = cur_val + stat_gain
+	PlayerData.recalcular_todos_atributos()
+
+	var msg = "🧬 PREDADOR: Absorveu +%d de %s de %s (Absorção #%d, Eficiência: %d%%)" % [
+		stat_gain, target_stat.to_upper(), enemy_name, times_absorbed + 1, int(diminishing_mult * 100)
+	]
+	print("[Hatsu Devour Engine] ", msg)
+
+	return {
+		"sucesso": true,
+		"stat_modificado": target_stat,
+		"valor_ganho": stat_gain,
+		"times_absorbed": times_absorbed + 1,
+		"mensagem": msg
+	}
+
+
+# ============================================================
+# CRIADOR DE TEMPLATES CANÔNICOS MODULARES DATA-DRIVEN
+# ============================================================
+
+func create_hatsu_template(template_id: String) -> HatsuData:
+	var h := HatsuData.new()
+	h.is_custom_created = false
+	h.hatsu_version = 2
+
+	match template_id.to_lower():
+		"jajanken_pedra", "gon_jajanken_pedra":
+			h.nome = "Jajanken: Pedra (Rock)"
+			h.categoria = HatsuData.Categoria.INTENSIFICACAO
+			h.core_component = HatsuComponentLibrary.CoreType.STRIKE
+			h.forma = HatsuData.Forma.TOQUE
+			h.objetivo = HatsuData.ObjetivoPrincipal.DANO
+			h.activation_type = HatsuData.ActivationType.CHARGED
+			h.modular_conditions = [HatsuComponentLibrary.ConditionType.STATIONARY_CHANNEL]
+			h.modular_restrictions = [HatsuComponentLibrary.RestrictionType.CANNOT_DODGE]
+			h.custom_damage = 150.0
+			h.custom_aura_cost = 45.0
+			h.custom_cooldown = 14.0
+			h.custom_range = 40.0
+			h.tags = ["impact", "heavy", "charged"]
+			h.usuario_original = "Gon Freecss"
+
+		"jajanken_tesoura", "gon_jajanken_tesoura":
+			h.nome = "Jajanken: Tesoura (Scissors)"
+			h.categoria = HatsuData.Categoria.TRANSFORMACAO
+			h.core_component = HatsuComponentLibrary.CoreType.STRIKE
+			h.forma = HatsuData.Forma.TOQUE
+			h.objetivo = HatsuData.ObjetivoPrincipal.DANO
+			h.activation_type = HatsuData.ActivationType.INSTANT
+			h.effect_modules = [{"type": HatsuComponentLibrary.EffectType.PIERCING, "value": 30.0}]
+			h.custom_damage = 85.0
+			h.custom_aura_cost = 28.0
+			h.custom_cooldown = 8.0
+			h.custom_range = 50.0
+			h.tags = ["blade", "slash", "piercing"]
+			h.usuario_original = "Gon Freecss"
+
+		"jajanken_papel", "gon_jajanken_papel":
+			h.nome = "Jajanken: Papel (Paper)"
+			h.categoria = HatsuData.Categoria.EMISSAO
+			h.core_component = HatsuComponentLibrary.CoreType.PROJECTILE
+			h.forma = HatsuData.Forma.PROJETIL
+			h.objetivo = HatsuData.ObjetivoPrincipal.DANO
+			h.activation_type = HatsuData.ActivationType.INSTANT
+			h.custom_damage = 65.0
+			h.custom_aura_cost = 22.0
+			h.custom_cooldown = 6.0
+			h.custom_range = 180.0
+			h.tags = ["projectile", "ranged"]
+			h.usuario_original = "Gon Freecss"
+
+		"godspeed", "killua_kanmuru":
+			h.nome = "Godspeed (Kanmuru)"
+			h.categoria = HatsuData.Categoria.TRANSFORMACAO
+			h.core_component = HatsuComponentLibrary.CoreType.TRANSFORMATION
+			h.forma = HatsuData.Forma.PESSOAL
+			h.objetivo = HatsuData.ObjetivoPrincipal.MOBILIDADE
+			h.activation_type = HatsuData.ActivationType.TRANSFORMATION
+			h.duration_type = HatsuData.DurationType.TIMED
+			h.channel = HatsuData.HatsuChannel.TRANSFORMATION
+			h.exclusive_group = "transformation_mode"
+			h.concurrent_allowed = false
+			h.aura_drain_per_sec = 2.0
+			h.aura_drain_per_hit = 12.0
+			h.custom_damage = 65.0
+			h.custom_duration = 10.0
+			h.custom_aura_cost = 35.0
+			h.custom_cooldown = 15.0
+			h.effect_modules = [{"type": HatsuComponentLibrary.EffectType.STAT_MOD, "param": "velocidade", "value": 100.0}]
+			h.tags = ["electricity", "speed", "transformation"]
+			h.usuario_original = "Killua Zoldyck"
+
+		"netero_guanyin", "guanyin":
+			h.nome = "100-Type Guanyin Bodhisattva"
+			h.categoria = HatsuData.Categoria.CONJURACAO
+			h.core_component = HatsuComponentLibrary.CoreType.SUMMON
+			h.forma = HatsuData.Forma.PESSOAL
+			h.objetivo = HatsuData.ObjetivoPrincipal.DANO
+			h.activation_type = HatsuData.ActivationType.TRANSFORMATION
+			h.duration_type = HatsuData.DurationType.TIMED
+			h.channel = HatsuData.HatsuChannel.TRANSFORMATION
+			h.exclusive_group = "transformation_mode"
+			h.concurrent_allowed = false
+			h.modular_conditions = [HatsuComponentLibrary.ConditionType.STATIONARY_CHANNEL]
+			h.aura_drain_per_sec = 3.0
+			h.aura_drain_per_hit = 20.0
+			h.custom_damage = 100.0
+			h.custom_duration = 12.0
+			h.custom_aura_cost = 40.0
+			h.custom_cooldown = 18.0
+			h.tags = ["summon", "barrage", "prayer"]
+			h.usuario_original = "Isaac Netero"
+
+		"predador_vital", "devour_template":
+			h.nome = "Banquete do Predador (Devour)"
+			h.categoria = HatsuData.Categoria.ESPECIALIZACAO
+			h.core_component = HatsuComponentLibrary.CoreType.ABSORPTION
+			h.forma = HatsuData.Forma.TOQUE
+			h.objetivo = HatsuData.ObjetivoPrincipal.SUPORTE
+			h.activation_type = HatsuData.ActivationType.INSTANT
+			h.modular_conditions = [HatsuComponentLibrary.ConditionType.ENEMY_DEFEATED, HatsuComponentLibrary.ConditionType.SOLO_COMBAT]
+			h.modular_restrictions = [HatsuComponentLibrary.RestrictionType.TOUCH_REQUIRED]
+			h.modular_drawbacks = [HatsuComponentLibrary.DrawbackType.AURA_REGEN_LOCKED_10S]
+			h.absorption_target_stat = "aura_max"
+			h.absorption_rate = 0.06
+			h.custom_aura_cost = 50.0
+			h.custom_cooldown = 20.0
+			h.tags = ["absorption", "devour", "permanent_growth"]
+			h.usuario_original = "Especialista Predador"
+
+		"ultima_chance", "rollback_template":
+			h.nome = "Última Chance (Reversão Vital)"
+			h.categoria = HatsuData.Categoria.ESPECIALIZACAO
+			h.core_component = HatsuComponentLibrary.CoreType.MEMORY_ROLLBACK
+			h.forma = HatsuData.Forma.PESSOAL
+			h.objetivo = HatsuData.ObjetivoPrincipal.DEFESA
+			h.activation_type = HatsuData.ActivationType.SUSTAINED
+			h.duration_type = HatsuData.DurationType.TIMED
+			h.modular_conditions = [HatsuComponentLibrary.ConditionType.HP_BELOW_20]
+			h.modular_restrictions = [HatsuComponentLibrary.RestrictionType.ONCE_PER_COMBAT]
+			h.rollback_seconds = 6.0
+			h.custom_duration = 10.0
+			h.custom_aura_cost = 60.0
+			h.custom_cooldown = 30.0
+			h.tags = ["temporal", "rollback", "safety"]
+			h.usuario_original = "Especialista do Tempo"
+
+		_:
+			# Fallback padrão
+			h.nome = template_id.capitalize()
+			h.core_component = HatsuComponentLibrary.CoreType.STRIKE
+			h.poder_base = 50.0
+			h.custo_aura_base = 25.0
+			h.cooldown_base = 4.0
+
+	calculate_power_budget(h)
+	return h

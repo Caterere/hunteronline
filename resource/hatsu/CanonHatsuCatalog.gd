@@ -30,6 +30,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 45.0,
 			"cooldown": 14.0,
 			"alcance": 40.0,
+			"activation_type": HatsuData.ActivationType.CHARGED,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Intensificação. Concentra Ko supremo no punho ('Primeiro vem a pedra...') para desferir um impacto devastador de 150 de Dano."
 		},
 		{
@@ -44,6 +49,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 28.0,
 			"cooldown": 8.0,
 			"alcance": 50.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Transformação. Transmuta a aura nos dedos indicador e médio em uma lâmina afiada de 85 de Dano."
 		},
 		{
@@ -58,6 +68,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 22.0,
 			"cooldown": 6.0,
 			"alcance": 180.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Emissão. Projétil veloz de aura concentrada disparado da palma aberta causando 65 de Dano."
 		},
 
@@ -74,6 +89,13 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 35.0,
 			"cooldown": 15.0,
 			"duracao": 10.0,
+			"activation_type": HatsuData.ActivationType.TRANSFORMATION,
+			"duration_type": HatsuData.DurationType.TIMED,
+			"channel": HatsuData.HatsuChannel.TRANSFORMATION,
+			"exclusive_group": "transformation_mode",
+			"concurrent_allowed": false,
+			"aura_drain_per_sec": 2.0,
+			"aura_drain_per_hit": 12.0,
 			"descricao": "Transformação. Reprograma o sistema nervoso com eletricidade (+100% Velocidade, ataques de 65 de dano a 12 de aura/golpe)."
 		},
 		{
@@ -88,6 +110,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 32.0,
 			"cooldown": 9.0,
 			"alcance": 190.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Transformação + Emissão. Dispara um raio elétrico concentrado de 95 de Dano que atordoa o alvo."
 		},
 
@@ -104,6 +131,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 30.0,
 			"cooldown": 12.0,
 			"duracao": 10.0,
+			"activation_type": HatsuData.ActivationType.SUSTAINED,
+			"duration_type": HatsuData.DurationType.TIMED,
+			"channel": HatsuData.HatsuChannel.UTILITY,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Conjuração. Materializa o palhaço com roleta de armas (Foice Silent Waltz, Clava e Rifle)."
 		},
 
@@ -120,6 +152,13 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 40.0,
 			"cooldown": 18.0,
 			"duracao": 12.0,
+			"activation_type": HatsuData.ActivationType.TRANSFORMATION,
+			"duration_type": HatsuData.DurationType.TIMED,
+			"channel": HatsuData.HatsuChannel.TRANSFORMATION,
+			"exclusive_group": "transformation_mode",
+			"concurrent_allowed": false,
+			"aura_drain_per_sec": 3.0,
+			"aura_drain_per_hit": 20.0,
 			"descricao": "Conjuração + Manipulação. Manifesta a Deusa Guanyin: transforma o ataque básico em 100 de Dano a 8 golpes/s consumindo 20 de Aura por ataque."
 		},
 
@@ -136,6 +175,12 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 40.0,
 			"cooldown": 20.0,
 			"duracao": 10.0,
+			"activation_type": HatsuData.ActivationType.TRANSFORMATION,
+			"duration_type": HatsuData.DurationType.TIMED,
+			"channel": HatsuData.HatsuChannel.TRANSFORMATION,
+			"exclusive_group": "transformation_mode",
+			"concurrent_allowed": false,
+			"aura_drain_per_sec": 4.0,
 			"descricao": "Especialização (Olhos Escarlates). Concede 100% de Eficiência Absoluta em todas as categorias de Nen."
 		},
 		{
@@ -150,6 +195,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"cura_base": 70.0,
 			"custo_aura": 35.0,
 			"cooldown": 12.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.DEFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Conjuração + Intensificação. Envolve o corpo em aura curativa, restaurando 45% do HP Máximo."
 		},
 		{
@@ -164,6 +214,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 40.0,
 			"cooldown": 14.0,
 			"alcance": 60.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.SPECIAL,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Conjuração. Envolve o inimigo em correntes inquebráveis, causando 110 de Dano e impondo Zetsu forçado por 3s."
 		},
 		{
@@ -178,6 +233,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 42.0,
 			"cooldown": 15.0,
 			"alcance": 45.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Conjuração + Emissão. Estaca de corrente no coração do oponente, causando 135 de Dano mortal."
 		},
 		{
@@ -192,6 +252,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 20.0,
 			"cooldown": 5.0,
 			"alcance": 160.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Conjuração. Disparo rápido com precisão absoluta de 60 de Dano."
 		},
 
@@ -208,6 +273,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 25.0,
 			"cooldown": 7.0,
 			"alcance": 165.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.UTILITY,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Transformação. Dispara um chiclete elétrico de aura de 70 de Dano que puxa o inimigo para perto."
 		},
 
@@ -224,6 +294,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 60.0,
 			"cooldown": 20.0,
 			"raio": 110.0,
+			"activation_type": HatsuData.ActivationType.SUSTAINED,
+			"duration_type": HatsuData.DurationType.TIMED,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Transformação + Conjuração. Transmuta a dor sofrida em um sol incandescente de 180 a 350 de Dano em área."
 		},
 
@@ -240,6 +315,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 26.0,
 			"cooldown": 7.5,
 			"alcance": 170.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Emissão. Soca o solo e projeta um punho colossal de 80 de Dano embaixo do inimigo."
 		},
 
@@ -255,7 +335,12 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"poder_base": 75.0,
 			"custo_aura": 50.0,
 			"cooldown": 15.0,
-			"descricao": "Especialização. Livro de Nen que potencializa e sincroniza múltiplos Hatsus."
+			"activation_type": HatsuData.ActivationType.OVERRIDE_LIBRARY,
+			"duration_type": HatsuData.DurationType.PERMANENT_STANCE,
+			"channel": HatsuData.HatsuChannel.LIBRARY,
+			"exclusive_group": "library_mode",
+			"concurrent_allowed": true,
+			"descricao": "Especialização. Livro de Nen que potencializa, armazena e sincroniza múltiplos Hatsus roubados."
 		},
 		{
 			"id": "chrollo_indoor_fish",
@@ -269,6 +354,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 30.0,
 			"cooldown": 9.0,
 			"raio": 70.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Conjuração. Invoca peixes carnívoros de Nen que devoram os alvos em área (85 de Dano)."
 		},
 
@@ -285,6 +375,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 38.0,
 			"cooldown": 10.0,
 			"alcance": 190.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Transformação. Modela a aura na cabeça de um dragão perfurante de 115 de Dano."
 		},
 		{
@@ -299,6 +394,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 50.0,
 			"cooldown": 16.0,
 			"raio": 120.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Emissão + Transformação. Chuva de milhares de lanças de aura do dragão caindo do céu (140 de Dano em área)."
 		},
 
@@ -315,6 +415,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 45.0,
 			"cooldown": 13.0,
 			"alcance": 180.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Emissão + Transformação. Arremessa orbes colossais de aura destrutiva gerando 130 de Dano explosivo."
 		},
 
@@ -331,6 +436,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 28.0,
 			"cooldown": 8.0,
 			"raio": 70.0,
+			"activation_type": HatsuData.ActivationType.SUSTAINED,
+			"duration_type": HatsuData.DurationType.TIMED,
+			"channel": HatsuData.HatsuChannel.UTILITY,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Manipulação + Emissão. Soldados de fumaça sólida que causam 60 de Dano e desorientam os inimigos."
 		},
 
@@ -347,6 +457,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"custo_aura": 24.0,
 			"cooldown": 6.0,
 			"alcance": 170.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.SPECIAL,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
 			"descricao": "Manipulação. Disparo veloz de agulhas de Nen que causam 65 de Dano e paralisam o alvo."
 		}
 	]

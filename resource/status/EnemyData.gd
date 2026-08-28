@@ -46,6 +46,7 @@ class_name EnemyData
 @export var hatsu_name: String = ""
 @export var hatsu_cooldown: float = 5.0
 @export var nen_type: int = 0
+@export var modular_hatsu: HatsuData = null
 @export var attack_windup: float = 0.25
 @export var attack_recovery: float = 0.35
 @export var attack_telegraph_type: String = "flash" # "flash", "exclamation", "aoe_circle"

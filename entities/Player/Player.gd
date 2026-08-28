@@ -181,6 +181,8 @@ func _dash() -> void:
 			if dir == Vector2.ZERO:
 				dir = velocity.normalized() if velocity != Vector2.ZERO else Vector2.DOWN
 			if combat_system.tentar_esquivar(dir):
+				_is_attacking = false
+				_attack_anim_timer = 0.0
 				velocity = dir * 220.0
 				if TutorialManager != null and TutorialManager.em_tutorial:
 					TutorialManager.notificar_esquiva_executada()

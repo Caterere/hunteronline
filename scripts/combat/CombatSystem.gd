@@ -42,6 +42,15 @@ signal player_morreu()
 var pode_atacar: bool = true
 var ataque_timer: float = 0.0
 
+# Combo System (Cadeia de 3 Golpes Fluida)
+var combo_step: int = 0 # 0 = Golpe 1, 1 = Golpe 2, 2 = Finalizador
+var combo_window_timer: float = 0.0
+const COMBO_WINDOW_MAX: float = 0.45
+
+# Contra-Ataque de Perfect Dodge
+var contra_ataque_ativo: bool = false
+var contra_ataque_timer: float = 0.0
+
 
 # ============================================================
 # ESQUIVA
@@ -173,7 +182,7 @@ func _process(delta: float) -> void:
 			_desativar_hitbox_ataque()
 
 # ============================================================
-# ATAQUE
+# ATAQUE (COMBO SYSTEM DE 3 GOLPES)
 # ============================================================
 
 func tentar_atacar(direcao: Vector2) -> void:
@@ -184,7 +193,18 @@ func tentar_atacar(direcao: Vector2) -> void:
 		_mostrar_texto_flutuante("🛡️ DEFESA PACÍFICA: ATAQUE BLOQUEADO", Color(0.3, 0.8, 1.0))
 		return
 
+	# Avançar Combo se estiver dentro da janela
+	if combo_window_timer > 0.0:
+		combo_step = (combo_step + 1) % 3
+	else:
+		combo_step = 0
+	combo_window_timer = COMBO_WINDOW_MAX
+
 	var cd_ataque: float = ataque_cooldown
+	match combo_step:
+		0: cd_ataque *= 0.75 # Golpe 1 rápido
+		1: cd_ataque *= 0.70 # Golpe 2 rápido
+		2: cd_ataque *= 1.20 # Finalizador pesado
 
 	if PlayerData.quest_states.get("guanyin_bodhisattva_ativo", false):
 		var aura_atual: float = float(PlayerData.attributes.get("aura", 0.0))
@@ -210,6 +230,9 @@ func tentar_atacar(direcao: Vector2) -> void:
 	pode_atacar = false
 	estado = Estado.ATACANDO
 
+	if AudioManager != null:
+		AudioManager.tocar_slash()
+
 	_disparar_hitbox_ataque(ultima_direcao)
 	ataque_timer = cd_ataque
 
@@ -226,6 +249,10 @@ func _disparar_hitbox_ataque(direcao: Vector2) -> void:
 	var alcance_final: float = max(54.0, ataque_alcance * 1.2)
 	if nen_system != null:
 		alcance_final = nen_system.aplicar_ren_no_alcance(alcance_final)
+
+	# Finalizador tem área ligeiramente maior
+	if combo_step == 2:
+		alcance_final *= 1.25
 
 	if _cached_circle != null:
 		_cached_circle.radius = max(36.0, alcance_final * 0.85)
@@ -301,15 +328,38 @@ func _on_attack_hit(
 	if enemy_system == null and alvo.has_node("EnemySystem"):
 		enemy_system = alvo.get_node("EnemySystem")
 
-	var dano: int = calcular_dano_fisico()
+	var dano_base_calc: int = calcular_dano_fisico(enemy)
+	
+	# Multiplicador do Combo Step (1.0x -> 1.25x -> 1.80x)
+	var mult_combo: float = 1.0
+	var knockback_val: float = 80.0
+	match combo_step:
+		0:
+			mult_combo = 1.0
+			knockback_val = 80.0
+		1:
+			mult_combo = 1.25
+			knockback_val = 130.0
+		2:
+			mult_combo = 1.80
+			knockback_val = 240.0
+
+	var dano: int = max(1, int(round(float(dano_base_calc) * mult_combo)))
 
 	var is_crit: bool = false
 	if nen_system != null and (nen_system.tecnica_ativa(NenSystem.Tecnica.KO) or nen_system.tecnica_ativa(NenSystem.Tecnica.GYO)):
 		is_crit = true
 
-	# Disparar Hitstop e Camera Shake (Fase 1: Game Feel & Juice)
+	# Bônus de Contra-Ataque de Perfect Dodge (+50% Dano)
+	if contra_ataque_ativo:
+		dano = int(round(float(dano) * 1.50))
+		is_crit = true
+		contra_ataque_ativo = false
+		_mostrar_texto_flutuante("💥 COUNTER STRIKE! +50%", Color(1.0, 0.8, 0.2))
+
+	# Disparar Hitstop e Camera Shake (Fase 1 & 2: Game Feel & Juice)
 	if EventBus != null:
-		if is_crit:
+		if is_crit or combo_step == 2:
 			EventBus.emit_hitstop(0.08)
 			EventBus.emit_camera_shake(0.45, 0.25)
 		else:
@@ -317,17 +367,12 @@ func _on_attack_hit(
 			EventBus.emit_camera_shake(0.20, 0.15)
 		EventBus.combat_hit_landed.emit(owner_body, enemy, dano, is_crit)
 
-	print("=================================")
-	print("ATAQUE ACERTOU: ", enemy.name)
-	print("DANO FINAL: ", dano)
-	print("=================================")
-
 	if enemy_system != null and enemy_system.has_method("take_damage"):
-		enemy_system.take_damage(dano, ultima_direcao, 120.0, owner_body)
+		enemy_system.take_damage(dano, ultima_direcao, knockback_val, owner_body)
 	elif alvo.has_method("receber_dano"):
-		alvo.receber_dano(dano, ultima_direcao, 120.0, owner_body)
+		alvo.receber_dano(dano, ultima_direcao, knockback_val, owner_body)
 	elif enemy.has_method("receber_dano"):
-		enemy.receber_dano(dano, ultima_direcao, 120.0, owner_body)
+		enemy.receber_dano(dano, ultima_direcao, knockback_val, owner_body)
 
 
 
@@ -431,7 +476,7 @@ func receber_dano(
 
 
 # ============================================================
-# ESQUIVA
+# ESQUIVA (COM CANCEL WINDOW DE ATAQUE)
 # ============================================================
 
 func tentar_esquivar(
@@ -454,14 +499,16 @@ func tentar_esquivar(
 		_mostrar_texto_flutuante("🚫 ESQUIVA BLOQUEADA POR JURAMENTO", Color(1.0, 0.4, 0.4))
 		return false
 
+	# CANCEL WINDOW: Cancela a animação de ataque instantaneamente para esquivar
+	if estado == Estado.ATACANDO:
+		_desativar_hitbox_ataque()
+		ataque_timer = 0.0
+		pode_atacar = true
 
 	if direcao == Vector2.ZERO:
 		direcao = ultima_direcao
 
-
-	direcao_esquiva = (
-		direcao.normalized()
-	)
+	direcao_esquiva = direcao.normalized()
 
 	esquivando = true
 	invulneravel = true
@@ -469,26 +516,15 @@ func tentar_esquivar(
 
 	estado = Estado.ESQUIVANDO
 
+	if AudioManager != null:
+		AudioManager.tocar_dodge()
+
 	if hatsu_system != null and hatsu_system.has_method("registrar_esquiva_perfeita"):
 		hatsu_system.registrar_esquiva_perfeita()
 
+	esquiva_duracao_timer = esquiva_duracao
+	esquiva_timer = esquiva_cooldown
 
-	# ========================================================
-	# DURAÇÃO
-	# ========================================================
-
-	esquiva_duracao_timer = (
-		esquiva_duracao
-	)
-
-	esquiva_timer = (
-		esquiva_cooldown
-	)
-
-
-	print(
-		"ESQUIVA!"
-	)
 	return true
 
 
@@ -501,53 +537,39 @@ func _atualizar_timers(
 	delta: float
 ) -> void:
 
+	# Combo Window
+	if combo_window_timer > 0.0:
+		combo_window_timer -= delta
+		if combo_window_timer <= 0.0:
+			combo_step = 0
 
-	# ========================================================
-	# ATAQUE
-	# ========================================================
+	# Buff de Contra-Ataque de Perfect Dodge
+	if contra_ataque_timer > 0.0:
+		contra_ataque_timer -= delta
+		if contra_ataque_timer <= 0.0:
+			contra_ataque_ativo = false
 
+	# Ataque
 	if ataque_timer > 0.0:
-
 		ataque_timer -= delta
-
 		if ataque_timer <= 0.0:
-
 			ataque_timer = 0.0
-
 			pode_atacar = true
-
 			if estado == Estado.ATACANDO:
-
 				estado = Estado.NORMAL
 
-
-	# ========================================================
-	# COOLDOWN ESQUIVA
-	# ========================================================
-
+	# Cooldown Esquiva
 	if esquiva_timer > 0.0:
-
 		esquiva_timer -= delta
-
 		if esquiva_timer <= 0.0:
-
 			esquiva_timer = 0.0
-
 			pode_esquivar = true
 
-
-	# ========================================================
-	# DURAÇÃO ESQUIVA
-	# ========================================================
-
+	# Duração Esquiva
 	if esquivando:
-
 		esquiva_duracao_timer -= delta
-
 		if esquiva_duracao_timer <= 0.0:
-
 			esquiva_duracao_timer = 0.0
-
 			_finalizar_esquiva()
 
 
@@ -796,18 +818,27 @@ func esta_vivo() -> bool:
 
 func _executar_perfect_dodge(_atacante: Node) -> void:
 	perfect_dodge_executado.emit()
-	print("[CombatSystem] ⚡ PERFECT DODGE EXECUTADO COM SUCESSO!")
 	PlayerData.registrar_estatistica("perfect_dodges", 1)
 
-	# Recuperar +15 de Aura pela maestria da esquiva perfeita
+	contra_ataque_ativo = true
+	contra_ataque_timer = 3.0
+
+	# Bullet Time Slowdown (0.18s em tempo real)
+	if EventBus != null:
+		EventBus.emit_hitstop(0.18)
+
+	if AudioManager != null:
+		AudioManager.tocar_perfect_dodge()
+
+	# Recuperar +20 de Aura pela maestria da esquiva perfeita
 	if nen_system != null:
-		nen_system.recuperar_aura(15)
+		nen_system.recuperar_aura(20)
 	else:
 		var a_max: float = float(PlayerData.attributes.get("aura_max", 100.0))
 		var a_cur: float = float(PlayerData.attributes.get("aura", 0.0))
-		PlayerData.attributes["aura"] = min(a_max, a_cur + 15.0)
+		PlayerData.attributes["aura"] = min(a_max, a_cur + 20.0)
 
-	_mostrar_texto_flutuante("⚡ PERFECT DODGE! +15 AURA", Color(0.2, 1.0, 0.5))
+	_mostrar_texto_flutuante("⚡ PERFECT DODGE! +20 AURA (CRIT PRONTO)", Color(0.2, 1.0, 0.5))
 
 
 

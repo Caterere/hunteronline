@@ -1,5 +1,7 @@
 extends Node
 
+const AuraVisualProfile = preload("res://resource/hatsu/AuraVisualProfile.gd")
+
 # ============================================================
 # HUNTER ONLINE - PLAYER DATA
 # ============================================================
@@ -264,16 +266,39 @@ func concluir_missao_paralela(pq_id: int) -> void:
 
 
 # ============================================================
-# HATSU
+# HATSU & ABSORÇÃO PERMANENTE (ESPECIALIZAÇÃO)
 # ============================================================
 
 var hatsu_criados: Array = []
 var hatsu_slots: Array = [-1, -1, -1, -1]
+var absorbed_stats_registry: Dictionary = {} # {"enemy_id": int(count)} para diminishing returns
+var hatsu_fragments_discovered: Array[String] = [] # Modificadores e fragmentos descobertos
+var aura_visual_profile: AuraVisualProfile = null
 
 
 func _ready() -> void:
+	reset()
+
+
+func reset() -> void:
 	hatsu_criados.clear()
 	hatsu_slots = [-1, -1, -1, -1]
+	absorbed_stats_registry.clear()
+	hatsu_fragments_discovered.clear()
+	active_modifiers.clear()
+	aura_visual_profile = AuraVisualProfile.new()
+	attributes = {
+		"vida": 100,
+		"vida_max": 100,
+		"forca": 10,
+		"defesa": 10,
+		"velocidade": 10,
+		"aura": 100.0,
+		"aura_max": 100.0,
+		"nivel_nen": 1,
+		"xp_nen": 0,
+		"nivel": 1
+	}
 
 
 

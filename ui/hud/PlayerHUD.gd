@@ -77,6 +77,7 @@ func _ready() -> void:
 	_criar_painel_hatsu_slots()
 	_criar_nen_quick_action_bar()
 	_instanciar_menus_auxiliares()
+	_conectar_event_bus()
 	_conectar_player_e_sistemas()
 	_atualizar_hud()
 
@@ -519,7 +520,8 @@ func _atualizar_nen_e_besta() -> void:
 			elif nen_system.tecnica_ativa(NenSystem.Tecnica.KEN):
 				ativa_nome = "KEN (Blindagem Geral)"
 			elif nen_system.tecnica_ativa(NenSystem.Tecnica.RYU):
-				ativa_nome = "RYU (Fluxo Ofensivo)"
+				var mod_str: String = "ATAQUE 80/20" if nen_system.modulo_ryu == NenSystem.ModuloRyu.ATAQUE else "DEFESA 20/80"
+				ativa_nome = "RYU (%s [Tab])" % mod_str
 		lbl_nen_status.text = "🥋 %s" % ativa_nome
 
 	if lbl_beast_status:
@@ -530,6 +532,49 @@ func _atualizar_nen_e_besta() -> void:
 			lbl_beast_status.text = ""
 
 
+# ============================================================
+# SISTEMA DE NOTIFICAÇÕES & BANNERS ANIMADOS
+# ============================================================
+
+func _conectar_event_bus() -> void:
+	if EventBus == null:
+		return
+	if not EventBus.toast_requested.is_connected(_exibir_toast_banner):
+		EventBus.toast_requested.connect(_exibir_toast_banner)
+
+
+func _exibir_toast_banner(mensagem: String, cor_borda: Color = Color.WHITE) -> void:
+	var banner := PanelContainer.new()
+	banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	banner.position = Vector2(160, -35)
+	banner.custom_minimum_size = Vector2(320, 26)
+	banner.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(cor_borda, 3))
+	add_child(banner)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
+	banner.add_child(margin)
+
+	var lbl := Label.new()
+	lbl.text = mensagem
+	lbl.add_theme_font_size_override("font_size", 4)
+	lbl.add_theme_color_override("font_color", Color.WHITE)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	margin.add_child(lbl)
+
+	if AudioManager != null:
+		AudioManager.tocar_ui_click(true)
+
+	var tween := banner.create_tween()
+	tween.tween_property(banner, "position:y", 20.0, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_interval(2.2)
+	tween.tween_property(banner, "position:y", -35.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tween.tween_callback(banner.queue_free)
+
+
 func _atualizar_hatsu_slots() -> void:
 	if slot_name_labels.size() < 4 or slot_progress_bars.size() < 4:
 		return
@@ -538,17 +583,41 @@ func _atualizar_hatsu_slots() -> void:
 		var hatsu: HatsuData = PlayerData.obter_hatsu_slot(i)
 		var cd_atual: float = 0.0
 		var cd_max: float = 0.0
+		var st: int = 1 # SlotState.READY por padrão
 
-		if hatsu_system != null and i < hatsu_system.slot_cooldowns.size():
-			cd_atual = hatsu_system.slot_cooldowns[i]
-			cd_max = hatsu_system.slot_cooldowns_max[i]
+		if hatsu_system != null:
+			if i < hatsu_system.slot_cooldowns.size():
+				cd_atual = hatsu_system.slot_cooldowns[i]
+				cd_max = hatsu_system.slot_cooldowns_max[i]
+			if i < hatsu_system.slot_states.size():
+				st = int(hatsu_system.slot_states[i])
 
 		if hatsu != null:
 			slot_name_labels[i].text = hatsu.nome.left(6)
-			slot_name_labels[i].add_theme_color_override("font_color", Color.WHITE)
+			if st == 3: # SlotState.ACTIVE
+				slot_name_labels[i].add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+				slot_panels[i].add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_GOLD, 3))
+			elif st == 5: # SlotState.DISABLED
+				slot_name_labels[i].add_theme_color_override("font_color", Color(0.8, 0.4, 0.4, 0.8))
+				slot_panels[i].add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(Color(0.8, 0.2, 0.2, 0.8), 3))
+			else:
+				slot_name_labels[i].add_theme_color_override("font_color", Color.WHITE)
+				if i != active_selected_slot:
+					slot_panels[i].add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 3))
+
 			if i < slot_cost_labels.size():
-				slot_cost_labels[i].text = "%d AP" % int(hatsu.obter_custo_final())
-				slot_cost_labels[i].visible = (cd_atual <= 0.0)
+				if st == 3: # ACTIVE
+					slot_cost_labels[i].text = "⚡ATIVO"
+					slot_cost_labels[i].add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+					slot_cost_labels[i].visible = true
+				elif st == 5: # DISABLED
+					slot_cost_labels[i].text = "🔒BLOQ"
+					slot_cost_labels[i].add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+					slot_cost_labels[i].visible = true
+				else:
+					slot_cost_labels[i].text = "%d AP" % int(hatsu.obter_custo_final())
+					slot_cost_labels[i].add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+					slot_cost_labels[i].visible = (cd_atual <= 0.0)
 		else:
 			slot_name_labels[i].text = "-"
 			slot_name_labels[i].add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1.0))
@@ -567,7 +636,7 @@ func _atualizar_hatsu_slots() -> void:
 		else:
 			slot_progress_bars[i].value = 0.0
 			slot_progress_bars[i].visible = false
-			if i < slot_cd_overlays.size(): slot_cd_overlays[i].visible = false
+			if i < slot_cd_overlays.size(): slot_cd_overlays[i].visible = (st == 5)
 			if i < slot_cd_labels.size():
 				slot_cd_labels[i].visible = false
 				slot_name_labels[i].visible = true

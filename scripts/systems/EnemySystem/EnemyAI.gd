@@ -141,10 +141,12 @@ func _physics_process(delta: float) -> void:
 	if enemy_system == null:
 		enemy_system = enemy_body.get_node_or_null("EnemySystem") as EnemySystem
 
-	# Checar transição de Fase para Chefes (GDD Vol 5 & 7)
+	# Checar transição de Fase para Chefes (GDD Vol 5 & 7 — 3 Fases Canônicas)
 	if enemy_system != null and (enemy_system.is_boss or (enemy_system.enemy_data != null and enemy_system.enemy_data.is_boss)):
-		if not is_fase_2 and enemy_system.health <= enemy_system.max_health * 0.5 and enemy_system.health > 0:
+		if not is_fase_2 and enemy_system.health <= enemy_system.max_health * 0.50 and enemy_system.health > 0:
 			_entrar_fase_2_boss()
+		elif not is_fase_3 and enemy_system.health <= enemy_system.max_health * 0.25 and enemy_system.health > 0:
+			_entrar_fase_3_boss()
 
 	if player == null or not is_instance_valid(player):
 		_find_player()
@@ -155,31 +157,33 @@ func _physics_process(delta: float) -> void:
 		if dist_player <= detection_range:
 			executar_hatsu_inimigo()
 			var cd_base: float = enemy_system.enemy_data.hatsu_cooldown if (enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.hatsu_cooldown > 0.0) else hatsu_cooldown
-			hatsu_timer = cd_base * (0.60 if is_fase_2 else 1.0)
+			var mult_cd: float = 0.45 if is_fase_3 else (0.65 if is_fase_2 else 1.0)
+			hatsu_timer = cd_base * mult_cd
 
 	_update_state()
 	_execute_state()
 	_update_animation()
-	_processar_habilidades_boss_fase_2(delta)
+	_processar_habilidades_boss_fases(delta)
 
 
 
+var is_fase_3: bool = false
 var earthquake_timer: float = 6.0
 
 
 func _entrar_fase_2_boss() -> void:
 	is_fase_2 = true
-	move_speed *= 1.35
+	move_speed *= 1.30
 	attack_cooldown = 0.65
 	hatsu_cooldown *= 0.65
-	var boss_nome = enemy_system.enemy_name if enemy_system != null else "Guardião Ancestral"
+	var boss_nome = enemy_system.enemy_name if enemy_system != null else "Chefe"
 	print("=================================")
 	print("[BOSS FASE 2] %s liberou todo o seu REN! (Frenesi Ativado)" % boss_nome)
 	print("=================================")
 	
 	var sprite = enemy_body.get_node_or_null("Sprite2D")
 	if sprite != null:
-		sprite.modulate = Color(1.8, 0.3, 0.3, 1.0) # Aura vermelha ardente de Ren
+		sprite.modulate = Color(1.8, 0.4, 0.4, 1.0)
 
 	if EventBus != null:
 		EventBus.boss_phase_changed.emit(boss_nome, 2)
@@ -187,9 +191,32 @@ func _entrar_fase_2_boss() -> void:
 		EventBus.emit_hitstop(0.08)
 
 	if enemy_system != null:
-		ComicBalloon.mostrar(enemy_body, "⚡ FRENESI ANCESTRAL! REN MÁXIMO!", 2.5, -45.0)
+		ComicBalloon.mostrar(enemy_body, "⚡ FRENESI DE NEN: FASE 2!", 2.5, -45.0)
 
 	_invocar_minions_boss()
+
+
+func _entrar_fase_3_boss() -> void:
+	is_fase_3 = true
+	move_speed *= 1.25
+	attack_cooldown = 0.45
+	hatsu_cooldown *= 0.60
+	var boss_nome = enemy_system.enemy_name if enemy_system != null else "Chefe"
+	print("=================================")
+	print("[BOSS FASE 3] %s entrou em SOBRECARGA DESESPERADA! (Aura Overload)" % boss_nome)
+	print("=================================")
+	
+	var sprite = enemy_body.get_node_or_null("Sprite2D")
+	if sprite != null:
+		sprite.modulate = Color(2.5, 0.6, 2.5, 1.0) # Aura Púrpura Radiante de Overload
+
+	if EventBus != null:
+		EventBus.boss_phase_changed.emit(boss_nome, 3)
+		EventBus.emit_camera_shake(0.85, 0.50)
+		EventBus.emit_hitstop(0.12)
+
+	if enemy_system != null:
+		ComicBalloon.mostrar(enemy_body, "🔥 SOBRECARGA TOTAL DE AURA! FASE FINAL!", 3.0, -48.0)
 
 
 func _invocar_minions_boss() -> void:
@@ -216,32 +243,74 @@ func _invocar_minions_boss() -> void:
 			es.strength = 10
 
 
-func _processar_habilidades_boss_fase_2(delta: float) -> void:
-	if not is_fase_2 or enemy_body == null or player == null or not is_instance_valid(player):
+func _processar_habilidades_boss_fases(delta: float) -> void:
+	if (not is_fase_2 and not is_fase_3) or enemy_body == null or player == null or not is_instance_valid(player):
 		return
 		
 	earthquake_timer -= delta
+	var cd_terremoto: float = 4.0 if is_fase_3 else 6.5
 	if earthquake_timer <= 0.0:
-		earthquake_timer = 7.0
-		_executar_terremoto_ancestral()
+		earthquake_timer = cd_terremoto
+		_executar_terremoto_com_telegrafia()
 
 
-func _executar_terremoto_ancestral() -> void:
+func _executar_terremoto_com_telegrafia() -> void:
 	if enemy_body == null or player == null:
 		return
-		
-	ComicBalloon.mostrar(enemy_body, "💥 TERREMOTO ANCESTRAL!", 1.8, -45.0)
+
+	var centro_ataque: Vector2 = enemy_body.global_position
+	var raio_ataque: float = 150.0 if is_fase_3 else 120.0
+	var tempo_aviso: float = 0.40
+
+	ComicBalloon.mostrar(enemy_body, "⚠️ TERREMOTO ANCESTRAL!", 1.6, -45.0)
+	_criar_indicador_chao_aoe(centro_ataque, raio_ataque, tempo_aviso)
+
+	# Aguarda a telegrafia terminar antes de aplicar o dano de impacto
+	await get_tree().create_timer(tempo_aviso).timeout
+	if not is_instance_valid(enemy_body) or not is_instance_valid(player):
+		return
+
 	if EventBus != null:
-		EventBus.emit_camera_shake(0.55, 0.35)
-		
-	var dist = enemy_body.global_position.distance_to(player.global_position)
-	if dist <= 140.0:
-		var dir = (player.global_position - enemy_body.global_position).normalized()
-		var dano_aoe = int((enemy_system.get_strength() if enemy_system else 15) * 1.3)
+		EventBus.emit_camera_shake(0.60, 0.35)
+
+	var dist = centro_ataque.distance_to(player.global_position)
+	if dist <= raio_ataque:
+		var dir = (player.global_position - centro_ataque).normalized()
+		var mult_dano: float = 1.6 if is_fase_3 else 1.3
+		var dano_aoe = int((enemy_system.get_strength() if enemy_system else 15) * mult_dano)
 		if player.has_method("receber_dano"):
-			player.receber_dano(dano_aoe, dir, 180.0, enemy_body)
+			player.receber_dano(dano_aoe, dir, 200.0, enemy_body)
 		elif player.has_node("CombatSystem"):
-			player.get_node("CombatSystem").receber_dano(dano_aoe, dir, 180.0, enemy_body)
+			player.get_node("CombatSystem").receber_dano(dano_aoe, dir, 200.0, enemy_body)
+
+
+# --- TELEGRAFIA VISUAL NO CHÃO (FLOOR AOE DANGER ZONE) ---
+
+func _criar_indicador_chao_aoe(pos_global: Vector2, raio: float, duracao: float) -> void:
+	var map_parent = enemy_body.get_parent() if enemy_body != null else get_tree().current_scene
+	if map_parent == null:
+		return
+
+	var indicador := Node2D.new()
+	indicador.name = "FloorDangerZone"
+	indicador.global_position = pos_global
+	indicador.z_index = -1 # Desenha no chão abaixo dos personagens
+
+	# Custom script de desenho imediato via callable
+	indicador.draw.connect(func():
+		var cor_preenchimento := Color(1.0, 0.1, 0.1, 0.25)
+		var cor_borda := Color(1.0, 0.2, 0.2, 0.85)
+		indicador.draw_circle(Vector2.ZERO, raio, cor_preenchimento)
+		indicador.draw_arc(Vector2.ZERO, raio, 0.0, TAU, 32, cor_borda, 2.0)
+	)
+
+	map_parent.add_child(indicador)
+	indicador.queue_redraw()
+
+	var tween := indicador.create_tween()
+	tween.tween_property(indicador, "modulate:a", 1.0, duracao * 0.7)
+	tween.tween_property(indicador, "modulate:a", 0.0, duracao * 0.3)
+	tween.tween_callback(indicador.queue_free)
 
 
 
@@ -560,7 +629,14 @@ func _attack() -> void:
 	var enemy_sys = enemy_body.get_node_or_null("EnemySystem")
 	if enemy_sys != null and enemy_sys.has_method("get_strength"):
 		dano = enemy_sys.get_strength()
-		if randf() < 0.22:
+
+		# Suporte a Hatsu Modular de Inimigo / Chefe (Universal Nen Engine)
+		if enemy_sys.enemy_data != null and enemy_sys.enemy_data.modular_hatsu != null:
+			var m_hatsu: HatsuData = enemy_sys.enemy_data.modular_hatsu
+			dano = int(m_hatsu.obter_poder_final())
+			if randf() < 0.40:
+				ComicBalloon.mostrar(enemy_body, "⚡ %s: %s!" % [enemy_sys.enemy_name, m_hatsu.nome], 2.0, -42.0)
+		elif randf() < 0.22:
 			ComicBalloon.mostrar(enemy_body, CombatComicQuotes.obter_frase_inimigo_ataque(enemy_sys.enemy_name), 1.8, -38.0)
 		
 	var player_combat = player.get_node_or_null("CombatSystem")

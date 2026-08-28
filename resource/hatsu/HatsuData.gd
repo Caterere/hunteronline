@@ -1,6 +1,9 @@
 class_name HatsuData
 extends Resource
 
+const HatsuComponentLibrary = preload("res://resource/hatsu/HatsuComponentLibrary.gd")
+const VisualProfile = preload("res://resource/hatsu/VisualProfile.gd")
+
 # ============================================================
 # HUNTER ONLINE - HATSU DATA RESOURCE (CANON HXH NEN SYSTEM)
 # ============================================================
@@ -12,6 +15,31 @@ extends Resource
 # 4. Hatsu Evolutivo (Progressão do Lv. 1 ao Lv. 100)
 #
 # ============================================================
+
+enum ActivationType {
+	INSTANT,          # 1. Executa imediatamente e entra em cooldown (ex: Jajanken, Remote Punch)
+	CHARGED,          # 2. Requer canalização ou postura prévia (ex: Jajanken Pedra, Oração)
+	SUSTAINED,        # 3. Permanece ativo por tempo ou dreno contínuo (ex: Crazy Slots, Escudo)
+	CHANNELED,        # 4. Requer concentração contínua e imobilidade
+	TRANSFORMATION,   # 5. Transformação física/neural que altera o personagem (ex: Godspeed, Guanyin)
+	OVERRIDE_LIBRARY  # 6. Grimório / Biblioteca de habilidades (ex: Skill Hunter de Chrollo)
+}
+
+enum DurationType {
+	INSTANT,          # 0 segundos / Imediato
+	TIMED,            # Duração fixa em segundos
+	CONTINUOUS_DRAIN, # Permanece ativo enquanto houver Aura ou até cancelamento
+	PERMANENT_STANCE  # Postura mantida até nova troca
+}
+
+enum HatsuChannel {
+	OFFENSIVE,        # Canal de ataque/dano
+	DEFENSIVE,        # Canal de proteção/escudo
+	TRANSFORMATION,   # Canal exclusivo de transformação corporal
+	UTILITY,          # Canal de mobilidade/suporte
+	SPECIAL,          # Canal de controle/regras especiais
+	LIBRARY           # Canal de grimório/arquivo de Nen
+}
 
 enum Categoria {
 	INTENSIFICACAO,  # Fortalecimento físico, impacto, cura celular
@@ -215,6 +243,51 @@ var alvo_marcado_ref: Node = null
 # Hatsu Evolutivo (Lv. 1 ao Lv. 100)
 @export var nivel_evolucao_hatsu: int = 1
 @export var xp_evolucao_hatsu: int = 0
+
+# Arquitetura de Loadout, Canais & Compatibilidade (GDD Vol 5 & Hatsu Refined)
+@export var activation_type: ActivationType = ActivationType.INSTANT
+@export var duration_type: DurationType = DurationType.INSTANT
+@export var channel: HatsuChannel = HatsuChannel.OFFENSIVE
+@export var exclusive_group: String = "" # Ex: "transformation_mode", "barrier_mode", "library_mode"
+@export var concurrent_allowed: bool = true
+@export var aura_drain_per_sec: float = 0.0
+@export var aura_drain_per_hit: float = 0.0
+@export var skill_hunter_compatible: bool = true
+
+# --- ARQUITETURA DEFINITIVA DE COMPONENTES MODULARES (GDD HATSU CREATOR) ---
+@export var core_component: int = 0 # HatsuComponentLibrary.CoreType
+@export var effect_modules: Array[Dictionary] = [] # [{"type": EffectType, "value": float, "param": String}]
+@export var modular_conditions: Array[int] = [] # Array de ConditionType
+@export var modular_restrictions: Array[int] = [] # Array de RestrictionType
+@export var modular_drawbacks: Array[int] = [] # Array de DrawbackType
+
+# Sliders Numéricos Customizados pelo Jogador
+@export var custom_damage: float = 0.0
+@export var custom_range: float = 0.0
+@export var custom_radius: float = 0.0
+@export var custom_duration: float = 0.0
+@export var custom_cooldown: float = 0.0
+@export var custom_aura_cost: float = 0.0
+@export var custom_absorption_pct: float = 0.0
+@export var custom_stat_bonus: Dictionary = {}
+
+# Avaliações do Power Budget & Scores
+@export var power_score: float = 0.0
+@export var complexity_score: float = 0.0
+@export var risk_score: float = 0.0
+@export var efficiency_score: float = 0.0
+@export var is_custom_created: bool = false
+@export var hatsu_version: int = 2
+@export var creator_id: String = ""
+
+# Componentes Avançados de Especialização
+@export var absorption_target_stat: String = "aura_max" # "aura_max", "forca", "defesa", "velocidade"
+@export var absorption_rate: float = 0.05
+@export var rollback_seconds: float = 5.0
+@export var territory_rule_type: String = ""
+
+# Perfil Visual Customizado (Sistema Cosmético)
+@export var visual_profile: VisualProfile = null
 
 # Metadados de Livro / Grimório / Sinergia de Tags
 @export var tags: Array[String] = [] # ["weapon", "electricity", "teleport", "mark", "fire", "shield"]
@@ -597,6 +670,7 @@ func obter_multiplicador_poder() -> float:
 		Arquetipo.OBJETO_DADO:
 			mult += 0.50 # 6 faces com risco de Zetsu
 
+	# Condições Legadas
 	for cond in condicoes:
 		if cond == Condicao.ALMAS_INIMIGOS:
 			mult += clamp(float(almas_acumuladas) * 0.15, 0.0, 1.50)
@@ -613,14 +687,34 @@ func obter_multiplicador_poder() -> float:
 		var bonus_calculado: float = float(info.get("mult", 0.30))
 		mult += bonus_calculado
 
+	# Condições Modulares
+	for m_cond in modular_conditions:
+		var c_info = HatsuComponentLibrary.get_condition_info(m_cond as HatsuComponentLibrary.ConditionType)
+		mult += float(c_info.get("budget_bonus", 20.0)) / 100.0
+
+	# Restrições Modulares
+	for m_res in modular_restrictions:
+		var r_info = HatsuComponentLibrary.get_restriction_info(m_res as HatsuComponentLibrary.RestrictionType)
+		mult += float(r_info.get("budget_bonus", 25.0)) / 100.0
+
+	# Drawbacks Modulares
+	for m_draw in modular_drawbacks:
+		var d_info = HatsuComponentLibrary.get_drawback_info(m_draw as HatsuComponentLibrary.DrawbackType)
+		mult += float(d_info.get("budget_bonus", 20.0)) / 100.0
+
 	return mult
 
 
 func obter_poder_final() -> float:
+	if custom_damage > 0.0:
+		var bonus_evo: float = 1.0 + (float(nivel_evolucao_hatsu - 1) * 0.0035)
+		return custom_damage * bonus_evo
 	return poder_base * obter_multiplicador_poder()
 
 
 func obter_custo_final() -> float:
+	if custom_aura_cost > 0.0:
+		return custom_aura_cost
 	var mult: float = 1.0
 	if Condicao.CUSTO_DUPLO in condicoes:
 		mult *= 2.0
@@ -628,6 +722,8 @@ func obter_custo_final() -> float:
 
 
 func obter_cooldown_final() -> float:
+	if custom_cooldown > 0.0:
+		return custom_cooldown
 	var mult: float = 1.0
 	if Condicao.COOLDOWN_LONGO in condicoes:
 		mult *= 2.0
@@ -665,48 +761,48 @@ func pode_usar(player_context: Dictionary, target_context: Dictionary = {}) -> D
 	var target_distance: float = float(target_context.get("distance", 50.0))
 
 	# Uso Único por Combate
-	if (Condicao.USO_UNICO_POR_COMBATE in condicoes or Condicao.VOTO_ABSOLUTO_CHAIN in condicoes) and usado_no_combate_atual:
+	if (Condicao.USO_UNICO_POR_COMBATE in condicoes or Condicao.VOTO_ABSOLUTO_CHAIN in condicoes or HatsuComponentLibrary.RestrictionType.ONCE_PER_COMBAT in modular_restrictions) and usado_no_combate_atual:
 		return {"pode": false, "motivo": "Voto Extremo: Esta técnica só pode ser usada 1x por combate!"}
 
 	# HP Checks
-	if Condicao.HP_ABAIXO_50 in condicoes and pct_hp >= 0.5:
+	if (Condicao.HP_ABAIXO_50 in condicoes or HatsuComponentLibrary.ConditionType.HP_BELOW_50 in modular_conditions) and pct_hp >= 0.5:
 		return {"pode": false, "motivo": "Juramento de Risco: Requer HP abaixo de 50%!"}
-	if Condicao.HP_ABAIXO_30 in condicoes and pct_hp >= 0.3:
+	if (Condicao.HP_ABAIXO_30 in condicoes or HatsuComponentLibrary.ConditionType.HP_BELOW_30 in modular_conditions) and pct_hp >= 0.3:
 		return {"pode": false, "motivo": "Juramento do Desespero: Requer HP Crítico abaixo de 30%!"}
-	if Condicao.HP_ABAIXO_20 in condicoes and pct_hp >= 0.2:
+	if (Condicao.HP_ABAIXO_20 in condicoes or HatsuComponentLibrary.ConditionType.HP_BELOW_20 in modular_conditions) and pct_hp >= 0.2:
 		return {"pode": false, "motivo": "Voto Extremo: Requer estar à beira da morte (HP < 20%)!"}
-	if Condicao.HP_CHEIO in condicoes and pct_hp < 0.99:
+	if (Condicao.HP_CHEIO in condicoes or HatsuComponentLibrary.ConditionType.HP_FULL in modular_conditions) and pct_hp < 0.99:
 		return {"pode": false, "motivo": "Condição da Plenitude: Requer 100% de HP intacto!"}
 
 	# Aura Checks
-	if Condicao.AURA_MINIMA_50 in condicoes and pct_aura < 0.5:
+	if (Condicao.AURA_MINIMA_50 in condicoes or HatsuComponentLibrary.ConditionType.AURA_MIN_50 in modular_conditions) and pct_aura < 0.5:
 		return {"pode": false, "motivo": "Reserva Estável: Requer pelo menos 50% de Aura!"}
 
 	# Estados de Nen
-	if Condicao.REQUER_TEN_ATIVO in condicoes and not em_ten:
+	if (Condicao.REQUER_TEN_ATIVO in condicoes or HatsuComponentLibrary.ConditionType.REQUIRES_TEN in modular_conditions) and not em_ten:
 		return {"pode": false, "motivo": "Canalização de Ten: Requer manter o Ten ativo!"}
-	if Condicao.REQUER_REN_ATIVO in condicoes and not em_ren:
+	if (Condicao.REQUER_REN_ATIVO in condicoes or HatsuComponentLibrary.ConditionType.REQUIRES_REN in modular_conditions) and not em_ren:
 		return {"pode": false, "motivo": "Explosão de Ren: Requer manter o Ren ativo!"}
 
 	# Esquiva Perfeita
-	if Condicao.APOS_ESQUIVA_PERFEITA in condicoes and not pos_esquiva_recente:
+	if (Condicao.APOS_ESQUIVA_PERFEITA in condicoes or HatsuComponentLibrary.ConditionType.POST_PERFECT_DODGE in modular_conditions) and not pos_esquiva_recente:
 		return {"pode": false, "motivo": "Contra-Golpe: Só usável nos 2s após Esquiva Perfeita!"}
 
 	# Contra quem atacou primeiro
-	if Condicao.CONTRA_QUEM_ATACOU_PRIMEIRO in condicoes:
+	if (Condicao.CONTRA_QUEM_ATACOU_PRIMEIRO in condicoes or HatsuComponentLibrary.ConditionType.FIRST_ATTACKER_ONLY in modular_conditions):
 		if primeiro_atacante_id.is_empty():
 			return {"pode": false, "motivo": "Voto do Retorno: Só usável contra quem atacar o jogador primeiro!"}
 		if not target_id.is_empty() and target_id != primeiro_atacante_id:
 			return {"pode": false, "motivo": "Voto do Retorno: O alvo selecionado não foi quem atacou primeiro!"}
 
 	# Alvo Chefes / Elites
-	if (Condicao.ALVO_ELITE_BOSS in condicoes or Condicao.VOTO_ABSOLUTO_CHAIN in condicoes) and not target_is_boss and not target_id.is_empty():
+	if (Condicao.ALVO_ELITE_BOSS in condicoes or Condicao.VOTO_ABSOLUTO_CHAIN in condicoes or HatsuComponentLibrary.ConditionType.TARGET_BOSS_ELITE in modular_conditions) and not target_is_boss and not target_id.is_empty():
 		return {"pode": false, "motivo": "Chain Jail: Este juramento só pode atingir Chefes/Elites com Nen!"}
 
 	# Alcances
-	if Condicao.CURTO_ALCANCE_EXTREMO in condicoes and target_distance > 45.0:
+	if (Condicao.CURTO_ALCANCE_EXTREMO in condicoes or HatsuComponentLibrary.ConditionType.CLOSE_RANGE_ZERO in modular_conditions) and target_distance > 45.0:
 		return {"pode": false, "motivo": "Ponto de Impacto Zero: Requer proximidade extrema (< 40px)!"}
-	if Condicao.LONGO_ALCANCE_SNIPER in condicoes and target_distance < 200.0:
+	if (Condicao.LONGO_ALCANCE_SNIPER in condicoes or HatsuComponentLibrary.ConditionType.LONG_RANGE_SNIPER in modular_conditions) and target_distance < 200.0:
 		return {"pode": false, "motivo": "Disparo Sniper: Alvo muito próximo! Requer distância > 220px."}
 
 	# Almas
@@ -717,7 +813,7 @@ func pode_usar(player_context: Dictionary, target_context: Dictionary = {}) -> D
 
 
 # ============================================================
-# MÉTODOS ESTÁTICOS DE SUPORTE
+# SERIALIZAÇÃO & PERSISTÊNCIA SAVE/LOAD MULTI-VERSÃO
 # ============================================================
 
 static func obter_nome_condicao(cond: Condicao) -> String:
@@ -762,7 +858,21 @@ func to_dict() -> Dictionary:
 	var conds: Array[int] = []
 	for c in condicoes:
 		conds.append(int(c))
+
+	var m_conds: Array[int] = []
+	for mc in modular_conditions:
+		m_conds.append(int(mc))
+
+	var m_res: Array[int] = []
+	for mr in modular_restrictions:
+		m_res.append(int(mr))
+
+	var m_draw: Array[int] = []
+	for md in modular_drawbacks:
+		m_draw.append(int(md))
+
 	return {
+		"hatsu_version": hatsu_version,
 		"nome": nome,
 		"categoria": int(categoria),
 		"objetivo": int(objetivo),
@@ -785,12 +895,66 @@ func to_dict() -> Dictionary:
 		"vow_custom_text": vow_custom_text,
 		"vow_custom_mult": vow_custom_mult,
 		"tags": tags.duplicate(),
-		"usuario_original": usuario_original
+		"usuario_original": usuario_original,
+		"activation_type": int(activation_type),
+		"duration_type": int(duration_type),
+		"channel": int(channel),
+		"exclusive_group": exclusive_group,
+		"concurrent_allowed": concurrent_allowed,
+		"aura_drain_per_sec": aura_drain_per_sec,
+		"aura_drain_per_hit": aura_drain_per_hit,
+		"skill_hunter_compatible": skill_hunter_compatible,
+		# Componentes Modulares
+		"core_component": core_component,
+		"effect_modules": effect_modules.duplicate(true),
+		"modular_conditions": m_conds,
+		"modular_restrictions": m_res,
+		"modular_drawbacks": m_draw,
+		# Custom Sliders
+		"custom_damage": custom_damage,
+		"custom_range": custom_range,
+		"custom_radius": custom_radius,
+		"custom_duration": custom_duration,
+		"custom_cooldown": custom_cooldown,
+		"custom_aura_cost": custom_aura_cost,
+		"custom_absorption_pct": custom_absorption_pct,
+		"custom_stat_bonus": custom_stat_bonus.duplicate(),
+		# Scores
+		"power_score": power_score,
+		"complexity_score": complexity_score,
+		"risk_score": risk_score,
+		"efficiency_score": efficiency_score,
+		"is_custom_created": is_custom_created,
+		"creator_id": creator_id,
+		"absorption_target_stat": absorption_target_stat,
+		"absorption_rate": absorption_rate,
+		"rollback_seconds": rollback_seconds,
+		"territory_rule_type": territory_rule_type,
+		"visual_profile": visual_profile.to_dict() if visual_profile != null else null
 	}
+
+
+func obter_visual_profile() -> VisualProfile:
+	if visual_profile != null:
+		return visual_profile
+	var vp := VisualProfile.new()
+	vp.primary_color = cor_aura
+	vp.secondary_color = cor_aura_secundaria
+	vp.core_color = Color(1.0, 1.0, 1.0, 1.0)
+	vp.glow_color = cor_aura
+	vp.glow_intensity = 0.8
+	match forma:
+		Forma.PROJETIL: vp.shape = VisualProfile.VisualShape.SPHERE
+		Forma.AREA, Forma.ZONA: vp.shape = VisualProfile.VisualShape.RING
+		Forma.TOQUE: vp.shape = VisualProfile.VisualShape.BLADE
+		_: vp.shape = VisualProfile.VisualShape.SPHERE
+	return vp
 
 
 static func from_dict(data: Dictionary) -> HatsuData:
 	var h := HatsuData.new()
+	var ver: int = data.get("hatsu_version", 1)
+	h.hatsu_version = ver
 	h.nome = data.get("nome", "Hatsu")
 	h.categoria = data.get("categoria", Categoria.INTENSIFICACAO)
 	h.objetivo = data.get("objetivo", ObjetivoPrincipal.DANO)
@@ -812,15 +976,84 @@ static func from_dict(data: Dictionary) -> HatsuData:
 	h.vow_custom_text = data.get("vow_custom_text", "")
 	h.vow_custom_mult = data.get("vow_custom_mult", 1.0)
 	h.usuario_original = data.get("usuario_original", "")
+	h.activation_type = data.get("activation_type", ActivationType.INSTANT)
+	h.duration_type = data.get("duration_type", DurationType.INSTANT)
+	h.channel = data.get("channel", HatsuChannel.OFFENSIVE)
+	h.exclusive_group = data.get("exclusive_group", "")
+	h.concurrent_allowed = data.get("concurrent_allowed", true)
+	h.aura_drain_per_sec = float(data.get("aura_drain_per_sec", 0.0))
+	h.aura_drain_per_hit = float(data.get("aura_drain_per_hit", 0.0))
+	h.skill_hunter_compatible = bool(data.get("skill_hunter_compatible", true))
+
+	# Tags
 	var tags_in = data.get("tags", [])
 	var typed_tags: Array[String] = []
 	for t in tags_in:
 		typed_tags.append(str(t))
 	h.tags = typed_tags
 
+	# Condições Legadas
 	var conds_in = data.get("condicoes", [])
 	var typed_conds: Array[Condicao] = []
 	for c in conds_in:
 		typed_conds.append(int(c) as Condicao)
 	h.condicoes = typed_conds
+
+	# Componentes Modulares (Versão 2+)
+	h.core_component = data.get("core_component", 0)
+	var eff_in = data.get("effect_modules", [])
+	var typed_eff: Array[Dictionary] = []
+	for e in eff_in:
+		if e is Dictionary: typed_eff.append(e)
+	h.effect_modules = typed_eff
+
+	var mc_in = data.get("modular_conditions", [])
+	var typed_mc: Array[int] = []
+	for mc in mc_in: typed_mc.append(int(mc))
+	h.modular_conditions = typed_mc
+
+	var mr_in = data.get("modular_restrictions", [])
+	var typed_mr: Array[int] = []
+	for mr in mr_in: typed_mr.append(int(mr))
+	h.modular_restrictions = typed_mr
+
+	var md_in = data.get("modular_drawbacks", [])
+	var typed_md: Array[int] = []
+	for md in md_in: typed_md.append(int(md))
+	h.modular_drawbacks = typed_md
+
+	# Custom Sliders
+	h.custom_damage = float(data.get("custom_damage", 0.0))
+	h.custom_range = float(data.get("custom_range", 0.0))
+	h.custom_radius = float(data.get("custom_radius", 0.0))
+	h.custom_duration = float(data.get("custom_duration", 0.0))
+	h.custom_cooldown = float(data.get("custom_cooldown", 0.0))
+	h.custom_aura_cost = float(data.get("custom_aura_cost", 0.0))
+	h.custom_absorption_pct = float(data.get("custom_absorption_pct", 0.0))
+	h.custom_stat_bonus = data.get("custom_stat_bonus", {})
+
+	# Scores & Especialização
+	h.power_score = float(data.get("power_score", 0.0))
+	h.complexity_score = float(data.get("complexity_score", 0.0))
+	h.risk_score = float(data.get("risk_score", 0.0))
+	h.efficiency_score = float(data.get("efficiency_score", 0.0))
+	h.is_custom_created = bool(data.get("is_custom_created", false))
+	h.creator_id = str(data.get("creator_id", ""))
+	h.absorption_target_stat = str(data.get("absorption_target_stat", "aura_max"))
+	h.absorption_rate = float(data.get("absorption_rate", 0.05))
+	h.rollback_seconds = float(data.get("rollback_seconds", 5.0))
+	h.territory_rule_type = str(data.get("territory_rule_type", ""))
+
+	# Perfil Visual Customizado
+	if data.has("visual_profile") and data["visual_profile"] is Dictionary:
+		h.visual_profile = VisualProfile.from_dict(data["visual_profile"])
+
+	# Auto-migração de Versão 1 para Versão 2 se necessário
+	if ver < 2:
+		h.hatsu_version = 2
+		if h.core_component == 0 and h.forma == Forma.PROJETIL:
+			h.core_component = HatsuComponentLibrary.CoreType.PROJECTILE
+		elif h.core_component == 0 and h.forma == Forma.AREA:
+			h.core_component = HatsuComponentLibrary.CoreType.ZONE
+
 	return h
