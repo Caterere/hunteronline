@@ -45,6 +45,31 @@ const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd"
 
 
 # =========================================================
+# VÍNCULO DE MISSÃO & OBJETIVO (CONTROLE DE CICLO DE VIDA)
+# =========================================================
+
+@export_category("Mission Binding")
+
+## Se true, este inimigo é governado pelo estado do QuestManager / Missão ativa.
+@export var is_mission_enemy: bool = false
+
+## Arco a que este inimigo pertence (0 = qualquer arco / não restrito).
+@export var quest_arc: int = 0
+
+## Etapa / Missão do arco a que pertence (0 = qualquer etapa).
+@export var quest_etapa: int = 0
+
+## Índice do objetivo dentro da quest (-1 = qualquer objetivo).
+@export var quest_objective_index: int = -1
+
+## ID específico de missão secundária / paralela.
+@export var mission_id: StringName = &""
+
+## Posição original de spawn para fins de reconciliação e respawn.
+var spawn_position_origin: Vector2 = Vector2.ZERO
+
+
+# =========================================================
 # ESTADO & POSTURA (STAGGER)
 # =========================================================
 
@@ -209,6 +234,7 @@ func _ready() -> void:
 
 		return
 
+	spawn_position_origin = enemy_body.global_position
 	enemy_body.collision_layer = 4 # Layer 3 (Inimigo)
 	enemy_body.collision_mask = 1  # Mask 1 (Paredes/Cenário apenas)
 	enemy_body.add_to_group("enemies")
@@ -325,6 +351,50 @@ func _physics_process(delta: float) -> void:
 
 
 # =========================================================
+# ATIVAÇÃO / DESATIVAÇÃO DE INIMIGO DE MISSÃO
+# =========================================================
+
+func ativar_inimigo_missao(ativo: bool) -> void:
+	if enemy_body == null:
+		enemy_body = get_parent() as CharacterBody2D
+	if enemy_body == null or not is_instance_valid(enemy_body):
+		return
+
+	enemy_body.visible = ativo
+	enemy_body.set_physics_process(ativo)
+	enemy_body.set_process(ativo)
+
+	var col_shape = enemy_body.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if col_shape != null:
+		col_shape.disabled = not ativo
+
+	var hurtbox = enemy_body.get_node_or_null("HurtBox") as Area2D
+	if hurtbox != null:
+		hurtbox.monitoring = ativo
+		hurtbox.monitorable = ativo
+		var hb_shape = hurtbox.get_node_or_null("CollisionShape2D") as CollisionShape2D
+		if hb_shape != null:
+			hb_shape.disabled = not ativo
+
+	var ai = enemy_body.get_node_or_null("EnemyAI") as EnemyAI
+	if ai != null:
+		ai.set_physics_process(ativo)
+		if not ativo:
+			ai.current_state = EnemyAI.State.IDLE
+			if is_instance_valid(enemy_body):
+				enemy_body.velocity = Vector2.ZERO
+
+	if ativo:
+		if not enemy_body.is_in_group("enemies"):
+			enemy_body.add_to_group("enemies")
+		if not enemy_body.is_in_group("enemy"):
+			enemy_body.add_to_group("enemy")
+	else:
+		enemy_body.remove_from_group("enemies")
+		enemy_body.remove_from_group("enemy")
+
+
+# =========================================================
 # DADOS DE INSPEÇÃO DE GYO
 # =========================================================
 
@@ -364,6 +434,11 @@ func take_damage(
 
 	if damage <= 0:
 		return
+
+	# Proteção Camada 2: Inimigo de missão não pode receber dano se seu objetivo não estiver ativo
+	if is_mission_enemy and QuestSystem != null and QuestSystem.has_method("is_enemy_valid_for_active_objective"):
+		if not QuestSystem.is_enemy_valid_for_active_objective(enemy_id, self):
+			return
 
 	if escudo_imune_ativo:
 		ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "🛡️ ESCUDO DE HATSU IMPENETRÁVEL!", 1.5, -42.0)

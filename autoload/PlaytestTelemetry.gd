@@ -612,19 +612,17 @@ func get_quest_metrics() -> Dictionary:
 		return {"has_active_quest": false}
 		
 	var q = QuestSystem.active_quests[0]
-	var obj_desc = "Nenhum"
-	var cur_prog = 0
-	var req_prog = 1
-	
-	if not q.objectives.is_empty():
-		var obj = q.objectives[0]
-		obj_desc = obj.describe()
-		req_prog = obj.required_amount
-		cur_prog = PlayerData.get_quest_objective_progress(q, 0) if PlayerData else 0
+	var obj = QuestSystem.get_active_objective()
+	var obj_idx = QuestSystem.get_active_objective_index()
+	var obj_desc = obj.describe() if obj != null else "Nenhum"
+	var req_prog = obj.required_amount if obj != null else 1
+	var cur_prog = PlayerData.get_quest_objective_progress(q, obj_idx) if (PlayerData and obj_idx >= 0) else 0
 		
 	var recent_ev = event_history.filter(func(e): return "QUEST" in e.get("type", ""))
 	var last_quest_event = recent_ev[0].get("title", "") if not recent_ev.is_empty() else "Nenhum evento recente"
 	
+	var mission_diag = QuestSystem.obter_debug_telemetria_missoes() if QuestSystem.has_method("obter_debug_telemetria_missoes") else {}
+
 	return {
 		"has_active_quest": true,
 		"quest_id": q.resource_path if not q.resource_path.is_empty() else q.quest_name,
@@ -633,7 +631,11 @@ func get_quest_metrics() -> Dictionary:
 		"progress": "%d / %d" % [cur_prog, req_prog],
 		"progress_pct": (float(cur_prog) / maxf(1.0, float(req_prog))) * 100.0,
 		"quest_state": "ACTIVE",
-		"recent_quest_event": last_quest_event
+		"recent_quest_event": last_quest_event,
+		"matching_enemies_alive": mission_diag.get("matching_enemies_alive", 0),
+		"missing_enemies": mission_diag.get("missing_enemies", 0),
+		"total_reconciliations": mission_diag.get("total_reconciliations", 0),
+		"total_respawned": mission_diag.get("total_respawned", 0)
 	}
 
 

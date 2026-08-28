@@ -16,8 +16,6 @@ extends NPC
 func _ready() -> void:
 	super()
 	npc_name = "Wing"
-	if quest == null:
-		quest = load("res://data/quests/arco3_treino_wing.tres") as Quest
 
 
 func _on_interacted(_player: CharacterBody2D) -> void:

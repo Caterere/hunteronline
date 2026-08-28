@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://btestmissionsyncrunner01"]
+
+[ext_resource type="Script" path="res://scratch/test_mission_enemy_sync_suite.gd" id="1_testrunner"]
+
+[node name="TestMissionSyncRunner" type="Node"]
+script = ExtResource("1_testrunner")

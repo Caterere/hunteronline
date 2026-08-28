@@ -1,24 +1,23 @@
 class_name NGLFormigasMap
 extends Node2D
+const StoryGate = preload("res://world/components/StoryGate.gd")
 
 # ============================================================
-# HUNTER ONLINE - MAPA DAS FORMIGAS CHIMERA (ARCO 6 - NGL & PEIJIN)
+# HUNTER ONLINE - MAPA DAS FORMIGAS CHIMERA (ARCO 6 - 48 ETAPAS)
 # ============================================================
 #
-# Coordena os eventos do Arco 6:
-# - Popula NPCs: Kite, Knuckle, Shoot, Morel, Netero, Meruem.
-# - Configura inimigos: Formigas Soldado, Formiga Oficial, Guarda Peijin,
-#   Youpi, Shaiapouf, Neferpitou.
-# - Rastreia marcos da NGL, Palácio e Sala do Trono.
-# - Garante a quest ativa e a UI de diálogos visuais.
+# Coordena os eventos do Arco 6 (Formigas Chimera):
+# - Popula NPCs: Kite, Killua, Netero, Morel, Knuckle, Shoot, Meruem.
+# - Configura inimigos: Formigas Soldado, Guardas de Peijin, Youpi, Pouf e Pitou.
+# - STORY GATE: Exige conclusão das 48 etapas antes da Associação Hunter.
 #
 # ============================================================
 
 var _marcos_notificados: Dictionary = {
 	"fronteira": false,
-	"bosque": false,
+	"fabrica": false,
 	"palacio": false,
-	"trono": false
+	"tumba": false
 }
 
 
@@ -26,7 +25,10 @@ func _ready() -> void:
 	_garantir_dialogue_ui()
 	_popular_npcs_arco6()
 	_configurar_inimigos()
+	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
+	if QuestSystem != null:
+		QuestSystem.sincronizar_inimigos_do_mapa(self)
 
 
 func _process(_delta: float) -> void:
@@ -37,25 +39,25 @@ func _process(_delta: float) -> void:
 	var px: float = player.global_position.x
 	var hud = get_tree().get_first_node_in_group("player_hud")
 
-	if px >= 0 and px < 800 and not _marcos_notificados["fronteira"]:
+	if px >= 0 and px < 1200 and not _marcos_notificados["fronteira"]:
 		_marcos_notificados["fronteira"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🐜 Fronteira da NGL — Território das Formigas Quimera")
+			hud.exibir_notificacao("🌲 Fronteira de NGL — Território isolado onde a Rainha Quimera começou o ninho.")
 
-	elif px >= 800 and px < 2000 and not _marcos_notificados["bosque"]:
-		_marcos_notificados["bosque"] = true
+	elif px >= 1200 and px < 2400 and not _marcos_notificados["fabrica"]:
+		_marcos_notificados["fabrica"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🌲 Bosque Proibido — Esquadrões de Extermínio")
+			hud.exibir_notificacao("🏭 Fábrica Clandestina de D2 — As ruínas sombrias de Gyro.")
 
-	elif px >= 2000 and px < 3400 and not _marcos_notificados["palacio"]:
+	elif px >= 2400 and px < 3600 and not _marcos_notificados["palacio"]:
 		_marcos_notificados["palacio"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏰 Palácio Real de Peijin — Invasão sob a Chuva de Dragões")
+			hud.exibir_notificacao("🏛️ Palácio Real de Peijin — O covil do Rei Meruem e da Guarda Real.")
 
-	elif px >= 3400 and not _marcos_notificados["trono"]:
-		_marcos_notificados["trono"] = true
+	elif px >= 3600 and not _marcos_notificados["tumba"]:
+		_marcos_notificados["tumba"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("👑 Sala do Trono do Rei — Meruem e a Guarda Real")
+			hud.exibir_notificacao("🪦 Tumba de Testes Nucleares — O campo da batalha lendária de Isaac Netero.")
 
 
 func _garantir_dialogue_ui() -> void:
@@ -72,20 +74,17 @@ func _garantir_quest_ativa() -> void:
 		QuestSystem.garantir_quest_do_arco(6)
 
 
-# ============================================================
-# POPULAR NPCS DO ARCO 6
-# ============================================================
-
 func _popular_npcs_arco6() -> void:
 	var scn_npc = load("res://entities/npc/NPC.tscn")
 	if scn_npc == null:
+		print("[NGLFormigasMap] ERRO: NPC.tscn não encontrado!")
 		return
 
 	# 1. Kite (Fronteira NGL)
 	if get_node_or_null("Kite") == null:
 		var kite = scn_npc.instantiate()
 		kite.name = "Kite"
-		kite.position = Vector2(200, -80)
+		kite.position = Vector2(100, -50)
 		var spr = kite.get_node_or_null("Sprite2D") as Sprite2D
 		if spr:
 			spr.texture = load("res://assets/sprites/characters/player.png")
@@ -93,50 +92,39 @@ func _popular_npcs_arco6() -> void:
 			spr.vframes = 10
 			spr.frame = 0
 			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.85, 0.9, 1.0, 1.0)
-		kite.npc_name = "Kite"
-		kite.fala_padrao = "Cuidado onde pisa. Na NGL, as criaturas se alimentam de outros seres vivos para absorver seus genes. O Crazy Slots é imprevisível, mas faremos o trabalho."
+			spr.modulate = Color(0.7, 0.8, 0.9, 1.0)
+		kite.npc_name = "Kite (Caçador de Contratos)"
+		kite.fala_padrao = "Gon, Killua... Se sentirem que estão em perigo, fujam imediatamente. As Formigas Quimera são a espécie mais predatória da história."
 		add_child(kite)
 
-	# 2. Knuckle Bine (Campo de Treino de Peijin)
-	if get_node_or_null("Knuckle") == null:
-		var knuckle = scn_npc.instantiate()
-		knuckle.name = "Knuckle"
-		knuckle.position = Vector2(1200, 150)
-		var spr = knuckle.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(1.0, 0.6, 0.2, 1.0)
-		knuckle.npc_name = "Knuckle Bine"
-		knuckle.fala_padrao = "Meu Hatsu A.P.R. empresta aura ao inimigo e cobra juros de 10% a cada 10 segundos! Quando a dívida ultrapassar sua aura máxima... Falência de Nen!"
-		add_child(knuckle)
+	# 2. Presidente Isaac Netero (Base Militar de Peijin)
+	if get_node_or_null("Netero") == null:
+		var scn_netero = load("res://entities/npc/netero/Netero.tscn")
+		var netero
+		if scn_netero:
+			netero = scn_netero.instantiate()
+		else:
+			netero = scn_npc.instantiate()
+			var spr = netero.get_node_or_null("Sprite2D") as Sprite2D
+			if spr:
+				spr.texture = load("res://assets/sprites/characters/player.png")
+				spr.hframes = 6
+				spr.vframes = 10
+				spr.frame = 0
+				spr.position = Vector2(0, -17)
+				spr.modulate = Color(1.0, 0.9, 0.4, 1.0)
+		
+		netero.name = "Netero"
+		netero.position = Vector2(1800, -100)
+		netero.npc_name = "Presidente Isaac Netero"
+		netero.fala_padrao = "Ho, ho! Vocês treinaram bastante com Knuckle e Shoot. Agora, preparem-se para a Invasão da Hora Zero!"
+		add_child(netero)
 
-	# 3. Shoot McMahon (Base de Operações)
-	if get_node_or_null("Shoot") == null:
-		var shoot = scn_npc.instantiate()
-		shoot.name = "Shoot"
-		shoot.position = Vector2(1350, 150)
-		var spr = shoot.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.7, 0.5, 0.8, 1.0)
-		shoot.npc_name = "Shoot McMahon"
-		shoot.fala_padrao = "Eu costumava ter medo até de olhar para meus inimigos... Mas na hora do desespero, vou voar sobre minha gaiola flutuante de mãos!"
-		add_child(shoot)
-
-	# 4. Morel Mackernasey (Comandante da Invasão)
+	# 3. Morel Mackernasey
 	if get_node_or_null("Morel") == null:
 		var morel = scn_npc.instantiate()
 		morel.name = "Morel"
-		morel.position = Vector2(2100, -120)
+		morel.position = Vector2(1950, -80)
 		var spr = morel.get_node_or_null("Sprite2D") as Sprite2D
 		if spr:
 			spr.texture = load("res://assets/sprites/characters/player.png")
@@ -144,16 +132,50 @@ func _popular_npcs_arco6() -> void:
 			spr.vframes = 10
 			spr.frame = 0
 			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.3, 0.7, 0.9, 1.0)
+			spr.modulate = Color(0.4, 0.5, 0.6, 1.0)
 		morel.npc_name = "Morel Mackernasey"
-		morel.fala_padrao = "Minha fumaça Deep Purple cria soldados e barreiras impossíveis de quebrar. Mantenha a respiração firme!"
+		morel.fala_padrao = "Meu Deep Purple pode criar 216 soldados de fumaça. Nenhum membro da Guarda Real passará por mim!"
 		add_child(morel)
 
-	# 5. Rei Meruem (Tranquilo no Palácio)
-	if get_node_or_null("MeruemNPC") == null:
+	# 4. Knuckle Bine
+	if get_node_or_null("Knuckle") == null:
+		var knuckle = scn_npc.instantiate()
+		knuckle.name = "Knuckle"
+		knuckle.position = Vector2(2100, -60)
+		var spr = knuckle.get_node_or_null("Sprite2D") as Sprite2D
+		if spr:
+			spr.texture = load("res://assets/sprites/characters/player.png")
+			spr.hframes = 6
+			spr.vframes = 10
+			spr.frame = 0
+			spr.position = Vector2(0, -17)
+			spr.modulate = Color(0.9, 0.9, 0.9, 1.0)
+		knuckle.npc_name = "Knuckle Bine"
+		knuckle.fala_padrao = "O A.P.R. já está cobrando 10% de juros por segundo no Youpi! Não recuem!"
+		add_child(knuckle)
+
+	# 5. Shoot McMahon
+	if get_node_or_null("Shoot") == null:
+		var shoot = scn_npc.instantiate()
+		shoot.name = "Shoot"
+		shoot.position = Vector2(2250, -60)
+		var spr = shoot.get_node_or_null("Sprite2D") as Sprite2D
+		if spr:
+			spr.texture = load("res://assets/sprites/characters/player.png")
+			spr.hframes = 6
+			spr.vframes = 10
+			spr.frame = 0
+			spr.position = Vector2(0, -17)
+			spr.modulate = Color(0.5, 0.3, 0.7, 1.0)
+		shoot.npc_name = "Shoot McMahon"
+		shoot.fala_padrao = "Superei meu medo! Minhas três mãos flutuantes abrirão o caminho para o Gon!"
+		add_child(shoot)
+
+	# 6. Rei Meruem (Aposentos do Palácio)
+	if get_node_or_null("MeruemReiNPC") == null:
 		var meruem = scn_npc.instantiate()
-		meruem.name = "Meruem"
-		meruem.position = Vector2(4200, 50)
+		meruem.name = "MeruemReiNPC"
+		meruem.position = Vector2(3600, -120)
 		var spr = meruem.get_node_or_null("Sprite2D") as Sprite2D
 		if spr:
 			spr.texture = load("res://assets/sprites/characters/player.png")
@@ -162,48 +184,45 @@ func _popular_npcs_arco6() -> void:
 			spr.frame = 0
 			spr.position = Vector2(0, -17)
 			spr.scale = Vector2(1.2, 1.2)
-			spr.modulate = Color(0.2, 0.8, 0.5, 1.0)
+			spr.modulate = Color(0.2, 0.7, 0.4, 1.0)
 		meruem.npc_name = "Rei Meruem"
-		meruem.fala_padrao = "Qual é o meu nome?... Komugi me ensinou que o poder não existe para esmagar os fracos, mas para proteger o que é precioso."
+		meruem.fala_padrao = "Komugi... você ainda está aí? Vamos jogar apenas mais uma partida de Gungi..."
 		add_child(meruem)
 
 
-# ============================================================
-# CONFIGURAR INIMIGOS
-# ============================================================
-
 func _configurar_inimigos() -> void:
-	var f1 = get_node_or_null("FormigaSoldado1")
-	if f1 != null:
-		var es = f1.get_node_or_null("EnemySystem")
-		if es != null:
-			es.enemy_id = &"formiga_soldado"
-			es.enemy_name = "Formiga Soldado Quimera"
+	var configs = {
+		"FormigaSoldado1": {"id": &"formiga_soldado", "nome": "Formiga Soldado Quimera", "etapa": 3},
+		"FormigaSoldado2": {"id": &"formiga_oficial", "nome": "Formiga Oficial Quimera", "etapa": 5},
+		"EsquadraoQuimera": {"id": &"guarda_peijin", "nome": "Guarda de Peijin", "etapa": 19},
+		"YoupiInimigo": {"id": &"youpi", "nome": "Menthuthuyoupi (Guarda Real)", "etapa": 32},
+		"ShaiapoufInimigo": {"id": &"shaiapouf", "nome": "Shaiapouf (Guarda Real)", "etapa": 33},
+		"NeferpitouInimigo": {"id": &"neferpitou", "nome": "Neferpitou Boss", "etapa": 43}
+	}
+	
+	for nome in configs:
+		var node = get_node_or_null(nome)
+		if node != null:
+			var es = node.get_node_or_null("EnemySystem")
+			if es != null:
+				es.is_mission_enemy = true
+				es.quest_arc = 6
+				es.quest_etapa = configs[nome]["etapa"]
+				es.enemy_id = configs[nome]["id"]
+				es.enemy_name = configs[nome]["nome"]
+				if not es.died.is_connected(QuestSystem.register_enemy_kill):
+					es.died.connect(QuestSystem.register_enemy_kill)
+				if QuestSystem != null:
+					QuestSystem.registrar_spawn_posicao_missao(es.enemy_id, node.global_position, 6, es.quest_etapa, -1, null, es.enemy_name)
 
-	var f2 = get_node_or_null("FormigaSoldado2")
-	if f2 != null:
-		var es = f2.get_node_or_null("EnemySystem")
-		if es != null:
-			es.enemy_id = &"formiga_oficial"
-			es.enemy_name = "Formiga Oficial Quimera"
 
-	var esq = get_node_or_null("EsquadraoQuimera")
-	if esq != null:
-		var es = esq.get_node_or_null("EnemySystem")
-		if es != null:
-			es.enemy_id = &"guarda_peijin"
-			es.enemy_name = "Guarda de Peijin (Youpi & Pouf)"
-
-	var pitou = get_node_or_null("NeferpitouInimigo")
-	if pitou != null:
-		var es = pitou.get_node_or_null("EnemySystem")
-		if es != null:
-			es.enemy_id = &"neferpitou"
-			es.enemy_name = "Guarda Real Neferpitou"
-
-	var meruem_boss = get_node_or_null("MeruemRei")
-	if meruem_boss != null:
-		var es = meruem_boss.get_node_or_null("EnemySystem")
-		if es != null:
-			es.enemy_id = &"youpi"
-			es.enemy_name = "Menthuthuyoupi (Guarda Real)"
+func _configurar_portal_conclusao() -> void:
+	var portal = get_node_or_null("PortalAssociacao") as MapTransitionArea
+	if portal != null:
+		portal.portal_name = "Associação Hunter"
+		portal.map_subtitle = "Arco 7 — A Eleição dos 12 Zodíacos & Alluka"
+		portal.story_gate = StoryGate.new(6, 48, true)
+		portal.story_gate.gate_title = "Evacuação de NGL & Goruto Oriental"
+		portal.story_gate.default_locked_message = "Você precisa concluir todas as 48 etapas da Crise das Formigas Chimera antes de voltar para a sede da Associação Hunter!"
+		portal.callback_dialogo_previo = func(mudar_cena_cb: Callable):
+			StoryCutsceneManager.executar_chimera_ant_cutscene(get_tree(), mudar_cena_cb)

@@ -29,6 +29,8 @@ func _ready() -> void:
 	_configurar_audio_ambiente()
 	_inicializar_quests_padokia()
 	_notificar_entrada_regiao()
+	if QuestSystem != null:
+		QuestSystem.sincronizar_inimigos_do_mapa(self)
 
 
 func _inicializar_quests_padokia() -> void:

@@ -271,6 +271,15 @@ func _update_state() -> void:
 		current_state = State.STAGGER
 		return
 
+	# Proteção Camada 2: Inimigo de missão inativo permanece estritamente em IDLE
+	if enemy_system != null and enemy_system.is_mission_enemy:
+		if QuestSystem != null and QuestSystem.has_method("is_enemy_valid_for_active_objective"):
+			if not QuestSystem.is_enemy_valid_for_active_objective(enemy_system.enemy_id, enemy_system):
+				current_state = State.IDLE
+				if enemy_body != null:
+					enemy_body.velocity = Vector2.ZERO
+				return
+
 	# Manter estados atômicos de combate (Windup, Ataque e Recuperação)
 	if current_state == State.PREPARE_ATTACK or current_state == State.ATTACK or current_state == State.RECOVERY:
 		return

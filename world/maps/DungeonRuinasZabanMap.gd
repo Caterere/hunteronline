@@ -36,6 +36,8 @@ func _ready() -> void:
 	_gerar_mapa_dungeon()
 	_instanciar_boss_e_sentinelas()
 	_configurar_audio_e_hud()
+	if QuestSystem != null:
+		QuestSystem.sincronizar_inimigos_do_mapa(self)
 
 
 func _configurar_audio_e_hud() -> void:
@@ -103,10 +105,15 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool) -> void:
 				es.strength = 32
 				es.xp_reward = 800
 				es.nen_xp_reward = 600
+				es.enemy_id = &"guardiao_ancestral"
 				es.enemy_name = nome
 				
 				# Conectar derrota do chefe
 				es.died.connect(_on_boss_derrotado)
+				if not es.died.is_connected(QuestSystem.register_enemy_kill):
+					es.died.connect(QuestSystem.register_enemy_kill)
+				if QuestSystem != null:
+					QuestSystem.registrar_spawn_posicao_missao(&"guardiao_ancestral", pos, 0, 0, -1, null, nome)
 				
 				# Ativar Boss Bar no HUD
 				var hud = get_tree().get_first_node_in_group("player_hud")
@@ -119,7 +126,12 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool) -> void:
 				es.strength = 18
 				es.xp_reward = 120
 				es.nen_xp_reward = 80
+				es.enemy_id = &"sentinela_pedra"
 				es.enemy_name = nome
+				if not es.died.is_connected(QuestSystem.register_enemy_kill):
+					es.died.connect(QuestSystem.register_enemy_kill)
+				if QuestSystem != null:
+					QuestSystem.registrar_spawn_posicao_missao(&"sentinela_pedra", pos, 0, 0, -1, null, nome)
 
 
 func _on_boss_derrotado(_enemy_type: StringName) -> void:

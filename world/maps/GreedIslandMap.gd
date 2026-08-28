@@ -1,15 +1,23 @@
 class_name GreedIslandMap
 extends Node2D
+const StoryGate = preload("res://world/components/StoryGate.gd")
 
 # ============================================================
-# HUNTER ONLINE - MAPA DE GREED ISLAND (ARCO 5)
+# HUNTER ONLINE - MAPA DE GREED ISLAND (ARCO 5 - 36 ETAPAS)
+# ============================================================
+#
+# Coordena os eventos do Arco 5 (Greed Island):
+# - Popula NPCs: Biscuit, Battera, Antokiba, Goreinu, Hisoka, Razor, Elena.
+# - Configura monstros, golens, demônios de Nen, Razor Boss e Genthru Bomber.
+# - STORY GATE: Exige conclusão das 36 etapas antes da fronteira de NGL.
+#
 # ============================================================
 
 var _marcos_notificados: Dictionary = {
 	"antokiba": false,
 	"montanhas": false,
-	"soufrabi": false,
-	"torre_final": false
+	"litoral": false,
+	"castelo": false
 }
 
 
@@ -17,7 +25,10 @@ func _ready() -> void:
 	_garantir_dialogue_ui()
 	_popular_npcs_arco5()
 	_configurar_inimigos()
+	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
+	if QuestSystem != null:
+		QuestSystem.sincronizar_inimigos_do_mapa(self)
 
 
 func _process(_delta: float) -> void:
@@ -28,25 +39,25 @@ func _process(_delta: float) -> void:
 	var px: float = player.global_position.x
 	var hud = get_tree().get_first_node_in_group("player_hud")
 
-	if px >= 0 and px < 900 and not _marcos_notificados["antokiba"]:
+	if px >= 0 and px < 1200 and not _marcos_notificados["antokiba"]:
 		_marcos_notificados["antokiba"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏙️ Cidade de Antokiba — Mês dos Torneios Mensais!")
+			hud.exibir_notificacao("🏙️ Cidade de Antokiba — A cidade inicial dos jogadores de Greed Island.")
 
-	elif px >= 900 and px < 2200 and not _marcos_notificados["montanhas"]:
+	elif px >= 1200 and px < 2400 and not _marcos_notificados["montanhas"]:
 		_marcos_notificados["montanhas"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("⛰️ Montanhas Rochosas — Monstros perigosos habitam aqui.")
+			hud.exibir_notificacao("⛰️ Desfiladeiro Rochoso — Área de treinamento extremo da Mestra Biscuit.")
 
-	elif px >= 2200 and px < 3400 and not _marcos_notificados["soufrabi"]:
-		_marcos_notificados["soufrabi"] = true
+	elif px >= 2400 and px < 3600 and not _marcos_notificados["litoral"]:
+		_marcos_notificados["litoral"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏖️ Soufrabi — A cidade portuária dos piratas e sede da queimada mortal!")
+			hud.exibir_notificacao("🌊 Cidade Portuária de Soufrabi — O ginásio da Queimada Mortal de Razor!")
 
-	elif px >= 3400 and not _marcos_notificados["torre_final"]:
-		_marcos_notificados["torre_final"] = true
+	elif px >= 3600 and not _marcos_notificados["castelo"]:
+		_marcos_notificados["castelo"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏰 Castelo Final — O prêmio aguarda quem reunir todas as cartas.")
+			hud.exibir_notificacao("🏰 Castelo de Conclusão — Cidade de Premiação de Greed Island!")
 
 
 func _garantir_dialogue_ui() -> void:
@@ -69,11 +80,11 @@ func _popular_npcs_arco5() -> void:
 		print("[GreedIslandMap] ERRO: NPC.tscn não encontrado!")
 		return
 
-	# 1. Battera
+	# 1. Bilionário Battera (Entrada)
 	if get_node_or_null("Battera") == null:
 		var battera = scn_npc.instantiate()
 		battera.name = "Battera"
-		battera.position = Vector2(100, 0)
+		battera.position = Vector2(100, -30)
 		var spr = battera.get_node_or_null("Sprite2D") as Sprite2D
 		if spr:
 			spr.texture = load("res://assets/sprites/characters/player.png")
@@ -81,61 +92,22 @@ func _popular_npcs_arco5() -> void:
 			spr.vframes = 10
 			spr.frame = 0
 			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.7, 0.5, 0.2, 1.0)
+			spr.modulate = Color(0.9, 0.7, 0.2, 1.0)
 		battera.npc_name = "Bilionário Battera"
-		battera.fala_padrao = "Eu pagarei 50 bilhões de Jenny a quem conseguir limpar o jogo Greed Island! Minha amada depende disso..."
+		battera.fala_padrao = "Estou investindo tudo o que tenho... por favor, tragam a carta de cura para salvar quem eu amo!"
 		add_child(battera)
 
-	# 2. Antokiba (Objeto/Área)
+	# 2. Quadro de Antokiba (Objeto)
 	if get_node_or_null("Antokiba") == null:
-		var antokiba := StaticBody2D.new()
+		var antokiba = scn_npc.instantiate()
 		antokiba.name = "Antokiba"
-		antokiba.position = Vector2(500, 100)
-
-		var col := CollisionShape2D.new()
-		var rect := RectangleShape2D.new()
-		rect.size = Vector2(40, 40)
-		col.shape = rect
-		antokiba.add_child(col)
-
-		var spr := Sprite2D.new()
-		spr.texture = load("res://assets/sprites/characters/player.png")
-		spr.hframes = 6
-		spr.vframes = 10
-		spr.frame = 0
-		spr.position = Vector2(0, -17)
-		spr.scale = Vector2(1.5, 1.5)
-		spr.modulate = Color(0.3, 0.5, 0.8, 1.0)
-		antokiba.add_child(spr)
-
-		var lbl := Label.new()
-		lbl.text = "🏆 Antokiba\n(Quadro de Missões)"
-		lbl.position = Vector2(-60, -45)
-		lbl.custom_minimum_size = Vector2(120, 14)
-		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 3)
-		lbl.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9))
-		lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
-		antokiba.add_child(lbl)
-
-		var inter := InteractionComponent.new()
-		inter.name = "InteractionComponent"
-		inter.interaction_text = "[E] Verificar torneios"
-		inter.interaction_radius = 25.0
-		inter.interacted.connect(func(_player):
-			QuestSystem.register_npc_visit(&"antokiba")
-			var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
-			if visual_dialogue:
-				var falas: Array[Dictionary] = [
-					{"falante": "Quadro de Antokiba", "texto": "Torneio de Pedra-Papel-Tesoura amanhã! Prêmio: Carta Espada da Verdade. Inscreva-se!"}
-				]
-				visual_dialogue.exibir_sequencia_falas(falas)
-		)
-		antokiba.add_child(inter)
+		antokiba.position = Vector2(300, -50)
+		antokiba.npc_name = "Quadro de Antokiba"
+		antokiba.fala_padrao = "Regras de Greed Island: Colete 100 cartas de espaço designado para zerar o jogo. Use 'Book' para invocar o fichário."
 		add_child(antokiba)
 
-	# 3. Biscuit
-	if get_node_or_null("Biscuit_Map") == null:
+	# 3. Mestra Biscuit Krueger (Montanhas)
+	if get_node_or_null("Biscuit") == null:
 		var scn_biscuit = load("res://entities/npc/biscuit/Biscuit.tscn")
 		var biscuit
 		if scn_biscuit:
@@ -151,17 +123,17 @@ func _popular_npcs_arco5() -> void:
 				spr.position = Vector2(0, -17)
 				spr.modulate = Color(1.0, 0.6, 0.8, 1.0)
 		
-		biscuit.name = "Biscuit_Map"
-		biscuit.position = Vector2(1200, -200)
-		biscuit.npc_name = "Biscuit Krueger"
-		biscuit.fala_padrao = "Vocês ainda têm muito o que aprender! Eu serei a mestra de vocês a partir de agora. Se preparem para o inferno!"
+		biscuit.name = "Biscuit"
+		biscuit.position = Vector2(1500, -100)
+		biscuit.npc_name = "Mestra Biscuit Krueger"
+		biscuit.fala_padrao = "Sou uma caçadora de joias de 57 anos! Vamos cavar essas rochas e treinar Ko, Shu, Ryu e Ken até você desmaiar!"
 		add_child(biscuit)
 
-	# 4. Goreinu
+	# 4. Goreinu (Soufrabi)
 	if get_node_or_null("Goreinu") == null:
 		var goreinu = scn_npc.instantiate()
 		goreinu.name = "Goreinu"
-		goreinu.position = Vector2(2000, 150)
+		goreinu.position = Vector2(2500, -80)
 		var spr = goreinu.get_node_or_null("Sprite2D") as Sprite2D
 		if spr:
 			spr.texture = load("res://assets/sprites/characters/player.png")
@@ -169,16 +141,16 @@ func _popular_npcs_arco5() -> void:
 			spr.vframes = 10
 			spr.frame = 0
 			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.5, 0.4, 0.3, 1.0)
+			spr.modulate = Color(0.4, 0.4, 0.5, 1.0)
 		goreinu.npc_name = "Goreinu"
-		goreinu.fala_padrao = "Meus gorilas de Nen são perfeitos para a queimada. Vamos formar uma equipe e derrotar o Razor!"
+		goreinu.fala_padrao = "Meus gorilas de Nen estão prontos para a queimada. Vamos acabar com esses piratas de Soufrabi!"
 		add_child(goreinu)
 
-	# 5. Razor
+	# 5. Game Master Razor (Ginásio)
 	if get_node_or_null("Razor") == null:
 		var razor = scn_npc.instantiate()
 		razor.name = "Razor"
-		razor.position = Vector2(3000, -100)
+		razor.position = Vector2(2700, -100)
 		var spr = razor.get_node_or_null("Sprite2D") as Sprite2D
 		if spr:
 			spr.texture = load("res://assets/sprites/characters/player.png")
@@ -186,16 +158,17 @@ func _popular_npcs_arco5() -> void:
 			spr.vframes = 10
 			spr.frame = 0
 			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.8, 0.3, 0.1, 1.0)
+			spr.scale = Vector2(1.2, 1.2)
+			spr.modulate = Color(0.8, 0.2, 0.2, 1.0)
 		razor.npc_name = "Game Master Razor"
-		razor.fala_padrao = "Eu sou um dos criadores deste jogo e amigo de Ging. Se querem passar, terão que me vencer na queimada. Não vou pegar leve!"
+		razor.fala_padrao = "Ging me tirou da prisão e confiou em mim para proteger esta rota. Se querem a Carta 002, terão que me vencer na queimada!"
 		add_child(razor)
 
-	# 6. Elena
+	# 6. Elena (Castelo Final)
 	if get_node_or_null("ElenaGreed") == null:
 		var elena = scn_npc.instantiate()
 		elena.name = "ElenaGreed"
-		elena.position = Vector2(4000, 0)
+		elena.position = Vector2(3800, -120)
 		var spr = elena.get_node_or_null("Sprite2D") as Sprite2D
 		if spr:
 			spr.texture = load("res://assets/sprites/characters/player.png")
@@ -203,18 +176,19 @@ func _popular_npcs_arco5() -> void:
 			spr.vframes = 10
 			spr.frame = 0
 			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.9, 0.85, 0.7, 1.0)
-		elena.npc_name = "Elena"
-		elena.fala_padrao = "Parabéns por reunir todas as 100 cartas com espaços designados. Como recompensa, você pode escolher três cartas para levar ao mundo real!"
+			spr.modulate = Color(0.3, 0.9, 0.7, 1.0)
+		elena.npc_name = "Elena (Criadora de Greed Island)"
+		elena.fala_padrao = "Parabéns por zerar o Greed Island! Como recompensa, você pode escolher 3 cartas para levar ao mundo real."
 		add_child(elena)
 
 
 func _configurar_inimigos() -> void:
 	var configs = {
-		"MonstroNen1": {"id": &"golem_pedra", "nome": "Golem de Pedra"},
-		"MonstroNen2": {"id": &"monstro_greed", "nome": "Monstro de Greed Island"},
-		"GenthruInimigo": {"id": &"genthru", "nome": "Genthru (Bomber)"},
-		"RazorInimigo": {"id": &"razor_boss", "nome": "Razor (Chefe)"}
+		"MonstroNen1": {"id": &"monstro_greed", "nome": "Monstro Mágico de Greed", "etapa": 4},
+		"GolemPedra1": {"id": &"golem_pedra", "nome": "Golem de Pedra das Montanhas", "etapa": 8},
+		"DemonioRazor1": {"id": &"demonio_razor", "nome": "Demônio de Nen de Razor", "etapa": 21},
+		"RazorBossInimigo": {"id": &"razor_boss", "nome": "Game Master Razor Boss", "etapa": 25},
+		"GenthruInimigo": {"id": &"genthru", "nome": "Genthru Bomber (Chefe)", "etapa": 31}
 	}
 	
 	for nome in configs:
@@ -222,5 +196,24 @@ func _configurar_inimigos() -> void:
 		if node != null:
 			var es = node.get_node_or_null("EnemySystem")
 			if es != null:
+				es.is_mission_enemy = true
+				es.quest_arc = 5
+				es.quest_etapa = configs[nome]["etapa"]
 				es.enemy_id = configs[nome]["id"]
 				es.enemy_name = configs[nome]["nome"]
+				if not es.died.is_connected(QuestSystem.register_enemy_kill):
+					es.died.connect(QuestSystem.register_enemy_kill)
+				if QuestSystem != null:
+					QuestSystem.registrar_spawn_posicao_missao(es.enemy_id, node.global_position, 5, es.quest_etapa, -1, null, es.enemy_name)
+
+
+func _configurar_portal_conclusao() -> void:
+	var portal = get_node_or_null("PortalNGL") as MapTransitionArea
+	if portal != null:
+		portal.portal_name = "Fronteira da NGL"
+		portal.map_subtitle = "Arco 6 — Formigas Chimera & A Crise de Peijin"
+		portal.story_gate = StoryGate.new(5, 36, true)
+		portal.story_gate.gate_title = "Feitiço Accompany (Saída de Greed Island)"
+		portal.story_gate.default_locked_message = "Você precisa completar todas as 36 etapas de Greed Island e coletar as 100 cartas antes de voar para NGL!"
+		portal.callback_dialogo_previo = func(mudar_cena_cb: Callable):
+			StoryCutsceneManager.executar_greed_island_cutscene(get_tree(), mudar_cena_cb)

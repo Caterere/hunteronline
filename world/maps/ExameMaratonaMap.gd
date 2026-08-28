@@ -3,17 +3,16 @@ extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
 
 # ============================================================
-# HUNTER ONLINE - MAPA DO 287Ã‚Âº EXAME HUNTER (MARATONA & PANTANAL)
+# HUNTER ONLINE - MAPA DO 287º EXAME HUNTER (MARATONA & PANTANAL)
 # ============================================================
 #
-# Coordena os eventos do Arco 1:
-# - Garante a UI de DiÃƒÂ¡logos Visuais e balÃƒÂµes.
-# - Configura status e dados dos inimigos das 4 zonas temÃƒÂ¡ticas.
-# - Rastreia marcos e notificaÃƒÂ§ÃƒÂµes de imersÃƒÂ£o narrativa.
-# - STORY GATE: Impede transiÃƒÂ§ÃƒÂ£o prematura para o Arco 2 sem concluir
-#   as etapas obrigatÃƒÂ³rias do Exame Hunter.
-# - Configura o diÃƒÂ¡logo cinematogrÃƒÂ¡fico de vitÃƒÂ³ria da 1Ã‚Âª fase
-#   ao interagir com o portal da Montanha Kukuroo no fim do pantanal.
+# Coordena os eventos do Arco 1 (24 etapas):
+# - Garante a UI de Diálogos Visuais e balões.
+# - Configura status e dados dos inimigos das 4 zonas temáticas.
+# - Rastreia marcos e notificações de imersão narrativa.
+# - STORY GATE: Impede transição prematura para o Arco 2 sem concluir
+#   as 24 etapas obrigatórias do Exame Hunter.
+# - Configura o diálogo cinematográfico de vitória ao interagir com o portal.
 #
 # ============================================================
 
@@ -29,6 +28,8 @@ func _ready() -> void:
 	_garantir_dialogue_ui()
 	_configurar_inimigos_zonas()
 	_configurar_portal_conclusao()
+	if QuestSystem != null:
+		QuestSystem.sincronizar_inimigos_do_mapa(self)
 
 
 func _process(_delta: float) -> void:
@@ -42,22 +43,22 @@ func _process(_delta: float) -> void:
 	if px >= 0 and px < 1600 and not _marcos_notificados["tunel"]:
 		_marcos_notificados["tunel"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("Ã°Å¸ÂÆ’ 1Ã‚Âª Fase: Maratona SubterrÃƒÂ¢nea de Zaban (80km)")
+			hud.exibir_notificacao("🏃 1ª Fase: Maratona Subterrânea de Zaban (80km)")
 
 	elif px >= 1600 and px < 3800 and not _marcos_notificados["pantanal"]:
 		_marcos_notificados["pantanal"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("Ã°Å¸Å’Â«Ã¯Â¸Â Pantanal Numere Ã¢â‚¬â€ O Ninho dos Trapaceiros")
+			hud.exibir_notificacao("🌫️ Pantanal Numere — O Ninho dos Trapaceiros")
 
 	elif px >= 3800 and px < 5400 and not _marcos_notificados["floresta_gourmet"]:
 		_marcos_notificados["floresta_gourmet"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("Ã°Å¸Ââ€“ Floresta Biska Ã¢â‚¬â€ 2Ã‚Âª Fase: Hunters Gourmet (Menchi & Buhara)")
+			hud.exibir_notificacao("🍖 Floresta Biska — 2ª Fase: Hunters Gourmet (Menchi & Buhara)")
 
 	elif px >= 5400 and not _marcos_notificados["portao_final"]:
 		_marcos_notificados["portao_final"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("Ã°Å¸Å¡Âª PortÃƒÂ£o de Chegada do 287Ã‚Âº Exame Hunter")
+			hud.exibir_notificacao("🚪 Portão de Chegada do 287º Exame Hunter")
 
 
 func _garantir_dialogue_ui() -> void:
@@ -74,7 +75,7 @@ func _configurar_inimigos_zonas() -> void:
 	var data_pantanal = load("res://resource/status/MacacoPantanal.tres")
 	var data_javali = load("res://resource/status/GreatStampPig.tres")
 
-	# Sabotadores do TÃƒÂºnel
+	# Sabotadores do Túnel e Competidores (Arco 1, Etapas 4, 19, 21)
 	for nome in ["InimigoMaratona1", "InimigoMaratona2", "InimigoMaratona3"]:
 		var node = get_node_or_null(nome)
 		if node != null:
@@ -82,6 +83,9 @@ func _configurar_inimigos_zonas() -> void:
 			node.add_to_group("enemies")
 			var es = node.get_node_or_null("EnemySystem")
 			if es != null:
+				es.is_mission_enemy = true
+				es.quest_arc = 1
+				es.quest_etapa = 4
 				if "enemy_data" in es and data_sabotador != null:
 					es.set("enemy_data", data_sabotador)
 				if "enemy_id" in es:
@@ -90,8 +94,12 @@ func _configurar_inimigos_zonas() -> void:
 					es.set("enemy_name", "Candidato Sabotador")
 				if not es.died.is_connected(QuestSystem.register_enemy_kill):
 					es.died.connect(QuestSystem.register_enemy_kill)
+				if QuestSystem != null:
+					QuestSystem.registrar_spawn_posicao_missao(&"candidato_exame", node.global_position, 1, 4, -1, data_sabotador, "Candidato Sabotador")
+					QuestSystem.registrar_spawn_posicao_missao(&"candidato_exame", node.global_position, 1, 19, -1, data_sabotador, "Prisioneiro Condenado")
+					QuestSystem.registrar_spawn_posicao_missao(&"candidato_exame", node.global_position, 1, 21, -1, data_sabotador, "Competidor Veterano de Zevil")
 
-	# Criaturas do Pantanal
+	# Criaturas do Pantanal (Arco 1, Etapas 8 e 10)
 	for nome in ["MonstroPantanal1", "MonstroPantanal2", "MonstroPantanal3", "MonstroPantanal4"]:
 		var node = get_node_or_null(nome)
 		if node != null:
@@ -99,6 +107,9 @@ func _configurar_inimigos_zonas() -> void:
 			node.add_to_group("enemies")
 			var es = node.get_node_or_null("EnemySystem")
 			if es != null:
+				es.is_mission_enemy = true
+				es.quest_arc = 1
+				es.quest_etapa = 8
 				if "enemy_data" in es and data_pantanal != null:
 					es.set("enemy_data", data_pantanal)
 				if "enemy_id" in es:
@@ -107,8 +118,11 @@ func _configurar_inimigos_zonas() -> void:
 					es.set("enemy_name", "Macaco de Rosto Humano")
 				if not es.died.is_connected(QuestSystem.register_enemy_kill):
 					es.died.connect(QuestSystem.register_enemy_kill)
+				if QuestSystem != null:
+					QuestSystem.registrar_spawn_posicao_missao(&"criatura_pantanal", node.global_position, 1, 8, -1, data_pantanal, "Macaco de Rosto Humano")
+					QuestSystem.registrar_spawn_posicao_missao(&"criatura_pantanal", node.global_position, 1, 10, -1, data_pantanal, "Criatura Voraz do Nevoeiro")
 
-	# Javalis da Floresta Biska
+	# Javalis da Floresta Biska (Arco 1, Etapa 12)
 	for nome in ["JavaliGreatStamp1", "JavaliGreatStamp2"]:
 		var node = get_node_or_null(nome)
 		if node != null:
@@ -116,6 +130,9 @@ func _configurar_inimigos_zonas() -> void:
 			node.add_to_group("enemies")
 			var es = node.get_node_or_null("EnemySystem")
 			if es != null:
+				es.is_mission_enemy = true
+				es.quest_arc = 1
+				es.quest_etapa = 12
 				if "enemy_data" in es and data_javali != null:
 					es.set("enemy_data", data_javali)
 				if "enemy_id" in es:
@@ -128,16 +145,17 @@ func _configurar_inimigos_zonas() -> void:
 				if spr != null:
 					spr.modulate = Color(0.85, 0.45, 0.35, 1.0)
 					node.scale = Vector2(1.3, 1.3)
+				if QuestSystem != null:
+					QuestSystem.registrar_spawn_posicao_missao(&"great_stamp_pig", node.global_position, 1, 12, -1, data_javali, "Grande Javali Selvagem")
 
 
 func _configurar_portal_conclusao() -> void:
 	var portal = get_node_or_null("PortalMontanhaKukuroo") as MapTransitionArea
 	if portal != null:
 		portal.portal_name = "Montanha Kukuroo"
-		portal.map_subtitle = "Arco 2 Ã¢â‚¬â€ Propriedade da FamÃƒÂ­lia Zoldyck"
-		# Configurar StoryGate oficial exigindo a conclusÃƒÂ£o de todas as etapas do Arco 1
-		portal.story_gate = StoryGate.new(1, 6, true)
-		portal.story_gate.gate_title = "PortÃƒÂ£o de Chegada do 287Ã‚Âº Exame Hunter"
-		portal.story_gate.default_locked_message = "VocÃƒÂª precisa concluir todas as provas do Exame Hunter antes de avanÃƒÂ§ar para o Arco 2!"
+		portal.map_subtitle = "Arco 2 — Propriedade da Família Zoldyck"
+		portal.story_gate = StoryGate.new(1, 24, true)
+		portal.story_gate.gate_title = "Portão de Chegada do 287º Exame Hunter"
+		portal.story_gate.default_locked_message = "Você precisa concluir todas as 24 etapas do Exame Hunter antes de avançar para a Montanha Kukuroo!"
 		portal.callback_dialogo_previo = func(mudar_cena_cb: Callable):
 			StoryCutsceneManager.executar_conclusao_exame_hunter(get_tree(), mudar_cena_cb)

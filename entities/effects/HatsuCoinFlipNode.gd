@@ -35,7 +35,9 @@ func _draw() -> void:
 	# Moeda dourada girando
 	var scale_x: float = abs(cos(tempo * 12.0))
 	var cor_ouro := Color(1.0, 0.85, 0.2, 0.95)
-	draw_ellipse(Vector2.ZERO, 7.0 * max(0.2, scale_x), 7.0, cor_ouro, true)
-	draw_ellipse(Vector2.ZERO, 7.0 * max(0.2, scale_x), 7.0, Color(0.8, 0.5, 0.1, 1.0), false, 1.0)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2(max(0.2, scale_x), 1.0))
+	draw_circle(Vector2.ZERO, 7.0, cor_ouro)
+	draw_arc(Vector2.ZERO, 7.0, 0, TAU, 16, Color(0.8, 0.5, 0.1, 1.0), 1.0)
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if tempo > 0.5:
 		draw_string(ThemeDB.fallback_font, Vector2(-4, 3), resultado_texto.substr(0, 1), HORIZONTAL_ALIGNMENT_CENTER, -1, 6, Color.WHITE)
