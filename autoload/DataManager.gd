@@ -114,18 +114,222 @@ func _inicializar_inimigos_canônicos() -> void:
 			if res and "enemy_id" in res and res.enemy_id != &"":
 				enemies_registry[res.enemy_id] = res
 				
-	# Se slime não estiver em arquivo, registrar programaticamente
-	if not enemies_registry.has(&"slime"):
-		var enemy_data_script = load("res://resource/status/EnemyData.gd")
-		if enemy_data_script:
-			var slime = enemy_data_script.new()
-			slime.enemy_id = &"slime"
-			slime.enemy_name = "Slime da Floresta"
-			slime.max_health = 60
-			slime.defense = 2
-			slime.strength = 8
-			slime.xp_reward = 35
-			enemies_registry[&"slime"] = slime
+	# 3. Bestiário Canônico e RPG de Inimigos Base para Farming
+	_inicializar_bestiario_rpg_base()
+
+
+func _inicializar_bestiario_rpg_base() -> void:
+	var enemy_data_script = load("res://resource/status/EnemyData.gd")
+	if not enemy_data_script:
+		return
+
+	var base_mobs: Array = [
+		{
+			"id": &"slime",
+			"nome": "Slime da Floresta",
+			"level": 1,
+			"hp": 60,
+			"def": 2,
+			"str": 8,
+			"xp": 35,
+			"role": "bruiser",
+			"drops": [{"item_id": "gosma_slime", "chance": 0.85, "quantidade": 1}]
+		},
+		{
+			"id": &"slime_venenoso",
+			"nome": "Slime Venenoso",
+			"level": 3,
+			"hp": 85,
+			"def": 3,
+			"str": 11,
+			"xp": 55,
+			"role": "bruiser",
+			"drops": [{"item_id": "gosma_slime", "chance": 0.8, "quantidade": 1}, {"item_id": "veneno_concentrado", "chance": 0.4, "quantidade": 1}]
+		},
+		{
+			"id": &"rato_gigante",
+			"nome": "Rato Gigante de Esgoto",
+			"level": 1,
+			"hp": 50,
+			"def": 1,
+			"str": 7,
+			"xp": 30,
+			"role": "fast",
+			"drops": [{"item_id": "gosma_slime", "chance": 0.5, "quantidade": 1}]
+		},
+		{
+			"id": &"lobo_selvagem",
+			"nome": "Lobo Feroz das Planícies",
+			"level": 2,
+			"hp": 75,
+			"def": 3,
+			"str": 12,
+			"xp": 50,
+			"role": "fast",
+			"drops": [{"item_id": "couro_lobo", "chance": 0.8, "quantidade": 1}, {"item_id": "carne_javali", "chance": 0.3, "quantidade": 1}]
+		},
+		{
+			"id": &"cao_cacador",
+			"nome": "Cão de Caça Treinado",
+			"level": 4,
+			"hp": 95,
+			"def": 4,
+			"str": 14,
+			"xp": 75,
+			"role": "fast",
+			"drops": [{"item_id": "couro_lobo", "chance": 0.7, "quantidade": 1}]
+		},
+		{
+			"id": &"javali_selvagem",
+			"nome": "Javali Selvagem dos Bosques",
+			"level": 3,
+			"hp": 110,
+			"def": 5,
+			"str": 14,
+			"xp": 65,
+			"role": "bruiser",
+			"drops": [{"item_id": "carne_javali", "chance": 0.85, "quantidade": 1}, {"item_id": "couro_lobo", "chance": 0.35, "quantidade": 1}]
+		},
+		{
+			"id": &"ladrao_estrada",
+			"nome": "Ladrão de Estrada",
+			"level": 3,
+			"hp": 90,
+			"def": 4,
+			"str": 13,
+			"xp": 60,
+			"role": "bruiser",
+			"drops": [{"item_id": "ouro_roubado", "chance": 0.8, "quantidade": 1}, {"item_id": "minerio_aco", "chance": 0.3, "quantidade": 1}]
+		},
+		{
+			"id": &"bandido_renegado",
+			"nome": "Bandido Renegado",
+			"level": 6,
+			"hp": 135,
+			"def": 6,
+			"str": 18,
+			"xp": 110,
+			"role": "bruiser",
+			"drops": [{"item_id": "ouro_roubado", "chance": 0.9, "quantidade": 1}, {"item_id": "anel_concentracao", "chance": 0.15, "quantidade": 1}]
+		},
+		{
+			"id": &"besouro_blindado",
+			"nome": "Besouro Blindado das Rochas",
+			"level": 4,
+			"hp": 120,
+			"def": 12,
+			"str": 10,
+			"xp": 80,
+			"role": "tank",
+			"drops": [{"item_id": "carapaca_besouro", "chance": 0.85, "quantidade": 1}, {"item_id": "gema_terra", "chance": 0.3, "quantidade": 1}]
+		},
+		{
+			"id": &"serpente_sombra",
+			"nome": "Serpente das Sombras",
+			"level": 5,
+			"hp": 100,
+			"def": 4,
+			"str": 16,
+			"xp": 95,
+			"role": "fast",
+			"drops": [{"item_id": "presa_serpente", "chance": 0.8, "quantidade": 1}, {"item_id": "cristal_sombra", "chance": 0.25, "quantidade": 1}]
+		},
+		{
+			"id": &"fera_magica_bosque",
+			"nome": "Besta Mágica Menor",
+			"level": 7,
+			"hp": 165,
+			"def": 8,
+			"str": 20,
+			"xp": 140,
+			"role": "bruiser",
+			"drops": [{"item_id": "couro_besta", "chance": 0.85, "quantidade": 1}, {"item_id": "cristal_aura", "chance": 0.3, "quantidade": 1}]
+		},
+		{
+			"id": &"macaco_carnivoro",
+			"nome": "Macaco Carnívoro Trapaceiro",
+			"level": 5,
+			"hp": 115,
+			"def": 4,
+			"str": 15,
+			"xp": 90,
+			"role": "fast",
+			"drops": [{"item_id": "carne_javali", "chance": 0.6, "quantidade": 1}, {"item_id": "ouro_roubado", "chance": 0.4, "quantidade": 1}]
+		},
+		{
+			"id": &"urso_caverna",
+			"nome": "Urso Voraz das Cavernas",
+			"level": 8,
+			"hp": 220,
+			"def": 10,
+			"str": 24,
+			"xp": 170,
+			"role": "tank",
+			"drops": [{"item_id": "pele_urso", "chance": 0.85, "quantidade": 1}, {"item_id": "carne_javali", "chance": 0.6, "quantidade": 1}]
+		},
+		{
+			"id": &"mercenario_mafia",
+			"nome": "Mercenário da Máfia",
+			"level": 8,
+			"hp": 180,
+			"def": 9,
+			"str": 22,
+			"xp": 160,
+			"role": "bruiser",
+			"drops": [{"item_id": "ouro_roubado", "chance": 0.9, "quantidade": 1}, {"item_id": "tecido_reforcado", "chance": 0.4, "quantidade": 1}]
+		},
+		{
+			"id": &"cacador_furtivo",
+			"nome": "Caçador Furtivo Renegado",
+			"level": 9,
+			"hp": 170,
+			"def": 7,
+			"str": 24,
+			"xp": 180,
+			"role": "fast",
+			"drops": [{"item_id": "cristal_sombra", "chance": 0.5, "quantidade": 1}, {"item_id": "pingente_agilidade", "chance": 0.2, "quantidade": 1}]
+		},
+		{
+			"id": &"golem_pedra",
+			"nome": "Golem de Pedra das Ruínas",
+			"level": 10,
+			"hp": 270,
+			"def": 18,
+			"str": 26,
+			"xp": 220,
+			"role": "tank",
+			"drops": [{"item_id": "nucleo_golem", "chance": 0.9, "quantidade": 1}, {"item_id": "gema_terra", "chance": 0.6, "quantidade": 1}]
+		},
+		{
+			"id": &"quimera_selvagem",
+			"nome": "Quimera Selvagem das Cavernas",
+			"level": 12,
+			"hp": 310,
+			"def": 14,
+			"str": 30,
+			"xp": 260,
+			"role": "bruiser",
+			"drops": [{"item_id": "olho_quimera", "chance": 0.75, "quantidade": 1}, {"item_id": "couro_besta", "chance": 0.85, "quantidade": 1}]
+		}
+	]
+
+	for data in base_mobs:
+		var eid: StringName = data["id"]
+		if not enemies_registry.has(eid):
+			var mob = enemy_data_script.new()
+			mob.enemy_id = eid
+			mob.enemy_name = data["nome"]
+			mob.level = data.get("level", 1)
+			mob.max_health = data.get("hp", 80)
+			mob.defense = data.get("def", 3)
+			mob.strength = data.get("str", 10)
+			mob.xp_reward = data.get("xp", 40)
+			mob.role = data.get("role", "bruiser")
+			var dt: Array[Dictionary] = []
+			for drop_item in data.get("drops", []):
+				dt.append(drop_item as Dictionary)
+			mob.drop_table = dt
+			enemies_registry[eid] = mob
 
 
 # ------------------------------------------------------------

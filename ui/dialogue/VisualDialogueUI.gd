@@ -11,6 +11,8 @@ extends CanvasLayer
 
 signal dialogo_concluido()
 
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
+
 @onready var lbl_falante: Label = $ControlContainer/MarginContainer/PanelContainer/MarginContent/VBoxContainer/SpeakerLabel
 @onready var lbl_texto: Label = $ControlContainer/MarginContainer/PanelContainer/MarginContent/VBoxContainer/TextLabel
 @onready var lbl_indicador: Label = $ControlContainer/MarginContainer/PanelContainer/MarginContent/VBoxContainer/IndicatorLabel

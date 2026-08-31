@@ -1,16 +1,16 @@
 extends PanelContainer
 
 # ============================================================
-# HUNTER ONLINE - QUEST HUD EXCLUSIVO POR ARCO (MODO HISTÃ“RIA)
+# HUNTER ONLINE - QUEST HUD EXCLUSIVO POR ARCO (MODO HISTÓRIA)
 # ============================================================
 #
 # Interface de Quest no HUD (canto superior direito em 320x180):
-# - Ativa automaticamente a MissÃ£o CanÃ´nica exclusiva do Arco Atual.
-# - Exibe o Arco atual, tÃ­tulo da missÃ£o e objetivos com marcadores (âœ… / â¬œ).
-# - BÃšSSOLA / DIRECIONADOR DINÃ‚MICO EM TEMPO REAL:
-#   Rastreia a posiÃ§Ã£o dos NPCs de missÃ£o (Satotz, Gon, Hisoka, Wing, etc.)
-#   ou monstros no mapa e calcula o Ã¢ngulo cardinal com setas e distÃ¢ncia em metros.
-# - BotÃ£o minimizar [âˆ’] / [+] para recolher sem atrapalhar a visÃ£o do combate.
+# - Ativa automaticamente a Missão CanÃ´nica exclusiva do Arco Atual.
+# - Exibe o Arco atual, título da missão e objetivos com marcadores (✅ / ⬜).
+# - BÚSSOLA / DIRECIONADOR DINÃ‚MICO EM TEMPO REAL:
+#   Rastreia a posição dos NPCs de missão (Satotz, Gon, Hisoka, Wing, etc.)
+#   ou monstros no mapa e calcula o ângulo cardinal com setas e distância em metros.
+# - Botão minimizar [âˆ’] / [+] para recolher sem atrapalhar a visão do combate.
 #
 # ============================================================
 
@@ -32,7 +32,7 @@ const ARCO_NOMES: Dictionary = {
 	4: "YORKNEW CITY",
 	5: "GREED ISLAND",
 	6: "FORMIGAS CHIMERA",
-	7: "ELEIÃ‡ÃƒO HUNTER",
+	7: "ELEIÇÃO HUNTER",
 	8: "CONTINENTE NEGRO",
 	9: "BLACK WHALE 1"
 }
@@ -51,13 +51,13 @@ func _ready() -> void:
 
 
 func _construir_ui() -> void:
-	custom_minimum_size = Vector2(142, 24)
+	custom_minimum_size = Vector2(132, 20)
 	set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	offset_left = -150.0
-	offset_top = 8.0
-	offset_right = -8.0
-	offset_bottom = 68.0
+	grow_vertical = Control.GROW_DIRECTION_END
+	offset_left = -138.0
+	offset_top = 6.0
+	offset_right = -6.0
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.06, 0.08, 0.12, 0.92)
@@ -73,14 +73,14 @@ func _construir_ui() -> void:
 	add_theme_stylebox_override("panel", style)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_top", 3)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_bottom", 3)
 	add_child(margin)
 
 	var vbox_main := VBoxContainer.new()
-	vbox_main.add_theme_constant_override("separation", 2)
+	vbox_main.add_theme_constant_override("separation", 1)
 	margin.add_child(vbox_main)
 
 	# Header (Arco + Botão Jornal + Botão Minimizar)
@@ -89,7 +89,7 @@ func _construir_ui() -> void:
 
 	lbl_arco = Label.new()
 	lbl_arco.text = "🏛️ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
-	lbl_arco.add_theme_font_size_override("font_size", 9)
+	lbl_arco.add_theme_font_size_override("font_size", 7)
 	lbl_arco.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	lbl_arco.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_arco)
@@ -97,33 +97,33 @@ func _construir_ui() -> void:
 	var btn_jornal := Button.new()
 	btn_jornal.text = "📜"
 	btn_jornal.tooltip_text = "Abrir Jornal de Missões [J]"
-	btn_jornal.add_theme_font_size_override("font_size", 8)
-	btn_jornal.custom_minimum_size = Vector2(16, 14)
+	btn_jornal.add_theme_font_size_override("font_size", 7)
+	btn_jornal.custom_minimum_size = Vector2(13, 12)
 	btn_jornal.pressed.connect(_abrir_jornal)
 	hbox_header.add_child(btn_jornal)
 
 	btn_toggle = Button.new()
 	btn_toggle.text = "−"
-	btn_toggle.add_theme_font_size_override("font_size", 8)
-	btn_toggle.custom_minimum_size = Vector2(14, 14)
+	btn_toggle.add_theme_font_size_override("font_size", 7)
+	btn_toggle.custom_minimum_size = Vector2(12, 12)
 	btn_toggle.pressed.connect(_toggle_expandir)
 	hbox_header.add_child(btn_toggle)
 
 	# Detalhes da Missão
 	vbox_detalhes = VBoxContainer.new()
-	vbox_detalhes.add_theme_constant_override("separation", 2)
+	vbox_detalhes.add_theme_constant_override("separation", 1)
 	vbox_main.add_child(vbox_detalhes)
 
 	lbl_quest_nome = Label.new()
 	lbl_quest_nome.text = "📜 Missão Ativa"
-	lbl_quest_nome.add_theme_font_size_override("font_size", 8)
+	lbl_quest_nome.add_theme_font_size_override("font_size", 6)
 	lbl_quest_nome.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
 	lbl_quest_nome.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_quest_nome)
 
 	lbl_objetivo = Label.new()
 	lbl_objetivo.text = "- Carregando objetivo..."
-	lbl_objetivo.add_theme_font_size_override("font_size", 8)
+	lbl_objetivo.add_theme_font_size_override("font_size", 6)
 	lbl_objetivo.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
 	lbl_objetivo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_objetivo)
@@ -131,7 +131,7 @@ func _construir_ui() -> void:
 	# Bússola & Direcionador de Rota
 	lbl_bussola = Label.new()
 	lbl_bussola.text = "🧭 Direção: Buscando..."
-	lbl_bussola.add_theme_font_size_override("font_size", 8)
+	lbl_bussola.add_theme_font_size_override("font_size", 6)
 	lbl_bussola.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1.0))
 	lbl_bussola.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_bussola)
@@ -169,20 +169,20 @@ func _atualizar_hud() -> void:
 	# CONTEXTO 1: LOBBY HUB
 	# =========================================================
 	if is_lobby:
-		lbl_arco.text = "ðŸ›ï¸ PRAÃ‡A CENTRAL (LOBBY)"
-		lbl_quest_nome.text = "ðŸ“œ Guia da Cidade dos CaÃ§adores"
+		lbl_arco.text = "ðŸ›ï¸ PRAÇA CENTRAL (LOBBY)"
+		lbl_quest_nome.text = "📜 Guia da Cidade dos Caçadores"
 		if not PlayerData.tour_lobby_concluido:
-			lbl_objetivo.text = "ðŸ‘‰ Passo 1/2: Fale com a Recepcionista Elena\nâ¬œ Passo 2/2: Siga atÃ© o Portal Hunter a Leste"
-			lbl_bussola.text = "ðŸ’¬ [E] Fale com Elena para conhecer os Mestres e Distritos!"
+			lbl_objetivo.text = "👉 Passo 1/2: Fale com a Recepcionista Elena\n⬜ Passo 2/2: Siga até o Portal Hunter a Leste"
+			lbl_bussola.text = "💬 [E] Fale com Elena para conhecer os Mestres e Distritos!"
 			lbl_bussola.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
 		else:
-			lbl_objetivo.text = "âœ… Passo 1/2: ApresentaÃ§Ã£o da Cidade ConcluÃ­da\nðŸ‘‰ Passo 2/2: Siga atÃ© o Portal Hunter a Leste"
-			lbl_bussola.text = "â›©ï¸ Dirija-se ao Portal Hunter (Leste) para Iniciar a HistÃ³ria!"
+			lbl_objetivo.text = "✅ Passo 1/2: Apresentação da Cidade Concluída\n👉 Passo 2/2: Siga até o Portal Hunter a Leste"
+			lbl_bussola.text = "⛩️ Dirija-se ao Portal Hunter (Leste) para Iniciar a História!"
 			lbl_bussola.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 		return
 
 	# =========================================================
-	# CONTEXTO 2: MAPA DE MISSÃƒO DA HISTÃ“RIA
+	# CONTEXTO 2: MAPA DE MISSÃO DA HISTÓRIA
 	# =========================================================
 	# Garantir que a quest do arco esteja ativa
 	if QuestSystem.active_quests.is_empty():
@@ -190,18 +190,18 @@ func _atualizar_hud() -> void:
 
 	var quests_ativas: Array = QuestSystem.active_quests
 	if quests_ativas.is_empty():
-		lbl_arco.text = "ðŸ¹ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÃ“RIA")]
-		lbl_quest_nome.text = "ðŸ“œ Sem MissÃ£o Ativa"
-		lbl_objetivo.text = "Fale com os personagens da Ã¡rea para avanÃ§ar."
-		lbl_bussola.text = "ðŸ—ºï¸ Explore o mapa da missÃ£o"
+		lbl_arco.text = "ðŸ¹ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
+		lbl_quest_nome.text = "📜 Sem Missão Ativa"
+		lbl_objetivo.text = "Fale com os personagens da área para avançar."
+		lbl_bussola.text = "🗺️ Explore o mapa da missão"
 		return
 
 	var quest: Quest = quests_ativas[0] as Quest
 	if quest == null:
 		return
 
-	lbl_arco.text = "ðŸ¹ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÃ“RIA")]
-	lbl_quest_nome.text = "ðŸ“œ " + quest.quest_name
+	lbl_arco.text = "ðŸ¹ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
+	lbl_quest_nome.text = "📜 " + quest.quest_name
 
 	var texto_obj: String = ""
 	var objetivo_pendente: QuestObjective = null
@@ -213,20 +213,20 @@ func _atualizar_hud() -> void:
 		var progresso: int = PlayerData.get_quest_objective_progress(quest, i)
 		var completo: bool = progresso >= obj.required_amount
 		
-		var icone: String = "âœ… "
+		var icone: String = "✓ "
 		if not completo:
 			if objetivo_pendente == null:
-				icone = "ðŸ‘‰ " # Requisito Atual Ativo
+				icone = "○ " # Objetivo Atual em Andamento
 				objetivo_pendente = obj
 				pendente_idx = i
 			else:
-				icone = "â¬œ "
+				icone = "🔒 " # Passo Futuro
 
 		texto_obj += "%sPasso %d/%d: %s (%d/%d)\n" % [icone, i + 1, total_objetivos, obj.describe(), progresso, obj.required_amount]
 
 	lbl_objetivo.text = texto_obj.strip_edges()
 
-	# Calcular BÃºssola e DireÃ§Ã£o atÃ© o alvo
+	# Calcular Bússola e Direção até o alvo
 	_atualizar_bussola(objetivo_pendente, pendente_idx, total_objetivos)
 
 
@@ -242,7 +242,7 @@ func _obter_player() -> Node2D:
 
 func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objetivos: int = 1) -> void:
 	if obj == null:
-		lbl_bussola.text = "âœ¨ Todos os requisitos cumpridos! MissÃ£o concluÃ­da."
+		lbl_bussola.text = "✓¨ Todos os requisitos cumpridos! Missão concluída."
 		lbl_bussola.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
 		return
 
@@ -282,7 +282,7 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 						encontrou_alvo = true
 						break
 
-			# Se nÃ£o achou pelo nome exato, pega o primeiro NPC da cena
+			# Se não achou pelo nome exato, pega o primeiro NPC da cena
 			if not encontrou_alvo and not npcs.is_empty() and npcs[0] is Node2D:
 				alvo_pos = npcs[0].global_position
 				encontrou_alvo = true
@@ -339,10 +339,10 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 		var portais = get_tree().get_nodes_in_group("portal")
 		if not portais.is_empty() and portais[0] is Node2D:
 			alvo_pos = portais[0].global_position
-			nome_alvo = "Portal de TransiÃ§Ã£o"
+			nome_alvo = "Portal de Transição"
 			encontrou_alvo = true
 
-	var prefixo_passo = "ðŸ‘‰ Requisito %d/%d" % [pendente_idx + 1, total_objetivos]
+	var prefixo_passo = "👉 Requisito %d/%d" % [pendente_idx + 1, total_objetivos]
 
 	if encontrou_alvo:
 		var dist = player.global_position.distance_to(alvo_pos)
@@ -350,16 +350,16 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 		if dist <= 36.0:
 			match obj.type:
 				QuestObjective.Type.VISIT:
-					lbl_bussola.text = "ðŸ’¬ [E] Fale com %s aqui!" % nome_alvo
+					lbl_bussola.text = "💬 [E] Fale com %s aqui!" % nome_alvo
 					lbl_bussola.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
 				QuestObjective.Type.KILL:
-					lbl_bussola.text = "âš”ï¸ [Ataque] Derrote %s!" % nome_alvo
+					lbl_bussola.text = "⚔️ [Ataque] Derrote %s!" % nome_alvo
 					lbl_bussola.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35, 1.0))
 				QuestObjective.Type.COLLECT:
 					lbl_bussola.text = "ðŸŽ’ [E] Colete %s!" % nome_alvo
 					lbl_bussola.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 				_:
-					lbl_bussola.text = "ðŸŽ¯ Alvo PrÃ³ximo: %s" % nome_alvo
+					lbl_bussola.text = "🎯 Alvo Próximo: %s" % nome_alvo
 					lbl_bussola.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
 		else:
 			var dir_vec = (alvo_pos - player.global_position).normalized()
@@ -402,11 +402,11 @@ func _vetor_para_seta(dir: Vector2) -> String:
 func _obter_dica_estatica(obj: QuestObjective) -> String:
 	match obj.type:
 		QuestObjective.Type.KILL:
-			return "âš”ï¸ Derrote criaturas na Ã¡rea"
+			return "⚔️ Derrote criaturas na área"
 		QuestObjective.Type.VISIT:
 			if not obj.target_npc_name.is_empty():
 				return "ðŸ—£ï¸ Encontre " + obj.target_npc_name
-			return "ðŸ—£ï¸ Fale com o NPC da histÃ³ria"
+			return "ðŸ—£ï¸ Fale com o NPC da história"
 		QuestObjective.Type.COLLECT:
 			return "ðŸŽ’ Colete itens e cartas no mapa"
 	return "Siga em frente no caminho"

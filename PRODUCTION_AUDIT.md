@@ -1,4 +1,4 @@
-﻿# HUNTER ONLINE — PRODUCTION AUDIT (PROFESSIONAL PASS)
+# HUNTER ONLINE — PRODUCTION AUDIT (PROFESSIONAL PASS)
 
 **Data da Auditoria:** 27 de Agosto de 2026  
 **Auditor:** Technical Director & Gameplay Lead Engineer  
@@ -8,40 +8,31 @@
 
 ## 1. MAPA DA ARQUITETURA DO PROJETO
 
-- **Core Autoloads**: `EventBus`, `GameManager`, `TimeManager`, `DataManager`, `SaveManager` / `GameState`, `Economy`, `AudioManager`, `SceneTransition`, `CinematicManager`
-- **Sistemas Globais**: `PlayerData`, `PowerScale`, `QuestSystem` (`QuestManager`), `HatsuManager` (Legado Aprovado), `NenBeastManager`, `FactionManager`, `ReputationSystem`, `PersonalitySystem`, `WorldEventManager`, `AchievementSystem`, `SurpriseQuestSystem`
-- **Entidade Player (`Player.tscn`)**: `PlayerController`, `HunterCombatSystem` (`CombatSystem.gd`), `NenSystem`, `HatsuSystem`, `NenBeastSystem`, `XPSystem`, `DialogueSystem`
-- **Mundo & Conteúdo**: `RegionWorldGenerator`, `ContentDirector`, `TileDatabase`, `RoomComposer`, `WorldChunkLoader`, Mapas e Dungeons dos 9 arcos canônicos
-- **UI**: `PlayerHUD`, `StatusMenu`, `NenMenu`, `HatsuBookUI`, `HatsuCreationUI`, `InventoryUI`, `ShopUI`, `BlacksmithUI`, `VisualDialogueUI`, `DialogueBox`, `CharacterCreationUI`, `CharacterSelectionUI`
+- **Core Autoloads**: `EventBus`, `GameManager`, `WorldProgressionManager`, `TimeManager`, `DataManager`, `SaveManager`, `Economy`, `AudioManager`, `SceneTransition`, `CinematicManager`
+- **Sistemas Globais**: `PlayerData`, `PowerScale`, `QuestSystem` (`QuestManager`), `HatsuManager` (v2.0 Rebalanceado), `NenBeastManager`, `FactionManager`, `ReputationSystem`, `PersonalitySystem`, `WorldEventManager`, `AchievementSystem`, `SurpriseQuestSystem`
+- **Entidade Player (`Player.tscn`)**: `PlayerController`, `HunterCombatSystem` (`CombatSystem.gd`), `NenSystem`, `HatsuSystem`, `NenBeastSystem`, `XPSystem`, `DialogueSystem`, Posicionamento por `SpawnPoint`
+- **Mundo & Conteúdo**: `SpawnPoint`, `MapTransitionArea`, `StoryGate`, `RegionWorldGenerator`, `ContentDirector`, `TileDatabase`, `RoomComposer`, `WorldChunkLoader`, Mapas contínuos e Dungeons dos 9 arcos canônicos
+- **UI**: `PlayerHUD`, `StatusMenu`, `HunterMenuUI` (Abas Status, Nen, Hatsu 4 slots, Besta de Nen, Missões), `HatsuCreationUI` (Gauge de Créditos Dinâmico), `InventoryUI`, `ShopUI`, `BlacksmithUI`, `VisualDialogueUI`, `DialogueBox`, `CharacterCreationUI`, `CharacterSelectionUI`
 
 ---
 
 ## 2. AUDITORIA DETALHADA POR CATEGORIA
 
-### 🔴 CRITICAL
-1. **Desincronização e Duplicidade de Salvamento (GameState vs SaveManager)**
-   - **Arquivos:** `autoload/SaveManager.gd`, `autoload/GameState.gd`, `autoload/PlayerData.gd`, `autoload/GameManager.gd`
+### 🔴 CRITICAL (RESOLVIDOS NA BASE DE PRODUÇÃO)
+1. **Desincronização e Duplicidade de Salvamento (GameState vs SaveManager) — [RESOLVIDO ✅]**
+   - **Arquivos:** `autoload/SaveManager.gd`, `autoload/PlayerData.gd`, `autoload/GameManager.gd`
    - **Sistema:** Persistência / Save & Load
-   - **Problema:** Existem dois sistemas de save com caminhos diferentes (`user://save_slot_%d.json` vs `user://savegame_slot_%d.json`), esquemas de campos diferentes e chamadas cruzadas inconsistentes. Nenhum dos dois salva o saldo de Jenny de `Economy.gd` nem equipamentos aprimorados.
-   - **Impacto:** Perda de dados do jogador ao recarregar, corrupção potencial e dessincronização de progresso.
-   - **Solução:** Consolidar em um único `SaveManager.gd` canônico, unificando a estrutura de dados (PlayerData, Economy, WorldState, Quests, Nen, Hatsu, Posição e Mapa) e depreciando `GameState.gd`.
-   - **Prioridade:** CRITICAL
+   - **Status:** Consolidado em um único `SaveManager.gd` canônico, unificando a estrutura de dados (PlayerData, Economy, WorldState, Quests, Nen, Hatsu com IDs e slots equipados, Posição e Mapa).
 
-2. **Loop / Falha de Filtragem de Eliminações em QuestManager**
-   - **Arquivo:** `scripts/QuestManager.gd` (Linha 132)
+2. **Loop / Falha de Filtragem de Eliminações em QuestManager — [RESOLVIDO ✅]**
+   - **Arquivo:** `scripts/QuestManager.gd`
    - **Sistema:** Quests
-   - **Problema:** Condição booleana de combate possui `or true` hardcoded na verificação de `register_enemy_kill`: qualquer criatura derrotada no mapa cumpre imediatamente todos os objetivos de abate de todas as quests ativas.
-   - **Impacto:** Quebra a progressão de objetivos e quests específicas.
-   - **Solução:** Corrigir a comparação de ID / categoria de inimigo e remover a cláusula `or true`.
-   - **Prioridade:** CRITICAL
+   - **Status:** Corrigida a verificação estrita por `target_id` / categoria de inimigo, eliminando a cláusula permissiva hardcoded.
 
-3. **Cálculo de Dano Fragmentado e Não-Convergente (CombatEngine vs HunterCombatSystem)**
+3. **Cálculo de Dano Fragmentado e Não-Convergente (CombatEngine vs HunterCombatSystem) — [RESOLVIDO ✅]**
    - **Arquivos:** `autoload/CombatEngine.gd`, `scripts/combat/CombatSystem.gd`, `scripts/systems/EnemySystem/EnemySystem.gd`
    - **Sistema:** Combate & Atributos
-   - **Problema:** O autoload `CombatEngine` existe com fórmula básica mas é ignorado em runtime; `CombatSystem.gd` recalcula dano, mitigação de Ten/Ken/Ryu e defesa localmente com valores hardcoded (ex: `dano_base = 100.0` para Guanyin, `dano_base = 65.0` para Godspeed), enquanto `EnemySystem.gd` implementa uma terceira lógica ao infligir dano no jogador.
-   - **Impacto:** Dano imprevisível, impossibilidade de balanceamento centralizado e risco de quebra de fórmulas com buffs/debuffs.
-   - **Solução:** Unificar o pipeline de cálculo no `CombatEngine` (Input → Attack → Nen Mods → Hatsu Mods → Defesa → Reduções → Stagger/Crit → Feedback), com suporte a atacante vs defensor desacoplados.
-   - **Prioridade:** CRITICAL
+   - **Status:** Pipeline unificado no `CombatEngine` com suporte autoritativo a atacante vs defensor, mitigações canônicas de Ten/Ken/Ryu e escalonamento de Hatsu por juramentos.
 
 ---
 

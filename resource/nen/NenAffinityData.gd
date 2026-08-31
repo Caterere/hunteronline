@@ -75,8 +75,11 @@ static func calcular_eficiencia_categoria(afinidade_natal: CategoriaAfinidade, c
 		return 1.0
 		
 	# Emperor Time (Kurapika) concede 100% em tudo
-	if PlayerData != null and PlayerData.quest_states.get("emperor_time_ativo", false):
-		return 1.0
+	var main_loop := Engine.get_main_loop() as SceneTree
+	if main_loop and main_loop.root and main_loop.root.has_node("PlayerData"):
+		var p_data: Node = main_loop.root.get_node("PlayerData")
+		if p_data and p_data.get("quest_states") and p_data.get("quest_states").get("emperor_time_ativo", false):
+			return 1.0
 
 	match afinidade_natal:
 		CategoriaAfinidade.INTENSIFICACAO:

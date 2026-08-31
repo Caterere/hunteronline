@@ -12,7 +12,7 @@ var _direcao_olhar: Vector2 = Vector2.DOWN
 
 
 @export_category("Variables")
-@export var _move_speed: float = 64.0
+@export var _move_speed: float = 160.0
 
 @export var _friction: float = 0.2
 @export var _acceleration: float = 0.2
@@ -66,10 +66,14 @@ func _ready() -> void:
 	add_to_group("player")
 	_aplicar_customizacao_visual()
 
-	# Restaurar posição salva se estiver carregando save
+	# Restaurar posição salva se estiver carregando save ou posicionar no SpawnPoint
 	if PlayerData.posicao_salva != Vector2.ZERO:
 		global_position = PlayerData.posicao_salva
 		PlayerData.posicao_salva = Vector2.ZERO
+	else:
+		var wpm = get_node_or_null("/root/WorldProgressionManager")
+		if wpm != null and wpm.has_method("posicionar_player_no_spawn"):
+			wpm.posicionar_player_no_spawn.call_deferred(self)
 
 
 func _on_camera_shake_requested(intensity: float, _duration: float) -> void:

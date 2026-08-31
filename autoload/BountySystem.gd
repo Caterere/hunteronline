@@ -39,7 +39,8 @@ func _inicializar_contratos_iniciais() -> void:
 			"nivel_alvo": 3,
 			"recompensa_jenny": 1500,
 			"descricao": "Procurado por furtar mercadorias dos depósitos da vila.",
-			"concluido": false
+			"concluido": false,
+			"aceito": false
 		},
 		"bounty_desertor_mafia": {
 			"id": "bounty_desertor_mafia",
@@ -48,9 +49,52 @@ func _inicializar_contratos_iniciais() -> void:
 			"nivel_alvo": 5,
 			"recompensa_jenny": 5000,
 			"descricao": "Ex-capo da Máfia de Yorknew em fuga com documentos sigilosos.",
-			"concluido": false
+			"concluido": false,
+			"aceito": false
+		},
+		"bounty_alfa_lobos": {
+			"id": "bounty_alfa_lobos",
+			"nome_alvo": "Lobo Alfa das Planícies",
+			"regiao": "vale_padokia",
+			"nivel_alvo": 4,
+			"recompensa_jenny": 2200,
+			"descricao": "Líder da matilha selvagem que ameaça os comboios de suprimentos.",
+			"concluido": false,
+			"aceito": false
+		},
+		"bounty_bandidos_zaban": {
+			"id": "bounty_bandidos_zaban",
+			"nome_alvo": "Bando de Salteadores de Zaban",
+			"regiao": "lobby",
+			"nivel_alvo": 2,
+			"recompensa_jenny": 1200,
+			"descricao": "Grupo de criminosos assaltando novos candidatos a Hunter na periferia.",
+			"concluido": false,
+			"aceito": false
 		}
 	}
+
+
+func obter_contratos_por_regiao(regiao_id: String) -> Array:
+	var lista: Array = []
+	for c_id in active_bounty_contracts.keys():
+		var c = active_bounty_contracts[c_id]
+		if c.get("regiao", "") == regiao_id or regiao_id == "todos" or regiao_id == "lobby":
+			lista.append(c)
+	return lista
+
+
+func aceitar_contrato(contrato_id: String) -> bool:
+	if not active_bounty_contracts.has(contrato_id):
+		return false
+	var c = active_bounty_contracts[contrato_id]
+	if c.get("aceito", false):
+		return true
+	c["aceito"] = true
+	contrato_bounty_adicionado.emit(contrato_id, c["nome_alvo"], c["recompensa_jenny"])
+	if EventBus != null and EventBus.has_signal("toast_requested"):
+		EventBus.emit_toast("📜 Contrato Aceito: %s!" % c["nome_alvo"], Color(0.4, 0.9, 1.0))
+	return true
 
 
 func _conectar_event_bus() -> void:

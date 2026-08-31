@@ -19,6 +19,7 @@ extends Area2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
 
 @export_file("*.tscn") var target_scene_path: String = ""
+@export var target_spawn_id: StringName = &"default"
 @export var target_spawn_position: Vector2 = Vector2.ZERO
 @export var portal_name: String = "Próximo Mapa"
 @export var map_subtitle: String = ""
@@ -148,7 +149,7 @@ func _executar_transicao() -> void:
 func _mudar_cena() -> void:
 	var trans = get_node_or_null("/root/SceneTransition")
 	if trans != null and trans.has_method("mudar_cena"):
-		trans.mudar_cena(target_scene_path, portal_name, map_subtitle)
+		trans.mudar_cena(target_scene_path, portal_name, map_subtitle, 0.35, target_spawn_id, target_spawn_position)
 	else:
 		var audio_mgr = get_node_or_null("/root/AudioManager")
 		if audio_mgr and audio_mgr.has_method("tocar_musica_por_cena"):

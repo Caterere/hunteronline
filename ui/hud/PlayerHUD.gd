@@ -14,6 +14,7 @@ extends CanvasLayer
 #
 # ============================================================
 
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 const WorldMinimapUI = preload("res://ui/Minimap/WorldMinimapUI.gd")
 const AchievementsUI = preload("res://ui/Achievements/AchievementsUI.gd")
 const NenQuickActionBarScript = preload("res://ui/hud/NenQuickActionBar.gd")
@@ -103,21 +104,21 @@ func _criar_card_jogador_top_left() -> void:
 
 	player_card_panel = PanelContainer.new()
 	player_card_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	player_card_panel.offset_left = 8.0
-	player_card_panel.offset_top = 8.0
-	player_card_panel.custom_minimum_size = Vector2(175, 74)
+	player_card_panel.offset_left = 6.0
+	player_card_panel.offset_top = 6.0
+	player_card_panel.custom_minimum_size = Vector2(132, 56)
 	player_card_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GREEN, 3))
 	add_child(player_card_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_top", 3)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_bottom", 3)
 	player_card_panel.add_child(margin)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
+	vbox.add_theme_constant_override("separation", 1)
 	margin.add_child(vbox)
 
 	# Linha 1: Nome do Jogador e Nível
@@ -126,14 +127,14 @@ func _criar_card_jogador_top_left() -> void:
 
 	lbl_player_header = Label.new()
 	lbl_player_header.text = "🔰 HUNTER | LV. 1"
-	lbl_player_header.add_theme_font_size_override("font_size", 9)
+	lbl_player_header.add_theme_font_size_override("font_size", 7)
 	lbl_player_header.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_player_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_player_header)
 
 	lbl_gold = Label.new()
 	lbl_gold.text = "💰 0 J"
-	lbl_gold.add_theme_font_size_override("font_size", 9)
+	lbl_gold.add_theme_font_size_override("font_size", 7)
 	lbl_gold.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD)
 	hbox_header.add_child(lbl_gold)
 
@@ -169,29 +170,29 @@ func _criar_card_jogador_top_left() -> void:
 
 	# Linha 5: Indicador de Técnica de Nen e Besta
 	var hbox_status := HBoxContainer.new()
-	hbox_status.add_theme_constant_override("separation", 4)
+	hbox_status.add_theme_constant_override("separation", 3)
 	vbox.add_child(hbox_status)
 
 	lbl_nen_status = Label.new()
 	lbl_nen_status.text = "🥋 Nen: Inativo [N]"
-	lbl_nen_status.add_theme_font_size_override("font_size", 8)
+	lbl_nen_status.add_theme_font_size_override("font_size", 6)
 	lbl_nen_status.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
 	lbl_nen_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_status.add_child(lbl_nen_status)
 
 	lbl_beast_status = Label.new()
 	lbl_beast_status.text = ""
-	lbl_beast_status.add_theme_font_size_override("font_size", 8)
+	lbl_beast_status.add_theme_font_size_override("font_size", 6)
 	lbl_beast_status.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_PURPLE)
 	hbox_status.add_child(lbl_beast_status)
 
 
 func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: String) -> Dictionary:
 	var container := Control.new()
-	container.custom_minimum_size = Vector2(163, 11)
+	container.custom_minimum_size = Vector2(122, 8)
 
 	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(163, 11)
+	bar.custom_minimum_size = Vector2(122, 8)
 	bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bar.show_percentage = false
 	bar.min_value = 0
@@ -225,7 +226,7 @@ func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: Strin
 	lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 8)
+	lbl.add_theme_font_size_override("font_size", 6)
 	lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
 	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	lbl.add_theme_constant_override("shadow_offset_x", 1)
@@ -241,20 +242,20 @@ func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: Strin
 
 func _criar_boss_bar() -> void:
 	boss_bar_panel = PanelContainer.new()
-	boss_bar_panel.custom_minimum_size = Vector2(260, 26)
+	boss_bar_panel.custom_minimum_size = Vector2(195, 18)
 	boss_bar_panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	boss_bar_panel.offset_left = -130.0
-	boss_bar_panel.offset_right = 130.0
-	boss_bar_panel.offset_top = 8.0
+	boss_bar_panel.offset_left = -98.0
+	boss_bar_panel.offset_right = 98.0
+	boss_bar_panel.offset_top = 6.0
 	boss_bar_panel.visible = false
 	boss_bar_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_HP_CRIMSON, 3))
 	add_child(boss_bar_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_top", 2)
-	margin.add_theme_constant_override("margin_bottom", 2)
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_top", 1)
+	margin.add_theme_constant_override("margin_bottom", 1)
 	boss_bar_panel.add_child(margin)
 
 	var vbox := VBoxContainer.new()
@@ -263,13 +264,13 @@ func _criar_boss_bar() -> void:
 
 	lbl_boss_name = Label.new()
 	lbl_boss_name.text = "👑 CHEFE"
-	lbl_boss_name.add_theme_font_size_override("font_size", 9)
+	lbl_boss_name.add_theme_font_size_override("font_size", 7)
 	lbl_boss_name.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_boss_name)
 
 	var bar_box := Control.new()
-	bar_box.custom_minimum_size = Vector2(244, 9)
+	bar_box.custom_minimum_size = Vector2(183, 7)
 	vbox.add_child(bar_box)
 
 	boss_hp_bar = ProgressBar.new()
@@ -284,7 +285,7 @@ func _criar_boss_bar() -> void:
 	lbl_boss_hp.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	lbl_boss_hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_boss_hp.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl_boss_hp.add_theme_font_size_override("font_size", 8)
+	lbl_boss_hp.add_theme_font_size_override("font_size", 6)
 	lbl_boss_hp.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_boss_hp.add_theme_color_override("font_shadow_color", Color.BLACK)
 	bar_box.add_child(lbl_boss_hp)
@@ -308,7 +309,7 @@ func esconder_boss_bar() -> void:
 
 
 # ============================================================
-# HOTBAR DE HATSU (ESTILO MINECRAFT COM NÚMEROS E CUSTO)
+# HOTBAR DE HATSU (ESTILO ACTION BAR COMPACTA)
 # ============================================================
 
 func _criar_painel_hatsu_slots() -> void:
@@ -317,16 +318,16 @@ func _criar_painel_hatsu_slots() -> void:
 
 	var margin_bottom := MarginContainer.new()
 	margin_bottom.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	margin_bottom.offset_left = -78.0
-	margin_bottom.offset_right = 78.0
-	margin_bottom.offset_top = -44.0
-	margin_bottom.offset_bottom = -8.0
-	margin_bottom.custom_minimum_size = Vector2(156, 36)
+	margin_bottom.offset_left = -58.0
+	margin_bottom.offset_right = 58.0
+	margin_bottom.offset_top = -32.0
+	margin_bottom.offset_bottom = -6.0
+	margin_bottom.custom_minimum_size = Vector2(116, 26)
 	margin_bottom.add_theme_constant_override("margin_bottom", 0)
 	add_child(margin_bottom)
 
 	hatsu_slots_container = HBoxContainer.new()
-	hatsu_slots_container.add_theme_constant_override("separation", 3)
+	hatsu_slots_container.add_theme_constant_override("separation", 2)
 	margin_bottom.add_child(hatsu_slots_container)
 
 	slot_panels.clear()
@@ -338,11 +339,11 @@ func _criar_painel_hatsu_slots() -> void:
 
 	for i in range(4):
 		var panel := PanelContainer.new()
-		panel.custom_minimum_size = Vector2(36, 34)
+		panel.custom_minimum_size = Vector2(27, 25)
 		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 3))
 
 		var slot_box := Control.new()
-		slot_box.custom_minimum_size = Vector2(34, 32)
+		slot_box.custom_minimum_size = Vector2(25, 23)
 		panel.add_child(slot_box)
 
 		# Overlay de Cooldown
@@ -362,7 +363,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Número do slot (1, 2, 3, 4)
 		var lbl_num := Label.new()
 		lbl_num.text = "[%d]" % (i + 1)
-		lbl_num.add_theme_font_size_override("font_size", 8)
+		lbl_num.add_theme_font_size_override("font_size", 6)
 		lbl_num.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 		lbl_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_num)
@@ -370,7 +371,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Nome do Hatsu
 		var lbl_name := Label.new()
 		lbl_name.text = "-"
-		lbl_name.add_theme_font_size_override("font_size", 8)
+		lbl_name.add_theme_font_size_override("font_size", 6)
 		lbl_name.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 		lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_name)
@@ -379,7 +380,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Custo de Aura (ex: 45 AP)
 		var lbl_cost := Label.new()
 		lbl_cost.text = ""
-		lbl_cost.add_theme_font_size_override("font_size", 7)
+		lbl_cost.add_theme_font_size_override("font_size", 5)
 		lbl_cost.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
 		lbl_cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_cost)
@@ -388,7 +389,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Texto de Cooldown (ex: 3.5s)
 		var lbl_cd := Label.new()
 		lbl_cd.text = ""
-		lbl_cd.add_theme_font_size_override("font_size", 9)
+		lbl_cd.add_theme_font_size_override("font_size", 7)
 		lbl_cd.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD)
 		lbl_cd.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_cd.visible = false
@@ -549,35 +550,9 @@ func _conectar_event_bus() -> void:
 
 
 func _exibir_toast_banner(mensagem: String, cor_borda: Color = Color.WHITE) -> void:
-	var banner := PanelContainer.new()
-	banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	banner.position = Vector2(160, -35)
-	banner.custom_minimum_size = Vector2(320, 26)
-	banner.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(cor_borda, 3))
-	add_child(banner)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_bottom", 4)
-	banner.add_child(margin)
-
-	var lbl := Label.new()
-	lbl.text = mensagem
-	lbl.add_theme_font_size_override("font_size", 4)
-	lbl.add_theme_color_override("font_color", Color.WHITE)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	margin.add_child(lbl)
-
 	if AudioManager != null:
 		AudioManager.tocar_ui_click(true)
-
-	var tween := banner.create_tween()
-	tween.tween_property(banner, "position:y", 20.0, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_interval(2.2)
-	tween.tween_property(banner, "position:y", -35.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_callback(banner.queue_free)
+	exibir_notificacao(mensagem)
 
 
 func _atualizar_hatsu_slots() -> void:
@@ -717,22 +692,83 @@ func _on_level_up(new_level: int) -> void:
 	_atualizar_hud()
 
 
+var _notif_stack_container: VBoxContainer = null
+
+
+func _garantir_notif_stack() -> VBoxContainer:
+	if _notif_stack_container != null and is_instance_valid(_notif_stack_container):
+		return _notif_stack_container
+
+	var root_ctrl := Control.new()
+	root_ctrl.name = "NotificationRoot"
+	root_ctrl.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	root_ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(root_ctrl)
+
+	_notif_stack_container = VBoxContainer.new()
+	_notif_stack_container.name = "NotificationStack"
+	_notif_stack_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	_notif_stack_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_notif_stack_container.custom_minimum_size = Vector2(240, 0)
+	_notif_stack_container.offset_top = 8.0
+	_notif_stack_container.offset_left = -120.0
+	_notif_stack_container.offset_right = 120.0
+	_notif_stack_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_notif_stack_container.add_theme_constant_override("separation", 3)
+	root_ctrl.add_child(_notif_stack_container)
+	return _notif_stack_container
+
+
 func exibir_notificacao(texto: String) -> void:
+	var container := _garantir_notif_stack()
+	if container == null:
+		return
+
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.custom_minimum_size = Vector2(225, 18)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.08, 0.12, 0.95)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0.95, 0.8, 0.25, 0.95)
+	style.corner_radius_top_left = 3
+	style.corner_radius_top_right = 3
+	style.corner_radius_bottom_right = 3
+	style.corner_radius_bottom_left = 3
+	panel.add_theme_stylebox_override("panel", style)
+
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 6)
+	margin.add_theme_constant_override("margin_right", 6)
+	margin.add_theme_constant_override("margin_top", 2)
+	margin.add_theme_constant_override("margin_bottom", 2)
+	panel.add_child(margin)
+
 	var notif := Label.new()
 	notif.text = texto
-	notif.position = Vector2(80, 22)
-	notif.custom_minimum_size = Vector2(160, 14)
+	notif.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notif.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	notif.add_theme_font_size_override("font_size", 4)
-	notif.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
-	notif.add_theme_color_override("font_shadow_color", Color.BLACK)
-	add_child(notif)
-	
+	notif.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	notif.add_theme_font_size_override("font_size", 6)
+	notif.add_theme_color_override("font_color", Color(1.0, 0.92, 0.5, 1.0))
+	notif.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	notif.add_theme_constant_override("shadow_offset_x", 1)
+	notif.add_theme_constant_override("shadow_offset_y", 1)
+	margin.add_child(notif)
+
+	container.add_child(panel)
+	panel.modulate.a = 0.0
+
 	var tween := create_tween()
-	tween.tween_property(notif, "position:y", 16.0, 0.3)
-	tween.tween_interval(2.2)
-	tween.tween_property(notif, "modulate:a", 0.0, 0.5)
+	tween.tween_property(panel, "modulate:a", 1.0, 0.2)
+	tween.tween_interval(3.2)
+	tween.tween_property(panel, "modulate:a", 0.0, 0.4)
 	tween.chain().tween_callback(func():
-		if is_instance_valid(notif):
-			notif.queue_free()
+		if is_instance_valid(panel):
+			panel.queue_free()
 	)

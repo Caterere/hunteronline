@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://test_savetut_01"]
+
+[ext_resource type="Script" path="res://scratch/test_save_tutorial_and_hud_suite.gd" id="1_test"]
+
+[node name="TestSaveTutorialAndHUDSuite" type="Node"]
+script = ExtResource("1_test")

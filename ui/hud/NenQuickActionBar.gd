@@ -14,6 +14,8 @@ extends Control
 #
 # ============================================================
 
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
+
 const TEC_TEN: int = 0
 const TEC_REN: int = 1
 const TEC_ZETSU: int = 2

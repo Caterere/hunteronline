@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://df7k2na1pq77a"]
+
+[ext_resource type="Script" path="res://scratch/test_radiant_quests_and_base_enemies_suite.gd" id="1_test"]
+
+[node name="TestRadiantQuestsAndBaseEnemiesSuite" type="Node2D"]
+script = ExtResource("1_test")

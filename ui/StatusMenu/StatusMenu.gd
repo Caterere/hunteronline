@@ -1,6 +1,8 @@
 class_name StatusMenu
 extends Control
 
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
+
 # ============================================================
 # REFERÊNCIAS
 # ============================================================

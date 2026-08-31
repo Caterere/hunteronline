@@ -1,9 +1,6 @@
 class_name HatsuCreationUI
 extends CanvasLayer
 
-const VisualProfile = preload("res://resource/hatsu/VisualProfile.gd")
-const HatsuPresetLibrary = preload("res://resource/hatsu/HatsuPresetLibrary.gd")
-
 # ============================================================
 # HUNTER ONLINE - HATSU CREATION UI (v1.5: CRÉDITOS DE LIMITAÇÃO)
 # ============================================================
@@ -891,10 +888,10 @@ func _montar_etapa_condicoes() -> void:
 	container_opcoes.add_child(lbl_p)
 
 	var passos_disponiveis = [
-		{"id": "step_toque", "description": "Tocar a palma da mão no oponente", "action": "TOQUE_FISICO", "credit_value": 30.0},
-		{"id": "step_observar", "description": "Observar o Hatsu do oponente com Gyo", "action": "OBSERVAR", "credit_value": 30.0},
-		{"id": "step_interrogar", "description": "O alvo precisa revelar voluntariamente sua técnica", "action": "INTERROGATORIO", "credit_value": 35.0},
-		{"id": "step_canalizar", "description": "Permanecer imóvel canalizando por 2.0s", "action": "CANALIZAR", "credit_value": 35.0}
+		{"id": "step_toque", "description": "Tocar a palma da mão no oponente", "action": "TOQUE_FISICO", "credit_value": 25.0},
+		{"id": "step_observar", "description": "Observar o Hatsu do oponente com Gyo", "action": "OBSERVAR", "credit_value": 25.0},
+		{"id": "step_interrogar", "description": "O alvo precisa revelar voluntariamente sua técnica", "action": "INTERROGATORIO", "credit_value": 30.0},
+		{"id": "step_canalizar", "description": "Permanecer imóvel canalizando por 2.0s", "action": "CANALIZAR", "credit_value": 30.0}
 	]
 
 	for ps in passos_disponiveis:
@@ -932,18 +929,18 @@ func _montar_etapa_condicoes() -> void:
 	container_opcoes.add_child(lbl_c)
 
 	var condicoes_catalogo = [
-		{"id": HatsuData.Condicao.HP_ABAIXO_50, "nome": "1. Vida Abaixo de 50% (+25 Créditos)", "desc": "Só ativa quando o usuário estiver ferido (< 50% HP)."},
-		{"id": HatsuData.Condicao.HP_ABAIXO_30, "nome": "2. Vida Crítica < 30% (+60 Créditos)", "desc": "Supernova desesperada ativada à beira da derrota."},
-		{"id": HatsuData.Condicao.AURA_MINIMA_50, "nome": "3. Aura Restante >= 50% (+20 Créditos)", "desc": "Requer disciplina e metade da barra de aura."},
-		{"id": HatsuData.Condicao.REQUER_TEN_ATIVO, "nome": "4. Manter Postura Ten (+20 Créditos)", "desc": "O usuário precisa estar mantendo Ten ativo."},
-		{"id": HatsuData.Condicao.REQUER_REN_ATIVO, "nome": "5. Manter Postura Ren (+30 Créditos)", "desc": "Requer explosão de Ren contínua."},
-		{"id": HatsuData.Condicao.APOS_ESQUIVA_PERFEITA, "nome": "6. Pós-Esquiva Perfeita (+35 Créditos)", "desc": "Janela de 2s após esquivar no momento exato."},
-		{"id": HatsuData.Condicao.CONTRA_QUEM_ATACOU_PRIMEIRO, "nome": "7. Apenas Contra Agressor (+70 Créditos)", "desc": "Só dispara contra quem desferiu o primeiro golpe."},
-		{"id": HatsuData.Condicao.PARADO_CANALIZACAO, "nome": "8. Canalização Estática (+35 Créditos)", "desc": "Requer permanecer completamente imóvel por 1.5s."},
-		{"id": HatsuData.Condicao.CURTO_ALCANCE_EXTREMO, "nome": "9. Toque / Proximidade Extrema (+30 Créditos)", "desc": "Requer contato direto a menos de 40px."},
-		{"id": HatsuData.Condicao.ALMAS_INIMIGOS, "nome": "10. Gatilho no Abate (+55 Créditos)", "desc": "Ativado imediatamente após eliminar um oponente."},
-		{"id": HatsuData.Condicao.REVELACAO_HABILIDADE, "nome": "11. Voto da Revelação (+30 Créditos)", "desc": "Explica a técnica em voz alta para ganhar multiplicador."},
-		{"id": HatsuData.Condicao.ALVO_ELITE_BOSS, "nome": "12. Exclusivo: Chefes / Elites (+80 Créditos)", "desc": "Juramento de Chain Jail — restrito a líderes e elites."}
+		{"id": HatsuData.Condicao.HP_ABAIXO_50, "nome": "1. Vida Abaixo de 50% (+20 Créditos)", "desc": "Só ativa quando o usuário estiver ferido (< 50% HP)."},
+		{"id": HatsuData.Condicao.HP_ABAIXO_30, "nome": "2. Vida Crítica < 30% (+45 Créditos)", "desc": "Supernova desesperada ativada à beira da derrota."},
+		{"id": HatsuData.Condicao.AURA_MINIMA_50, "nome": "3. Aura Restante >= 50% (+15 Créditos)", "desc": "Requer disciplina e metade da barra de aura."},
+		{"id": HatsuData.Condicao.REQUER_TEN_ATIVO, "nome": "4. Manter Postura Ten (+15 Créditos)", "desc": "O usuário precisa estar mantendo Ten ativo."},
+		{"id": HatsuData.Condicao.REQUER_REN_ATIVO, "nome": "5. Manter Postura Ren (+20 Créditos)", "desc": "Requer explosão de Ren contínua."},
+		{"id": HatsuData.Condicao.APOS_ESQUIVA_PERFEITA, "nome": "6. Pós-Esquiva Perfeita (+30 Créditos)", "desc": "Janela de 2s após esquivar no momento exato."},
+		{"id": HatsuData.Condicao.CONTRA_QUEM_ATACOU_PRIMEIRO, "nome": "7. Apenas Contra Agressor (+50 Créditos)", "desc": "Só dispara contra quem desferiu o primeiro golpe."},
+		{"id": HatsuData.Condicao.PARADO_CANALIZACAO, "nome": "8. Canalização Estática (+25 Créditos)", "desc": "Requer permanecer completamente imóvel por 1.5s."},
+		{"id": HatsuData.Condicao.CURTO_ALCANCE_EXTREMO, "nome": "9. Toque / Proximidade Extrema (+25 Créditos)", "desc": "Requer contato direto a menos de 40px."},
+		{"id": HatsuData.Condicao.ALMAS_INIMIGOS, "nome": "10. Gatilho no Abate (+40 Créditos)", "desc": "Ativado imediatamente após eliminar um oponente."},
+		{"id": HatsuData.Condicao.REVELACAO_HABILIDADE, "nome": "11. Voto da Revelação (+20 Créditos)", "desc": "Explica a técnica em voz alta para ganhar multiplicador."},
+		{"id": HatsuData.Condicao.ALVO_ELITE_BOSS, "nome": "12. Exclusivo: Chefes / Elites (+55 Créditos)", "desc": "Juramento de Chain Jail — restrito a líderes e elites."}
 	]
 
 	for c in condicoes_catalogo:
@@ -972,14 +969,14 @@ func _montar_etapa_condicoes() -> void:
 func _montar_etapa_restricoes() -> void:
 	var restricoes_catalogo = [
 		{"id": HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE, "nome": "1. Imóvel Durante o Golpe (+40 Créditos)", "desc": "Velocidade zerada durante a execução da habilidade."},
-		{"id": HatsuComponentLibrary.RestrictionType.CANNOT_DODGE, "nome": "2. Bloqueio de Esquiva (+45 Créditos)", "desc": "Não pode realizar Dash durante o efeito."},
-		{"id": HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU, "nome": "3. Trava de Outros Hatsus (+35 Créditos)", "desc": "Trava outros 3 slots enquanto este estiver ativo."},
-		{"id": HatsuComponentLibrary.RestrictionType.ONCE_PER_COMBAT, "nome": "4. 1 Uso por Combate (+140 Créditos)", "desc": "Apenas um único disparo em toda a batalha."},
-		{"id": HatsuComponentLibrary.RestrictionType.TOUCH_REQUIRED, "nome": "5. Requer Toque Físico (+35 Créditos)", "desc": "Requer encostar a palma da mão no oponente."},
-		{"id": HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY, "nome": "6. Voto da Revelação (+35 Créditos)", "desc": "O personagem anuncia em voz alta o funcionamento do golpe."},
-		{"id": HatsuComponentLibrary.RestrictionType.SACRIFICE_HP, "nome": "7. Sacrifício Vital (-20% HP) (+70 Créditos)", "desc": "Consome frações de vida máxima própria ao disparar."},
-		{"id": HatsuComponentLibrary.RestrictionType.SACRIFICE_AURA_MAX, "nome": "8. Zero Ko (Dreno Total de Aura) (+150 Créditos)", "desc": "Zera completamente a barra de energia Nen."},
-		{"id": HatsuComponentLibrary.RestrictionType.DEATH_PENALTY_ON_MISS, "nome": "9. Voto do Cadafalso (+200 Créditos)", "desc": "Se errar ou for interrompido, sofre 50% HP e Zetsu forçado."}
+		{"id": HatsuComponentLibrary.RestrictionType.CANNOT_DODGE, "nome": "2. Bloqueio de Esquiva (+35 Créditos)", "desc": "Não pode realizar Dash durante o efeito."},
+		{"id": HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU, "nome": "3. Trava de Outros Hatsus (+30 Créditos)", "desc": "Trava outros 3 slots enquanto este estiver ativo."},
+		{"id": HatsuComponentLibrary.RestrictionType.ONCE_PER_COMBAT, "nome": "4. 1 Uso por Combate (+90 Créditos)", "desc": "Apenas um único disparo em toda a batalha."},
+		{"id": HatsuComponentLibrary.RestrictionType.TOUCH_REQUIRED, "nome": "5. Requer Toque Físico (+30 Créditos)", "desc": "Requer encostar a palma da mão no oponente."},
+		{"id": HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY, "nome": "6. Voto da Revelação (+20 Créditos)", "desc": "O personagem anuncia em voz alta o funcionamento do golpe."},
+		{"id": HatsuComponentLibrary.RestrictionType.SACRIFICE_HP, "nome": "7. Sacrifício Vital (-20% HP) (+50 Créditos)", "desc": "Consome frações de vida máxima própria ao disparar."},
+		{"id": HatsuComponentLibrary.RestrictionType.SACRIFICE_AURA_MAX, "nome": "8. Zero Ko (Dreno Total de Aura) (+90 Créditos)", "desc": "Zera completamente a barra de energia Nen."},
+		{"id": HatsuComponentLibrary.RestrictionType.DEATH_PENALTY_ON_MISS, "nome": "9. Voto do Cadafalso (+120 Créditos)", "desc": "Se errar ou for interrompido, sofre 50% HP e Zetsu forçado."}
 	]
 
 	for r in restricoes_catalogo:
@@ -1029,13 +1026,13 @@ func _montar_etapa_restricoes() -> void:
 				lbl_vow_analise.text = "🚫 REJEITADO PELA REGRA DE NEN:\n%s" % analise.get("analise_mestre", "")
 				sel_condicoes.erase(HatsuData.Condicao.CUSTOMIZADO)
 			else:
-				var t_nome: String = "🟢 Condição (+30 cr)"
+				var t_nome: String = "🟢 Condição (+25 cr)"
 				var t_cor: Color = Color(0.4, 1.0, 0.6, 1.0)
 				if analise.get("tier") == HatsuData.Tier.VOTO_EXTREMO:
-					t_nome = "🔴 Voto Extremo (+120 cr)"
+					t_nome = "🔴 Voto Extremo (+100 cr)"
 					t_cor = Color(1.0, 0.3, 0.3, 1.0)
 				elif analise.get("tier") == HatsuData.Tier.JURAMENTO:
-					t_nome = "🟡 Juramento Sério (+65 cr)"
+					t_nome = "🟡 Juramento Sério (+55 cr)"
 					t_cor = Color(1.0, 0.85, 0.2, 1.0)
 
 				lbl_vow_analise.add_theme_color_override("font_color", t_cor)
@@ -1310,6 +1307,19 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 
 	var index: int = PlayerData.adicionar_hatsu(novo_hatsu)
 	hatsu_criado.emit(novo_hatsu)
+
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
+
+	if EventBus != null:
+		EventBus.emit_toast("⚡ Hatsu '%s' forjado com sucesso!" % novo_hatsu.nome, Color(0.4, 1.0, 0.6))
+
+	# Atualizar HunterMenuUI se estiver instanciado
+	var root = get_tree().root if get_tree() else null
+	if root != null:
+		var hm = root.get_node_or_null("HunterMenuUI")
+		if hm != null and hm.has_method("_atualizar_conteudo_hatsu"):
+			hm._atualizar_conteudo_hatsu()
 
 	if is_draft:
 		print("[HatsuCreationUI] 💾 Rascunho de Hatsu salvo com sucesso! Slot index: ", index, " | Déficit: ", novo_hatsu.credit_deficit)

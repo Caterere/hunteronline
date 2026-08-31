@@ -855,6 +855,9 @@ func adicionar_hatsu(hatsu: HatsuData) -> int:
 	if hatsu == null:
 		return -1
 		
+	if hatsu.hatsu_id.is_empty():
+		hatsu.gerar_novo_id()
+		
 	hatsu_criados.append(hatsu)
 	hatsu_desbloqueado = true
 	var index: int = hatsu_criados.size() - 1
@@ -863,10 +866,33 @@ func adicionar_hatsu(hatsu: HatsuData) -> int:
 	for i in range(hatsu_slots.size()):
 		if hatsu_slots[i] == -1:
 			hatsu_slots[i] = index
-			print("[PlayerData] Hatsu auto-equipado no slot ", i + 1)
+			print("[PlayerData] Hatsu auto-equipado no slot ", i + 1, " (ID: ", hatsu.hatsu_id, ")")
 			break
 			
+	print("[PlayerData] Hatsu registrado com sucesso: '%s' [ID: %s] | Total de Hatsus: %d" % [hatsu.nome, hatsu.hatsu_id, hatsu_criados.size()])
 	return index
+
+
+func obter_hatsu_por_id(id: String) -> HatsuData:
+	if id.is_empty():
+		return null
+	for h in hatsu_criados:
+		if h is HatsuData and h.hatsu_id == id:
+			return h
+	return null
+
+
+func remover_hatsu(index: int) -> bool:
+	if index < 0 or index >= hatsu_criados.size():
+		return false
+	# Desequipar de qualquer slot
+	for s in range(hatsu_slots.size()):
+		if hatsu_slots[s] == index:
+			hatsu_slots[s] = -1
+		elif hatsu_slots[s] > index:
+			hatsu_slots[s] -= 1
+	hatsu_criados.remove_at(index)
+	return true
 
 
 func equipar_hatsu(slot: int, hatsu_index: int) -> bool:

@@ -1,9 +1,6 @@
 class_name HatsuData
 extends Resource
 
-const HatsuComponentLibrary = preload("res://resource/hatsu/HatsuComponentLibrary.gd")
-const VisualProfile = preload("res://resource/hatsu/VisualProfile.gd")
-
 # ============================================================
 # HUNTER ONLINE - HATSU DATA RESOURCE (CANON HXH NEN SYSTEM)
 # ============================================================
@@ -175,6 +172,7 @@ enum Condicao {
 	CUSTOMIZADO               # Juramento Personalizado analisado pela IA de Nen
 }
 
+@export var hatsu_id: String = ""
 @export var nome: String = "Novo Hatsu"
 @export var categoria: Categoria = Categoria.INTENSIFICACAO
 @export var objetivo: ObjetivoPrincipal = ObjetivoPrincipal.DANO
@@ -338,172 +336,198 @@ var vow_custom_tier: Tier = Tier.CONDICAO
 # ============================================================
 
 func calcular_versatility_score() -> float:
-	var score: float = 10.0
-	score += float(sub_effects.size() * 18.0)
+	var score: float = 5.0
+	score += float(sub_effects.size() * 22.0)
 	if alvo == Alvo.AREA:
-		score += 25.0
-	if forma in [Forma.AREA, Forma.ZONA]:
 		score += 30.0
-	if alcance > 180.0:
-		score += 25.0
-	var cd := custom_cooldown if custom_cooldown > 0.0 else cooldown_base
-	if cd < 2.5:
+	if forma in [Forma.AREA, Forma.ZONA]:
 		score += 35.0
-	elif cd < 4.0:
-		score += 15.0
+	if alcance > 220.0:
+		score += 35.0
+	elif alcance > 150.0:
+		score += 18.0
+
+	var cd := custom_cooldown if custom_cooldown > 0.0 else cooldown_base
+	if cd < 2.0:
+		score += 40.0
+	elif cd < 3.5:
+		score += 20.0
+
 	if duration_type in [DurationType.CONTINUOUS_DRAIN, DurationType.PERMANENT_STANCE]:
-		score += 45.0
+		score += 50.0
 	elif duracao > 8.0:
 		score += 25.0
 
 	# Bônus intrínsecos de arquétipos / conceitos
 	match arquetipo:
-		Arquetipo.LIVRO_COLECAO: score += 75.0
-		Arquetipo.TERRITORIO_EN: score += 65.0
-		Arquetipo.ARSENAL_ROLETA: score += 50.0
-		Arquetipo.CONTRATO_DUELO: score += 55.0
-		Arquetipo.TROCA_SACRIFICIO: score += 40.0
-		Arquetipo.MARCA_TAG: score += 35.0
-		Arquetipo.OBJETO_DADO: score += 40.0
-		Arquetipo.OBJETO_CARTAS: score += 35.0
+		Arquetipo.LIVRO_COLECAO: score += 80.0
+		Arquetipo.TERRITORIO_EN: score += 70.0
+		Arquetipo.ARSENAL_ROLETA: score += 55.0
+		Arquetipo.CONTRATO_DUELO: score += 60.0
+		Arquetipo.TROCA_SACRIFICIO: score += 45.0
+		Arquetipo.MARCA_TAG: score += 40.0
+		Arquetipo.OBJETO_DADO: score += 45.0
+		Arquetipo.OBJETO_CARTAS: score += 40.0
 
 	# Bônus para Hatsu de Armazenamento / Roubo
 	if is_storage_hatsu or arquetipo == Arquetipo.LIVRO_COLECAO:
-		score += 50.0
+		score += 55.0
 		if storage_capacity >= 10:
-			score += 50.0
+			score += 60.0
 		elif storage_capacity >= 5:
-			score += 30.0
+			score += 35.0
 		else:
-			score += 15.0
+			score += 20.0
 
 		if storage_duration_type == "PERMANENT":
-			score += 30.0
+			score += 35.0
 		elif storage_duration_type == "TIMED":
 			score += 15.0
 
 		if storage_usage_rule == "FREE":
-			score += 45.0
+			score += 50.0
 		elif storage_usage_rule == "MARKER":
-			score += 25.0
+			score += 30.0
 
 	# Bônus por Core Component avançado (Especialização / Absorção / Rollback / Zone)
 	match core_component:
-		HatsuComponentLibrary.CoreType.ABSORPTION: score += 60.0
-		HatsuComponentLibrary.CoreType.RULE_ZONE: score += 65.0
-		HatsuComponentLibrary.CoreType.MEMORY_ROLLBACK: score += 70.0
-		HatsuComponentLibrary.CoreType.TRANSFORMATION: score += 40.0
-		HatsuComponentLibrary.CoreType.SUMMON: score += 35.0
+		HatsuComponentLibrary.CoreType.ABSORPTION: score += 65.0
+		HatsuComponentLibrary.CoreType.RULE_ZONE: score += 70.0
+		HatsuComponentLibrary.CoreType.MEMORY_ROLLBACK: score += 75.0
+		HatsuComponentLibrary.CoreType.TRANSFORMATION: score += 45.0
+		HatsuComponentLibrary.CoreType.SUMMON: score += 40.0
 
 	versatility_score = score
 	return score
 
 
 func calcular_functional_power() -> float:
-	var dmg: float = custom_damage if custom_damage > 0.0 else poder_base
-	var power: float = dmg * 1.0
+	var raw_dmg: float = custom_damage if custom_damage > 0.0 else poder_base
+	var power_demand: float = 0.0
 
+	# Curva Não-Linear por Faixas de Poder (Escala Exponencial de Nen)
+	if raw_dmg <= 30.0:
+		power_demand = raw_dmg * 1.0
+	elif raw_dmg <= 60.0:
+		power_demand = 30.0 + ((raw_dmg - 30.0) * 1.5)
+	elif raw_dmg <= 100.0:
+		power_demand = 30.0 + (30.0 * 1.5) + ((raw_dmg - 60.0) * 2.5)
+	else:
+		power_demand = 30.0 + (30.0 * 1.5) + (40.0 * 2.5) + ((raw_dmg - 100.0) * 4.0)
+
+	# Demanda para Escudo e Cura
 	if escudo_base > 0.0:
-		power += escudo_base * 1.15
+		if escudo_base <= 40.0:
+			power_demand += escudo_base * 0.9
+		else:
+			power_demand += 36.0 + ((escudo_base - 40.0) * 1.6)
+
 	if cura_base > 0.0:
-		power += cura_base * 1.25
+		if cura_base <= 35.0:
+			power_demand += cura_base * 1.1
+		else:
+			power_demand += 38.5 + ((cura_base - 35.0) * 1.8)
+
 	if stun_duracao > 0.0 and objetivo == ObjetivoPrincipal.CONTROLE:
-		power += stun_duracao * 20.0
+		power_demand += stun_duracao * 25.0
 	if velocidade_bonus > 0.0:
-		power += (velocidade_bonus / 100.0) * 25.0
+		power_demand += (velocidade_bonus / 100.0) * 30.0
 
 	var v_score := calcular_versatility_score()
-	power += v_score * 0.85
+	power_demand += v_score * 0.90
 
-	# Se for Especialização, Roubo ou conceito de alto impacto sem dano direto, garantir poder funcional condizente
+	# Se for Especialização, Roubo ou conceito de alto impacto sem dano direto
 	if categoria == Categoria.ESPECIALIZACAO or is_storage_hatsu or arquetipo == Arquetipo.LIVRO_COLECAO:
-		power = max(power, 70.0 + (v_score * 0.75))
+		power_demand = max(power_demand, 80.0 + (v_score * 0.80))
 
-	functional_power = max(30.0, power)
+	functional_power = max(20.0, power_demand)
 	required_credits = functional_power
 	return functional_power
 
 
 func calcular_limitation_credits() -> float:
-	var credits: float = 65.0 # Capacidade Inata Básica de Nen (Fundamento)
+	# Capacidade Inata Básica Reduzida (Suficiente apenas para técnica rudimentar)
+	var credits: float = 15.0
 	var c_cred: float = 0.0
 	var r_cred: float = 0.0
 	var v_cred: float = 0.0
 	var p_cred: float = 0.0
 
+	# Créditos por Custo de Aura Realmente Alto
 	var cost := custom_aura_cost if custom_aura_cost > 0.0 else custo_aura_base
-	if cost >= 50.0:
-		credits += 30.0
-	elif cost >= 35.0:
+	if cost >= 80.0:
+		credits += 35.0
+	elif cost >= 50.0:
 		credits += 20.0
-	elif cost >= 20.0:
+	elif cost >= 35.0:
 		credits += 10.0
 
+	# Créditos por Tempo de Recarga Realmente Longo
 	var cd := custom_cooldown if custom_cooldown > 0.0 else cooldown_base
-	if cd >= 12.0:
+	if cd >= 16.0:
 		credits += 35.0
-	elif cd >= 6.0:
+	elif cd >= 10.0:
 		credits += 20.0
-	elif cd >= 3.5:
+	elif cd >= 6.0:
 		credits += 10.0
 
 	# Créditos por Requisitos e Condições de Roubo de Hatsu
 	for sc in steal_conditions:
 		match str(sc):
 			"TOUCH_REQUIRED":
-				credits += 35.0
-				c_cred += 35.0
-			"OBSERVE_GYO":
 				credits += 30.0
 				c_cred += 30.0
-			"TARGET_EXPLAINS":
-				credits += 45.0
-				c_cred += 45.0
-			"TARGET_DEFEATED":
-				credits += 40.0
-				c_cred += 40.0
-			"FOUR_STRICT_CONDITIONS":
-				credits += 140.0
-				c_cred += 140.0
-			_:
+			"OBSERVE_GYO":
 				credits += 25.0
 				c_cred += 25.0
+			"TARGET_EXPLAINS":
+				credits += 35.0
+				c_cred += 35.0
+			"TARGET_DEFEATED":
+				credits += 35.0
+				c_cred += 35.0
+			"FOUR_STRICT_CONDITIONS":
+				credits += 120.0
+				c_cred += 120.0
+			_:
+				credits += 20.0
+				c_cred += 20.0
 
 	for c in condicoes:
 		var inf := obter_info_condicao(c)
-		var val: float = float(inf.get("budget_bonus", 25.0))
+		var val: float = float(inf.get("budget_bonus", 20.0))
 		c_cred += val
 	credits += c_cred
 
 	for mc in modular_conditions:
-		var mc_info = HatsuComponentLibrary.get_condition_info(mc as HatsuComponentLibrary.ConditionType)
-		var mc_val: float = float(mc_info.get("budget_bonus", 25.0))
+		var mc_info = HatsuComponentLibrary.get_condition_info(int(mc))
+		var mc_val: float = float(mc_info.get("budget_bonus", 20.0))
 		c_cred += mc_val
 		credits += mc_val
 
 	for r in modular_restrictions:
-		var r_info = HatsuComponentLibrary.get_restriction_info(r as HatsuComponentLibrary.RestrictionType)
-		var r_val: float = float(r_info.get("budget_bonus", 30.0))
+		var r_info = HatsuComponentLibrary.get_restriction_info(int(r))
+		var r_val: float = float(r_info.get("budget_bonus", 25.0))
 		r_cred += r_val
 	credits += r_cred
 
 	for d in modular_drawbacks:
-		var d_info = HatsuComponentLibrary.get_drawback_info(d as HatsuComponentLibrary.DrawbackType)
-		var d_val: float = float(d_info.get("budget_bonus", 25.0))
+		var d_info = HatsuComponentLibrary.get_drawback_info(int(d))
+		var d_val: float = float(d_info.get("budget_bonus", 20.0))
 		r_cred += d_val
 		credits += d_val
 
 	if not vow_custom_text.is_empty():
 		if vow_custom_tier == Tier.VOTO_EXTREMO:
-			v_cred += 120.0
+			v_cred += 100.0
 		elif vow_custom_tier == Tier.JURAMENTO:
-			v_cred += 65.0
+			v_cred += 55.0
 		else:
-			v_cred += 30.0
+			v_cred += 25.0
 	credits += v_cred
 
 	for step in preparation_steps:
-		var step_val: float = float(step.get("credit_value", 30.0))
+		var step_val: float = float(step.get("credit_value", 25.0))
 		p_cred += step_val
 	credits += p_cred
 
@@ -532,16 +556,16 @@ func is_balanced() -> bool:
 
 static func obter_info_condicao(cond: Condicao) -> Dictionary:
 	match cond:
-		# --- 🟢 TIER 1 ---
+		# --- 🟢 TIER 1 (Condições Táticas Básicas) ---
 		Condicao.HP_ABAIXO_50:
 			return {
 				"tier": Tier.CONDICAO,
 				"categoria": "HP / Vida",
 				"dificuldade": 2, "risco": 2, "frequencia": 3, "severidade": 2, "impacto": 2,
-				"mult": 0.30,
-				"budget_bonus": 25.0,
+				"mult": 0.20,
+				"budget_bonus": 20.0,
 				"nome": "Juramento de Risco (HP < 50%)",
-				"desc": "Só ativa quando o HP estiver abaixo de 50%.\n+30% de Poder Final por risco moderado.",
+				"desc": "Só ativa quando o HP estiver abaixo de 50%.\n+20% de Poder Final.",
 				"lore": "A determinação em momentos de perigo iminente eleva a densidade da aura."
 			}
 		Condicao.HP_CHEIO:
@@ -549,10 +573,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "HP / Vida",
 				"dificuldade": 2, "risco": 2, "frequencia": 3, "severidade": 1, "impacto": 1,
-				"mult": 0.25,
-				"budget_bonus": 20.0,
+				"mult": 0.15,
+				"budget_bonus": 15.0,
 				"nome": "Condição da Plenitude (HP 100%)",
-				"desc": "Só pode ser disparado com HP intacto (100%).\n+25% de Poder Final no primeiro impacto.",
+				"desc": "Só pode ser disparado com HP intacto (100%).\n+15% de Poder Final no primeiro impacto.",
 				"lore": "Manter a integridade física perfeita canaliza a aura sem turbulências."
 			}
 		Condicao.AURA_MINIMA_50:
@@ -560,10 +584,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Recursos",
 				"dificuldade": 2, "risco": 1, "frequencia": 4, "severidade": 1, "impacto": 2,
-				"mult": 0.20,
-				"budget_bonus": 20.0,
+				"mult": 0.15,
+				"budget_bonus": 15.0,
 				"nome": "Reserva Estável (Aura >= 50%)",
-				"desc": "Requer pelo menos 50% da barra de Aura para ativar.\n+20% de Poder Final.",
+				"desc": "Requer pelo menos 50% da barra de Aura para ativar.\n+15% de Poder Final.",
 				"lore": "Garante que o golpe só seja disparado com sustentação firme de Nen."
 			}
 		Condicao.PARADO_CANALIZACAO:
@@ -571,10 +595,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Movimento",
 				"dificuldade": 2, "risco": 2, "frequencia": 4, "severidade": 2, "impacto": 2,
-				"mult": 0.35,
-				"budget_bonus": 35.0,
+				"mult": 0.25,
+				"budget_bonus": 25.0,
 				"nome": "Canalização Estática (Parado 1.5s)",
-				"desc": "O usuário precisa permanecer imóvel por 1.5s antes de liberar.\n+35% de Poder Final.",
+				"desc": "O usuário precisa permanecer imóvel por 1.5s antes de liberar.\n+25% de Poder Final.",
 				"lore": "Posturas estáticas acumulam a pressão de Nen como uma mola comprimida."
 			}
 		Condicao.MOVIMENTO_CONTINUO:
@@ -582,10 +606,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Movimento",
 				"dificuldade": 2, "risco": 1, "frequencia": 4, "severidade": 2, "impacto": 2,
-				"mult": 0.30,
-				"budget_bonus": 30.0,
+				"mult": 0.20,
+				"budget_bonus": 20.0,
 				"nome": "Dança dos Passos (Correr 2.5s)",
-				"desc": "Requer estar em corrida contínua por 2.5s antes do disparo.\n+30% de Poder Final.",
+				"desc": "Requer estar em corrida contínua por 2.5s antes do disparo.\n+20% de Poder Final.",
 				"lore": "A dança dos guerreiros Bap de Bonolenov canaliza a inércia dos passos em impacto."
 			}
 		Condicao.CURTO_ALCANCE_EXTREMO:
@@ -593,10 +617,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Alcance",
 				"dificuldade": 3, "risco": 3, "frequencia": 3, "severidade": 2, "impacto": 3,
-				"mult": 0.35,
-				"budget_bonus": 30.0,
+				"mult": 0.25,
+				"budget_bonus": 25.0,
 				"nome": "Ponto de Impacto Zero (< 40px)",
-				"desc": "Só atinge alvos colados ao corpo do jogador.\n+35% de Poder Final por proximidade extrema.",
+				"desc": "Só atinge alvos colados ao corpo do jogador.\n+25% de Poder Final por proximidade extrema.",
 				"lore": "Limitar o alcance ao milímetro do toque concentra o Ko no ponto de ruptura."
 			}
 		Condicao.LONGO_ALCANCE_SNIPER:
@@ -604,10 +628,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Alcance",
 				"dificuldade": 2, "risco": 1, "frequencia": 3, "severidade": 2, "impacto": 2,
-				"mult": 0.25,
-				"budget_bonus": 25.0,
+				"mult": 0.20,
+				"budget_bonus": 20.0,
 				"nome": "Disparo Sniper (> 220px)",
-				"desc": "Só causa efeito em alvos a longa distância (> 220px).\n+25% de Poder Final.",
+				"desc": "Só causa efeito em alvos a longa distância (> 220px).\n+20% de Poder Final.",
 				"lore": "A precisão balística de emissão à distância requer mira impecável."
 			}
 		Condicao.APOS_ESQUIVA_PERFEITA:
@@ -615,10 +639,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Ativação",
 				"dificuldade": 3, "risco": 2, "frequencia": 3, "severidade": 2, "impacto": 2,
-				"mult": 0.35,
-				"budget_bonus": 35.0,
+				"mult": 0.30,
+				"budget_bonus": 30.0,
 				"nome": "Contra-Golpe Instantâneo (Pós-Esquiva)",
-				"desc": "Disponível apenas nos 2 segundos após uma Esquiva Perfeita.\n+35% de Poder Final.",
+				"desc": "Disponível apenas nos 2 segundos após uma Esquiva Perfeita.\n+30% de Poder Final.",
 				"lore": "Aproveitar a abertura do oponente logo após desviar no último instante."
 			}
 		Condicao.REQUER_TEN_ATIVO:
@@ -626,10 +650,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Ativação",
 				"dificuldade": 1, "risco": 1, "frequencia": 4, "severidade": 1, "impacto": 2,
-				"mult": 0.20,
-				"budget_bonus": 20.0,
+				"mult": 0.15,
+				"budget_bonus": 15.0,
 				"nome": "Canalização de Ten",
-				"desc": "Requer manter a técnica Ten ativa durante o disparo.\n+20% de Poder e resistência.",
+				"desc": "Requer manter a técnica Ten ativa durante o disparo.\n+15% de Poder e resistência.",
 				"lore": "O manto de Ten estabiliza o fluxo de Nen, impedindo dispersão."
 			}
 		Condicao.REQUER_REN_ATIVO:
@@ -637,10 +661,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Ativação",
 				"dificuldade": 2, "risco": 2, "frequencia": 4, "severidade": 2, "impacto": 2,
-				"mult": 0.30,
-				"budget_bonus": 30.0,
+				"mult": 0.20,
+				"budget_bonus": 20.0,
 				"nome": "Explosão de Ren",
-				"desc": "Requer que o Ren esteja ativo no momento do golpe.\n+30% de Poder e maior área de impacto.",
+				"desc": "Requer que o Ren esteja ativo no momento do golpe.\n+20% de Poder.",
 				"lore": "Liberar o Ren multiplica a intensidade do Hatsu."
 			}
 		Condicao.COOLDOWN_LONGO:
@@ -648,10 +672,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Temporal",
 				"dificuldade": 1, "risco": 1, "frequencia": 5, "severidade": 2, "impacto": 2,
-				"mult": 0.35,
-				"budget_bonus": 35.0,
+				"mult": 0.20,
+				"budget_bonus": 20.0,
 				"nome": "Restrição Temporal (Recarga 2x)",
-				"desc": "O tempo de recarga é duplicado.\n+35% de Poder Final.",
+				"desc": "O tempo de recarga é duplicado.\n+20% de Poder Final.",
 				"lore": "Longos intervalos de descanso permitem acumular maior densidade energética."
 			}
 		Condicao.REVELACAO_HABILIDADE:
@@ -659,23 +683,23 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "Comportamental",
 				"dificuldade": 2, "risco": 2, "frequencia": 5, "severidade": 2, "impacto": 2,
-				"mult": 0.30,
-				"budget_bonus": 30.0,
+				"mult": 0.20,
+				"budget_bonus": 20.0,
 				"nome": "Voto da Revelação (Countdown de Genthru)",
-				"desc": "O personagem expõe as regras do Hatsu ao oponente em balão de mangá.\n+30% de Poder.",
+				"desc": "O personagem expõe as regras do Hatsu ao oponente em balão de mangá.\n+20% de Poder.",
 				"lore": "Abdicar do elemento surpresa explicando a técnica fortalece o feitiço de Nen."
 			}
 
-		# --- 🟡 TIER 2 ---
+		# --- 🟡 TIER 2 (Juramentos Sério) ---
 		Condicao.HP_ABAIXO_30:
 			return {
 				"tier": Tier.JURAMENTO,
 				"categoria": "HP / Vida",
 				"dificuldade": 4, "risco": 4, "frequencia": 2, "severidade": 4, "impacto": 4,
-				"mult": 0.65,
-				"budget_bonus": 60.0,
+				"mult": 0.45,
+				"budget_bonus": 45.0,
 				"nome": "Juramento do Desespero (HP < 30%)",
-				"desc": "Só pode ser usado em estado crítico (HP < 30%).\n+65% de Poder Final para viradas épicas.",
+				"desc": "Só pode ser usado em estado crítico (HP < 30%).\n+45% de Poder Final para viradas épicas.",
 				"lore": "À beira do abismo, o instinto de sobrevivência desbloqueia o potencial oculto."
 			}
 		Condicao.CONTRA_QUEM_ATACOU_PRIMEIRO:
@@ -683,10 +707,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Alvo / Comportamental",
 				"dificuldade": 3, "risco": 4, "frequencia": 3, "severidade": 3, "impacto": 3,
-				"mult": 0.75,
-				"budget_bonus": 70.0,
+				"mult": 0.50,
+				"budget_bonus": 50.0,
 				"nome": "Voto do Retorno (Contra quem atacou primeiro)",
-				"desc": "Só funciona contra inimigos que já atacaram o jogador primeiro no combate.\n+75% de Poder Final.",
+				"desc": "Só funciona contra inimigos que já atacaram o jogador primeiro no combate.\n+50% de Poder Final.",
 				"lore": "Princípio da Autodefesa Absoluta — a aura só reage contra a intenção assassina do agressor."
 			}
 		Condicao.IMOVEL_DURANTE_USO:
@@ -694,10 +718,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Movimento",
 				"dificuldade": 4, "risco": 4, "frequencia": 4, "severidade": 4, "impacto": 4,
-				"mult": 0.85,
-				"budget_bonus": 80.0,
+				"mult": 0.50,
+				"budget_bonus": 50.0,
 				"nome": "Postura Inamovível (Canhão Fixo)",
-				"desc": "O personagem não pode se mover nem cancelar enquanto a técnica estiver ativa.\n+85% de Poder Final.",
+				"desc": "O personagem não pode se mover nem cancelar enquanto a técnica estiver ativa.\n+50% de Poder Final.",
 				"lore": "Ancorar os pés no chão e transformar o próprio corpo em uma torre de artilharia de Nen."
 			}
 		Condicao.NAO_ESQUIVAR_DURANTE_EFEITO:
@@ -705,10 +729,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Movimento",
 				"dificuldade": 3, "risco": 4, "frequencia": 4, "severidade": 3, "impacto": 3,
-				"mult": 0.55,
-				"budget_bonus": 50.0,
+				"mult": 0.35,
+				"budget_bonus": 35.0,
 				"nome": "Sem Esquiva (Sem Dash)",
-				"desc": "Bloqueia o Dash e Esquivas enquanto a habilidade estiver em efeito.\n+55% de Poder Final.",
+				"desc": "Bloqueia o Dash e Esquivas enquanto a habilidade estiver em efeito.\n+35% de Poder Final.",
 				"lore": "Renunciar à evasão força o fluxo de Nen a se concentrar inteiramente no impacto."
 			}
 		Condicao.NAO_VIOLENCIA:
@@ -716,10 +740,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Comportamental",
 				"dificuldade": 3, "risco": 3, "frequencia": 4, "severidade": 4, "impacto": 4,
-				"mult": 0.80,
-				"budget_bonus": 75.0,
+				"mult": 0.50,
+				"budget_bonus": 50.0,
 				"nome": "Defesa Pacífica (Sem Ataques Básicos)",
-				"desc": "Impede ataques básicos enquanto o escudo durar.\n+80% de absorção e reflete 50% do dano.",
+				"desc": "Impede ataques básicos enquanto o escudo durar.\n+50% de absorção e reflete 50% do dano.",
 				"lore": "Abdicar totalmente da agressão fortalece o Ten e o Ken para criar uma barreira inabalável."
 			}
 		Condicao.ZETSU_POS_USO_15S:
@@ -727,10 +751,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Pós-Uso",
 				"dificuldade": 4, "risco": 5, "frequencia": 4, "severidade": 5, "impacto": 5,
-				"mult": 0.90,
-				"budget_bonus": 85.0,
+				"mult": 0.60,
+				"budget_bonus": 60.0,
 				"nome": "Exaustão Absoluta (Zetsu por 15s pós-uso)",
-				"desc": "Após usar, o jogador entra forçadamente em Zetsu por 15s (sem Nen nem defesa).\n+90% de Poder Final.",
+				"desc": "Após usar, o jogador entra forçadamente em Zetsu por 15s (sem Nen nem defesa).\n+60% de Poder Final.",
 				"lore": "Esgotar até o último poro de aura exige um período imediato de desligamento total dos nós."
 			}
 		Condicao.BLOQUEIO_NEN_10S:
@@ -738,10 +762,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Pós-Uso",
 				"dificuldade": 4, "risco": 4, "frequencia": 4, "severidade": 4, "impacto": 4,
-				"mult": 0.70,
-				"budget_bonus": 65.0,
+				"mult": 0.45,
+				"budget_bonus": 45.0,
 				"nome": "Sobrecarga de Nen (Bloqueio por 10s)",
-				"desc": "Bloqueia todas as técnicas de Nen e outros Hatsus por 10 segundos pós-uso.\n+70% de Poder Final.",
+				"desc": "Bloqueia todas as técnicas de Nen e outros Hatsus por 10 segundos pós-uso.\n+45% de Poder Final.",
 				"lore": "O circuito de nós de Nen superaquece, exigindo resfriamento biológico."
 			}
 		Condicao.DOR_ACUMULADA:
@@ -749,10 +773,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "HP / Dano",
 				"dificuldade": 4, "risco": 4, "frequencia": 3, "severidade": 3, "impacto": 3,
-				"mult": 0.80,
-				"budget_bonus": 75.0,
+				"mult": 0.50,
+				"budget_bonus": 50.0,
 				"nome": "Pain Packer (Transmutação da Dor de Feitan)",
-				"desc": "O poder escala diretamente com todo o dano sofrido nos últimos 10s (+80% até +180%).",
+				"desc": "O poder escala diretamente com todo o dano sofrido nos últimos 10s (+50% até +120%).",
 				"lore": "Transmutar a agonia e o sofrimento físico sofrido em calor, fogo e devastação."
 			}
 		Condicao.ALMAS_INIMIGOS:
@@ -760,10 +784,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Ativação / Alvo",
 				"dificuldade": 3, "risco": 3, "frequencia": 3, "severidade": 3, "impacto": 3,
-				"mult": 0.15,
-				"budget_bonus": 55.0,
+				"mult": 0.10,
+				"budget_bonus": 40.0,
 				"nome": "Colheita de Almas (Pacto de Morena / Camilla)",
-				"desc": "Derrotar monstros acumula almas (+15% por alma, até 10 almas = +150% poder!).",
+				"desc": "Derrotar monstros acumula almas (+10% por alma, até 10 almas = +100% poder!).",
 				"lore": "Absorção de resquícios de Nen pós-morte para energizar o disparo."
 			}
 		Condicao.ORACAO_GRATIDAO:
@@ -771,10 +795,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Movimento / Ativação",
 				"dificuldade": 3, "risco": 4, "frequencia": 4, "severidade": 3, "impacto": 3,
-				"mult": 0.60,
-				"budget_bonus": 60.0,
+				"mult": 0.40,
+				"budget_bonus": 40.0,
 				"nome": "Oração dos 10.000 Golpes de Gratidão (Netero)",
-				"desc": "O personagem realiza uma reverência imóvel de 0.7s antes do golpe.\n+60% de Poder.",
+				"desc": "O personagem realiza uma reverência imóvel de 0.7s antes do golpe.\n+40% de Poder.",
 				"lore": "A reverência e os socos de gratidão de Netero que transcendem a velocidade humana."
 			}
 		Condicao.COMBO_SEQUENCIA:
@@ -782,10 +806,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Sequência / Combo",
 				"dificuldade": 4, "risco": 3, "frequencia": 3, "severidade": 3, "impacto": 3,
-				"mult": 0.65,
-				"budget_bonus": 65.0,
+				"mult": 0.45,
+				"budget_bonus": 45.0,
 				"nome": "Sequência Rítmica (Ataque -> Dash -> Nen -> Hatsu)",
-				"desc": "Só ativa se a sequência correta de comandos for realizada nos últimos 3s.\n+65% de Poder.",
+				"desc": "Só ativa se a sequência correta de comandos for realizada nos últimos 3s.\n+45% de Poder.",
 				"lore": "Canalizar a memória muscular e o ritmo respiratório marcial."
 			}
 		Condicao.ALVO_ELITE_BOSS:
@@ -793,10 +817,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Alvo",
 				"dificuldade": 4, "risco": 4, "frequencia": 2, "severidade": 4, "impacto": 4,
-				"mult": 0.85,
-				"budget_bonus": 80.0,
+				"mult": 0.55,
+				"budget_bonus": 55.0,
 				"nome": "Chain Jail (Apenas Chefes e Elites)",
-				"desc": "Só pode ser ativado contra Chefes e Inimigos de Elite com Nen.\n+85% de Poder + Stun forçado.",
+				"desc": "Só pode ser ativado contra Chefes e Inimigos de Elite com Nen.\n+55% de Poder + Stun forçado.",
 				"lore": "O juramento de Kurapika — apostar a própria vida contra alvos específicos concede poder absoluto."
 			}
 		Condicao.CUSTO_DUPLO:
@@ -804,10 +828,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "Recursos",
 				"dificuldade": 2, "risco": 2, "frequencia": 5, "severidade": 3, "impacto": 3,
-				"mult": 0.45,
-				"budget_bonus": 45.0,
+				"mult": 0.35,
+				"budget_bonus": 35.0,
 				"nome": "Sacrifício de Aura (Custo 2x)",
-				"desc": "Consome o dobro de Aura ao ativar.\n+45% de Poder Final por densidade extrema.",
+				"desc": "Consome o dobro de Aura ao ativar.\n+35% de Poder Final por densidade extrema.",
 				"lore": "Condensação maciça de aura gera ondas de choque devastadoras."
 			}
 		Condicao.AUTO_DANO:
@@ -815,23 +839,23 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.JURAMENTO,
 				"categoria": "HP / Vida",
 				"dificuldade": 3, "risco": 4, "frequencia": 5, "severidade": 3, "impacto": 3,
-				"mult": 0.55,
-				"budget_bonus": 55.0,
+				"mult": 0.40,
+				"budget_bonus": 40.0,
 				"nome": "Pacto de Sangue (-10% HP Próprio)",
-				"desc": "Consome 10% da vida máxima a cada uso.\n+55% de Poder Final (Troca vital).",
+				"desc": "Consome 10% da vida máxima a cada uso.\n+40% de Poder Final (Troca vital).",
 				"lore": "A troca de sangue biológico por energia Nen ativa aceleração celular destrutiva."
 			}
 
-		# --- 🔴 TIER 3 ---
+		# --- 🔴 TIER 3 (Votos Extremos) ---
 		Condicao.HP_ABAIXO_20:
 			return {
 				"tier": Tier.VOTO_EXTREMO,
 				"categoria": "HP / Vida",
 				"dificuldade": 5, "risco": 5, "frequencia": 1, "severidade": 5, "impacto": 5,
-				"mult": 1.20,
-				"budget_bonus": 110.0,
+				"mult": 0.80,
+				"budget_bonus": 80.0,
 				"nome": "À Beira da Morte (HP Crítico < 20%)",
-				"desc": "Exclusivo para momentos terminais com HP < 20%.\n+120% de Poder Final!",
+				"desc": "Exclusivo para momentos terminais com HP < 20%.\n+80% de Poder Final!",
 				"lore": "O brilho final de uma vida prestes a se extinguir produz uma supernova de Nen."
 			}
 		Condicao.USO_UNICO_POR_COMBATE:
@@ -839,10 +863,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.VOTO_EXTREMO,
 				"categoria": "Ativação / Risco",
 				"dificuldade": 4, "risco": 4, "frequencia": 1, "severidade": 5, "impacto": 5,
-				"mult": 1.40,
-				"budget_bonus": 130.0,
+				"mult": 0.90,
+				"budget_bonus": 90.0,
 				"nome": "Único Disparo (1x por Batalha)",
-				"desc": "Só pode ser usado uma única vez por combate inteiro.\n+140% de Poder Final!",
+				"desc": "Só pode ser usado uma única vez por combate inteiro.\n+90% de Poder Final!",
 				"lore": "A cartada final que decide a vida ou a morte em um único instante."
 			}
 		Condicao.DRENO_TOTAL_AURA:
@@ -850,10 +874,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.VOTO_EXTREMO,
 				"categoria": "Recursos",
 				"dificuldade": 4, "risco": 5, "frequencia": 2, "severidade": 5, "impacto": 5,
-				"mult": 1.50,
-				"budget_bonus": 140.0,
+				"mult": 0.90,
+				"budget_bonus": 90.0,
 				"nome": "Zero Ko (Dreno de 100% da Aura Atual)",
-				"desc": "Esvazia completamente a barra de Aura ao disparar.\n+150% de Poder Final!",
+				"desc": "Esvazia completamente a barra de Aura ao disparar.\n+90% de Poder Final!",
 				"lore": "A técnica suprema de Netero — projetar toda a aura restante em um feixe aniquilador."
 			}
 		Condicao.AUTO_DANO_30_SANGUE:
@@ -861,10 +885,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.VOTO_EXTREMO,
 				"categoria": "HP / Vida",
 				"dificuldade": 4, "risco": 5, "frequencia": 2, "severidade": 5, "impacto": 5,
-				"mult": 1.60,
-				"budget_bonus": 150.0,
+				"mult": 1.00,
+				"budget_bonus": 100.0,
 				"nome": "Grande Sacrifício Vital (-30% HP)",
-				"desc": "Sacrifica 30% da vida máxima do jogador ao usar.\n+160% de Poder Final!",
+				"desc": "Sacrifica 30% da vida máxima do jogador ao usar.\n+100% de Poder Final!",
 				"lore": "Troca de carne e espírito por destruição incondicional."
 			}
 		Condicao.PENALIDADE_MORTE_ERRO:
@@ -872,10 +896,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.VOTO_EXTREMO,
 				"categoria": "Risco",
 				"dificuldade": 5, "risco": 5, "frequencia": 2, "severidade": 5, "impacto": 5,
-				"mult": 2.00,
-				"budget_bonus": 190.0,
+				"mult": 1.20,
+				"budget_bonus": 120.0,
 				"nome": "Voto do Cadafalso (Se errar, sofre 50% HP e 30s Zetsu)",
-				"desc": "Se o ataque não atingir ou for interrompido, o usuário sofre metade da vida e 30s de Zetsu.\n+200% de Poder!",
+				"desc": "Se o ataque não atingir ou for interrompido, o usuário sofre metade da vida e 30s de Zetsu.\n+120% de Poder!",
 				"lore": "A espada de Dâmocles sobre a cabeça do usuário — errar é cortejar a própria morte."
 			}
 		Condicao.VOTO_ABSOLUTO_CHAIN:
@@ -883,10 +907,10 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.VOTO_EXTREMO,
 				"categoria": "Alvo / Voto Absoluto",
 				"dificuldade": 5, "risco": 5, "frequencia": 1, "severidade": 5, "impacto": 5,
-				"mult": 2.20,
-				"budget_bonus": 210.0,
+				"mult": 1.40,
+				"budget_bonus": 140.0,
 				"nome": "Voto da Corrente do Julgamento Absoluto (Kurapika)",
-				"desc": "Uso restrito a Chefes, 1x por combate, com auto-dano vital em caso de falha.\n+220% de Poder!",
+				"desc": "Uso restrito a Chefes, 1x por combate, com auto-dano vital em caso de falha.\n+140% de Poder!",
 				"lore": "Um juramento cravado com a lâmina do julgamento no próprio coração."
 			}
 		Condicao.CUSTOMIZADO, _:
@@ -894,8 +918,8 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 				"tier": Tier.CONDICAO,
 				"categoria": "IA de Nen Livre",
 				"dificuldade": 3, "risco": 3, "frequencia": 3, "severidade": 3, "impacto": 3,
-				"mult": 0.35,
-				"budget_bonus": 30.0,
+				"mult": 0.25,
+				"budget_bonus": 25.0,
 				"nome": "Juramento Personalizado (IA de Nen)",
 				"desc": "Juramento livre avaliado pelo motor semântico inteligente de Nen.",
 				"lore": "Todo pacto baseado em sacrifício e determinação genuína é reconhecido pelo fluxo de Nen."
@@ -907,61 +931,67 @@ static func obter_info_condicao(cond: Condicao) -> Dictionary:
 # ============================================================
 
 func obter_multiplicador_poder() -> float:
-	var mult: float = 1.0
+	var bonus_total: float = 0.0
 
-	# Bônus de Evolução de Hatsu (Lv. 1 a 100: até +35% bônus)
-	var bonus_evo: float = float(nivel_evolucao_hatsu - 1) * 0.0035
-	mult += bonus_evo
+	# Bônus de Evolução de Hatsu (Lv. 1 a 100: até +25% bônus)
+	var bonus_evo: float = float(nivel_evolucao_hatsu - 1) * 0.0025
+	bonus_total += bonus_evo
 
-	# Bônus intrínseco de Arquétipos com Aleatoriedade (Restrição de Imprevisibilidade)
+	# Bônus intrínseco de Arquétipos com Aleatoriedade
 	match arquetipo:
 		Arquetipo.ARSENAL_ROLETA:
-			mult += 0.45 # Não escolher a arma confere +45% de base!
+			bonus_total += 0.30
 		Arquetipo.OBJETO_MOEDA:
-			mult += 0.30 # Cara/Coroa imprevisível
+			bonus_total += 0.20
 		Arquetipo.OBJETO_DADO:
-			mult += 0.50 # 6 faces com risco de Zetsu
+			bonus_total += 0.35
 
 	# Condições Legadas
 	for cond in condicoes:
 		if cond == Condicao.ALMAS_INIMIGOS:
-			mult += clamp(float(almas_acumuladas) * 0.15, 0.0, 1.50)
+			bonus_total += clamp(float(almas_acumuladas) * 0.10, 0.0, 1.00)
 			continue
 		elif cond == Condicao.DOR_ACUMULADA:
-			var bonus_dor: float = clamp(dor_acumulada / 80.0, 0.40, 1.80)
-			mult += bonus_dor
+			var bonus_dor: float = clamp(dor_acumulada / 100.0, 0.25, 1.20)
+			bonus_total += bonus_dor
 			continue
 		elif cond == Condicao.CUSTOMIZADO:
-			mult += max(0.0, vow_custom_mult - 1.0)
+			bonus_total += max(0.0, vow_custom_mult - 1.0)
 			continue
 
 		var info: Dictionary = obter_info_condicao(cond)
-		var bonus_calculado: float = float(info.get("mult", 0.30))
-		mult += bonus_calculado
+		var bonus_calculado: float = float(info.get("mult", 0.20))
+		bonus_total += bonus_calculado
 
 	# Condições Modulares
 	for m_cond in modular_conditions:
-		var c_info = HatsuComponentLibrary.get_condition_info(m_cond as HatsuComponentLibrary.ConditionType)
-		mult += float(c_info.get("budget_bonus", 20.0)) / 100.0
+		var c_info = HatsuComponentLibrary.get_condition_info(int(m_cond))
+		bonus_total += float(c_info.get("budget_bonus", 15.0)) / 120.0
 
 	# Restrições Modulares
 	for m_res in modular_restrictions:
-		var r_info = HatsuComponentLibrary.get_restriction_info(m_res as HatsuComponentLibrary.RestrictionType)
-		mult += float(r_info.get("budget_bonus", 25.0)) / 100.0
+		var r_info = HatsuComponentLibrary.get_restriction_info(int(m_res))
+		bonus_total += float(r_info.get("budget_bonus", 20.0)) / 120.0
 
 	# Drawbacks Modulares
 	for m_draw in modular_drawbacks:
-		var d_info = HatsuComponentLibrary.get_drawback_info(m_draw as HatsuComponentLibrary.DrawbackType)
-		mult += float(d_info.get("budget_bonus", 20.0)) / 100.0
+		var d_info = HatsuComponentLibrary.get_drawback_info(int(m_draw))
+		bonus_total += float(d_info.get("budget_bonus", 15.0)) / 120.0
 
-	return mult
+	# Curva Suave com Diminishing Returns para somas acima de +100%
+	var mult_final: float = 1.0
+	if bonus_total <= 1.0:
+		mult_final = 1.0 + bonus_total
+	else:
+		# Acima de 2.0x, os bônus adicionais rendem 50% para evitar multiplicadores absurdos
+		mult_final = 2.0 + ((bonus_total - 1.0) * 0.5)
+
+	return mult_final
 
 
 func obter_poder_final() -> float:
-	if custom_damage > 0.0:
-		var bonus_evo: float = 1.0 + (float(nivel_evolucao_hatsu - 1) * 0.0035)
-		return custom_damage * bonus_evo
-	return poder_base * obter_multiplicador_poder()
+	var base_dmg: float = custom_damage if custom_damage > 0.0 else poder_base
+	return base_dmg * obter_multiplicador_poder()
 
 
 func obter_custo_final() -> float:
@@ -1106,7 +1136,16 @@ static func obter_nome_estilo_visual(est: EstiloVisual) -> String:
 	return "Padrão"
 
 
+func gerar_novo_id() -> String:
+	if hatsu_id.is_empty():
+		hatsu_id = "hatsu_%d_%d" % [Time.get_unix_time_from_system(), randi() % 100000]
+	return hatsu_id
+
+
 func to_dict() -> Dictionary:
+	if hatsu_id.is_empty():
+		gerar_novo_id()
+
 	var conds: Array[int] = []
 	for c in condicoes:
 		conds.append(int(c))
@@ -1124,6 +1163,7 @@ func to_dict() -> Dictionary:
 		m_draw.append(int(md))
 
 	return {
+		"hatsu_id": hatsu_id,
 		"hatsu_version": hatsu_version,
 		"nome": nome,
 		"categoria": int(categoria),
@@ -1229,6 +1269,9 @@ static func from_dict(data: Dictionary) -> HatsuData:
 	var h := HatsuData.new()
 	var ver: int = data.get("hatsu_version", 1)
 	h.hatsu_version = ver
+	h.hatsu_id = data.get("hatsu_id", "")
+	if h.hatsu_id.is_empty():
+		h.gerar_novo_id()
 	h.nome = data.get("nome", "Hatsu")
 	h.categoria = data.get("categoria", Categoria.INTENSIFICACAO)
 	h.objetivo = data.get("objetivo", ObjetivoPrincipal.DANO)

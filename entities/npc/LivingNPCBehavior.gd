@@ -39,18 +39,33 @@ func _ready() -> void:
 		pos_alvo = pos_inicial
 		timer_espera = randf_range(2.0, 5.0)
 
+		var badge := PanelContainer.new()
+		badge.name = "LivingNPCNameBadge"
+		badge.position = Vector2(-38, -26)
+		badge.custom_minimum_size = Vector2(76, 11)
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		badge.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_overhead_badge(HunterUIStyle.COLOR_BORDER_SUBTLE))
+
+		var m := MarginContainer.new()
+		m.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		m.add_theme_constant_override("margin_left", 3)
+		m.add_theme_constant_override("margin_right", 3)
+		m.add_theme_constant_override("margin_top", 1)
+		m.add_theme_constant_override("margin_bottom", 1)
+		badge.add_child(m)
+
 		var lbl := Label.new()
 		lbl.name = "LivingNPCNameLabel"
 		lbl.text = npc_nome
-		lbl.position = Vector2(-45, -28)
-		lbl.custom_minimum_size = Vector2(90, 10)
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 3)
-		lbl.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0, 1.0))
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 6)
+		lbl.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 		lbl.add_theme_constant_override("shadow_offset_x", 1)
 		lbl.add_theme_constant_override("shadow_offset_y", 1)
-		npc_body.add_child.call_deferred(lbl)
+		m.add_child(lbl)
+		npc_body.add_child.call_deferred(badge)
 
 	if EventBus != null:
 		EventBus.time_phase_changed.connect(_on_time_phase_changed)

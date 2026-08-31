@@ -1,7 +1,5 @@
 extends Node
 
-const HatsuComponentLibrary = preload("res://resource/hatsu/HatsuComponentLibrary.gd")
-
 # ============================================================
 # HUNTER ONLINE - HATSU MANAGER (AUTOLOAD & NEN JUDGE ENGINE)
 # ============================================================
@@ -80,9 +78,9 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.ARSENAL_ROLETA, "ARSENAL_ROLETA",
 				"Arsenal do Destino (Crazy Slots de Kite)",
-				1.85, 3, 4, 3, 4, 3,
-				"Princípio da Aleatoriedade Tática: O usuário abdica de escolher sua arma, submetendo-se à roleta de Nen. Essa imprevisibilidade concede +45% a +85% de bônus de poder a cada arma individual.",
-				"🎲 Roleta de Arsenal: Sorteia armas de alto impacto (Foice, Lança, Espada, Pistola, Martelo) ao ativar."
+				1.30, 3, 4, 3, 4, 3,
+				"Princípio da Aleatoriedade Tática: O usuário abdica de escolher sua arma, submetendo-se à roleta de Nen. Essa imprevisibilidade concede +30% de bônus balanceado a cada arma individual.",
+				"🎲 Roleta de Arsenal: Sorteia armas de impacto variado (Foice, Lança, Espada, Pistola, Martelo) ao ativar."
 			)
 
 	# ------------------------------------------------------------
@@ -94,8 +92,8 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.LIVRO_COLECAO, "LIVRO_COLECAO",
 				"Arquivo dos Segredos (Skill Hunter de Chrollo)",
-				1.90, 4, 4, 4, 2, 5,
-				"Princípio da Coleção de Nen: Permite registrar e catalogar habilidades de outros Mestres Hunters encontrados pelo mundo após cumprir 4 condições estritas.",
+				1.35, 4, 4, 4, 2, 5,
+				"Princípio da Coleção de Nen: Permite registrar e catalogar habilidades de outros Mestres Hunters encontrados pelo mundo após cumprir condições estritas.",
 				"📖 Livro de Hatsu: Permite armazenar até 3 habilidades roubadas/registradas no mundo."
 			)
 
@@ -108,9 +106,9 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.TERRITORIO_EN, "TERRITORIO_EN",
 				"Domínio Espacial de En (Território Absoluto)",
-				1.75, 3, 3, 3, 4, 4,
-				"Princípio da Soberania Territorial: Projeta um círculo de En no solo onde vigoram regras inescapáveis de velocidade e dano contínuo.",
-				"🌐 Território de En: Cria zona que reduz em 60% a velocidade dos inimigos e amplifica seus golpes."
+				1.35, 3, 3, 3, 4, 4,
+				"Princípio da Soberania Territorial: Projeta um círculo de En no solo onde vigoram regras de controle e velocidade.",
+				"🌐 Território de En: Cria zona que desacelera inimigos e amplifica seus golpes."
 			)
 
 	# ------------------------------------------------------------
@@ -122,9 +120,9 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.MARCA_TAG, "MARCA_TAG",
 				"Marca do Veredito (Countdown / Tag de Nen)",
-				1.80, 3, 3, 3, 3, 4,
-				"Princípio da Detonação Retardada: Acertar golpes consecutivos planta uma bomba ou selo de Nen que detona com dano multiplicado.",
-				"🎯 Marcação Tática: Requer 3 toques no alvo para liberar uma explosão de 200 de Dano."
+				1.40, 3, 3, 3, 3, 4,
+				"Princípio da Detonação Retardada: Acertar golpes consecutivos planta uma marca de Nen que detona com dano acumulado.",
+				"🎯 Marcação Tática: Requer 3 toques no alvo para liberar uma explosão concentrada de Dano."
 			)
 
 	# ------------------------------------------------------------
@@ -136,8 +134,8 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.VOTO_EXTREMO, HatsuData.Arquetipo.OBJETO_DADO, "OBJETO_DADO",
 				"Dado do Destino (Risky Dice de Greed Island)",
-				2.10, 4, 5, 5, 2, 5,
-				"Princípio da Aposta Extrema: Rolar um dado de Nen. Tirar 6 gera uma supernova destrutiva (+150%), mas tirar 1 impõe Zetsu forçado imediato!",
+				1.70, 4, 5, 5, 2, 5,
+				"Princípio da Aposta Extrema: Rolar um dado de Nen. Tirar 6 gera uma supernova destrutiva (+70%), mas tirar 1 impõe Zetsu forçado imediato!",
 				"🎲 Dado de Nen: Efeitos de 1 a 6 com alta variância e risco crítico."
 			)
 
@@ -150,8 +148,8 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.CONDICAO, HatsuData.Arquetipo.OBJETO_MOEDA, "OBJETO_MOEDA",
 				"Moeda dos Dois Destinos",
-				1.50, 2, 2, 2, 4, 2,
-				"Princípio da Dualidade de Nen: Lança uma moeda ao ar (Cara = +120 Velocidade / Coroa = Escudo de 100 Absorção).",
+				1.20, 2, 2, 2, 4, 2,
+				"Princípio da Dualidade de Nen: Lança uma moeda ao ar (Cara = +80 Velocidade / Coroa = Escudo de 60 Absorção).",
 				"🪙 Moeda de Nen: Alterna buffs balanceados conforme a sorte do lançamento."
 			)
 
@@ -164,7 +162,7 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.OBJETO_CARTAS, "OBJETO_CARTAS",
 				"Baralho do Arcano de Nen",
-				1.70, 3, 3, 3, 4, 3,
+				1.30, 3, 3, 3, 4, 3,
 				"Princípio do Naipe Místico: Puxa 1 de 5 cartas de baralho (Cura, Dano Crítico, Escudo, Dash ou Joker Supremo).",
 				"🃏 Cartas de Nen: Libera poderes variados conforme o naipe sorteado."
 			)
@@ -178,9 +176,9 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.TROCA_SACRIFICIO, "TROCA_SACRIFICIO",
 				"Pacto da Troca Equivalente (Transmutação Vital)",
-				1.85, 3, 4, 4, 4, 4,
-				"Princípio da Conversão Biológica: Sacrifica 30% do HP para dobrar o dano durante 5 segundos decisivos.",
-				"🩸 Troca Vital: Converte vida em poder ofensivo avassalador temporário."
+				1.50, 3, 4, 4, 4, 4,
+				"Princípio da Conversão Biológica: Sacrifica 25% do HP para conceder +50% de dano durante 5 segundos decisivos.",
+				"🩸 Troca Vital: Converte vida em poder ofensivo temporário."
 			)
 
 	# ------------------------------------------------------------
@@ -192,8 +190,8 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.CONJURACAO_ARMA, "CONJURACAO_ARMA",
 				"Lâmina do Caçador (Conjuração com Cargas de Abate)",
-				1.75, 3, 3, 3, 3, 4,
-				"Princípio do Aço Espiritual: Conjura uma lâmina sólida que acumula +15% de dano por inimigo derrotado (até 10 cargas = +150%).",
+				1.35, 3, 3, 3, 3, 4,
+				"Princípio do Aço Espiritual: Conjura uma lâmina sólida que acumula +10% de dano por inimigo derrotado (até 10 cargas = +100%).",
 				"⚔️ Arma Conjurada: Espada persistente que escala com o massacre de monstros."
 			)
 
@@ -206,9 +204,9 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.VOTO_EXTREMO, HatsuData.Arquetipo.SIMPLES, "RISCO_EXTREMO",
 				"Voto do Cadafalso Absoluto (Kurapika)",
-				2.20, 5, 5, 5, 1, 5,
+				1.80, 5, 5, 5, 1, 5,
 				"Princípio do Julgamento Extremo: Apostar a integridade vital concede poder supremo; errar o golpe acarreta dano severo e Zetsu forçado.",
-				"🔴 Voto Extremo: +120% de Poder Final! Errar ou falhar causa 50% de auto-dano e Zetsu de 30s."
+				"🔴 Voto Extremo: +80% de Poder Final! Errar ou falhar causa 50% de auto-dano e Zetsu de 30s."
 			)
 
 	var kw_atacou_primeiro = ["atacou primeiro", "me atacou", "sofrer ataque antes", "contra o agressor", "quem me bater", "quem me atacar"]
@@ -217,9 +215,9 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.CONTRATO_DUELO, "ALVO_CONTRA_ATAQUE",
 				"Voto do Retorno (Autodefesa de Nen)",
-				1.75, 3, 4, 3, 3, 3,
+				1.45, 3, 4, 3, 3, 3,
 				"Princípio da Autodefesa Absoluta: A técnica se recusa a ferir inocentes e só libera sua fúria contra quem iniciou o ataque.",
-				"🟡 Juramento Sério: +75% de Poder Final contra agressores comprovados."
+				"🟡 Juramento Sério: +45% de Poder Final contra agressores comprovados."
 			)
 
 	var kw_zetsu_pos = ["zetsu por", "depois de usar entro em zetsu", "zetsu após", "zetsu apos", "desligar os nós", "sem nen por"]
@@ -228,15 +226,15 @@ func analisar_juramento_inteligente(texto_customizado: String) -> Dictionary:
 			return _gerar_resposta_vow(
 				HatsuData.Tier.JURAMENTO, HatsuData.Arquetipo.SIMPLES, "POS_USO_ZETSU",
 				"Pacto da Exaustão (Zetsu Forçado Pós-Uso)",
-				1.85, 4, 5, 5, 4, 5,
+				1.55, 4, 5, 5, 4, 5,
 				"Princípio da Exaustão Biológica: Entrar em Zetsu forçado por 15s pós-uso anula todas as defesas em troca de impacto colossal.",
-				"🟡 Juramento Sério: +85% de Poder Final! O usuário entra em Zetsu forçado por 15 segundos pós-uso."
+				"🟡 Juramento Sério: +55% de Poder Final! O usuário entra em Zetsu forçado por 15 segundos pós-uso."
 			)
 
 	# ------------------------------------------------------------
 	# 🟢 11. JURAMENTO LIVRE VÁLIDO (Ponderado pela extensão e termos)
 	# ------------------------------------------------------------
-	var bonus_generico: float = clamp(1.25 + (float(texto.length()) * 0.006), 1.25, 1.45)
+	var bonus_generico: float = clamp(1.15 + (float(texto.length()) * 0.003), 1.15, 1.30)
 	return _gerar_resposta_vow(
 		HatsuData.Tier.CONDICAO, HatsuData.Arquetipo.SIMPLES, "LIVRE",
 		"Juramento de Resolução Pessoal",
@@ -459,50 +457,50 @@ func _configurar_stats_base(hatsu: HatsuData) -> void:
 	var mult_consumo: float = 1.0
 	match hatsu.consumo_desejado:
 		HatsuData.ConsumoDesejado.BAIXO:
-			mult_consumo = 0.7
-			hatsu.custo_aura_base = 15.0
+			mult_consumo = 0.8
+			hatsu.custo_aura_base = 18.0
 		HatsuData.ConsumoDesejado.MEDIO:
 			mult_consumo = 1.0
 			hatsu.custo_aura_base = 28.0
 		HatsuData.ConsumoDesejado.ALTO:
-			mult_consumo = 1.45
-			hatsu.custo_aura_base = 48.0
+			mult_consumo = 1.35
+			hatsu.custo_aura_base = 45.0
 
 	match hatsu.objetivo:
 		HatsuData.ObjetivoPrincipal.DEFESA:
-			hatsu.poder_base = 50.0 * mult_consumo
-			hatsu.escudo_base = hatsu.poder_base * 1.5
-			hatsu.duracao = 7.0
-			hatsu.cooldown_base = 6.5
+			hatsu.poder_base = 35.0 * mult_consumo
+			hatsu.escudo_base = hatsu.poder_base * 1.3
+			hatsu.duracao = 6.0
+			hatsu.cooldown_base = 6.0
 			if hatsu.forma == HatsuData.Forma.PESSOAL:
-				hatsu.escudo_base *= 1.3
-				hatsu.cooldown_base = 5.5
+				hatsu.escudo_base *= 1.2
+				hatsu.cooldown_base = 5.0
 			elif hatsu.forma == HatsuData.Forma.AREA:
-				hatsu.raio = 70.0
-				hatsu.duracao = 8.0
+				hatsu.raio = 65.0
+				hatsu.duracao = 7.0
 
 		HatsuData.ObjetivoPrincipal.CURA:
-			hatsu.poder_base = 40.0 * mult_consumo
-			hatsu.cura_base = hatsu.poder_base * 1.2
+			hatsu.poder_base = 30.0 * mult_consumo
+			hatsu.cura_base = hatsu.poder_base * 1.1
 			hatsu.cooldown_base = 7.0
-			hatsu.duracao = 5.0
+			hatsu.duracao = 4.0
 
 		HatsuData.ObjetivoPrincipal.MOBILIDADE:
-			hatsu.poder_base = 30.0 * mult_consumo
-			hatsu.velocidade_bonus = 140.0
-			hatsu.duracao = 4.0
+			hatsu.poder_base = 25.0 * mult_consumo
+			hatsu.velocidade_bonus = 100.0
+			hatsu.duracao = 3.5
 			hatsu.cooldown_base = 4.0
-			hatsu.alcance = 150.0
+			hatsu.alcance = 140.0
 
 		HatsuData.ObjetivoPrincipal.CONTROLE:
-			hatsu.poder_base = 35.0 * mult_consumo
-			hatsu.stun_duracao = 2.0
+			hatsu.poder_base = 25.0 * mult_consumo
+			hatsu.stun_duracao = 1.5
 			hatsu.cooldown_base = 6.0
-			hatsu.raio = 60.0
+			hatsu.raio = 55.0
 
 		HatsuData.ObjetivoPrincipal.SUPORTE:
-			hatsu.poder_base = 35.0 * mult_consumo
-			hatsu.duracao = 8.0
+			hatsu.poder_base = 25.0 * mult_consumo
+			hatsu.duracao = 6.0
 			hatsu.cooldown_base = 7.0
 
 		HatsuData.ObjetivoPrincipal.DANO, _:
@@ -510,40 +508,40 @@ func _configurar_stats_base(hatsu: HatsuData) -> void:
 				HatsuData.Categoria.INTENSIFICACAO:
 					match hatsu.forma:
 						HatsuData.Forma.TOQUE:
-							hatsu.poder_base = 60.0 * mult_consumo
-							hatsu.cooldown_base = 2.5
-							hatsu.alcance = 40.0
+							hatsu.poder_base = 50.0 * mult_consumo
+							hatsu.cooldown_base = 3.2
+							hatsu.alcance = 45.0
 						HatsuData.Forma.PESSOAL:
-							hatsu.poder_base = 40.0 * mult_consumo
-							hatsu.cooldown_base = 5.0
+							hatsu.poder_base = 35.0 * mult_consumo
+							hatsu.cooldown_base = 4.5
 						_:
-							hatsu.poder_base = 45.0 * mult_consumo
-							hatsu.cooldown_base = 3.0
+							hatsu.poder_base = 38.0 * mult_consumo
+							hatsu.cooldown_base = 3.5
 
 				HatsuData.Categoria.TRANSFORMACAO:
-					hatsu.poder_base = 45.0 * mult_consumo
-					hatsu.cooldown_base = 2.8
-					hatsu.duracao = 6.0
+					hatsu.poder_base = 35.0 * mult_consumo
+					hatsu.cooldown_base = 3.2
+					hatsu.duracao = 5.0
 
 				HatsuData.Categoria.EMISSAO:
-					hatsu.poder_base = 40.0 * mult_consumo
-					hatsu.cooldown_base = 2.2
-					hatsu.alcance = 190.0
+					hatsu.poder_base = 32.0 * mult_consumo
+					hatsu.cooldown_base = 2.8
+					hatsu.alcance = 180.0
 
 				HatsuData.Categoria.CONJURACAO:
-					hatsu.poder_base = 50.0 * mult_consumo
-					hatsu.cooldown_base = 3.8
-					hatsu.duracao = 8.0
+					hatsu.poder_base = 40.0 * mult_consumo
+					hatsu.cooldown_base = 4.0
+					hatsu.duracao = 7.0
 
 				HatsuData.Categoria.MANIPULACAO:
-					hatsu.poder_base = 35.0 * mult_consumo
-					hatsu.cooldown_base = 3.0
+					hatsu.poder_base = 28.0 * mult_consumo
+					hatsu.cooldown_base = 3.5
 					hatsu.duracao = 5.0
 
 				HatsuData.Categoria.ESPECIALIZACAO:
-					hatsu.poder_base = 55.0 * mult_consumo
+					hatsu.poder_base = 42.0 * mult_consumo
 					hatsu.cooldown_base = 5.5
-					hatsu.duracao = 9.0
+					hatsu.duracao = 8.0
 
 
 func obter_hatsu_canonico(id_hatsu: String) -> HatsuData:
@@ -1282,9 +1280,9 @@ func obter_sugestoes_balanceamento(hatsu: HatsuData) -> Array[Dictionary]:
 
 	# 1. Sugerir Condições
 	if not (HatsuData.Condicao.HP_ABAIXO_50 in hatsu.condicoes):
-		sugestoes.append({"tipo": "CONDICAO", "texto": "[+] Adicionar Condição: Vida < 50% (+25 pts de crédito)", "acao": "adicionar_condicao", "valor": HatsuData.Condicao.HP_ABAIXO_50})
+		sugestoes.append({"tipo": "CONDICAO", "texto": "[+] Adicionar Condição: Vida < 50% (+20 pts de crédito)", "acao": "adicionar_condicao", "valor": HatsuData.Condicao.HP_ABAIXO_50})
 	if not (HatsuData.Condicao.CURTO_ALCANCE_EXTREMO in hatsu.condicoes) and hatsu.forma == HatsuData.Forma.TOQUE:
-		sugestoes.append({"tipo": "CONDICAO", "texto": "[+] Adicionar Condição: Toque Físico Obrigatório (+35 pts de crédito)", "acao": "adicionar_condicao", "valor": HatsuData.Condicao.CURTO_ALCANCE_EXTREMO})
+		sugestoes.append({"tipo": "CONDICAO", "texto": "[+] Adicionar Condição: Toque Físico Obrigatório (+25 pts de crédito)", "acao": "adicionar_condicao", "valor": HatsuData.Condicao.CURTO_ALCANCE_EXTREMO})
 
 	# 2. Sugerir Restrições
 	if not (HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU in hatsu.modular_restrictions):
@@ -1294,13 +1292,13 @@ func obter_sugestoes_balanceamento(hatsu: HatsuData) -> Array[Dictionary]:
 
 	# 3. Sugerir Passo de Preparação (Preparation Chain)
 	if hatsu.preparation_steps.size() < 3:
-		sugestoes.append({"tipo": "PREPARACAO", "texto": "[+] Adicionar Passo de Preparação Prévia (+30 pts de crédito)", "acao": "adicionar_passo_preparacao", "valor": "Passo tático prévio"})
+		sugestoes.append({"tipo": "PREPARACAO", "texto": "[+] Adicionar Passo de Preparação Prévia (+25 pts de crédito)", "acao": "adicionar_passo_preparacao", "valor": "Passo tático prévio"})
 
 	# 4. Sugerir Ajuste de Cooldown ou Custo
-	if cd < 5.0:
-		sugestoes.append({"tipo": "COOLDOWN", "texto": "[+] Aumentar Cooldown para 8.0s (+20 pts de crédito)", "acao": "ajustar_cooldown", "valor": 8.0})
+	if cd < 6.0:
+		sugestoes.append({"tipo": "COOLDOWN", "texto": "[+] Aumentar Cooldown para 10.0s (+20 pts de crédito)", "acao": "ajustar_cooldown", "valor": 10.0})
 	if cost < 35.0:
-		sugestoes.append({"tipo": "AURA", "texto": "[+] Aumentar Consumo de Aura para 40 (+15 pts de crédito)", "acao": "ajustar_custo", "valor": 40.0})
+		sugestoes.append({"tipo": "AURA", "texto": "[+] Aumentar Consumo de Aura para 50 (+20 pts de crédito)", "acao": "ajustar_custo", "valor": 50.0})
 
 	return sugestoes
 

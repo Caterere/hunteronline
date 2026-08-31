@@ -43,6 +43,13 @@ const COLOR_TEXT_GOLD           := Color(1.00, 0.85, 0.25, 1.0) # Destaque Doura
 const COLOR_TEXT_CYAN           := Color(0.35, 0.90, 1.00, 1.0) # Destaque Aura
 const COLOR_TEXT_MUTED          := Color(0.50, 0.58, 0.55, 1.0) # Texto Apagado
 
+# 1.1 HIERARQUIA TIPOGRÁFICA (VIEWPORT 640x480)
+const FONT_SIZE_TITLE           := 11 # Cabeçalhos principais e nomes de chefes
+const FONT_SIZE_SUBTITLE        := 9  # Subtítulos, abas e nomes de regiões
+const FONT_SIZE_BODY            := 8  # Diálogos, objetivos e descrições
+const FONT_SIZE_SMALL           := 7  # Números de HP/AP/XP e tooltips
+const FONT_SIZE_MICRO           := 6  # Badges e hotkeys de atalho ([E], [1-4])
+
 const COLOR_HP_CRIMSON          := Color(0.92, 0.22, 0.25, 1.0) # Barra de HP
 const COLOR_AURA_BAR            := Color(0.18, 0.75, 1.00, 1.0) # Barra de Aura
 const COLOR_XP_BAR              := Color(0.15, 0.82, 0.42, 1.0) # Barra de XP Normal
@@ -101,6 +108,81 @@ static func criar_style_card_nen(ativa: bool = false) -> StyleBoxFlat:
 	if ativa:
 		style.shadow_color = Color(0.2, 0.8, 1.0, 0.3)
 		style.shadow_size = 2
+	return style
+
+
+static func criar_style_unit_frame() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.07, 0.11, 0.94)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = COLOR_BORDER_GOLD
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	style.shadow_color = Color(0, 0, 0, 0.6)
+	style.shadow_size = 4
+	style.shadow_offset = Vector2(0, 2)
+	return style
+
+
+static func criar_style_action_slot(ativo: bool = false, cooldown: bool = false) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	if cooldown:
+		style.bg_color = Color(0.06, 0.06, 0.08, 0.90)
+		style.border_color = Color(0.3, 0.35, 0.4, 0.6)
+	elif ativo:
+		style.bg_color = Color(0.08, 0.20, 0.28, 0.98)
+		style.border_color = COLOR_AURA_CYAN
+		style.shadow_color = Color(0.2, 0.85, 1.0, 0.4)
+		style.shadow_size = 3
+	else:
+		style.bg_color = Color(0.05, 0.08, 0.12, 0.92)
+		style.border_color = COLOR_BORDER_SUBTLE
+
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.corner_radius_top_left = 3
+	style.corner_radius_top_right = 3
+	style.corner_radius_bottom_right = 3
+	style.corner_radius_bottom_left = 3
+	return style
+
+
+static func criar_style_quest_tracker() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.06, 0.10, 0.88)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0.85, 0.70, 0.25, 0.85)
+	style.corner_radius_top_left = 3
+	style.corner_radius_top_right = 3
+	style.corner_radius_bottom_right = 3
+	style.corner_radius_bottom_left = 3
+	style.shadow_color = Color(0, 0, 0, 0.4)
+	style.shadow_size = 3
+	return style
+
+
+static func criar_style_overhead_badge(cor_borda: Color = COLOR_BORDER_SUBTLE) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.03, 0.05, 0.08, 0.88)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = cor_borda
+	style.corner_radius_top_left = 3
+	style.corner_radius_top_right = 3
+	style.corner_radius_bottom_right = 3
+	style.corner_radius_bottom_left = 3
 	return style
 
 

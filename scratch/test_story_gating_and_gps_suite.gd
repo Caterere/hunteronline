@@ -58,14 +58,14 @@ func _assinalar(cond: bool, msg_ok: String, msg_erro: String) -> void:
 func _teste_1_portal_bloqueado_inicio() -> void:
 	print("\n[TESTE 1/12] Verificando bloqueio estrito do portal no início do Exame...")
 	PlayerData.arco_atual = 1
-	PlayerData.etapa_quest_arco = 3 # Etapa 3: Criaturas do Pantanal
+	PlayerData.etapa_quest_arco = 1 # Início do Exame
 	PlayerData.quest_states.clear()
 	
-	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 3)
+	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 1)
 	QuestSystem.active_quests.clear()
 	QuestSystem.start_quest(quest)
 	
-	var gate = StoryGate.new(1, 6, true)
+	var gate = StoryGate.new(1, 24, true)
 	var pode_avancar = gate.can_advance()
 	var pendencias = gate.get_unmet_requirements()
 	
@@ -79,12 +79,15 @@ func _teste_1_portal_bloqueado_inicio() -> void:
 # ------------------------------------------------------------------------------
 func _teste_2_progresso_parcial_bloqueado() -> void:
 	print("\n[TESTE 2/12] Verificando bloqueio com progresso parcial (1/3 criaturas)...")
-	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 3)
+	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 8) # Etapa 8: Criaturas do Pantanal
+	QuestSystem.active_quests.clear()
+	QuestSystem.start_quest(quest)
+	
 	# Registrar 1 kill de criatura do pantanal
 	QuestSystem.register_enemy_kill(&"criatura_pantanal")
 	
-	var prog = PlayerData.get_quest_objective_progress(quest, 3) # Obj 4 é kill
-	var gate = StoryGate.new(1, 6, true)
+	var prog = PlayerData.get_quest_objective_progress(quest, 0) # Obj 0 é kill
+	var gate = StoryGate.new(1, 24, true)
 	var pode_avancar = gate.can_advance()
 	
 	_assinalar(prog == 1 and not pode_avancar,
@@ -97,13 +100,14 @@ func _teste_2_progresso_parcial_bloqueado() -> void:
 # ------------------------------------------------------------------------------
 func _teste_3_gps_aponta_criatura_valida() -> void:
 	print("\n[TESTE 3/12] Testando detecção e mira do GPS em criaturas válidas vivas...")
-	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 3)
+	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 8) # Etapa 8: Criaturas do Pantanal
 	QuestSystem.active_quests.clear()
 	QuestSystem.start_quest(quest)
-	PlayerData.set_quest_objective_progress(quest, 0, 1) # Satotz concluído
-	PlayerData.set_quest_objective_progress(quest, 1, 1) # Pokkle concluído
-	PlayerData.set_quest_objective_progress(quest, 2, 1) # Ponzu concluído
-	PlayerData.set_quest_objective_progress(quest, 3, 0) # 0/3 criaturas pendente
+	PlayerData.set_quest_objective_progress(quest, 0, 0) # 0/3 criaturas pendente
+
+	for node in get_tree().get_nodes_in_group("enemy"):
+		if node.name.begins_with("MissionEnemy"):
+			node.free()
 
 	var dummy_player = CharacterBody2D.new()
 	dummy_player.name = "Player"
@@ -146,13 +150,14 @@ func _teste_3_gps_aponta_criatura_valida() -> void:
 # ------------------------------------------------------------------------------
 func _teste_4_gps_recalcula_apos_abate() -> void:
 	print("\n[TESTE 4/12] Testando recálculo do GPS após abate da primeira criatura...")
-	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 3)
+	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 8)
 	QuestSystem.active_quests.clear()
 	QuestSystem.start_quest(quest)
-	PlayerData.set_quest_objective_progress(quest, 0, 1)
-	PlayerData.set_quest_objective_progress(quest, 1, 1)
-	PlayerData.set_quest_objective_progress(quest, 2, 1)
-	PlayerData.set_quest_objective_progress(quest, 3, 0)
+	PlayerData.set_quest_objective_progress(quest, 0, 0)
+
+	for node in get_tree().get_nodes_in_group("enemy"):
+		if node.name.begins_with("MissionEnemy"):
+			node.free()
 
 	var dummy_player = CharacterBody2D.new()
 	dummy_player.name = "Player"
@@ -218,7 +223,7 @@ func _teste_4_gps_recalcula_apos_abate() -> void:
 # ------------------------------------------------------------------------------
 func _teste_5_completude_objetivo() -> void:
 	print("\n[TESTE 5/12] Testando conclusão do objetivo ao atingir 3/3 abates...")
-	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 3)
+	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 8)
 	QuestSystem.active_quests.clear()
 	QuestSystem.start_quest(quest)
 	
@@ -227,7 +232,7 @@ func _teste_5_completude_objetivo() -> void:
 	QuestSystem.register_enemy_kill(&"criatura_pantanal")
 	QuestSystem.register_enemy_kill(&"criatura_pantanal")
 	
-	var prog = PlayerData.get_quest_objective_progress(quest, 3)
+	var prog = PlayerData.get_quest_objective_progress(quest, 0)
 	_assinalar(prog == 3,
 		"Objetivo atingiu 3/3 abates com sucesso e sem ultrapassar o teto.",
 		"Objetivo falhou ao computar 3/3 abates!")
@@ -239,18 +244,18 @@ func _teste_5_completude_objetivo() -> void:
 func _teste_6_portal_liberado_conclusao() -> void:
 	print("\n[TESTE 6/12] Verificando liberação do portal com todos os requisitos concluídos...")
 	PlayerData.arco_atual = 1
-	PlayerData.etapa_quest_arco = 6 # Portão Final
+	PlayerData.etapa_quest_arco = 24 # Portão Final do 287º Exame
 	QuestSystem.active_quests.clear()
-	var q6 = CanonQuestCatalog.obter_quest_da_etapa(1, 6)
-	QuestSystem.start_quest(q6)
-	for i in range(q6.objectives.size()):
-		PlayerData.set_quest_objective_progress(q6, i, q6.objectives[i].required_amount)
+	var q24 = CanonQuestCatalog.obter_quest_da_etapa(1, 24)
+	QuestSystem.start_quest(q24)
+	for i in range(q24.objectives.size()):
+		PlayerData.set_quest_objective_progress(q24, i, q24.objectives[i].required_amount)
 	
-	var gate = StoryGate.new(1, 6, true)
+	var gate = StoryGate.new(1, 24, true)
 	var pode_avancar = gate.can_advance()
 	
 	_assinalar(pode_avancar,
-		"StoryGate autorizou passagem oficialmente após conclusão de todas as 6 etapas do Exame Hunter.",
+		"StoryGate autorizou passagem oficialmente após conclusão de todas as 24 etapas do Exame Hunter.",
 		"StoryGate permaneceu indevidamente bloqueado mesmo após conclusão!")
 
 
@@ -312,16 +317,16 @@ func _teste_8_protecao_spam_interacao() -> void:
 # ------------------------------------------------------------------------------
 func _teste_9_inimigo_invalido_nao_conta() -> void:
 	print("\n[TESTE 9/12] Testando filtro estrito de inimigos (inimigo comum não conta para a quest)...")
-	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 3)
+	var quest = CanonQuestCatalog.obter_quest_da_etapa(1, 8)
 	QuestSystem.active_quests.clear()
 	QuestSystem.start_quest(quest)
 	
-	PlayerData.set_quest_objective_progress(quest, 3, 1) # 1/3
+	PlayerData.set_quest_objective_progress(quest, 0, 1) # 1/3
 	
 	# Matar inimigo não relacionado (ex: slime de teste)
 	QuestSystem.register_enemy_kill(&"slime_comum_aleatorio")
 	
-	var prog = PlayerData.get_quest_objective_progress(quest, 3)
+	var prog = PlayerData.get_quest_objective_progress(quest, 0)
 	_assinalar(prog == 1,
 		"Inimigo não pertencente ao objetivo foi ignorado com sucesso (Progresso mantido em 1/3).",
 		"Inimigo inválido incrementou indevidamente a contagem da quest!")

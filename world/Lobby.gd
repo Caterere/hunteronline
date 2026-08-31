@@ -39,11 +39,14 @@ func _ready() -> void:
 	_garantir_dialogue_ui()
 	_garantir_binder_ui()
 	_garantir_tutorial_ui()
+	_garantir_spawn_points()
+	_criar_chao_grama()
 	_popular_praca_central()
 	_popular_distrito_mestres()
 	_popular_distrito_comercial()
 	_popular_distrito_dimensional()
 	_popular_faccoes_e_segredos()
+	_popular_portao_mundo_exterior()
 
 	# Fluxo de Início: Tutorial Inicial Guiado -> Conclusão -> Story Intro Tour
 	if not PlayerData.tutorial_concluido:
@@ -585,3 +588,75 @@ func _popular_faccoes_e_segredos() -> void:
 				spr.position = Vector2(0, -17)
 				spr.modulate = Color(0.9, 0.3, 0.5, 1.0)
 			add_child(menchi)
+# ============================================================
+# 9. SPAWN POINTS & PORTÃO DE SAÍDA PARA O MUNDO EXTERIOR
+# ============================================================
+
+func _garantir_spawn_points() -> void:
+	if get_node_or_null("SpawnDefault") == null:
+		var sp_default := SpawnPoint.new()
+		sp_default.name = "SpawnDefault"
+		sp_default.spawn_id = &"default"
+		sp_default.is_default_spawn = true
+		sp_default.position = Vector2(0, 0)
+		add_child(sp_default)
+
+	if get_node_or_null("SpawnFromWorld") == null:
+		var sp_world := SpawnPoint.new()
+		sp_world.name = "SpawnFromWorld"
+		sp_world.spawn_id = &"from_world"
+		sp_world.is_default_spawn = false
+		sp_world.position = Vector2(0, 420)
+		add_child(sp_world)
+
+
+func _popular_portao_mundo_exterior() -> void:
+	if get_node_or_null("PortaoMundoExterior") != null:
+		return
+
+	var portao := MapTransitionArea.new()
+	portao.name = "PortaoMundoExterior"
+	portao.position = Vector2(0, 480)
+	portao.portal_name = "Rota do 287º Exame Hunter"
+	portao.map_subtitle = "287º Exame Hunter — Início da Jornada"
+	portao.target_scene_path = "res://world/maps/exame_maratona.tscn"
+	portao.target_spawn_id = &"default"
+	portao.requires_e_key = true
+
+	var col := CollisionShape2D.new()
+	var box := RectangleShape2D.new()
+	box.size = Vector2(60, 24)
+	col.shape = box
+	portao.add_child(col)
+
+	var spr := Sprite2D.new()
+	spr.texture = load("res://assets/sprites/characters/player.png")
+	spr.hframes = 6
+	spr.vframes = 10
+	spr.frame = 0
+	spr.position = Vector2(0, -14)
+	spr.scale = Vector2(1.5, 1.2)
+	spr.modulate = Color(0.2, 0.9, 0.5, 0.9)
+	portao.add_child(spr)
+
+	add_child(portao)
+
+
+func _criar_chao_grama() -> void:
+	if get_node_or_null("ChaoGramaLobby") != null:
+		return
+
+	var tex = load("res://assets/sprites/tilesets/grass.png") as Texture2D
+	if tex == null:
+		return
+
+	var spr := Sprite2D.new()
+	spr.name = "ChaoGramaLobby"
+	spr.texture = tex
+	spr.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+	spr.region_enabled = true
+	spr.region_rect = Rect2(-4000.0, -4000.0, 14000.0, 10000.0)
+	spr.position = Vector2(1500.0, 400.0)
+	spr.z_index = -100
+	add_child(spr)
+	move_child(spr, 0)

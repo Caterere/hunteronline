@@ -83,7 +83,8 @@ func prerequisites_met(player_data) -> bool:
 	
 	# Verifica nível.
 	if min_level > 0:
-		if player_data.attributes["nivel"] < min_level:
+		var p_lvl: int = int(player_data.attributes.get("nivel", player_data.attributes.get("level", 1)))
+		if p_lvl < min_level:
 			return false
 	
 	# Se não existem quests anteriores, está liberada.

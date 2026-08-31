@@ -39,6 +39,7 @@ SurpriseQuestSystem="*res://autoload/SurpriseQuestSystem.gd"
 PersonalitySystem="*res://autoload/PersonalitySystem.gd"
 WorldEventManager="*res://autoload/WorldEventManager.gd"
 WorldState="*res://autoload/WorldState.gd"
+WorldProgressionManager="*res://autoload/WorldProgressionManager.gd"
 RelationshipSystem="*res://autoload/RelationshipSystem.gd"
 RumorSystem="*res://autoload/RumorSystem.gd"
 BountySystem="*res://autoload/BountySystem.gd"
@@ -54,10 +55,11 @@ TutorialManager="*res://autoload/TutorialManager.gd"
 [display]
 
 window/size/viewport_width=640
-window/size/viewport_height=480
+window/size/viewport_height=360
 window/size/window_width_override=1920
 window/size/window_height_override=1080
 window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
 
 [input]
 

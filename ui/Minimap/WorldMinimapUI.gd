@@ -14,6 +14,8 @@ extends CanvasLayer
 #
 # ============================================================
 
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
+
 var player_node: CharacterBody2D = null
 
 # Componentes do Minimapa Compacto (Canto Inferior Esquerdo)
@@ -27,8 +29,8 @@ var full_map_canvas: Control
 var map_open: bool = false
 var lbl_guia_distancias: Label
 
-# Escala do Radar
-const MINIMAP_SIZE := Vector2(64, 46)
+# Escala do Radar (Reduzido em 25%)
+const MINIMAP_SIZE := Vector2(48, 35)
 const MINIMAP_SCALE := 0.035 # Escala do radar compacto próximo
 const FULL_MAP_SIZE := Vector2(180, 134)
 const FULL_MAP_SCALE := 0.048 # Zoom reduzido para enxergar o mapa inteiro
@@ -70,8 +72,13 @@ func toggle_full_map() -> void:
 
 func _construir_minimap_compacto() -> void:
 	minimap_panel = PanelContainer.new()
-	minimap_panel.position = Vector2(6, 114)
-	minimap_panel.custom_minimum_size = Vector2(68, 58)
+	minimap_panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	minimap_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	minimap_panel.offset_left = 6.0
+	minimap_panel.offset_bottom = -6.0
+	minimap_panel.offset_top = -48.0
+	minimap_panel.offset_right = 58.0
+	minimap_panel.custom_minimum_size = Vector2(52, 42)
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.06, 0.10, 0.88)
@@ -97,13 +104,13 @@ func _construir_minimap_compacto() -> void:
 	var lbl_tit := Label.new()
 	lbl_tit.text = "🧭 [TAB]"
 	lbl_tit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl_tit.add_theme_font_size_override("font_size", 3)
+	lbl_tit.add_theme_font_size_override("font_size", 6)
 	lbl_tit.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
 	hbox_hdr.add_child(lbl_tit)
 
 	lbl_coords = Label.new()
 	lbl_coords.text = "0, 0"
-	lbl_coords.add_theme_font_size_override("font_size", 3)
+	lbl_coords.add_theme_font_size_override("font_size", 6)
 	lbl_coords.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
 	hbox_hdr.add_child(lbl_coords)
 

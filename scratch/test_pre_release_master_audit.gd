@@ -364,7 +364,7 @@ func _teste_13_quest_system_ativacao_e_progresso() -> void:
 # ------------------------------------------------------------
 func _teste_14_filtro_estrito_kills_quest() -> void:
 	QuestSystem.active_quests.clear()
-	var q = CanonQuestCatalog.obter_quest_da_etapa(1, 4) # Julgamento Sinistro de Hisoka (Obj 0: 3 criaturas do pantanal)
+	var q = CanonQuestCatalog.obter_quest_da_etapa(1, 8) # Feras Carnívoras do Nevoeiro (Obj 0: 3 criaturas do pantanal)
 	QuestSystem.start_quest(q)
 
 	# Matar inimigo não correspondente (ex: sabotador)

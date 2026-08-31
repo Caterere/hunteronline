@@ -2,17 +2,21 @@ class_name MissionGPSIndicator
 extends Node2D
 
 # ============================================================
-# HUNTER ONLINE - GPS DE MISSÕES & SETA GUIA DINÂMICA
+# HUNTER ONLINE - GPS DE MISSÕES & NAVEGAÇÃO DE MUNDO ABERTO
 # ============================================================
 #
-# Sistema de navegação inteligente estilo RPG:
+# Sistema de navegação inteligente estilo RPG de Mundo Aberto:
 # 1. Identifica em tempo real o próximo objetivo pendente da missão ativa.
-# 2. Localiza as coordenadas exatas do alvo (NPC, Inimigo, Item ou Portal).
-# 3. Desenha uma seta dourada/ciano brilhante orbitando o jogador,
-#    apontando diretamente para o objetivo.
-# 4. Exibe plaqueta com o Nome do Alvo e Distância em Metros.
-# 5. Fixa indicador na borda da tela quando o alvo está fora do campo de visão.
-# 6. Efeito de pulso verde cintilante ao alcançar o objetivo (< 35px).
+# 2. Se o alvo (NPC, Inimigo, Item) estiver no mapa atual:
+#    - Aponta a bússola/seta diretamente para suas coordenadas exatas.
+# 3. Se o alvo estiver em outra região do mundo contínuo:
+#    - Localiza o portão físico / MapTransitionArea mais apropriado na cena atual
+#      que conecta em direção ao destino e aponta para ele.
+# 4. No Hub Central (Lobby):
+#    - Passo 1: Recepcionista Elena.
+#    - Passo 2: Portão Sul de Saída para o Mundo Exterior (PortaoMundoExterior).
+# 5. Exibe plaqueta dinâmica com tipo de ação, nome do alvo e distância em metros.
+# 6. Efeito de anel pulsante verde ao aproximar-se do objetivo (< 35px).
 #
 # ============================================================
 
@@ -20,18 +24,17 @@ var player_ref: CharacterBody2D = null
 var current_target_node: Node2D = null
 var current_target_pos: Vector2 = Vector2.ZERO
 var current_target_name: String = ""
-var current_target_type: String = "" # "npc", "enemy", "portal", "loot"
+var current_target_type: String = "" # "npc", "enemy", "portal", "loot", "gate"
 var target_found: bool = false
 var distance_to_target: float = 0.0
 
 var pulse_time: float = 0.0
 var smooth_angle: float = 0.0
 
-# UI Overlay (CanvasLayer para textos e setas de borda de tela)
+# UI Overlay (CanvasLayer para textos e plaqueta inferior)
 var canvas_layer: CanvasLayer = null
 var screen_edge_indicator: Control = null
 var lbl_target_info: Label = null
-var arrow_texture_control: Control = null
 
 const ORBIT_RADIUS: float = 30.0
 const ARRIVAL_DISTANCE: float = 35.0
@@ -55,8 +58,8 @@ func _criar_overlay_tela() -> void:
 	# Plaqueta Flutuante de GPS (Centralizada na parte inferior da tela)
 	var panel := PanelContainer.new()
 	panel.name = "GPSBottomPanel"
-	panel.position = Vector2(160 - 70, 160)
-	panel.custom_minimum_size = Vector2(140, 14)
+	panel.position = Vector2(160 - 85, 160)
+	panel.custom_minimum_size = Vector2(170, 15)
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.06, 0.10, 0.85)
@@ -78,7 +81,7 @@ func _criar_overlay_tela() -> void:
 	panel.add_child(margin)
 
 	lbl_target_info = Label.new()
-	lbl_target_info.text = "🧭 GPS: Buscando objetivo..."
+	lbl_target_info.text = "🧭 GPS: Localizando rota..."
 	lbl_target_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_target_info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lbl_target_info.add_theme_font_size_override("font_size", 3)
@@ -127,7 +130,7 @@ func _atualizar_alvo_ativo() -> void:
 	var is_lobby: bool = ("lobby" in cena_atual or cur_scn.name == "Lobby")
 
 	# =========================================================
-	# CONTEXTO 1: CIDADE CENTRAL (LOBBY HUB)
+	# CONTEXTO 1: HUB CENTRAL / CIDADE DE PADOKIA (LOBBY)
 	# =========================================================
 	if is_lobby:
 		if not PlayerData.tour_lobby_concluido:
@@ -142,15 +145,26 @@ func _atualizar_alvo_ativo() -> void:
 				lbl_target_info.text = "👉 Passo 1/2: Fale com a Recepcionista Elena na Praça Central"
 				lbl_target_info.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
 		else:
+			# No novo mundo aberto contínuo, a saída para o mundo exterior é o Portão Sul
 			current_target_type = "portal"
-			current_target_name = "Portal Hunter (Modo História)"
-			var portal = cur_scn.get_node_or_null("PortalHunter")
-			if portal != null and portal is Node2D:
-				current_target_node = portal
-				current_target_pos = portal.global_position
+			current_target_name = "Portão Sul (Mundo Exterior — 287º Exame Hunter)"
+			var portao_sul = cur_scn.get_node_or_null("PortaoMundoExterior")
+			if portao_sul != null and portao_sul is Node2D:
+				current_target_node = portao_sul
+				current_target_pos = portao_sul.global_position
 				target_found = true
+			else:
+				# Fallback se houver algum MapTransitionArea no mapa
+				var transicoes: Array = []
+				_coletar_areas_transicao(cur_scn, transicoes)
+				if not transicoes.is_empty():
+					var t = transicoes[0] as Node2D
+					current_target_node = t
+					current_target_pos = t.global_position
+					target_found = true
+
 			if lbl_target_info and not target_found:
-				lbl_target_info.text = "👉 Passo 2/2: Dirija-se ao Portal Hunter (Leste) para Iniciar a História!"
+				lbl_target_info.text = "👉 Passo 2/2: Siga pelo Portão Sul para iniciar a jornada no Mundo Aberto!"
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 
 		if target_found and player_ref != null:
@@ -159,7 +173,7 @@ func _atualizar_alvo_ativo() -> void:
 		return
 
 	# =========================================================
-	# CONTEXTO 2: MAPA DE MISSÃO DA HISTÓRIA (EXAME, KUKUROO, ETC.)
+	# CONTEXTO 2: MAPAS DO MUNDO ABERTO & MISSÕES DE SAGA
 	# =========================================================
 	if QuestSystem == null:
 		return
@@ -189,14 +203,15 @@ func _atualizar_alvo_ativo() -> void:
 			pendente_idx = i
 			break
 
-	# Se todos os objetivos da etapa atual foram concluídos, apontar para o Portal de Conclusão / Saída
+	# Se todos os objetivos da etapa atual foram concluídos, apontar para o Portão de Saída / Avanço
 	if obj_pendente == null:
 		var transicoes: Array = []
 		_coletar_areas_transicao(get_tree().current_scene, transicoes)
 		if not transicoes.is_empty():
 			var p = transicoes[0] as Node2D
+			current_target_node = p
 			current_target_pos = p.global_position
-			current_target_name = "Portão de Saída do Exame"
+			current_target_name = "Portão de Avanço da História"
 			current_target_type = "portal"
 			target_found = true
 			_atualizar_render_gps(total_objetivos - 1, total_objetivos, 0)
@@ -211,6 +226,7 @@ func _atualizar_alvo_ativo() -> void:
 	var req_total = obj_pendente.required_amount
 	var faltam = max(1, req_total - prog_atual)
 
+	# 1. Tentar localizar o alvo localmente na cena atual
 	match obj_pendente.type:
 		QuestObjective.Type.VISIT:
 			current_target_type = "npc"
@@ -218,13 +234,13 @@ func _atualizar_alvo_ativo() -> void:
 			var target_name_str = obj_pendente.target_npc_name.to_lower()
 			current_target_name = obj_pendente.target_npc_name if not obj_pendente.target_npc_name.is_empty() else "NPC de Missão"
 
-			# 1. Procurar em todos os nós do grupo npc
+			# Procurar nós no grupo npc
 			var npcs = get_tree().get_nodes_in_group("npc")
 			var best_npc: Node2D = null
 			var best_dist: float = 999999.0
 
 			for n in npcs:
-				if n is Node2D and is_instance_valid(n):
+				if n is Node2D and is_instance_valid(n) and not n.is_queued_for_deletion():
 					var n_name = n.name.to_lower()
 					var custom_name = ""
 					if "npc_name" in n and n.npc_name != null:
@@ -248,11 +264,11 @@ func _atualizar_alvo_ativo() -> void:
 				current_target_pos = best_npc.global_position
 				target_found = true
 			else:
-				# 2. Busca recursiva por nome na cena atual
+				# Busca recursiva por nome na cena atual
 				var root_scene = get_tree().current_scene
 				if root_scene != null:
 					var found_node = _buscar_no_recursivo_por_nome(root_scene, target_id_str, target_name_str)
-					if found_node != null:
+					if found_node != null and not found_node.is_queued_for_deletion():
 						current_target_node = found_node
 						current_target_pos = found_node.global_position
 						target_found = true
@@ -266,10 +282,9 @@ func _atualizar_alvo_ativo() -> void:
 			var grupos = ["enemies", "enemy"]
 			for g in grupos:
 				for n in get_tree().get_nodes_in_group(g):
-					if n is Node2D and is_instance_valid(n) and not all_enemies.has(n):
+					if n is Node2D and is_instance_valid(n) and not n.is_queued_for_deletion() and not all_enemies.has(n):
 						all_enemies.append(n)
 
-			# Se o grupo ainda não encontrou nós, busca recursiva por nós de inimigo
 			if all_enemies.is_empty() and get_tree().current_scene != null:
 				_coletar_inimigos_recursivo(get_tree().current_scene, all_enemies)
 
@@ -304,7 +319,6 @@ func _atualizar_alvo_ativo() -> void:
 				if bate:
 					matching_enemies.append(e)
 
-			# Priorizar os inimigos com nome correspondente; se nenhum específico bater, mirar nos inimigos vivos locais
 			var candidatos = matching_enemies if not matching_enemies.is_empty() else living_enemies
 			var menor_dist: float = 999999.0
 			for e in candidatos:
@@ -322,10 +336,42 @@ func _atualizar_alvo_ativo() -> void:
 			current_target_type = "loot"
 			current_target_name = str(obj_pendente.item_id).replace("_", " ").capitalize()
 			var loots = get_tree().get_nodes_in_group("loot")
-			if not loots.is_empty() and loots[0] is Node2D:
-				current_target_node = loots[0]
-				current_target_pos = loots[0].global_position
-				target_found = true
+			for l in loots:
+				if l is Node2D and is_instance_valid(l) and not l.is_queued_for_deletion():
+					current_target_node = l
+					current_target_pos = l.global_position
+					target_found = true
+					break
+
+	# 2. ROTEAMENTO INTER-MAPAS: Se o alvo NÃO foi encontrado no mapa atual,
+	# encontrar o portão/transição que conecta em direção à região da missão
+	if not target_found:
+		var transicoes: Array = []
+		_coletar_areas_transicao(get_tree().current_scene, transicoes)
+		
+		var destino_mapa_esperado: String = _obter_mapa_esperado_da_quest(quest)
+		var transicao_candidata: Node2D = null
+
+		# Procura primeiro a transição cujo target_scene_path bate com o mapa esperado
+		for t in transicoes:
+			if t is MapTransitionArea and not destino_mapa_esperado.is_empty():
+				if t.target_scene_path == destino_mapa_esperado or destino_mapa_esperado in t.target_scene_path:
+					transicao_candidata = t
+					break
+
+		# Se não encontrou exato, escolhe a transição mais relevante
+		if transicao_candidata == null and not transicoes.is_empty():
+			transicao_candidata = transicoes[0] as Node2D
+
+		if transicao_candidata != null:
+			current_target_node = transicao_candidata
+			current_target_pos = transicao_candidata.global_position
+			current_target_type = "portal"
+			if transicao_candidata is MapTransitionArea and not transicao_candidata.portal_name.is_empty():
+				current_target_name = transicao_candidata.portal_name
+			else:
+				current_target_name = "Portão de Viagem"
+			target_found = true
 
 	# Atualizar Distância e UI do GPS
 	if target_found and player_ref != null:
@@ -335,6 +381,23 @@ func _atualizar_alvo_ativo() -> void:
 			var prefixo_passo = "👉 Passo %d/%d" % [pendente_idx + 1, total_objetivos]
 			lbl_target_info.text = "%s: %s (%d/%d)" % [prefixo_passo, obj_pendente.describe(), prog_atual, req_total]
 			lbl_target_info.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
+
+
+func _obter_mapa_esperado_da_quest(quest: Quest) -> String:
+	if quest == null:
+		return ""
+	var arco: int = PlayerData.arco_atual
+	match arco:
+		1: return "res://world/maps/exame_maratona.tscn"
+		2: return "res://world/maps/montanha_kukuroo.tscn"
+		3: return "res://world/maps/arena_celestial.tscn"
+		4: return "res://world/maps/yorknew_city.tscn"
+		5: return "res://world/maps/greed_island.tscn"
+		6: return "res://world/maps/ngl_formigas.tscn"
+		7: return "res://world/maps/associacao_hunter.tscn"
+		8: return "res://world/maps/continente_negro.tscn"
+		9: return "res://world/maps/black_whale_1.tscn"
+	return ""
 
 
 func _atualizar_render_gps(pendente_idx: int, total_objetivos: int, faltam: int = 1) -> void:
@@ -361,7 +424,7 @@ func _atualizar_render_gps(pendente_idx: int, total_objetivos: int, faltam: int 
 				lbl_target_info.text = "🎒 [E] Colete [%s] no chão!" % current_target_name
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 			"portal":
-				lbl_target_info.text = "⛩️ [E] Pressione E para entrar no Portal!"
+				lbl_target_info.text = "⛩️ [E] Entre no [%s] para prosseguir!" % current_target_name
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2, 1.0))
 			_:
 				lbl_target_info.text = "🎯 Chegou ao Alvo: [%s]" % current_target_name
@@ -379,7 +442,7 @@ func _atualizar_render_gps(pendente_idx: int, total_objetivos: int, faltam: int 
 				lbl_target_info.text = "%s: Colete [%s] (Faltam %d) ➔ %s (%dm)" % [prefixo_passo, current_target_name, faltam, seta_char, metros]
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 			"portal":
-				lbl_target_info.text = "%s: Siga ao [%s] ➔ %s (%dm)" % [prefixo_passo, current_target_name, seta_char, metros]
+				lbl_target_info.text = "%s: Siga pelo [%s] ➔ %s (%dm)" % [prefixo_passo, current_target_name, seta_char, metros]
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2, 1.0))
 			_:
 				lbl_target_info.text = "%s: Siga a rota ➔ %s (%dm)" % [prefixo_passo, seta_char, metros]
@@ -457,10 +520,10 @@ func _buscar_no_recursivo_por_nome(parent: Node, target_id: String, target_name:
 
 
 func _coletar_areas_transicao(node: Node, out_list: Array) -> void:
-	if node == null:
+	if node == null or not is_instance_valid(node) or node.is_queued_for_deletion():
 		return
 	var n_name: String = node.name.to_lower() if node.name != null else ""
-	if node is MapTransitionArea or n_name.begins_with("portal") or node.is_in_group("portal"):
+	if (node is MapTransitionArea or n_name.begins_with("portal") or n_name.begins_with("portao") or node.is_in_group("portal") or node.is_in_group("transition")) and not (node is MissionGPSIndicator):
 		if node is Node2D:
 			out_list.append(node)
 	for child in node.get_children():
@@ -469,7 +532,7 @@ func _coletar_areas_transicao(node: Node, out_list: Array) -> void:
 
 
 func _coletar_inimigos_recursivo(parent: Node, out_list: Array[Node2D]) -> void:
-	if parent == null:
+	if parent == null or not is_instance_valid(parent) or parent.is_queued_for_deletion():
 		return
 	if parent is CharacterBody2D and (parent.get_node_or_null("EnemySystem") != null or parent.name.to_lower().begins_with("inimigo") or parent.name.to_lower().begins_with("monstro")):
 		if not out_list.has(parent):

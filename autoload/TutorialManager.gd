@@ -442,6 +442,9 @@ func finalizar_tutorial() -> void:
 		EventBus.tutorial_completed.emit("tutorial_inicial")
 		EventBus.emit_toast("🎓 Treinamento Concluído! O Portal Hunter a Leste está aberto!", Color(0.3, 1.0, 0.4))
 
+	if SaveManager != null and PlayerData != null and PlayerData.slot_ativo > 0:
+		SaveManager.salvar_jogo(PlayerData.slot_ativo)
+
 
 func pular_tutorial() -> void:
 	em_tutorial = false
@@ -489,6 +492,9 @@ func pular_tutorial() -> void:
 	if EventBus != null:
 		EventBus.tutorial_skipped.emit("tutorial_inicial")
 		EventBus.emit_toast("⏭️ Tutorial pulado. Consulte o Guia Hunter no menu [TAB].", Color(0.8, 0.8, 1.0))
+
+	if SaveManager != null and PlayerData != null and PlayerData.slot_ativo > 0:
+		SaveManager.salvar_jogo(PlayerData.slot_ativo)
 
 
 func resetar_tutorial() -> void:

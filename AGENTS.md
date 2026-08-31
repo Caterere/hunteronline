@@ -1199,26 +1199,21 @@ Informações temporárias devem ficar em documentação própria.
 
 # 52\. ESTADO ATUAL CONHECIDO DO PROJETO
 
-Sistemas/conceitos já trabalhados:
+Sistemas/conceitos já consolidados e em produção:
 
-* Player;
-* NPC;
-* Wing;
-* InteractionComponent;
-* DialogueBox;
-* HUD;
-* StatusMenu;
-* XPSystem;
-* EnemySystem;
-* NenSystem;
-* State;
-* StateMachine;
-* sistema de atributos;
-* combate;
-* quests em desenvolvimento;
-* técnicas de Nen;
-* Hatsu;
-* Besta de Nen.
+* **Player**: Movimentação, Dash, I-Frames, integração de combate e animações;
+* **NPC & Interação**: `InteractionComponent`, `LivingNPCBehavior`, diálogos reativos com memória;
+* **Diálogos**: `DialogueBox` e `VisualDialogueUI`;
+* **UI & Menus**: `PlayerHUD`, `StatusMenu`, `HunterMenuUI` (Aba Hatsu com 4 slots de combate ativos e catálogo de técnicas);
+* **Progressão & XP**: `XPSystem` e `PowerScale`;
+* **Inimigos & PvE**: `EnemySystem`, `EnemyAI` (arquétipos Bruiser, Fast, Tank, Ambusher) e chefes com fases;
+* **Combate Central**: `CombatEngine` (fórmula autoritativa unificada), `CombatSystem` e `DamageNumber`;
+* **Sistema de Nen**: `NenSystem` (Ten, Zetsu, Ren, Gyo, Shu, Ko, En, Ken, Ryu) e gestão centralizada de Aura;
+* **Sistema de Hatsu**: `HatsuData`, `HatsuManager`, `HatsuSystem` e `HatsuComponentLibrary` (v2.0 com curva de demanda não-linear e economia de créditos justa por juramento);
+* **Arquitetura de Mundo & Progressão**: `WorldProgressionManager`, `SpawnPoint` (posicionamento exato por portas e marcadores), `MapTransitionArea`, `StoryGate` e `SceneTransition`;
+* **Quests**: `QuestManager`, `CanonQuestCatalog` e `SurpriseQuestSystem`;
+* **Besta de Nen**: `NenBeastManager` e `NenBeastSystem`;
+* **Persistência**: `SaveManager` unificado com serialização multi-slot.
 
 Antes de criar qualquer sistema novo, verificar se algum desses sistemas já possui a responsabilidade desejada.
 

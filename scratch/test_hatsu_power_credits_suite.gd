@@ -104,7 +104,7 @@ func _teste_pagamento_condicoes() -> bool:
 	h_pago.categoria = HatsuData.Categoria.INTENSIFICACAO
 	h_pago.forma = HatsuData.Forma.AREA
 	h_pago.alvo = HatsuData.Alvo.AREA
-	h_pago.custom_damage = 160.0
+	h_pago.custom_damage = 95.0
 	h_pago.custom_cooldown = 10.0
 	h_pago.custom_aura_cost = 55.0
 
@@ -114,6 +114,9 @@ func _teste_pagamento_condicoes() -> bool:
 		HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE,
 		HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU,
 		HatsuComponentLibrary.RestrictionType.ONCE_PER_COMBAT
+	]
+	h_pago.modular_drawbacks = [
+		HatsuComponentLibrary.DrawbackType.ZETSU_FORCED_15S
 	]
 
 	var f_power := h_pago.calcular_functional_power()

@@ -18,6 +18,12 @@ var total_mission_enemies_respawned: int = 0
 # INICIAR QUEST
 # =========================================================
 
+func is_quest_active(quest: Quest) -> bool:
+	if quest == null:
+		return false
+	return active_quests.has(quest) or (PlayerData != null and PlayerData.is_quest_active(quest))
+
+
 func start_quest(quest: Quest) -> bool:
 
 	if quest == null:
@@ -49,7 +55,7 @@ func start_quest(quest: Quest) -> bool:
 
 
 func garantir_quest_do_arco(arco: int) -> Quest:
-	# Se jÃ¡ tem quest ativa na lista, retornar
+	# Se já tem quest ativa na lista, retornar
 	if not active_quests.is_empty() and active_quests[0] != null:
 		return active_quests[0]
 
@@ -345,14 +351,14 @@ func _notificar_progresso_hud(obj: QuestObjective, progresso: int, quest: Quest)
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
 		if progresso >= obj.required_amount:
-			hud.exibir_notificacao("âœ¨ Requisito ConcluÃ­do: %s!" % obj.describe())
+			hud.exibir_notificacao("✓¨ Requisito Concluído: %s!" % obj.describe())
 		else:
-			hud.exibir_notificacao("ðŸŽ¯ Progresso: %s (%d/%d)" % [obj.describe(), progresso, obj.required_amount])
+			hud.exibir_notificacao("🎯 Progresso: %s (%d/%d)" % [obj.describe(), progresso, obj.required_amount])
 
 
 
 # =========================================================
-# VERIFICAR CONCLUSÃƒO
+# VERIFICAR CONCLUSÃO
 # =========================================================
 
 func _check_completion(quest: Quest) -> void:
@@ -389,7 +395,7 @@ func _check_completion(quest: Quest) -> void:
 	if completed:
 
 		print(
-			"Objetivos concluÃ­dos: ",
+			"Objetivos concluídos: ",
 			quest.quest_name
 		)
 
@@ -419,6 +425,10 @@ func complete_quest(quest: Quest) -> void:
 		"QUEST COMPLETADA: ",
 		quest.quest_name
 	)
+
+	var hud_notif = get_tree().get_first_node_in_group("player_hud")
+	if hud_notif != null and hud_notif.has_method("exibir_notificacao"):
+		hud_notif.exibir_notificacao("🏆 Missão Concluída: %s" % quest.quest_name)
 
 	# Avançar para a próxima missão sequencial do arco
 	if PlayerData != null:
@@ -460,7 +470,7 @@ func _give_rewards(quest: Quest) -> void:
 		var player = get_tree().get_first_node_in_group("player")
 
 		if player == null:
-			print("ERRO: Player nÃ£o encontrado para entregar XP.")
+			print("ERRO: Player não encontrado para entregar XP.")
 		else:
 
 			var xp_system = player.get_node_or_null("XPSystem")
@@ -468,7 +478,7 @@ func _give_rewards(quest: Quest) -> void:
 			if xp_system == null:
 
 				print(
-					"ERRO: XPSystem nÃ£o encontrado no Player."
+					"ERRO: XPSystem não encontrado no Player."
 				)
 
 			else:
@@ -490,6 +500,10 @@ func _give_rewards(quest: Quest) -> void:
 	# =====================================================
 
 	if quest.reward_gold > 0:
+		if Economy != null:
+			Economy.adicionar_gold(quest.reward_gold)
+		elif PlayerData != null and PlayerData.attributes.has("gold"):
+			PlayerData.attributes["gold"] += quest.reward_gold
 
 		print(
 			"+",

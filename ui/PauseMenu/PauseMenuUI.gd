@@ -19,6 +19,8 @@ extends CanvasLayer
 
 signal menu_fechado
 
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
+
 var painel_principal: PanelContainer
 var lbl_info_player: Label
 var lbl_info_local: Label

@@ -58,9 +58,9 @@ var contra_ataque_timer: float = 0.0
 
 @export_category("Dodge")
 
-@export var esquiva_velocidade: float = 350.0
-@export var esquiva_duracao: float = 0.20
-@export var esquiva_cooldown: float = 0.60
+@export var esquiva_velocidade: float = 480.0
+@export var esquiva_duracao: float = 0.15
+@export var esquiva_cooldown: float = 0.25
 
 var pode_esquivar: bool = true
 var esquivando: bool = false

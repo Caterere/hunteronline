@@ -26,8 +26,10 @@ var _marcos_notificados: Dictionary = {
 
 func _ready() -> void:
 	_garantir_dialogue_ui()
+	_garantir_spawn_points()
 	_configurar_inimigos_zonas()
 	_configurar_portal_conclusao()
+	_configurar_portal_retorno_lobby()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 
@@ -159,3 +161,52 @@ func _configurar_portal_conclusao() -> void:
 		portal.story_gate.default_locked_message = "Você precisa concluir todas as 24 etapas do Exame Hunter antes de avançar para a Montanha Kukuroo!"
 		portal.callback_dialogo_previo = func(mudar_cena_cb: Callable):
 			StoryCutsceneManager.executar_conclusao_exame_hunter(get_tree(), mudar_cena_cb)
+
+
+func _garantir_spawn_points() -> void:
+	if get_node_or_null("SpawnDefault") == null:
+		var sp_def := SpawnPoint.new()
+		sp_def.name = "SpawnDefault"
+		sp_def.spawn_id = &"default"
+		sp_def.is_default_spawn = true
+		sp_def.position = Vector2(20, 80)
+		add_child(sp_def)
+
+	if get_node_or_null("SpawnFromKukuroo") == null:
+		var sp_kuk := SpawnPoint.new()
+		sp_kuk.name = "SpawnFromKukuroo"
+		sp_kuk.spawn_id = &"from_kukuroo"
+		sp_kuk.is_default_spawn = false
+		sp_kuk.position = Vector2(5850, 80)
+		add_child(sp_kuk)
+
+
+func _configurar_portal_retorno_lobby() -> void:
+	if get_node_or_null("PortalRetornoLobby") != null:
+		return
+
+	var portal := MapTransitionArea.new()
+	portal.name = "PortalRetornoLobby"
+	portal.position = Vector2(-60, 80)
+	portal.portal_name = "Retornar a Hunter Plaza"
+	portal.map_subtitle = "Capital dos Caçadores — Hub Central"
+	portal.target_scene_path = "res://world/lobby.tscn"
+	portal.target_spawn_id = &"from_world"
+	portal.requires_e_key = true
+
+	var col := CollisionShape2D.new()
+	var box := RectangleShape2D.new()
+	box.size = Vector2(32, 64)
+	col.shape = box
+	portal.add_child(col)
+
+	var spr := Sprite2D.new()
+	spr.texture = load("res://assets/sprites/characters/player.png")
+	spr.hframes = 6
+	spr.vframes = 10
+	spr.frame = 0
+	spr.position = Vector2(0, -14)
+	spr.modulate = Color(0.3, 0.7, 1.0, 0.9)
+	portal.add_child(spr)
+
+	add_child(portal)

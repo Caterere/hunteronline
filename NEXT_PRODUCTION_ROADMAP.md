@@ -7,6 +7,22 @@
 
 ---
 
+## 0. MILESTONES RECENTEMENTE CONCLUÍDOS ✅
+1. **Estrutura de Mundo Contínuo & Sistema de Spawns**:
+   * Implementação do `SpawnPoint.gd` com auto-registro em `WorldProgressionManager`.
+   * Transições de tela via `SceneTransition` com suporte a `target_spawn_id`.
+   * Portão Sul de saída física do Lobby para o Exame Hunter (`exame_maratona.tscn`).
+   * Desativação de teletransportes cegos por menu no Portal Hunter, transformando-o em Guia de Expedição.
+2. **Interface do HunterMenuUI (Aba Hatsu)**:
+   * 4 slots de combate ativos com visualização de cards e tags de afinidade.
+   * Inventário completo de técnicas forjadas e atalhos rápidos de equipar `[1][2][3][4]`.
+3. **Rebalanceamento da Economia de Hatsu v2.0**:
+   * Capacidade inata reduzida de 65 para 15 créditos básicos.
+   * Curva não-linear de demanda funcional em 4 faixas de poder.
+   * Calibragem proporcional de juramentos severos e proteção anti-oneshot com diminishing returns.
+
+---
+
 ## 1. IMMEDIATE (Próxima Iteração Prioritária)
 1. **Alimentar Sensores de Nen no Mundo Semiaberto**:
    * Instanciar 3 novas pistas de aura investigativas (`GyoInspectable`) na Floresta dos Vestígios e Ruínas de Zaban.

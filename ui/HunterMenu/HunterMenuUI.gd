@@ -590,57 +590,253 @@ func _atualizar_conteudo_hatsu() -> void:
 	for c in hatsu_list_container.get_children():
 		c.queue_free()
 
-	if PlayerData.hatsu_criados.is_empty():
+	# 1. Info de Afinidade do Personagem
+	var afinidade_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+	var lbl_af := Label.new()
+	lbl_af.text = "🧪 Afinidade Natal: %s%s" % [
+		afinidade_nome,
+		" (100% de Eficiência em todas as categorias)" if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO else ""
+	]
+	lbl_af.add_theme_font_size_override("font_size", 4)
+	lbl_af.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	hatsu_list_container.add_child(lbl_af)
+
+	# 2. Seção: 4 Slots de Combate Ativos
+	var lbl_slots_hdr := Label.new()
+	lbl_slots_hdr.text = "⚡ SLOTS ATIVOS DE COMBATE (Teclas 1, 2, 3, 4):"
+	lbl_slots_hdr.add_theme_font_size_override("font_size", 4)
+	lbl_slots_hdr.add_theme_color_override("font_color", HunterUIStyle.COLOR_BORDER_GREEN)
+	hatsu_list_container.add_child(lbl_slots_hdr)
+
+	var hbox_slots := HBoxContainer.new()
+	hbox_slots.add_theme_constant_override("separation", 3)
+	hatsu_list_container.add_child(hbox_slots)
+
+	for i in range(4):
+		var h: HatsuData = PlayerData.obter_hatsu_slot(i)
+		var p_slot := PanelContainer.new()
+		p_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		p_slot.custom_minimum_size = Vector2(100, 32)
+		p_slot.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD if h != null else HunterUIStyle.COLOR_BORDER_SUBTLE, 2))
+		
+		var m_s := MarginContainer.new()
+		m_s.add_theme_constant_override("margin_left", 3)
+		m_s.add_theme_constant_override("margin_right", 3)
+		m_s.add_theme_constant_override("margin_top", 2)
+		m_s.add_theme_constant_override("margin_bottom", 2)
+		p_slot.add_child(m_s)
+
+		var vb_s := VBoxContainer.new()
+		vb_s.alignment = BoxContainer.ALIGNMENT_CENTER
+		vb_s.add_theme_constant_override("separation", 1)
+		m_s.add_child(vb_s)
+
+		var lbl_num := Label.new()
+		lbl_num.text = "[SLOT %d]" % (i + 1)
+		lbl_num.add_theme_font_size_override("font_size", 4)
+		lbl_num.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+		lbl_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		vb_s.add_child(lbl_num)
+
+		var lbl_nome_h := Label.new()
+		lbl_nome_h.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl_nome_h.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lbl_nome_h.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		lbl_nome_h.clip_text = true
+		lbl_nome_h.add_theme_font_size_override("font_size", 4)
+
+		if h != null:
+			lbl_nome_h.text = h.nome
+			lbl_nome_h.add_theme_color_override("font_color", Color.WHITE)
+			vb_s.add_child(lbl_nome_h)
+
+			var hbox_s_info := HBoxContainer.new()
+			hbox_s_info.alignment = BoxContainer.ALIGNMENT_CENTER
+			vb_s.add_child(hbox_s_info)
+
+			var lbl_cost := Label.new()
+			lbl_cost.text = "%d AP" % int(h.obter_custo_final())
+			lbl_cost.add_theme_font_size_override("font_size", 3)
+			lbl_cost.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+			hbox_s_info.add_child(lbl_cost)
+
+			var btn_deseq := Button.new()
+			btn_deseq.text = "Desequipar"
+			btn_deseq.add_theme_font_size_override("font_size", 3)
+			var cur_slot = i
+			btn_deseq.pressed.connect(func(): _desequipar_slot_hatsu(cur_slot))
+			vb_s.add_child(btn_deseq)
+		else:
+			lbl_nome_h.text = "[ Vazio ]"
+			lbl_nome_h.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
+			vb_s.add_child(lbl_nome_h)
+
+		hbox_slots.add_child(p_slot)
+
+	# Separador
+	var sep := HSeparator.new()
+	hatsu_list_container.add_child(sep)
+
+	# 3. Seção: Inventário de Todos os Hatsus Criados/Disponíveis
+	var todos_hatsus: Array[HatsuData] = PlayerData.obter_todos_hatsus_disponiveis()
+	var lbl_inv_hdr := Label.new()
+	lbl_inv_hdr.text = "🎒 HATSUS DISPONÍVEIS (%d habilidades forjadas/adquiridas):" % todos_hatsus.size()
+	lbl_inv_hdr.add_theme_font_size_override("font_size", 4)
+	lbl_inv_hdr.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3, 1.0))
+	hatsu_list_container.add_child(lbl_inv_hdr)
+
+	if todos_hatsus.is_empty():
 		var p_aviso := PanelContainer.new()
 		p_aviso.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 2))
 		var m_aviso := MarginContainer.new()
-		m_aviso.add_theme_constant_override("margin_left", 4)
-		m_aviso.add_theme_constant_override("margin_right", 4)
+		m_aviso.add_theme_constant_override("margin_left", 6)
+		m_aviso.add_theme_constant_override("margin_right", 6)
 		m_aviso.add_theme_constant_override("margin_top", 4)
 		m_aviso.add_theme_constant_override("margin_bottom", 4)
 		p_aviso.add_child(m_aviso)
+
 		var lbl_aviso := Label.new()
-		lbl_aviso.text = "🔒 Nenhum Hatsu Desbloqueado\nVocê ainda não manifestou uma técnica de Hatsu própria.\nAvance na jornada e treine com Mestres de Nen."
+		lbl_aviso.text = "🔒 Nenhum Hatsu Forjado ainda!\nClique no botão abaixo para forjar seu primeiro Hatsu com o sistema de Juramentos & Restrições."
 		lbl_aviso.add_theme_font_size_override("font_size", 4)
 		lbl_aviso.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
 		lbl_aviso.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		m_aviso.add_child(lbl_aviso)
 		hatsu_list_container.add_child(p_aviso)
+	else:
+		for hatsu_idx in range(todos_hatsus.size()):
+			var hatsu := todos_hatsus[hatsu_idx]
+			var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, hatsu.categoria)
 
-	for i in range(4):
-		var h: HatsuData = PlayerData.obter_hatsu_slot(i)
-		var p_slot := PanelContainer.new()
-		p_slot.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GREEN if h != null else HunterUIStyle.COLOR_BORDER_SUBTLE, 2))
-		
-		var m := MarginContainer.new()
-		m.add_theme_constant_override("margin_left", 4)
-		m.add_theme_constant_override("margin_right", 4)
-		m.add_theme_constant_override("margin_top", 2)
-		m.add_theme_constant_override("margin_bottom", 2)
-		p_slot.add_child(m)
+			var p_item := PanelContainer.new()
+			p_item.custom_minimum_size = Vector2(400, 24)
+			p_item.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 2))
+			hatsu_list_container.add_child(p_item)
 
-		var hbox := HBoxContainer.new()
-		m.add_child(hbox)
+			var m_item := MarginContainer.new()
+			m_item.add_theme_constant_override("margin_left", 4)
+			m_item.add_theme_constant_override("margin_right", 4)
+			m_item.add_theme_constant_override("margin_top", 2)
+			m_item.add_theme_constant_override("margin_bottom", 2)
+			p_item.add_child(m_item)
 
-		var lbl := Label.new()
-		if h != null:
-			lbl.text = "Slot [%d]: %s" % [i + 1, h.nome]
-			lbl.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
-		else:
-			lbl.text = "Slot [%d]: Vazio" % [i + 1]
-			lbl.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
-		lbl.add_theme_font_size_override("font_size", 4)
-		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		hbox.add_child(lbl)
+			var hb_row := HBoxContainer.new()
+			hb_row.add_theme_constant_override("separation", 4)
+			m_item.add_child(hb_row)
 
-		if h != null:
-			var lbl_c := Label.new()
-			lbl_c.text = "%d AP" % int(h.obter_custo_final())
-			lbl_c.add_theme_font_size_override("font_size", 3)
-			lbl_c.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
-			hbox.add_child(lbl_c)
+			# Dados de Texto do Hatsu
+			var vb_info := VBoxContainer.new()
+			vb_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			vb_info.add_theme_constant_override("separation", 0)
+			hb_row.add_child(vb_info)
 
-		hatsu_list_container.add_child(p_slot)
+			var lbl_hn := Label.new()
+			lbl_hn.text = "⚡ %s  [%s]" % [hatsu.nome, HatsuManager.obter_nome_categoria(hatsu.categoria)]
+			lbl_hn.add_theme_font_size_override("font_size", 4)
+			lbl_hn.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+			vb_info.add_child(lbl_hn)
+
+			var obj_tag: String = "Dano"
+			var poder_txt: String = "%d Poder" % int(hatsu.obter_poder_final())
+			match hatsu.objetivo:
+				HatsuData.ObjetivoPrincipal.DEFESA:
+					obj_tag = "Defesa"
+					poder_txt = "%d Escudo" % int(hatsu.obter_poder_final())
+				HatsuData.ObjetivoPrincipal.CURA:
+					obj_tag = "Cura"
+					poder_txt = "%d Cura" % int(hatsu.obter_poder_final())
+				HatsuData.ObjetivoPrincipal.MOBILIDADE:
+					obj_tag = "Mobilidade"
+					poder_txt = "Dash"
+				HatsuData.ObjetivoPrincipal.CONTROLE:
+					obj_tag = "Controle"
+					poder_txt = "Stun"
+
+			var extra_tag: String = ""
+			if HatsuData.Condicao.ALMAS_INIMIGOS in hatsu.condicoes or hatsu.vow_custom_cat == "ALMAS":
+				extra_tag = " | 💀 %d Almas" % hatsu.almas_acumuladas
+
+			var lbl_stats := Label.new()
+			lbl_stats.text = "[%s] %d%% Efic. | %d AP | %.1fs CD | %s%s" % [
+				obj_tag,
+				int(ef * 100),
+				int(hatsu.obter_custo_final()),
+				hatsu.obter_cooldown_final(),
+				poder_txt,
+				extra_tag
+			]
+			lbl_stats.add_theme_font_size_override("font_size", 3)
+			lbl_stats.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_SECONDARY)
+			vb_info.add_child(lbl_stats)
+
+			# Botões de Equipamento Rápido (1, 2, 3, 4)
+			var hb_btns := HBoxContainer.new()
+			hb_btns.alignment = BoxContainer.ALIGNMENT_CENTER
+			hb_btns.add_theme_constant_override("separation", 2)
+			hb_row.add_child(hb_btns)
+
+			var lbl_eq_prompt := Label.new()
+			lbl_eq_prompt.text = "Equipar:"
+			lbl_eq_prompt.add_theme_font_size_override("font_size", 3)
+			lbl_eq_prompt.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+			hb_btns.add_child(lbl_eq_prompt)
+
+			for s_idx in range(4):
+				var btn_eq := Button.new()
+				btn_eq.text = str(s_idx + 1)
+				btn_eq.custom_minimum_size = Vector2(16, 14)
+				btn_eq.add_theme_font_size_override("font_size", 3)
+				var h_index = hatsu_idx
+				var target_slot = s_idx
+				btn_eq.pressed.connect(func(): _equipar_hatsu_no_slot(h_index, target_slot))
+				hb_btns.add_child(btn_eq)
+
+	# 4. Rodapé: Botão de Forjar Novo Hatsu
+	var sep_footer := HSeparator.new()
+	hatsu_list_container.add_child(sep_footer)
+
+	var btn_forjar := Button.new()
+	btn_forjar.text = "🔨 Forjar Novo Hatsu (Juramentos & Restrições)"
+	btn_forjar.add_theme_font_size_override("font_size", 4)
+	btn_forjar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	HunterUIStyle.aplicar_estilo_botao(btn_forjar, HunterUIStyle.COLOR_BORDER_GOLD)
+	btn_forjar.pressed.connect(_abrir_criador_hatsu)
+	hatsu_list_container.add_child(btn_forjar)
+
+
+func _equipar_hatsu_no_slot(hatsu_index: int, slot: int) -> void:
+	PlayerData.equipar_hatsu(slot, hatsu_index)
+	_atualizar_conteudo_hatsu()
+	if GameState != null:
+		GameState.salvar_jogo()
+	if EventBus != null:
+		var h_nome = PlayerData.hatsu_criados[hatsu_index].nome if hatsu_index < PlayerData.hatsu_criados.size() else "Hatsu"
+		EventBus.emit_toast("⚡ %s equipado no Slot %d!" % [h_nome, slot + 1], HunterUIStyle.COLOR_AURA_CYAN)
+
+
+func _desequipar_slot_hatsu(slot: int) -> void:
+	PlayerData.desequipar_hatsu(slot)
+	_atualizar_conteudo_hatsu()
+	if GameState != null:
+		GameState.salvar_jogo()
+	if EventBus != null:
+		EventBus.emit_toast("Desequipado do Slot %d." % (slot + 1), HunterUIStyle.COLOR_TEXT_SECONDARY)
+
+
+func _abrir_criador_hatsu() -> void:
+	if UIManager != null:
+		UIManager.fechar_menu_atual()
+	
+	var root = get_tree().root
+	var creation_ui = root.get_node_or_null("HatsuCreationUI") as HatsuCreationUI
+	if creation_ui != null:
+		creation_ui.abrir()
+	else:
+		var scn_creation = load("res://ui/Hatsu/HatsuCreationUI.gd")
+		if scn_creation:
+			var new_ui = scn_creation.new()
+			new_ui.name = "HatsuCreationUI"
+			root.add_child(new_ui)
+			new_ui.abrir()
 
 
 func _atualizar_conteudo_licenca() -> void:

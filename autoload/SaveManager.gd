@@ -4,14 +4,14 @@ extends Node
 # HUNTER ONLINE - CONSOLIDATED SAVE MANAGER (PRODUCTION GRADE)
 # ============================================================
 #
-# Gerenciador canÃ´nico de persistÃªncia multi-slot (Slots 1 a 3 + Dev Slots).
+# Gerenciador canÃ´nico de persistência multi-slot (Slots 1 a 3 + Dev Slots).
 # Implementa:
-# - GravaÃ§Ã£o AtÃ´mica (Arquivo TemporÃ¡rio -> ValidaÃ§Ã£o -> Backup .bak -> Swap Seguro)
-# - SanitizaÃ§Ã£o Estrita de Cenas de Mundo (Impede gravaÃ§Ã£o de UIs como mapa de jogo)
+# - Gravação AtÃ´mica (Arquivo Temporário -> Validação -> Backup .bak -> Swap Seguro)
+# - Sanitização Estrita de Cenas de Mundo (Impede gravação de UIs como mapa de jogo)
 # - UUID / Identificador Persistente do Personagem (character_id)
-# - RecuperaÃ§Ã£o e TolerÃ¢ncia a Falhas com Backup AutomÃ¡tico
-# - DiagnÃ³sticos Estruturados de Carregamento e SeleÃ§Ã£o
-# - PersistÃªncia Completa de Atributos, Nen, Hatsu, Quests, InventÃ¡rio, HistÃ³ria e Mundo
+# - Recuperação e Tolerância a Falhas com Backup Automático
+# - Diagnósticos Estruturados de Carregamento e Seleção
+# - Persistência Completa de Atributos, Nen, Hatsu, Quests, Inventário, História e Mundo
 #
 # ============================================================
 
@@ -50,7 +50,7 @@ func is_valid_world_map(scene_path: String) -> bool:
 		return false
 	if not ResourceLoader.exists(scene_path):
 		return false
-	# Aceitar cenas de mundo legÃ­timas
+	# Aceitar cenas de mundo legítimas
 	return lower.begins_with("res://world/") or lower.contains("lobby") or lower.contains("map") or lower.contains("arena") or lower.contains("dungeon") or lower.contains("house")
 
 
@@ -110,11 +110,11 @@ func salvar_jogo(slot: int = -1) -> bool:
 	current_slot = slot
 	PlayerData.slot_ativo = slot
 
-	# Garantir UUID Ãºnico do personagem
+	# Garantir UUID único do personagem
 	if PlayerData.character_id.is_empty():
 		PlayerData.gerar_novo_character_id()
 
-	# 1. PosiÃ§Ã£o atual do jogador se estiver em cena
+	# 1. Posição atual do jogador se estiver em cena
 	var pos_array := [PlayerData.posicao_salva.x, PlayerData.posicao_salva.y]
 	var tree := get_tree()
 	if tree != null:
@@ -122,7 +122,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 		if ply != null and is_instance_valid(ply) and ply is Node2D:
 			pos_array = [ply.global_position.x, ply.global_position.y]
 
-	# 2. Cena atual (SanitizaÃ§Ã£o estrita contra caminhos de UI)
+	# 2. Cena atual (Sanitização estrita contra caminhos de UI)
 	var cena_atual: String = PlayerData.mapa_atual_salvo
 	if tree != null and tree.current_scene != null and tree.current_scene.scene_file_path != null:
 		var scn_path: String = tree.current_scene.scene_file_path
@@ -213,10 +213,10 @@ func salvar_jogo(slot: int = -1) -> bool:
 	var final_path := obter_caminho_slot(slot)
 	var bak_path := obter_caminho_bak(slot)
 
-	# 1. Escrever no arquivo temporÃ¡rio (.tmp)
+	# 1. Escrever no arquivo temporário (.tmp)
 	var tmp_file := FileAccess.open(tmp_path, FileAccess.WRITE)
 	if tmp_file == null:
-		push_error("[SaveManager] Erro ao abrir arquivo temporÃ¡rio: " + tmp_path)
+		push_error("[SaveManager] Erro ao abrir arquivo temporário: " + tmp_path)
 		return false
 
 	tmp_file.store_string(json_string)
@@ -225,14 +225,14 @@ func salvar_jogo(slot: int = -1) -> bool:
 	# 2. Validar JSON escrito no .tmp
 	var check_file := FileAccess.open(tmp_path, FileAccess.READ)
 	if check_file == null:
-		push_error("[SaveManager] Erro ao reabrir arquivo temporÃ¡rio para validaÃ§Ã£o!")
+		push_error("[SaveManager] Erro ao reabrir arquivo temporário para validação!")
 		return false
 	var check_str := check_file.get_as_text()
 	check_file.close()
 
 	var test_json := JSON.new()
 	if test_json.parse(check_str) != OK:
-		push_error("[SaveManager] ValidaÃ§Ã£o do JSON temporÃ¡rio falhou! Abortando substituiÃ§Ã£o.")
+		push_error("[SaveManager] Validação do JSON temporário falhou! Abortando substituição.")
 		DirAccess.remove_absolute(tmp_path)
 		return false
 
@@ -247,10 +247,10 @@ func salvar_jogo(slot: int = -1) -> bool:
 				bak_file.store_string(old_str)
 				bak_file.close()
 
-	# 4. Gravar arquivo final com seguranÃ§a atÃ´mica
+	# 4. Gravar arquivo final com segurança atÃ´mica
 	var target_file := FileAccess.open(final_path, FileAccess.WRITE)
 	if target_file == null:
-		push_error("[SaveManager] Falha crÃ­tica ao gravar arquivo final de save: " + final_path)
+		push_error("[SaveManager] Falha crítica ao gravar arquivo final de save: " + final_path)
 		return false
 	target_file.store_string(json_string)
 	target_file.close()
@@ -281,7 +281,7 @@ func carregar_jogo(slot: int = -1) -> bool:
 	var json_string := ""
 	var path_utilizado := ""
 
-	# Tentar arquivo primÃ¡rio
+	# Tentar arquivo primário
 	if FileAccess.file_exists(save_path):
 		var f := FileAccess.open(save_path, FileAccess.READ)
 		if f != null:
@@ -289,7 +289,7 @@ func carregar_jogo(slot: int = -1) -> bool:
 			f.close()
 			path_utilizado = save_path
 
-	# Fallback para Backup .bak se primÃ¡rio falhou ou estÃ¡ corrompido
+	# Fallback para Backup .bak se primário falhou ou está corrompido
 	var test_json := JSON.new()
 	if json_string.is_empty() or test_json.parse(json_string) != OK:
 		if FileAccess.file_exists(bak_path):
@@ -310,7 +310,7 @@ func carregar_jogo(slot: int = -1) -> bool:
 				path_utilizado = legacy_path
 
 	if json_string.is_empty():
-		push_error("[ERROR] Character load failed: Nenhum arquivo de save legÃ­vel no slot %d" % slot)
+		push_error("[ERROR] Character load failed: Nenhum arquivo de save legível no slot %d" % slot)
 		return false
 
 	var json := JSON.new()
@@ -320,7 +320,7 @@ func carregar_jogo(slot: int = -1) -> bool:
 
 	var data: Dictionary = json.data
 
-	# --- RESTAURAÃ‡ÃƒO COMPLETA DE DADOS ---
+	# --- RESTAURAÇÃO COMPLETA DE DADOS ---
 	PlayerData.slot_ativo = slot
 	PlayerData.character_id = data.get("character_id", "hxr-legacy-s%d" % slot)
 	PlayerData.is_debug_mode = bool(data.get("is_debug_save", false))
@@ -354,19 +354,25 @@ func carregar_jogo(slot: int = -1) -> bool:
 	PlayerData.max_arco_desbloqueado = int(data.get("max_arco_desbloqueado", 1))
 	PlayerData.modo_historia_concluido = bool(data.get("modo_historia_concluido", false))
 	PlayerData.tour_lobby_concluido = bool(data.get("tour_lobby_concluido", false))
+	PlayerData.tutorial_concluido = bool(data.get("tutorial_concluido", false))
+	PlayerData.tutorial_data = (data.get("tutorial_data", {}) as Dictionary).duplicate(true)
+
+	PlayerData.conhecimentos_desbloqueados.clear()
+	for cd in data.get("conhecimentos_desbloqueados", []):
+		PlayerData.conhecimentos_desbloqueados.append(str(cd))
 
 	PlayerData.parallel_quests_concluidas.clear()
 	for pq in data.get("parallel_quests_concluidas", []):
 		PlayerData.parallel_quests_concluidas.append(str(pq))
 
-	# SanitizaÃ§Ã£o Estrita do Mapa Salvo (Nunca permitir UI como mapa salvo)
+	# Sanitização Estrita do Mapa Salvo (Nunca permitir UI como mapa salvo)
 	var raw_mapa: String = data.get("mapa_atual", MAPA_PADRAO_FALLBACK)
 	if is_valid_world_map(raw_mapa):
 		PlayerData.mapa_atual_salvo = raw_mapa
 	else:
 		PlayerData.mapa_atual_salvo = MAPA_PADRAO_FALLBACK
 
-	# PosiÃ§Ã£o do jogador
+	# Posição do jogador
 	var pos_data = data.get("posicao_player", [0.0, 0.0])
 	if pos_data is Array and pos_data.size() >= 2:
 		var px = float(pos_data[0])
@@ -425,7 +431,7 @@ func carregar_jogo(slot: int = -1) -> bool:
 	PlayerData.attributes["vida_max"] = raw_vida_max
 	PlayerData.attributes["vida"] = clamp(raw_vida, 1, raw_vida_max)
 
-	# InventÃ¡rio
+	# Inventário
 	if data.has("inventory"):
 		PlayerData.inventory = data["inventory"].duplicate()
 

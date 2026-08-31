@@ -1,9 +1,7 @@
 class_name HatsuSystem
 extends Node
 
-const HatsuComponentLibrary = preload("res://resource/hatsu/HatsuComponentLibrary.gd")
 const HatsuVisual = preload("res://scripts/visual/HatsuVisual.gd")
-const VisualProfile = preload("res://resource/hatsu/VisualProfile.gd")
 
 # ============================================================
 # HUNTER ONLINE - HATSU SYSTEM (MOTOR DE COMBATE E VOWS)

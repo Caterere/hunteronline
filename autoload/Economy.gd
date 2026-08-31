@@ -62,6 +62,78 @@ const ITEM_CATALOGO := {
 		"categoria": "Colecionável",
 		"preco": 250,
 		"descricao": "Registro com dicas sobre o Exame, regras de Nen e biomas do mundo."
+	},
+	"gosma_slime": {
+		"nome": "Gosma de Slime Viscosa",
+		"categoria": "Material",
+		"preco": 30,
+		"descricao": "Fluido gelatinoso extraído de slimes. Usado como base para compostos de Nen."
+	},
+	"couro_lobo": {
+		"nome": "Couro de Lobo Feroz",
+		"categoria": "Material",
+		"preco": 80,
+		"descricao": "Pele espessa e resistente de lobos selvagens. Ótimo para vestimentas leves."
+	},
+	"carapaca_besouro": {
+		"nome": "Carapaça de Besouro Blindado",
+		"categoria": "Material",
+		"preco": 120,
+		"descricao": "Casca quitinosa ultra resistente de insetos gigantes das cavernas."
+	},
+	"presa_serpente": {
+		"nome": "Presa Peçonhenta de Serpente",
+		"categoria": "Material",
+		"preco": 150,
+		"descricao": "Dente afiado com glândulas de veneno paralisante de serpentes das sombras."
+	},
+	"carne_javali": {
+		"nome": "Carne Nobre de Javali Selvagem",
+		"categoria": "Material",
+		"preco": 90,
+		"descricao": "Alimento suculento apreciado por Hunters Gourmet como Menchi e Buhara."
+	},
+	"nucleo_golem": {
+		"nome": "Núcleo Energético de Golem",
+		"categoria": "Material",
+		"preco": 350,
+		"descricao": "Pedra mágica pulsando com aura primordial que animava construtos de pedra."
+	},
+	"ouro_roubado": {
+		"nome": "Bolsa de Moedas de Salteador",
+		"categoria": "Tesouro",
+		"preco": 200,
+		"descricao": "Bolsa com moedas recuperadas de bandidos e ladrões de estrada."
+	},
+	"gema_terra": {
+		"nome": "Gema Bruta da Terra",
+		"categoria": "Material",
+		"preco": 280,
+		"descricao": "Mineral denso com ressonância de Ten e endurecimento de Ko."
+	},
+	"veneno_concentrado": {
+		"nome": "Extrato de Veneno Concentrado",
+		"categoria": "Material",
+		"preco": 220,
+		"descricao": "Toxina purificada usada em treinamento de resistência biológica."
+	},
+	"cristal_sombra": {
+		"nome": "Fragmento de Cristal Sombrio",
+		"categoria": "Material",
+		"preco": 400,
+		"descricao": "Cristal condutor de Nen de Emissão e Ocultação com Zetsu."
+	},
+	"pele_urso": {
+		"nome": "Pele de Urso das Cavernas",
+		"categoria": "Material",
+		"preco": 300,
+		"descricao": "Pele densa e maciça com alta absorção contra impactos contundentes."
+	},
+	"olho_quimera": {
+		"nome": "Olho Místico de Quimera",
+		"categoria": "Material",
+		"preco": 450,
+		"descricao": "Órgão sensorial raro de feras quiméricas que aprimora a percepção de Gyo."
 	}
 }
 

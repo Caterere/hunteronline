@@ -172,7 +172,7 @@ func to_dict() -> Dictionary:
 
 
 static func from_dict(data: Dictionary) -> Resource:
-	var vp = SelfClass.new()
+	var vp := VisualProfile.new()
 	if data.has("primary_color"):
 		vp.primary_color = Color.from_string(data["primary_color"], Color(0.12, 0.53, 0.90, 1.0))
 	if data.has("secondary_color"):
@@ -182,7 +182,7 @@ static func from_dict(data: Dictionary) -> Resource:
 	if data.has("glow_color"):
 		vp.glow_color = Color.from_string(data["glow_color"], Color(0.0, 0.90, 1.0, 0.75))
 	
-	vp.shape = int(data.get("shape", VisualShape.SPHERE)) as VisualShape
+	vp.shape = int(data.get("shape", VisualShape.SPHERE))
 	vp.visual_scale = float(data.get("visual_scale", 1.0))
 	vp.glow_intensity = float(data.get("glow_intensity", 0.8))
 	vp.trail_enabled = bool(data.get("trail_enabled", true))

@@ -141,11 +141,16 @@ func _construir_ui() -> void:
 	vbox.add_child(lbl_banner_subtitulo)
 
 
-func mudar_cena(caminho_cena: String, nome_mapa: String = "", subtitulo: String = "", duracao: float = 0.35) -> void:
+func mudar_cena(caminho_cena: String, nome_mapa: String = "", subtitulo: String = "", duracao: float = 0.35, spawn_id: StringName = &"default", spawn_pos: Vector2 = Vector2.ZERO) -> void:
 	if em_transicao:
 		return
 	em_transicao = true
 	transicao_iniciada.emit()
+
+	var wpm = get_node_or_null("/root/WorldProgressionManager")
+	if wpm != null and wpm.has_method("definir_destino_spawn"):
+		wpm.definir_destino_spawn(spawn_id, spawn_pos)
+		wpm.limpar_spawn_points()
 
 	# Travar controles do jogador durante a transição
 	var player = get_tree().get_first_node_in_group("player")
@@ -169,10 +174,13 @@ func mudar_cena(caminho_cena: String, nome_mapa: String = "", subtitulo: String 
 	await get_tree().process_frame
 	await get_tree().process_frame
 
-	# 4. Destravar controles do jogador no novo mapa
+	# 4. Posicionar o jogador no SpawnPoint correto do novo mapa
 	var novo_player = get_tree().get_first_node_in_group("player")
-	if novo_player != null and novo_player.has_method("travar_controles"):
-		novo_player.travar_controles(false)
+	if novo_player != null and is_instance_valid(novo_player):
+		if wpm != null and wpm.has_method("posicionar_player_no_spawn"):
+			wpm.posicionar_player_no_spawn(novo_player)
+		if novo_player.has_method("travar_controles"):
+			novo_player.travar_controles(false)
 
 	# 5. Fade-in suave (Tela clareia)
 	var tween_in := create_tween()
@@ -184,9 +192,15 @@ func mudar_cena(caminho_cena: String, nome_mapa: String = "", subtitulo: String 
 	transicao_concluida.emit()
 
 	# 6. Exibir Banner de Chegada do Mapa
-	if nome_mapa.is_empty() and MAP_TITLES.has(caminho_cena):
-		nome_mapa = MAP_TITLES[caminho_cena]["titulo"]
-		subtitulo = MAP_TITLES[caminho_cena]["subtitulo"]
+	if nome_mapa.is_empty():
+		if wpm != null:
+			var reg_info = wpm.obter_info_regiao_por_cena(caminho_cena)
+			if not reg_info.is_empty():
+				nome_mapa = reg_info.get("nome", "")
+				subtitulo = reg_info.get("subtitulo", "")
+		if nome_mapa.is_empty() and MAP_TITLES.has(caminho_cena):
+			nome_mapa = MAP_TITLES[caminho_cena]["titulo"]
+			subtitulo = MAP_TITLES[caminho_cena]["subtitulo"]
 
 	if not nome_mapa.is_empty():
 		exibir_banner_mapa(nome_mapa, subtitulo)
