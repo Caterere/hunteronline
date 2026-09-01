@@ -617,9 +617,9 @@ func _popular_portao_mundo_exterior() -> void:
 	var portao := MapTransitionArea.new()
 	portao.name = "PortaoMundoExterior"
 	portao.position = Vector2(0, 480)
-	portao.portal_name = "Rota do 287º Exame Hunter"
-	portao.map_subtitle = "287º Exame Hunter — Início da Jornada"
-	portao.target_scene_path = "res://world/maps/exame_maratona.tscn"
+	portao.portal_name = "Vale de Padokia (Mundo Exterior)"
+	portao.map_subtitle = "Primeira Região Real — Cidade, Estrada, Floresta & Ruínas"
+	portao.target_scene_path = "res://world/maps/regiao_vale_padokia.tscn"
 	portao.target_spawn_id = &"default"
 	portao.requires_e_key = true
 

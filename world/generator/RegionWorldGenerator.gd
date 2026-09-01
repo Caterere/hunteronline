@@ -233,16 +233,34 @@ func _gerar_vila_padokia() -> void:
 		for x in range(tr.position.x, tr.position.x + tr.size.x):
 			var cell = Vector2i(x, y)
 			
-			# Muro perimetral da vila com portões
+			# Muro perimetral da vila com portões (Leste para Estrada, Norte para Colinas, Oeste para Lobby)
 			if x == tr.position.x or x == tr.position.x + tr.size.x - 1 or y == tr.position.y or y == tr.position.y + tr.size.y - 1:
 				var eh_portao_leste = (x == tr.position.x + tr.size.x - 1 and y >= 252 and y <= 258)
 				var eh_portao_norte = (y == tr.position.y and x >= 72 and x <= 78)
-				if not eh_portao_leste and not eh_portao_norte:
+				var eh_portao_oeste = (x == tr.position.x and y >= 252 and y <= 258)
+				if not eh_portao_leste and not eh_portao_norte and not eh_portao_oeste:
 					paredes_layer.set_cell(cell, 4, TILE_MURO_PEDRA)
 				continue
 				
 			# Chão urbano de pedras e calçadas
 			chao_layer.set_cell(cell, 0, TILE_CHAO_URBANO)
+
+	# Portal de Retorno para o Lobby (Portão Oeste da Vila)
+	var chunk_oeste = _obter_chunk_para_posicao(Vector2i(tr.position.x, 255))
+	var portal_lobby := MapTransitionArea.new()
+	portal_lobby.name = "PortalRetornoLobby"
+	portal_lobby.position = Vector2((tr.position.x + 1) * config.tile_size, 255 * config.tile_size)
+	portal_lobby.target_scene_path = "res://world/lobby.tscn"
+	portal_lobby.target_spawn_id = &"from_world"
+	portal_lobby.portal_name = "Capital dos Caçadores (Lobby)"
+	portal_lobby.map_subtitle = "Hunter Plaza — Hub Central"
+	portal_lobby.requires_e_key = true
+	var pl_col = CollisionShape2D.new()
+	var pl_box = RectangleShape2D.new()
+	pl_box.size = Vector2(32, 64)
+	pl_col.shape = pl_box
+	portal_lobby.add_child(pl_col)
+	chunk_oeste.add_child(portal_lobby)
 			
 	# Praça Central (X: 65-85, Y: 245-265)
 	for y in range(245, 266):
@@ -570,23 +588,52 @@ func _instanciar_npcs_e_inimigos() -> void:
 	_instanciar_npc_vila("Guarda da Vila", Vector2(130 * 16, 250 * 16), "res://entities/npc/NPC.tscn")
 	_instanciar_npc_vila("Cidadão Nicol", Vector2(75 * 16, 248 * 16), "res://entities/npc/nicol/Nicol.tscn")
 	
-	# 2. Inimigos na Estrada (Baixa Densidade)
+	# 2. NPCs no Mundo (Estrada, Floresta e Entrada de Dungeon)
+	_instanciar_npc_vila("Explorador da Estrada", Vector2(180 * 16, 260 * 16), "res://entities/npc/NPC.tscn")
+	_instanciar_npc_vila("Guardião da Floresta", Vector2(250 * 16, 240 * 16), "res://entities/npc/NPC.tscn")
+	_instanciar_npc_vila("Caçador de Zaban", Vector2(415 * 16, 95 * 16), "res://entities/npc/NPC.tscn")
+
+	# 3. Inimigos na Estrada (Baixa Densidade)
 	_instanciar_inimigo(Vector2(200 * 16, 255 * 16), "Slime da Estrada")
 	_instanciar_inimigo(Vector2(300 * 16, 235 * 16), "Slime da Estrada")
 	
-	# 3. Inimigos na Floresta (Média Densidade)
+	# 4. Inimigos na Floresta (Média Densidade)
 	_instanciar_inimigo(Vector2(230 * 16, 180 * 16), "Fera da Floresta")
 	_instanciar_inimigo(Vector2(270 * 16, 200 * 16), "Fera da Floresta")
 	_instanciar_inimigo(Vector2(310 * 16, 280 * 16), "Fera da Floresta")
 	
-	# 4. Inimigos na Ravina de Perigo (Alta Densidade / Elites)
+	# 5. Inimigos na Ravina de Perigo (Alta Densidade / Elites)
 	_instanciar_inimigo(Vector2(380 * 16, 400 * 16), "Criatura Predadora da Névoa")
 	_instanciar_inimigo(Vector2(420 * 16, 440 * 16), "Criatura Predadora da Névoa")
 	_instanciar_inimigo(Vector2(450 * 16, 420 * 16), "Guardião de Elite da Ravina")
 	
-	# 5. Inimigos nas Ruínas da Dungeon (Extrema Densidade / Guardiões)
+	# 6. Inimigos nas Ruínas da Dungeon (Extrema Densidade / Guardiões)
 	_instanciar_inimigo(Vector2(420 * 16, 100 * 16), "Sentinela de Pedra das Ruínas")
 	_instanciar_inimigo(Vector2(450 * 16, 80 * 16), "Guardião Ancestral de Zaban")
+	
+	_garantir_spawns_mundo()
+
+
+func _garantir_spawns_mundo() -> void:
+	if get_node_or_null("SpawnVilaPadokia") == null:
+		var sp_vila := SpawnPoint.new()
+		sp_vila.name = "SpawnVilaPadokia"
+		sp_vila.spawn_id = &"default"
+		sp_vila.is_default_spawn = true
+		sp_vila.position = Vector2(config.spawn_tile.x * config.tile_size + 8, config.spawn_tile.y * config.tile_size + 8)
+		add_child(sp_vila)
+		if WorldProgressionManager != null:
+			WorldProgressionManager.registrar_spawn_point(sp_vila)
+			
+	if get_node_or_null("SpawnSaidaRuinas") == null:
+		var sp_ruinas := SpawnPoint.new()
+		sp_ruinas.name = "SpawnSaidaRuinas"
+		sp_ruinas.spawn_id = &"saida_ruinas"
+		sp_ruinas.is_default_spawn = false
+		sp_ruinas.position = Vector2(430 * config.tile_size, 110 * config.tile_size)
+		add_child(sp_ruinas)
+		if WorldProgressionManager != null:
+			WorldProgressionManager.registrar_spawn_point(sp_ruinas)
 
 
 func _instanciar_npc_vila(nome: String, pos: Vector2, scene_path: String) -> void:
@@ -631,9 +678,14 @@ func posicionar_player() -> void:
 			player = players[0] as CharacterBody2D
 			
 	if player != null:
-		var spawn_px = Vector2(config.spawn_tile.x * config.tile_size + 8, config.spawn_tile.y * config.tile_size + 8)
-		player.global_position = spawn_px
-		print("[REGION WORLD GENERATOR] Player posicionado no Spawn da Vila: ", spawn_px)
+		var posicionado = false
+		if WorldProgressionManager != null:
+			posicionado = WorldProgressionManager.posicionar_player_no_spawn(player)
+			
+		if not posicionado:
+			var spawn_px = Vector2(config.spawn_tile.x * config.tile_size + 8, config.spawn_tile.y * config.tile_size + 8)
+			player.global_position = spawn_px
+			print("[REGION WORLD GENERATOR] Player posicionado no Spawn da Vila: ", spawn_px)
 		
 		var cam: Camera2D = player.get_node_or_null("Camera2D") as Camera2D
 		if cam != null:

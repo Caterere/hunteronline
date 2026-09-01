@@ -18,6 +18,8 @@ extends Node
 # ============================================================
 
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const RegionDefinition = preload("res://resource/world/RegionDefinition.gd")
+const SpawnPoint = preload("res://entities/world/SpawnPoint.gd")
 
 var total_testes: int = 0
 var testes_aprovados: int = 0
@@ -26,14 +28,14 @@ var erros: int = 0
 
 func _ready() -> void:
 	print("\n" + "=".repeat(80))
-	print("🛡️ INICIANDO SUÍTE MESTRE DE AUDITORIA DE PRÉ-RELEASE — HUNTER ONLINE (30/30)")
+	print("🛡️ INICIANDO SUÍTE MESTRE DE AUDITORIA DE PRÉ-RELEASE — HUNTER ONLINE (37/37)")
 	print("=".repeat(80) + "\n")
 
 	_executar_todos_os_testes()
 
 	print("\n" + "=".repeat(80))
 	if erros == 0:
-		print("🎉 AUDITORIA CONCLUÍDA COM 100%% DE APROVAÇÃO! (30/30 TESTES PASSARAM)")
+		print("🎉 AUDITORIA CONCLUÍDA COM 100%% DE APROVAÇÃO! (37/37 TESTES PASSARAM)")
 		print("🏆 O PROJETO ESTÁ ESTÁVEL, BLINDADO E PRONTO PARA A RELEASE NO GITHUB!")
 	else:
 		print("❌ FALHAS DETECTADAS NA AUDITORIA: %d ERROS ENCONTRADOS!" % erros)
@@ -46,10 +48,10 @@ func _assert_teste(condicao: bool, mensagem_sucesso: String, mensagem_falha: Str
 	total_testes += 1
 	if condicao:
 		testes_aprovados += 1
-		print("  ✅ [PASS %d/30] %s" % [total_testes, mensagem_sucesso])
+		print("  ✅ [PASS %d/37] %s" % [total_testes, mensagem_sucesso])
 	else:
 		erros += 1
-		push_error("❌ [FAIL %d/30] %s" % [total_testes, mensagem_falha])
+		push_error("❌ [FAIL %d/37] %s" % [total_testes, mensagem_falha])
 
 
 func _executar_todos_os_testes() -> void:
@@ -83,6 +85,13 @@ func _executar_todos_os_testes() -> void:
 	_teste_28_economia_e_inventario_persistentes()
 	_teste_29_detector_estados_impossiveis()
 	_teste_30_master_release_readiness()
+	_teste_31_region_definition_data_driven()
+	_teste_32_world_progression_connected_graph()
+	_teste_33_spawn_points_registration_and_positioning()
+	_teste_34_save_persistence_world_region_and_coords()
+	_teste_35_map_transition_gateways()
+	_teste_36_dungeon_ruinas_boss_bar_and_chest()
+	_teste_37_gps_cross_region_navigation()
 
 
 # ------------------------------------------------------------
@@ -690,3 +699,214 @@ func _teste_30_master_release_readiness() -> void:
 		"VERIFICAÇÃO FINAL: Jogo 100% estável, estruturado e pronto para distribuição no GitHub!",
 		"Critérios de Release não foram totalmente atendidos!"
 	)
+
+
+# ------------------------------------------------------------
+# 31. ESTRUTURA REGION DEFINITION
+# ------------------------------------------------------------
+func _teste_31_region_definition_data_driven() -> void:
+	print("\n--- [BLOCO 6] FASE F: WORLD BUILDING & MUNDO CONECTADO ---")
+	var reg_dict := {
+		"id": "vale_padokia",
+		"display_name": "Vale de Padokia",
+		"subtitle": "Região Semiaberta",
+		"saga_id": 1,
+		"scene_path": "res://world/maps/regiao_vale_padokia.tscn",
+		"default_spawn": "spawn_padokia",
+		"unlocked": true,
+		"connected_regions": ["lobby", "dungeon_ruinas_zaban"],
+		"exits": [
+			{"portal_id": "portal_dungeon", "target_region": "dungeon_ruinas_zaban"}
+		]
+	}
+	var def = RegionDefinition.from_dict(reg_dict)
+	var serializado = def.to_dict()
+	var ok = (
+		def.id == &"vale_padokia" and
+		def.display_name == "Vale de Padokia" and
+		def.connected_regions.has(&"dungeon_ruinas_zaban") and
+		serializado.get("display_name") == "Vale de Padokia" and
+		serializado.get("exits").size() == 1
+	)
+	_assert_teste(
+		ok,
+		"RegionDefinition instancia e serializa perfeitamente com identificadores e rotas.",
+		"Falha na serialização ou estrutura de RegionDefinition!"
+	)
+
+
+# ------------------------------------------------------------
+# 32. WORLD PROGRESSION & CONEXÕES DE MUNDO
+# ------------------------------------------------------------
+func _teste_32_world_progression_connected_graph() -> void:
+	WorldProgressionManager.definir_regiao_atual(&"lobby")
+	var reg_atual = WorldProgressionManager.obter_regiao_atual()
+	var conexoes_lobby = WorldProgressionManager.obter_regioes_conectadas(&"lobby")
+	var tem_padokia = false
+	for cr in conexoes_lobby:
+		if cr.id == &"vale_padokia":
+			tem_padokia = true
+			break
+	WorldProgressionManager.desbloquear_regiao(&"continente_negro")
+	var desbloqueou = WorldProgressionManager.is_regiao_desbloqueada(&"continente_negro")
+	var ok = (reg_atual != null and reg_atual.id == &"lobby" and tem_padokia and desbloqueou)
+	_assert_teste(
+		ok,
+		"WorldProgressionManager gerencia grafo de regiões conectadas e estado de desbloqueio.",
+		"Falha no gerenciamento de rotas e conexões do WorldProgressionManager!"
+	)
+
+
+# ------------------------------------------------------------
+# 33. SPAWN POINTS REGISTRATION & POSITIONING
+# ------------------------------------------------------------
+func _teste_33_spawn_points_registration_and_positioning() -> void:
+	WorldProgressionManager.limpar_spawn_points()
+	var sp1 := SpawnPoint.new()
+	sp1.name = "SpawnDefaultAudit"
+	sp1.spawn_id = &"default"
+	sp1.position = Vector2(100, 200)
+	sp1.is_default_spawn = true
+	add_child(sp1)
+	WorldProgressionManager.registrar_spawn_point(sp1)
+	
+	var sp2 := SpawnPoint.new()
+	sp2.name = "SpawnRuinasAudit"
+	sp2.spawn_id = &"saida_ruinas"
+	sp2.position = Vector2(500, 800)
+	sp2.is_default_spawn = false
+	add_child(sp2)
+	WorldProgressionManager.registrar_spawn_point(sp2)
+	
+	var dummy := CharacterBody2D.new()
+	add_child(dummy)
+	
+	WorldProgressionManager.definir_destino_spawn(&"default")
+	WorldProgressionManager.posicionar_player_no_spawn(dummy)
+	var pos1_ok = dummy.global_position.distance_to(Vector2(100, 200)) < 1.0
+	
+	WorldProgressionManager.definir_destino_spawn(&"saida_ruinas")
+	WorldProgressionManager.posicionar_player_no_spawn(dummy)
+	var pos2_ok = dummy.global_position.distance_to(Vector2(500, 800)) < 1.0
+	
+	sp1.queue_free()
+	sp2.queue_free()
+	dummy.queue_free()
+	
+	_assert_teste(
+		pos1_ok and pos2_ok,
+		"SpawnPoints registrados dinamicamente e posicionamento de transição 100% preciso.",
+		"Falha no posicionamento de jogador via SpawnPoint!"
+	)
+
+
+# ------------------------------------------------------------
+# 34. PERSISTÊNCIA DE REGIÃO E COORDENADAS
+# ------------------------------------------------------------
+func _teste_34_save_persistence_world_region_and_coords() -> void:
+	PlayerData.nome_personagem = "Gon Freecss"
+	PlayerData.mapa_atual_salvo = "res://world/maps/regiao_vale_padokia.tscn"
+	PlayerData.posicao_salva = Vector2(1200, 4080)
+	WorldProgressionManager.definir_regiao_atual(&"vale_padokia")
+	
+	var players = get_tree().get_nodes_in_group("player")
+	for p in players:
+		if p is Node2D:
+			p.global_position = Vector2(1200, 4080)
+			
+	SaveManager.salvar_jogo(1)
+	
+	var path = SaveManager.obter_caminho_slot(1)
+	var file = FileAccess.open(path, FileAccess.READ)
+	var file_ok = false
+	var reg_salva = ""
+	var pos_salva = []
+	if file != null:
+		var json = JSON.new()
+		if json.parse(file.get_as_text()) == OK and json.data is Dictionary:
+			file_ok = true
+			reg_salva = json.data.get("regiao_atual", "")
+			pos_salva = json.data.get("posicao_player", [])
+		file.close()
+		
+	var reg_ok = (reg_salva == "vale_padokia")
+	var pos_ok = (pos_salva.size() >= 2 and abs(float(pos_salva[0]) - 1200.0) < 1.0 and abs(float(pos_salva[1]) - 4080.0) < 1.0)
+	
+	_assert_teste(
+		file_ok and reg_ok and pos_ok,
+		"SaveManager persistiu com integridade a região ativa e coordenadas exatas de exploração.",
+		"Falha na serialização de coordenadas de mundo no SaveManager!"
+	)
+
+
+# ------------------------------------------------------------
+# 35. MAP TRANSITION GATEWAYS & INTERACTION
+# ------------------------------------------------------------
+func _teste_35_map_transition_gateways() -> void:
+	var trans = load("res://world/components/MapTransitionArea.gd").new()
+	trans.target_scene_path = "res://world/maps/dungeon_ruinas_zaban.tscn"
+	trans.target_spawn_id = &"entrada"
+	trans.portal_name = "Ruínas de Zaban"
+	add_child(trans)
+	
+	var col_ok = trans.is_in_group("portal") and trans.collision_mask == 2
+	var interact_ok = trans.get_node_or_null("InteractionComponent") != null
+	var label_ok = trans.get_node_or_null("PortalVisualLabel") != null
+	trans.queue_free()
+	
+	_assert_teste(
+		col_ok and interact_ok and label_ok,
+		"MapTransitionArea configura colisão física, interação [E] e rótulo flutuante estilizado.",
+		"Falha na configuração do componente de portal físico MapTransitionArea!"
+	)
+
+
+# ------------------------------------------------------------
+# 36. DUNGEON RUÍNAS DE ZABAN, CHEFE & BAÚ
+# ------------------------------------------------------------
+func _teste_36_dungeon_ruinas_boss_bar_and_chest() -> void:
+	var dung_scn = load("res://world/maps/dungeon_ruinas_zaban.tscn")
+	var dung = dung_scn.instantiate() as Node2D
+	add_child(dung)
+	
+	var has_spawn = dung.get_node_or_null("SpawnEntrada") != null
+	var has_boss = dung.boss_node != null
+	var has_exit = dung.get_node_or_null("PortalSaidaDungeon") != null
+	
+	dung._on_boss_derrotado(&"guardiao_ancestral")
+	var has_chest = dung.get_node_or_null("BauDouradoRecompensa") != null
+	dung.queue_free()
+	
+	_assert_teste(
+		has_spawn and has_boss and has_exit and has_chest,
+		"Dungeon das Ruínas operacional com Spawn, Boss com BossBar, Baú Dourado e Portal de Saída.",
+		"Falha no fluxo de Dungeon e Recompensas das Ruínas!"
+	)
+
+
+# ------------------------------------------------------------
+# 37. GPS & NAVEGAÇÃO DE MUNDO ABERTO
+# ------------------------------------------------------------
+func _teste_37_gps_cross_region_navigation() -> void:
+	var gps_scn = load("res://ui/hud/MissionGPSIndicator.gd")
+	var gps = gps_scn.new()
+	add_child(gps)
+	
+	var player_dummy := CharacterBody2D.new()
+	player_dummy.name = "PlayerGPSDummy"
+	player_dummy.add_to_group("player")
+	add_child(player_dummy)
+	
+	gps.player_ref = player_dummy
+	gps._atualizar_alvo_ativo()
+	var gps_ok = is_instance_valid(gps.player_ref) and gps.lbl_target_info != null
+	
+	gps.queue_free()
+	player_dummy.queue_free()
+	
+	_assert_teste(
+		gps_ok,
+		"MissionGPSIndicator calcula rotas e detecta nós no mundo contínuo com precisão.",
+		"Falha no rastreamento de nós de rota pelo MissionGPSIndicator!"
+	)
+

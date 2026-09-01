@@ -367,13 +367,8 @@ func setup(body: CharacterBody2D) -> void:
 # ============================================================
 
 func _process(delta: float) -> void:
-
-	_processar_input()
-
-	_processar_tecnicas(delta)
-
-	_processar_xp(delta)
-
+	# Técnicas de Nen agora são passivas (Skill Tree).
+	# Apenas a regeneração de Aura permanece no _process.
 	regenerar_aura(delta)
 
 
@@ -1267,7 +1262,8 @@ func calcular_dano(
 	)
 
 
-	if tecnica_ativa(Tecnica.KO):
+	# KO passivo — aplica bônus se nível >= 1
+	if obter_nivel_tecnica(Tecnica.KO) > 0:
 
 		dano *= (
 			1.0
@@ -1306,57 +1302,10 @@ func obter_poder_nen() -> float:
 # ============================================================
 
 func aplicar_ko_no_ataque() -> float:
-
-	if not tecnica_ativa(Tecnica.KO):
-
+	# KO é passivo — retorna multiplicador se nível >= 1
+	var nivel: int = obter_nivel_tecnica(Tecnica.KO)
+	if nivel <= 0:
 		return 1.0
-
-
-	var nivel: int = obter_nivel_tecnica(
-		Tecnica.KO
-	)
-
-
-	var custo_percentual: float = (
-		ko_custo_percentual
-		/
-		(
-			1.0
-			+
-			(
-				float(nivel)
-				*
-				0.15
-			)
-		)
-	)
-
-
-	var custo: float = (
-		obter_aura_maxima()
-		*
-		custo_percentual
-	)
-
-
-	if not gastar_aura_float(custo):
-
-		desativar_tecnica(
-			Tecnica.KO
-		)
-
-		return 1.0
-
-
-	# --------------------------------------------------------
-	# XP DA TÉCNICA
-	# --------------------------------------------------------
-
-	adicionar_xp_tecnica(
-		Tecnica.KO,
-		2
-	)
-
 
 	return (
 		1.0
@@ -1390,16 +1339,10 @@ func obter_bonus_ko() -> float:
 func aplicar_ten_no_dano(
 	dano: float
 ) -> float:
-
-	if not tecnica_ativa(Tecnica.TEN):
-
+	# TEN é passivo — aplica redução se nível >= 1 na Skill Tree
+	var nivel: int = obter_nivel_tecnica(Tecnica.TEN)
+	if nivel <= 0:
 		return dano
-
-
-	var nivel: int = obter_nivel_tecnica(
-		Tecnica.TEN
-	)
-
 
 	var reducao: float = (
 		ten_reducao_nivel_1
@@ -1407,21 +1350,12 @@ func aplicar_ten_no_dano(
 		float(nivel)
 	)
 
-
-	reducao = min(
-		reducao,
-		0.80
-	)
-
+	reducao = min(reducao, 0.80)
 
 	return (
 		dano
 		*
-		(
-			1.0
-			-
-			reducao
-		)
+		(1.0 - reducao)
 	)
 
 
@@ -1450,16 +1384,10 @@ func calcular_dano_recebido(
 # ============================================================
 
 func obter_bonus_alcance_ren() -> float:
-
-	if not tecnica_ativa(Tecnica.REN):
-
+	# REN é passivo — retorna bônus se nível >= 1
+	var nivel: int = obter_nivel_tecnica(Tecnica.REN)
+	if nivel <= 0:
 		return 0.0
-
-
-	var nivel: int = obter_nivel_tecnica(
-		Tecnica.REN
-	)
-
 
 	return (
 		ren_alcance_nivel_1
@@ -1492,16 +1420,10 @@ func aplicar_ren_no_alcance(
 # ============================================================
 
 func obter_bonus_esquiva_gyo() -> float:
-
-	if not tecnica_ativa(Tecnica.GYO):
-
+	# GYO é passivo — retorna bônus se nível >= 1
+	var nivel: int = obter_nivel_tecnica(Tecnica.GYO)
+	if nivel <= 0:
 		return 0.0
-
-
-	var nivel: int = obter_nivel_tecnica(
-		Tecnica.GYO
-	)
-
 
 	return (
 		gyo_esquiva_nivel_1
@@ -1799,30 +1721,38 @@ func alternar_modulo_ryu() -> void:
 
 
 func aplicar_shu_no_dano(dano_base: float) -> float:
-	if not tecnica_ativa(Tecnica.SHU):
+	# SHU passivo — funciona se nível >= 1
+	if obter_nivel_tecnica(Tecnica.SHU) <= 0:
 		return dano_base
 	return dano_base * 1.35
 
 
 func aplicar_ken_no_dano(dano_recebido: float) -> float:
+	# KEN permanece como técnica ativa separada
 	if not tecnica_ativa(Tecnica.KEN):
 		return dano_recebido
 	return dano_recebido * 0.50
 
 
 func aplicar_ryu_no_dano_ataque(dano_base: float) -> float:
-	if not tecnica_ativa(Tecnica.RYU):
+	# RYU passivo — baseado no caminho escolhido na Skill Tree
+	var caminho: String = PlayerData.nen_ryu_caminho
+	if caminho == "":
 		return dano_base
-	if modulo_ryu == ModuloRyu.ATAQUE:
-		return dano_base * 1.60
-	else:
-		return dano_base * 0.60
+	if caminho == "ofensivo":
+		return dano_base * 1.10  # +10% dano
+	elif caminho == "equilibrado":
+		return dano_base * 1.05  # +5% dano
+	return dano_base  # defensivo não muda dano
 
 
 func aplicar_ryu_no_dano_defesa(dano_recebido: float) -> float:
-	if not tecnica_ativa(Tecnica.RYU):
+	# RYU passivo — baseado no caminho escolhido na Skill Tree
+	var caminho: String = PlayerData.nen_ryu_caminho
+	if caminho == "":
 		return dano_recebido
-	if modulo_ryu == ModuloRyu.DEFESA:
-		return dano_recebido * 0.30
-	else:
-		return dano_recebido * 1.30
+	if caminho == "defensivo":
+		return dano_recebido * 0.90  # -10% dano recebido
+	elif caminho == "equilibrado":
+		return dano_recebido * 0.95  # -5% dano recebido
+	return dano_recebido  # ofensivo não muda defesa

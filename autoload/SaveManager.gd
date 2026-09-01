@@ -202,6 +202,8 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"besta_nen_desbloqueada": PlayerData.besta_nen_desbloqueada,
 		"parallel_quests_concluidas": PlayerData.parallel_quests_concluidas.duplicate(),
 		"world_state": WorldState.salvar_dados() if WorldState != null else {},
+		"regiao_atual": String(WorldProgressionManager.regiao_atual_id) if WorldProgressionManager != null else "lobby",
+		"regioes_desbloqueadas": WorldProgressionManager.regioes_desbloqueadas.map(func(r): return String(r)) if WorldProgressionManager != null else ["lobby"],
 		"relationship_data": RelationshipSystem.salvar_dados() if RelationshipSystem != null else {},
 		"rumor_data": RumorSystem.salvar_dados() if RumorSystem != null else {},
 		"world_events_data": WorldEventManager.salvar_dados() if WorldEventManager != null else {},
@@ -516,7 +518,15 @@ func carregar_jogo(slot: int = -1) -> bool:
 		elif "gold" in Economy:
 			Economy.gold = saved_gold
 
-	# Estado Mundial e Causalidade
+	# Estado Mundial, Regiões e Causalidade
+	if WorldProgressionManager != null:
+		var reg_str: String = data.get("regiao_atual", "lobby")
+		WorldProgressionManager.definir_regiao_atual(StringName(reg_str))
+		var r_desbloq = data.get("regioes_desbloqueadas", [])
+		if r_desbloq is Array and not r_desbloq.is_empty():
+			WorldProgressionManager.regioes_desbloqueadas.clear()
+			for r_item in r_desbloq:
+				WorldProgressionManager.regioes_desbloqueadas.append(StringName(r_item))
 	if WorldState != null:
 		WorldState.carregar_dados(data.get("world_state", {}))
 

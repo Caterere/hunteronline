@@ -33,11 +33,38 @@ func _ready() -> void:
 		if paredes_layer: paredes_layer.tile_set = tileset
 		if decor_layer: decor_layer.tile_set = tileset
 		
+	_garantir_spawn_points()
 	_gerar_mapa_dungeon()
 	_instanciar_boss_e_sentinelas()
+	_posicionar_player()
 	_configurar_audio_e_hud()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+
+
+func _garantir_spawn_points() -> void:
+	if get_node_or_null("SpawnEntrada") == null:
+		var sp := SpawnPoint.new()
+		sp.name = "SpawnEntrada"
+		sp.spawn_id = &"entrada"
+		sp.is_default_spawn = true
+		sp.position = Vector2(320, 410)
+		add_child(sp)
+		if WorldProgressionManager != null:
+			WorldProgressionManager.registrar_spawn_point(sp)
+
+
+func _posicionar_player() -> void:
+	if player == null:
+		var players = get_tree().get_nodes_in_group("player")
+		if not players.is_empty():
+			player = players[0] as CharacterBody2D
+			
+	if player != null:
+		if WorldProgressionManager != null:
+			WorldProgressionManager.posicionar_player_no_spawn(player)
+		else:
+			player.global_position = Vector2(320, 410)
 
 
 func _configurar_audio_e_hud() -> void:

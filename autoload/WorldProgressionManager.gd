@@ -1,6 +1,9 @@
 class_name WorldProgressionManagerScript
 extends Node
 
+const RegionDefinition = preload("res://resource/world/RegionDefinition.gd")
+const SpawnPoint = preload("res://entities/world/SpawnPoint.gd")
+
 # ============================================================
 # HUNTER ONLINE - WORLD PROGRESSION & SPAWN MANAGER (AUTOLOAD)
 # ============================================================
@@ -26,6 +29,12 @@ var target_spawn_id: StringName = &"default"
 var target_spawn_position: Vector2 = Vector2.ZERO
 var checkpoint_ativo_posicao: Vector2 = Vector2.ZERO
 var checkpoint_ativo_mapa: String = ""
+
+# Estado de Regiões do Mundo MMORPG
+var regiao_atual_id: StringName = &"lobby"
+var regiao_anterior_id: StringName = &""
+var regioes_desbloqueadas: Array[StringName] = [&"lobby", &"vale_padokia", &"dungeon_ruinas_zaban"]
+var region_definitions: Dictionary = {} # { StringName: RegionDefinition }
 
 # Catálogo Estruturado de Regiões do Mundo
 const REGIOES: Dictionary = {
@@ -117,6 +126,14 @@ const REGIOES: Dictionary = {
 		"saga": 1,
 		"default_spawn": &"default"
 	},
+	"dungeon_ruinas_zaban": {
+		"id": "dungeon_ruinas_zaban",
+		"nome": "Ruínas do Santuário de Zaban",
+		"subtitulo": "Dungeon Subterrânea — Guardião Ancestral",
+		"cena": "res://world/maps/dungeon_ruinas_zaban.tscn",
+		"saga": 1,
+		"default_spawn": &"entrada"
+	},
 	"casa_jogador": {
 		"id": "casa_jogador",
 		"nome": "Residência Pessoal do Caçador",
@@ -130,9 +147,43 @@ const REGIOES: Dictionary = {
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_inicializar_definicoes_regioes()
 	print("=================================")
 	print("[WorldProgressionManager] GERENCIADOR DE MUNDO E SPAWNS ATIVO")
 	print("=================================")
+
+
+func _inicializar_definicoes_regioes() -> void:
+	for r_id in REGIOES.keys():
+		var info: Dictionary = REGIOES[r_id]
+		var def := RegionDefinition.new()
+		def.id = StringName(r_id)
+		def.display_name = info.get("nome", "Região")
+		def.subtitle = info.get("subtitulo", "")
+		def.scene_path = info.get("cena", "")
+		def.saga_id = int(info.get("saga", 0))
+		def.default_spawn = StringName(info.get("default_spawn", "default"))
+		def.unlocked = regioes_desbloqueadas.has(def.id)
+		
+		# Conexões macro
+		if r_id == "lobby":
+			def.connected_regions = [&"vale_padokia", &"casa_jogador", &"exame_hunter"]
+			def.exits = [
+				{"portal_id": &"portal_padokia", "target_region": &"vale_padokia", "target_spawn": &"spawn_padokia", "portal_name": "Vale de Padokia (Mundo Exterior)"}
+			]
+		elif r_id == "vale_padokia":
+			def.connected_regions = [&"lobby", &"dungeon_ruinas_zaban"]
+			def.exits = [
+				{"portal_id": &"portal_lobby", "target_region": &"lobby", "target_spawn": &"spawn_saida_mundo", "portal_name": "Capital dos Caçadores (Lobby)"},
+				{"portal_id": &"portal_dungeon", "target_region": &"dungeon_ruinas_zaban", "target_spawn": &"entrada", "portal_name": "Entrada das Ruínas de Zaban"}
+			]
+		elif r_id == "dungeon_ruinas_zaban":
+			def.connected_regions = [&"vale_padokia"]
+			def.exits = [
+				{"portal_id": &"portal_saida_dungeon", "target_region": &"vale_padokia", "target_spawn": &"saida_ruinas", "portal_name": "Retorno ao Vale de Padokia"}
+			]
+		
+		region_definitions[def.id] = def
 
 
 # ============================================================
@@ -245,3 +296,77 @@ func obter_info_regiao_por_cena(caminho_cena: String) -> Dictionary:
 		if r_data.get("cena", "") == caminho_cena:
 			return r_data
 	return {}
+
+
+func obter_definicao_regiao(r_id: StringName) -> RegionDefinition:
+	if region_definitions.has(r_id):
+		return region_definitions[r_id]
+	if REGIOES.has(String(r_id)):
+		var info = REGIOES[String(r_id)]
+		var def := RegionDefinition.new()
+		def.id = r_id
+		def.display_name = info.get("nome", "Região")
+		def.subtitle = info.get("subtitulo", "")
+		def.scene_path = info.get("cena", "")
+		def.saga_id = int(info.get("saga", 0))
+		def.default_spawn = StringName(info.get("default_spawn", "default"))
+		def.unlocked = regioes_desbloqueadas.has(r_id)
+		region_definitions[r_id] = def
+		return def
+	return null
+
+
+func obter_regiao_atual() -> RegionDefinition:
+	return obter_definicao_regiao(regiao_atual_id)
+
+
+func definir_regiao_atual(r_id: StringName) -> void:
+	if regiao_atual_id != r_id:
+		regiao_anterior_id = regiao_atual_id
+		regiao_atual_id = r_id
+		var def = obter_definicao_regiao(r_id)
+		var nome_reg = def.display_name if def != null else String(r_id)
+		regiao_alterada.emit(String(r_id), nome_reg)
+		print("[WorldProgressionManager] 🗺️ Região Atual Alterada: '%s' (%s)" % [r_id, nome_reg])
+
+
+func obter_regioes_conectadas(r_id: StringName) -> Array[RegionDefinition]:
+	var result: Array[RegionDefinition] = []
+	var def = obter_definicao_regiao(r_id)
+	if def != null:
+		for cr_id in def.connected_regions:
+			var cr_def = obter_definicao_regiao(cr_id)
+			if cr_def != null:
+				result.append(cr_def)
+	return result
+
+
+func desbloquear_regiao(r_id: StringName) -> void:
+	if not regioes_desbloqueadas.has(r_id):
+		regioes_desbloqueadas.append(r_id)
+	var def = obter_definicao_regiao(r_id)
+	if def != null:
+		def.unlocked = true
+	if EventBus != null:
+		EventBus.emit_toast("🗺️ Nova Região Desbloqueada: %s!" % (def.display_name if def else String(r_id)), Color(1.0, 0.85, 0.2))
+
+
+func is_regiao_desbloqueada(r_id: StringName) -> bool:
+	return regioes_desbloqueadas.has(r_id)
+
+
+func trocar_regiao(regiao_destino_id: StringName, spawn_id: StringName = &"default", pos_exata: Vector2 = Vector2.ZERO) -> bool:
+	var def = obter_definicao_regiao(regiao_destino_id)
+	if def == null or def.scene_path.is_empty():
+		push_error("[WorldProgressionManager] ERRO: Região de destino '%s' inválida ou sem cena!" % regiao_destino_id)
+		return false
+	
+	definir_destino_spawn(spawn_id, pos_exata)
+	definir_regiao_atual(regiao_destino_id)
+	
+	if SceneTransition != null:
+		SceneTransition.trocar_cena(def.scene_path)
+	else:
+		get_tree().change_scene_to_file(def.scene_path)
+	return true
+

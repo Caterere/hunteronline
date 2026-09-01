@@ -225,6 +225,14 @@ var tecnicas_nen: Dictionary = {}
 # ============================================================
 
 var despertou_nen: bool = false            # Desbloqueado com Wing na Arena Celestial
+
+# ============================================================
+# NEN SKILL TREE
+# ============================================================
+
+var nen_skill_points: int = 0
+var nen_skill_tree_progress: Dictionary = {}
+var nen_ryu_caminho: String = ""
 var hatsu_desbloqueado: bool = false        # Desbloqueado com Biscuit após Greed Island
 var hatsu_creation_unlocked: bool = false   # Flag canônica definitiva de criação de Hatsu
 var besta_nen_desbloqueada: bool = false
@@ -336,6 +344,11 @@ func reset() -> void:
 	recalcular_todos_atributos()
 	attributes["vida"] = attributes["vida_max"]
 	attributes["aura"] = attributes["aura_max"]
+
+	# Skill Tree
+	nen_skill_points = 0
+	nen_skill_tree_progress.clear()
+	nen_ryu_caminho = ""
 
 
 

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://df78912345f01"]
+
+[ext_resource type="Script" path="res://scratch/test_phase_f_world_building_suite.gd" id="1_test_phase_f"]
+
+[node name="TestPhaseFWorldBuildingSuite" type="Node"]
+script = ExtResource("1_test_phase_f")

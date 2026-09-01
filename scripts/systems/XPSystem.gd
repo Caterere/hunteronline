@@ -4,6 +4,28 @@ extends Node
 
 signal xp_changed(current_xp: int, required_xp: int)
 signal level_up(new_level: int)
+signal skill_points_changed(pontos_disponiveis: int)
+
+
+# ============================================================
+# HUNTER ONLINE — SISTEMA UNIFICADO DE PROGRESSÃO (NEN XP)
+# ============================================================
+#
+# Este é o ÚNICO sistema de XP do personagem.
+#
+# Toda fonte de XP alimenta este sistema:
+# - Inimigos
+# - Quests
+# - Bosses
+# - Eventos
+# - Treinamento
+#
+# Level Up concede:
+# 1. Atributos base (via PlayerData.aplicar_nivel)
+# 2. +1 Nen Skill Point
+# 3. Aura Máxima (via PlayerData.aplicar_nivel_nen)
+#
+# ============================================================
 
 
 # ============================================================
@@ -24,7 +46,6 @@ signal level_up(new_level: int)
 @export var xp_growth: float = 1.6
 
 
-
 # ============================================================
 # READY
 # ============================================================
@@ -39,19 +60,26 @@ func _ready() -> void:
 		xp = xp_necessario()
 
 	print("=================================")
-	print("XP SYSTEM INICIADO")
+	print("NEN XP SYSTEM INICIADO")
 	print("LEVEL: ", level)
 	print(
-		"XP: ",
+		"NEN XP: ",
 		xp,
 		"/",
 		xp_necessario()
 	)
+	print("SKILL POINTS: ", PlayerData.nen_skill_points)
 	print("=================================")
 
 
 # ============================================================
-# ADICIONAR XP
+# ADICIONAR XP (FUNÇÃO CENTRAL)
+# ============================================================
+#
+# Toda fonte de XP chama esta função.
+# O nome permanece "adicionar_xp" para compatibilidade
+# com todos os 14+ locais que já a chamam.
+#
 # ============================================================
 
 func adicionar_xp(
@@ -73,7 +101,7 @@ func adicionar_xp(
 
 	var multiplicador = PlayerData.potencial * PlayerData.obter_multiplicador_dificuldade()["xp"]
 	var valor_final = int(valor * multiplicador)
-	
+
 	if valor_final <= 0:
 		valor_final = 1
 
@@ -82,7 +110,7 @@ func adicionar_xp(
 
 
 	print(
-		"XP RECEBIDO: +",
+		"NEN XP RECEBIDO: +",
 		valor_final,
 		" | Origem: ",
 		origem
@@ -99,7 +127,7 @@ func adicionar_xp(
 
 
 # ============================================================
-# XP DE QUEST
+# XP DE QUEST (WRAPPER DE COMPATIBILIDADE)
 # ============================================================
 
 func receber_xp_quest(valor: int) -> void:
@@ -107,11 +135,24 @@ func receber_xp_quest(valor: int) -> void:
 	if valor <= 0:
 		return
 
-
 	adicionar_xp(
 		valor,
 		"Quest"
 	)
+
+
+# ============================================================
+# ADICIONAR XP NEN (WRAPPER DE COMPATIBILIDADE)
+# ============================================================
+#
+# Para compatibilidade com código que chamava
+# NenSystem.adicionar_xp_nen(), o NenSystem agora
+# redireciona para este método.
+#
+# ============================================================
+
+func adicionar_xp_nen(valor: int) -> void:
+	adicionar_xp(valor, "Nen")
 
 
 # ============================================================
@@ -135,10 +176,23 @@ func _verificar_level_up() -> void:
 		print("NOVO LEVEL: ", level)
 		print("=================================")
 
+		# 1. Atributos base
 		PlayerData.aplicar_nivel(
 			level
 		)
 		PlayerData.attributes["xp"] = xp
+
+		# 2. Nen Level (aura máxima)
+		PlayerData.attributes["nivel_nen"] = level
+		var nova_aura_maxima: float = float(level) * 100.0
+		PlayerData.attributes["aura_max"] = nova_aura_maxima
+		PlayerData.attributes["aura"] = nova_aura_maxima
+
+		# 3. +1 Nen Skill Point
+		PlayerData.nen_skill_points += 1
+		skill_points_changed.emit(PlayerData.nen_skill_points)
+
+		print("+1 NEN SKILL POINT (Total: ", PlayerData.nen_skill_points, ")")
 
 		level_up.emit(
 			level
@@ -180,7 +234,7 @@ func sincronizar_com_player_data() -> void:
 		xp = xp_necessario()
 		PlayerData.attributes["nivel"] = 100
 		PlayerData.attributes["xp"] = xp
-	
+
 	if old_lvl != level:
 		level_up.emit(level)
 	xp_changed.emit(xp, xp_necessario())
