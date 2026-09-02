@@ -1,4 +1,4 @@
-# SAVE DATA BIBLE
+# BIBLE DE SAVE E DADOS
 
 ## Principle
 Anything that represents meaningful player progression must be persisted when intended to survive closing the game.

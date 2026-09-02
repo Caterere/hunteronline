@@ -1,4 +1,4 @@
-# HATSU BIBLE
+# BIBLE DE HATSU
 
 ## Purpose
 Hatsu is the player's main build-creation system.

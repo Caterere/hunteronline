@@ -1,56 +1,55 @@
 ---
 name: hunter-development
-description: Develop, diagnose, or review the Hunter Online Godot project while preserving its canonical systems and applying the relevant project Bibles. Use for gameplay, world, UI, quest, combat, Nen, Hatsu, save, and architecture work in this repository.
+description: Desenvolver, diagnosticar ou revisar o projeto Hunter Online em Godot, preservando os sistemas canônicos e aplicando as Bibles relevantes para Nen, Hatsu, combate, Skill Tree, quests, mundo, UI e persistência.
 ---
 
-# Hunter Online Development
+# Skill de Desenvolvimento do Hunter Online
 
-Use this skill for changes and reviews in the Hunter Online Godot project. Build small, compatible increments that support a persistent, strategic Hunter x Hunter-inspired RPG world.
+Use esta skill para alterações e revisões do projeto Godot. Desenvolva em incrementos pequenos e compatíveis, mantendo um RPG estratégico, persistente e expansível.
 
-## Source of truth
+## Fonte de verdade
 
-Apply requirements in this order:
+1. Pedido atual do usuário.
+2. Bible relevante em `.agent/docs/bibles/`, começando pelo `00_BIBLE_INDEX.md`, e `NEN_SKILL_TREE_BIBLE.md` na raiz.
+3. Implementação, cenas e recursos existentes.
+4. Decisões razoáveis de implementação.
 
-1. The user's current request.
-2. The relevant project Bible, beginning with [the Bible index](../../docs/bibles/00_BIBLE_INDEX.md).
-3. The existing implementation and scene structure.
-4. Reasonable implementation decisions.
+Quando uma Bible divergir do código, investigue e comunique o conflito antes de uma reescrita ampla.
 
-The Bibles define intended behavior. If they conflict with the existing code, investigate and report the conflict before a broad or breaking rewrite.
+## Investigação obrigatória
 
-## Investigation and scope
+Antes de alterar código ou cenas:
 
-Before changing code or scenes:
+1. Leia scripts, cenas, recursos, sinais, grupos, autoloads e chamadas relacionadas.
+2. Leia somente as Bibles que governam a tarefa; em trabalho entre sistemas, inclua Arquitetura, Schema e Testes.
+3. Identifique o dono canônico de cada estado e regra. Reutilize-o, sem criar estado ou sistemas paralelos.
+4. Faça a menor alteração que atende ao pedido.
 
-1. Locate and read the related scripts, scenes, resources, signals, groups, autoloads, and call sites.
-2. Read only the Bibles governing the requested system. For cross-system work, also read `12_ARCHITECTURE_BIBLE.md` and `13_TESTING_DEBUG_BIBLE.md`.
-3. Identify the canonical owner of state and rules. Reuse it rather than introducing parallel state or systems.
-4. Make the smallest change that meets the request. Do not turn an unrelated request into a broad refactor.
+## Donos canônicos
 
-## Canonical ownership
+- `PlayerData`: progressão, dados persistentes e pipeline de `StatModifier`.
+- `CombatEngine`: cálculo compartilhado de dano e mitigação.
+- `NenSystem`: aura, técnicas, estados de Nen e progressão de Nen.
+- `QuestSystem`/`QuestManager`: objetivos, transições, conclusão e recompensas.
+- `SaveManager`: ciclo de persistência e compatibilidade.
+- UI: apenas apresentação do estado canônico, nunca dona da lógica de gameplay.
+- NPCs, diálogos, Hatsu, transições, spawns e eventos: reutilize os sistemas existentes quando a responsabilidade já existir.
 
-- `PlayerData` is the canonical player progression/state source.
-- `CombatEngine` owns shared damage calculation and mitigation; callers integrate with it instead of duplicating formulas.
-- The existing Nen system owns aura, techniques, and Nen progression.
-- `QuestSystem` / `QuestManager` owns objective state, transitions, completion, and rewards.
-- `SaveManager` owns persistent save/load lifecycle and compatibility.
-- UI presents canonical state; it must not own gameplay state.
-- Reuse the current NPC interaction, dialogue, world transition/spawn, Hatsu, and event systems when their responsibility already exists.
+Não renomeie casualmente campos persistentes, autoloads, scripts, cenas ou recursos. Mudanças de schema exigem compatibilidade com saves antigos.
 
-Do not casually rename persistent fields, autoloads, scripts, scenes, or resources. A persistent-data change requires a compatible migration strategy.
+## Regras de implementação
 
-## Implementation rules
+- Prefira Nodes, Scenes, Signals, Resources, Groups e Autoloads nativos da Godot.
+- Mantenha responsabilidades separadas; não transforme `Player.gd` ou controles de UI em arquivos centralizadores.
+- Centralize constantes de gameplay no sistema ou recurso responsável.
+- Hatsu deve permanecer orientado a dados; custo de aura, cooldown, restrições, afinidade, tags e condições devem ser reais.
+- Condições usam `GameplayCondition` e tags usam `GameplayTags`; não consulte IDs de Hatsu ou nós de cena espalhados.
+- Passivas usam `StatModifier` no `PlayerData`; não crie classes privadas de modificador.
+- Portais, GPS, diálogo e quests consultam o estado canônico de progressão.
+- Não esconda defeitos com guards arbitrários, chamadas duplicadas, delays sem explicação ou funcionalidades desativadas.
 
-- Prefer Godot-native nodes, scenes, signals, resources, groups, and autoloads when appropriate.
-- Keep responsibilities separated. Do not place unrelated system logic in `Player.gd` or UI controls.
-- Centralize gameplay constants with the responsible system or data resource; do not spread formulas or magic values among callers.
-- Keep Hatsu data-driven where practical. Aura cost, cooldown, restriction, affinity, ownership, and persistence must remain meaningful.
-- Derive quest dialogue, portal gates, GPS, and mission progression from the canonical quest/progression state, never duplicate flags or coordinates.
-- Distinguish ambient, mission, elite, boss, and event encounters. Scene transitions must not duplicate or lose required mission entities.
-- Do not mask a defect with arbitrary guards, duplicated state, disabled functionality, or unexplained delays. Correct the cause.
+## Validação e entrega
 
-## Validation and handoff
+Após cada alteração, revise caminhos de recursos e nós, sinais, tipos e consumidores dependentes. Execute o teste Godot, de sistema ou gameplay mais específico disponível. Para mudanças de progressão, verifique save/load quando possível.
 
-After a change, inspect affected resource paths, node paths, signal connections, types, and dependent callers. Run the narrowest meaningful Godot, system, or gameplay validation available. For progression changes, verify the affected save/load flow when feasible.
-
-Report what was changed, what was validated, and any validation that could not be performed. Update the relevant documentation only when an architectural or persistent design decision changed.
+Informe exatamente o que foi alterado, validado e o que não pôde ser testado. Atualize a documentação quando uma decisão arquitetural ou persistente mudar.

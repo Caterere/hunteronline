@@ -1,4 +1,4 @@
-# QUEST & MISSION BIBLE
+# BIBLE DE QUESTS E MISSÕES
 
 ## Mission Principle
 A mission is a state machine with explicit objectives and completion conditions.

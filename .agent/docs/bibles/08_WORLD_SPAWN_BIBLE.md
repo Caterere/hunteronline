@@ -1,4 +1,4 @@
-# WORLD & SPAWN BIBLE
+# BIBLE DE MUNDO E SPAWN
 
 ## Spawn Principles
 Spawning must be deterministic from game state and encounter rules.

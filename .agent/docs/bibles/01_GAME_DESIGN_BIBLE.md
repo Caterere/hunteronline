@@ -1,4 +1,4 @@
-# GAME DESIGN BIBLE
+# BIBLE DE DESIGN DO JOGO
 
 ## Identity
 A 2D MMORPG/RPG inspired by Hunter x Hunter, built around strategy, Nen, Hatsu customization, exploration, progression and meaningful player choices.

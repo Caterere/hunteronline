@@ -1,4 +1,4 @@
-# DATA SCHEMA BIBLE
+# BIBLE DE SCHEMA DE DADOS
 
 ## Purpose
 This document defines conceptual canonical data rather than forcing every field into a single implementation.

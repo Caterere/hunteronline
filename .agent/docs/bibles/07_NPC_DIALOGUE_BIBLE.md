@@ -1,4 +1,4 @@
-# NPC & DIALOGUE BIBLE
+# BIBLE DE NPCs E DIÁLOGOS
 
 ## NPC Principles
 NPCs should have:

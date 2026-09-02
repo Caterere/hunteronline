@@ -1,7 +1,7 @@
-# HUNTER ONLINE — BIBLE INDEX
+# HUNTER ONLINE — ÍNDICE DAS BIBLES
 
-## Purpose
-These Bibles define WHAT the Hunter MMORPG is and how its systems should behave. They complement `.agent/skills/hunter-development/SKILL.md`, which defines HOW the agent should develop the project.
+## Objetivo
+Estas Bibles definem O QUE é o MMORPG Hunter e como seus sistemas devem funcionar. Elas complementam `.agent/skills/hunter-development/SKILL.md`, que define COMO o agente deve desenvolver o projeto.
 
 ## Source of Truth
 Priority:
@@ -27,5 +27,6 @@ If code conflicts with the Bibles, do not silently rewrite the project. Analyze 
 - 12_ARCHITECTURE_BIBLE.md — system responsibilities and integration rules
 - 13_TESTING_DEBUG_BIBLE.md — validation, regression and QA standards
 - 14_DATA_SCHEMA_BIBLE.md — canonical data structures and persistence concepts
-- NEN_SKILL_TREE_BIBLE.md (repository root) — current Nen Skill Tree ownership, modifier integration and expansion rules
-- 15_GAMEPLAY_FOUNDATION_BIBLE.md — reusable conditions, tags and modifier integration
+- NEN_SKILL_TREE_BIBLE.md (raiz do repositório) — responsabilidade atual da Skill Tree de Nen, integração de modificadores e regras de expansão
+- 15_GAMEPLAY_FOUNDATION_BIBLE.md — condições, tags e integração de modificadores reutilizáveis
+- TASKS_FUTURAS.md (raiz do repositório) — roadmap, dependências, critérios e status de execução

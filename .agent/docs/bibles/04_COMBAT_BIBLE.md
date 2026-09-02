@@ -1,4 +1,4 @@
-# COMBAT BIBLE
+# BIBLE DE COMBATE
 
 ## Combat Philosophy
 Combat should reward positioning, timing, Nen management, build knowledge and tactical decisions.

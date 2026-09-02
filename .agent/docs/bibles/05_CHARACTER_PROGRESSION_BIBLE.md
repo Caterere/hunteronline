@@ -1,4 +1,4 @@
-# CHARACTER PROGRESSION BIBLE
+# BIBLE DE PROGRESSÃO DO PERSONAGEM
 
 ## Attributes
 Baseline physical attributes:

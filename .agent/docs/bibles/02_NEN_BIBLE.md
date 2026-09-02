@@ -1,4 +1,4 @@
-# NEN BIBLE
+# BIBLE DE NEN
 
 ## Core Concept
 Nen is the manipulation of aura. The player's Nen progression is central to combat and Hatsu.

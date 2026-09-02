@@ -1,33 +1,33 @@
-# Gameplay Foundation Bible
+# Bible da Base de Gameplay
 
-## Objective
+## Objetivo
 
-Provide reusable conditions, tags and modifiers so systems can express gameplay rules without hardcoded Hatsu IDs, duplicated combat logic or private state copies.
+Fornecer condições, tags e modificadores reutilizáveis para expressar regras de gameplay sem IDs de Hatsu fixos, lógica de combate duplicada ou cópias privadas de estado.
 
-## Responsibilities
+## Responsabilidades
 
 ### GameplayTags
 
-Normalizes labels and answers tag queries. It does not determine combat outcomes or own a tag registry. Tags remain extensible strings; use normalized snake_case names such as `projectile`, `offensive`, `long_range`, `single_target`, `weapon` and `aura`.
+Normaliza rótulos e responde consultas de tags. Não determina resultados de combate nem mantém um registro fechado. As tags continuam sendo strings extensíveis em `snake_case`, como `projectile`, `offensive`, `long_range`, `single_target`, `weapon` e `aura`.
 
 ### GameplayCondition
 
-Stores one declarative requirement and evaluates a context dictionary. It does not query scene nodes, modify state or emit UI. Supported context keys include `player_hp_percent`, `seconds_since_damage`, `target_marked`, `nearby_enemy_count`, `target_hp_percent`, `player_in_en`, `player_stealth`, `active_hatsu_ids`, `unlocked_skill_ids`, `target_states`, `target_weak_point_revealed` and `hatsu_tags`.
+Armazena uma exigência declarativa e avalia um dicionário de contexto. Não consulta nós da cena, altera estado nem emite UI. O contexto pode incluir `player_hp_percent`, `seconds_since_damage`, `target_marked`, `nearby_enemy_count`, `target_hp_percent`, `player_in_en`, `player_stealth`, `active_hatsu_ids`, `unlocked_skill_ids`, `target_states`, `target_weak_point_revealed` e `hatsu_tags`.
 
-`evaluate()` returns `{ met, type, actual }`. Consumers decide the effect, feedback and state transition.
+`evaluate()` retorna `{ met, type, actual }`; o sistema consumidor decide o efeito, feedback e transição de estado.
 
 ### StatModifier
 
-`StatModifier` is the sole modifier representation used by `PlayerData`. Feature systems create it and identify their source; `PlayerData` recalculates attributes.
+`StatModifier` é a única representação de modificadores usada pelo `PlayerData`. Sistemas de funcionalidade criam a instância e informam sua origem; `PlayerData` recalcula os atributos.
 
-## Current integrations
+## Integrações atuais
 
-`HatsuData` persists normalized tags and its optional `gameplay_conditions`. Hatsu activation merges player and target contexts, evaluates these resources and denies activation when a requirement is unmet. `NenSkillTree` now creates `StatModifier` directly.
+`HatsuData` persiste tags normalizadas e suas `gameplay_conditions` opcionais. Na ativação, combina os contextos do jogador e do alvo e recusa o uso quando uma condição não é atendida. `NenSkillTree` cria `StatModifier` diretamente.
 
-## Extension rules
+## Regras de expansão
 
-Add a condition type only when it is reusable by more than one domain. Keep world scans, target selection, timers and gameplay effects in the owning system; pass their result in the context. Future Skill Tree, enemy, boss, quest, event and HUD work should consume these interfaces rather than clone them.
+Adicione um tipo de condição somente quando ele puder ser reutilizado por mais de um domínio. Consultas de mundo, seleção de alvo, temporizadores e efeitos permanecem no sistema dono; o resultado é passado no contexto. Skill Tree, inimigos, bosses, quests, eventos e HUD devem consumir essas interfaces.
 
-## Validation
+## Validação
 
-Test tag normalization/query behavior, each condition's true and false cases, Hatsu serialization round-trip, Hatsu activation denial, and Skill Tree modifier application/removal. Test save/load whenever persistent fields change.
+Teste normalização/consulta de tags, casos verdadeiro e falso de cada condição, round-trip de serialização do Hatsu, recusa de ativação e aplicação/remoção de modificadores da Skill Tree. Teste save/load quando campos persistentes mudarem.

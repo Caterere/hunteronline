@@ -1,4 +1,4 @@
-# UI/UX BIBLE
+# BIBLE DE UI/UX
 
 ## Principles
 UI should communicate state without requiring the player to inspect hidden systems.

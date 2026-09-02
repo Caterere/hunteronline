@@ -1,4 +1,4 @@
-# CONTENT DESIGN BIBLE
+# BIBLE DE DESIGN DE CONTEÚDO
 
 ## Enemies
 Every enemy should define:

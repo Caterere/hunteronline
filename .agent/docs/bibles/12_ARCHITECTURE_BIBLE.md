@@ -1,4 +1,4 @@
-# ARCHITECTURE BIBLE
+# BIBLE DE ARQUITETURA
 
 ## Principle
 The project is a collection of interconnected systems. Each system must have a clear responsibility.
