@@ -315,6 +315,7 @@ var alvo_marcado_ref: Node = null
 
 # Metadados de Livro / Grimório / Sinergia de Tags
 @export var tags: Array[String] = [] # ["weapon", "electricity", "teleport", "mark", "fire", "shield"]
+@export var gameplay_conditions: Array[GameplayCondition] = []
 @export var usuario_original: String = ""
 @export var status_descoberta: String = "COMPLETO" # "COMPLETO" ou "INCOMPLETO"
 @export var condicoes_descobertas: Array[String] = []
@@ -1091,6 +1092,17 @@ func pode_usar(player_context: Dictionary, target_context: Dictionary = {}) -> D
 	if Condicao.ALMAS_INIMIGOS in condicoes and almas_acumuladas <= 0:
 		return {"pode": false, "motivo": "Colheita de Almas: Requer ao menos 1 alma acumulada de abates!"}
 
+	var gameplay_context := player_context.duplicate(true)
+	gameplay_context.merge(target_context, true)
+	gameplay_context["player_hp_percent"] = pct_hp
+	gameplay_context["target_hp_percent"] = float(target_context.get("hp_percent", 1.0))
+	gameplay_context["hatsu_tags"] = GameplayTags.normalize(tags)
+	for gameplay_condition in gameplay_conditions:
+		if gameplay_condition == null:
+			continue
+		if not gameplay_condition.evaluate(gameplay_context).get("met", false):
+			return {"pode": false, "motivo": "Condição de combate não atendida."}
+
 	return {"pode": true, "motivo": ""}
 
 
@@ -1153,6 +1165,10 @@ func to_dict() -> Dictionary:
 	var m_conds: Array[int] = []
 	for mc in modular_conditions:
 		m_conds.append(int(mc))
+	var serialized_gameplay_conditions: Array[Dictionary] = []
+	for gameplay_condition in gameplay_conditions:
+		if gameplay_condition != null:
+			serialized_gameplay_conditions.append(gameplay_condition.to_dict())
 
 	var m_res: Array[int] = []
 	for mr in modular_restrictions:
@@ -1186,7 +1202,8 @@ func to_dict() -> Dictionary:
 		"xp_evolucao_hatsu": xp_evolucao_hatsu,
 		"vow_custom_text": vow_custom_text,
 		"vow_custom_mult": vow_custom_mult,
-		"tags": tags.duplicate(),
+		"tags": GameplayTags.normalize(tags),
+		"gameplay_conditions": serialized_gameplay_conditions,
 		"usuario_original": usuario_original,
 		"activation_type": int(activation_type),
 		"duration_type": int(duration_type),
@@ -1307,7 +1324,14 @@ static func from_dict(data: Dictionary) -> HatsuData:
 	var typed_tags: Array[String] = []
 	for t in tags_in:
 		typed_tags.append(str(t))
-	h.tags = typed_tags
+	h.tags = GameplayTags.normalize(typed_tags)
+
+	var conditions_in = data.get("gameplay_conditions", [])
+	var typed_gameplay_conditions: Array[GameplayCondition] = []
+	for condition_data in conditions_in:
+		if condition_data is Dictionary:
+			typed_gameplay_conditions.append(GameplayCondition.from_dict(condition_data))
+	h.gameplay_conditions = typed_gameplay_conditions
 
 	# Condições Legadas
 	var conds_in = data.get("condicoes", [])

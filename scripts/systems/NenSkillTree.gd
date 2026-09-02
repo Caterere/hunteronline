@@ -426,36 +426,10 @@ func _aplicar_modificadores_do_no(node_id: String) -> void:
 
 
 func _criar_modificador(mod_id: StringName, stat_name: String, tipo: int, valor: float, source: String):
-	# Usa a mesma estrutura de StatModifier que o PlayerData espera
-	var mod = RefCounted.new()
-	mod.set_meta("id", mod_id)
-	mod.set_meta("stat_name", stat_name)
-	mod.set_meta("type", tipo)  # 0=FLAT, 1=PERCENTAGE
-	mod.set_meta("value", valor)
-	mod.set_meta("source", source)
-
-	# Criar objeto compatível com o pipeline existente
-	# O PlayerData espera objetos com propriedades: id, stat_name, type, value, source
-	return NenSkillModifier.new(mod_id, stat_name, tipo, valor, source)
-
-
-# ============================================================
-# STAT MODIFIER INTERNO
-# ============================================================
-
-class NenSkillModifier:
-	var id: StringName = &""
-	var stat_name: String = ""
-	var type: int = 1  # 0=FLAT, 1=PERCENTAGE
-	var value: float = 0.0
-	var source: String = ""
-
-	func _init(p_id: StringName, p_stat: String, p_type: int, p_value: float, p_source: String) -> void:
-		id = p_id
-		stat_name = p_stat
-		type = p_type
-		value = p_value
-		source = p_source
+	var modifier_type: StatModifier.Type = StatModifier.Type.FLAT
+	if tipo == TipoMod.PERCENTAGE:
+		modifier_type = StatModifier.Type.PERCENTAGE
+	return StatModifier.new(mod_id, StringName(stat_name), modifier_type, valor, -1.0, source)
 
 
 # ============================================================
