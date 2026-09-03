@@ -14,8 +14,8 @@ extends NPC
 
 
 func _ready() -> void:
-	super()
 	npc_name = "Wing"
+	super()
 
 
 func _on_interacted(_player: CharacterBody2D) -> void:
@@ -24,31 +24,38 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		QuestSystem.register_npc_visit(&"wing")
 
 	var falas_wing: Array[Dictionary] = []
+	var afinidade_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+	var afinidade_desc: String = NenAffinityData.obter_descricao_afinidade(PlayerData.afinidade_nen)
 
-	if not PlayerData.despertou_nen:
+	var etapa_atual: int = PlayerData.etapa_quest_arco if PlayerData != null else 1
+	var arco_atual: int = PlayerData.arco_atual if PlayerData != null else 1
+
+	if arco_atual == 3 and etapa_atual == 10:
+		# Etapa 10: Jogador deve inspecionar o copo de água
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Para descobrir qual das 6 categorias de Nen você nasceu com, realizaremos o TESTE DA ÁGUA (Water Divination Test)!"})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Posicione suas mãos ao redor do copo d'água com a folha na mesa logo ao meu lado [E] e libere sua aura!"})
+
+	elif not PlayerData.despertou_nen or (arco_atual == 3 and etapa_atual == 11):
 		PlayerData.despertou_nen = true
 		PlayerData.aplicar_nivel_nen(1)
 		PlayerData.aplicar_bonuses_afinidade()
 
-		var afinidade_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
-		var afinidade_desc: String = NenAffinityData.obter_descricao_afinidade(PlayerData.afinidade_nen)
-		
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns por alcançar os andares superiores da Arena Celestial! Chegou o momento de conhecer o verdadeiro poder: o NEN."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Nen é a capacidade de controlar a energia vital (Aura) que flui de todo ser vivo."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Para descobrir qual das 6 categorias de Nen você nasceu com, realizaremos o TESTE DA ÁGUA (Water Divination Test)!"})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Colocarei uma folha de árvore sobre este copo d'água... Posicione suas mãos em volta do copo e libere sua aura!"})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "A água está reagindo! Sua Afinidade Natal Secreta de Nen foi revelada: " + afinidade_nome.to_upper() + "!"})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns por realizar o Teste da Água! Sua Afinidade Natal é oficialmente comprovada como: " + afinidade_nome.to_upper() + "!"})
 		falas_wing.append({"falante": "Mestre Wing", "texto": afinidade_desc})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Você despertou o TEN (proteção) e o REN (potência). Durante o combate, segure [Q] para abrir a Barra de Ação Rápida de Nen e selecione suas técnicas!"})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Pressione [TAB] para abrir seu Hunter Menu completo ou [J] para consultar a Enciclopédia de Nen a qualquer momento."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Abrirei suavemente seus nós de aura... Sinta a energia fluir sem escapar: você despertou o TEN (Envolver)!"})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "O Ten envolve seu corpo como um manto protetor, reduzindo drasticamente qualquer impacto recebido."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Durante o combate, segure [Q] para abrir a Barra de Ação Rápida de Nen e alternar suas posturas."})
 		PlayerData.quest_states["wing_tutorial_progresso"] = 2
+
+	elif arco_atual == 3 and etapa_atual == 12:
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Agora que domina o Ten, você deve aprender a expandir a aura explosivamente: o REN (Expandir)!"})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "O Ren multiplica seu poder destrutivo e intimida oponentes fracos, mas drena aura continuamente."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Pratique a transição rápida entre Ten e Ren em combate!"})
+
 	else:
 		falas_wing.append({"falante": "Mestre Wing", "texto": "Continue praticando os 4 princípios fundamentais (Ten, Ren, Zetsu e Gyo). Segure [Q] em combate para alternar rapidamente entre eles."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Consulte seu Diário de Treino em [J] para revisar o conhecimento de cada técnica."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Consulte seu Diário de Treino ou a Árvore de Habilidades em [N] para aprofundar suas técnicas."})
 
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
 	if visual_dialogue != null:
 		visual_dialogue.exibir_sequencia_falas(falas_wing)
-
-	if quest != null and not PlayerData.is_quest_active(quest) and not PlayerData.is_quest_completed(quest):
-		QuestSystem.start_quest(quest)

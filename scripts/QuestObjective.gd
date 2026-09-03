@@ -39,35 +39,56 @@ enum Type {
 @export var target_zone_id: StringName = &""
 
 
-func describe() -> String:
+@export_group("Condições & Opcionalidade")
 
+@export var is_optional: bool = false
+@export var conditions: Array[GameplayCondition] = []
+
+
+func avaliar_condicoes(contexto: Dictionary) -> bool:
+	if conditions.is_empty():
+		return true
+	for cond in conditions:
+		if cond != null and not cond.evaluate(contexto):
+			return false
+	return true
+
+
+func describe() -> String:
+	var desc_base: String = ""
 	match type:
 
 		Type.KILL:
 			var nome_inimigo := str(enemy_type)
 			if nome_inimigo.is_empty() or nome_inimigo == "any" or nome_inimigo == "inimigo" or nome_inimigo == "monstro":
-				return "⚔️ Derrote Criaturas / Inimigos da Área"
-			return "⚔️ Derrote %s" % nome_inimigo.replace("_", " ").capitalize()
+				desc_base = "⚔️ Derrote Criaturas / Inimigos da Área"
+			else:
+				desc_base = "⚔️ Derrote %s" % nome_inimigo.replace("_", " ").capitalize()
 
 		Type.COLLECT:
-			return "🎒 Colete %s" % str(item_id).replace("_", " ").capitalize()
+			desc_base = "🎒 Colete %s" % str(item_id).replace("_", " ").capitalize()
 
 		Type.CRAFT:
-			return "🔨 Forje/Crie %s" % str(item_id).replace("_", " ").capitalize()
+			desc_base = "🔨 Forje/Crie %s" % str(item_id).replace("_", " ").capitalize()
 
 		Type.VISIT:
 			if target_npc_name.is_empty():
-				return "💬 Converse com o NPC"
-
-			return "💬 Fale com %s" % target_npc_name
+				desc_base = "💬 Converse com o NPC"
+			else:
+				desc_base = "💬 Fale com %s" % target_npc_name
 
 		Type.INVESTIGATE:
-			return "🔍 [GYO] Investigue a pista '%s'" % str(target_clue_id).replace("_", " ").capitalize()
+			desc_base = "🔍 [GYO] Investigue a pista '%s'" % str(target_clue_id).replace("_", " ").capitalize()
 
 		Type.STEALTH_PASS:
-			return "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
+			desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
 
 		Type.PERSUASION:
-			return "🤝 Convença / Negocie com %s" % (target_npc_name if not target_npc_name.is_empty() else str(target_npc_id).capitalize())
+			desc_base = "🤝 Convença / Negocie com %s" % (target_npc_name if not target_npc_name.is_empty() else str(target_npc_id).capitalize())
 
-	return "Objetivo da Missão"
+		_:
+			desc_base = "Objetivo da Missão"
+
+	if is_optional:
+		return "⭐ [OPCIONAL] " + desc_base
+	return desc_base

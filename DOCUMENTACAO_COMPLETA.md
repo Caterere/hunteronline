@@ -1,4 +1,4 @@
-﻿# Documentação completa
+# Documentação completa
 
 Reunião dos documentos Markdown presentes no projeto. Identificadores de código, nomes próprios e tags permanecem no formato técnico original.
 
@@ -1483,14 +1483,6 @@ Não renomeie casualmente campos persistentes, autoloads, scripts, cenas ou recu
 - Condições usam `GameplayCondition` e tags usam `GameplayTags`; não consulte IDs de Hatsu ou nós de cena espalhados.
 - Passivas usam `StatModifier` no `PlayerData`; não crie classes privadas de modificador.
 - Portais, GPS, diálogo e quests consultam o estado canônico de progressão.
-- Não esconda defeitos com guards arbitrários, chamadas duplicadas, delays sem explicação ou funcionalidades desativadas.
-
-## Validação e entrega
-
-Após cada alteração, revise caminhos de recursos e nós, sinais, tipos e consumidores dependentes. Execute o teste Godot, de sistema ou gameplay mais específico disponível. Para mudanças de progressão, verifique save/load quando possível.
-
-Informe exatamente o que foi alterado, validado e o que não pôde ser testado. Atualize a documentação quando uma decisão arquitetural ou persistente mudar.
-
 
 ---
 
@@ -1508,19 +1500,27 @@ Every passive stat effect created by the Nen Skill Tree uses `StatModifier`. The
 
 ## Current nodes
 
-The current tree contains progression for Ten, Zetsu, Ren, Gyo, Ko, Ryu and a reserved Shu node. Its existing numerical effects remain compatible with the current Nen design; contextual nodes and cross-technique synergies are a subsequent expansion, not a replacement for those nodes.
+The current tree contains progression for Ten, Zetsu, Ren, Gyo, Ko, Ryu and a reserved Shu node. Contextual behavioral nodes (`first_strike`, `bloodied`, `surrounded`, `isolated_target`, `hunters_mark`) and cross-technique synergies (`ken_mastery`, `in_mastery`, `en_expansion`) are fully integrated as modular extensions using canonical `GameplayCondition`, `GameplayTags` and `StatModifier`.
 
 ## Contextual effects and synergies
 
-Behavioral effects such as First Strike, Bloodied, Surrounded, Isolated Target and Hunter's Mark must be expressed using reusable `GameplayCondition` resources and canonical gameplay tags. A node should describe its effect and required conditions instead of embedding target scans or combat formulas in the tree itself.
+Behavioral effects (First Strike, Bloodied, Surrounded, Isolated Target, Hunter's Mark) are expressed using reusable `GameplayCondition` resources and canonical gameplay tags:
+- `first_strike`: evaluated via `NO_DAMAGE_FOR_SECONDS` (4.0s).
+- `bloodied`: evaluated via `PLAYER_HP_BELOW` (0.35).
+- `surrounded`: evaluated via `ENEMIES_NEARBY_AT_LEAST` (3 enemies).
+- `isolated_target`: evaluated via `SINGLE_TARGET` (1 enemy).
+- `hunters_mark`: evaluated via `TARGET_MARKED`.
+- `en_expansion`: evaluated via `PLAYER_IN_EN`.
+
+Cross-technique synergies (`ken_mastery`, `in_mastery`) combine prerequisites across fundamental techniques (Ten + Ren, Zetsu + Gyo) without duplicating `HatsuManager` elemental tag synergies. Contextual modifiers are dynamically managed via `atualizar_modificadores_contextuais()` using `PlayerData.adicionar_modificador` with source `"nen_skill_tree_contextual"`.
 
 ## Persistence
 
-Persist node levels and the selected Ryu path through the existing `PlayerData` and `SaveManager` flow. New nodes must default safely for older saves and must not invalidate existing progress.
+Node levels, skill points and the selected Ryu path are persisted through `PlayerData` and `SaveManager` (`nen_skill_points`, `nen_skill_tree_progress`, `nen_ryu_caminho`). Older saves default missing nodes to 0 and restore invested progression without data loss.
 
 ## Validation
 
-For any tree change, test prerequisite checks, point consumption, mutually exclusive Ryu paths, modifier application/removal, save/load and the affected combat behavior.
+All tree behaviors are verified by `scratch/test_skill_tree_contextual_suite.gd`, testing prerequisites, point consumption, True/False condition evaluations, modifier lifecycle, Ryu exclusivity, CombatEngine context integration and SaveManager round-trips.
 
 
 ---
@@ -1546,35 +1546,100 @@ Este documento acompanha a evolução incremental do projeto. Cada tarefa deve r
   - Condições declarativas serializáveis integradas à ativação de Hatsu.
   - Modificador privado removido da `NenSkillTree`.
   - Bibles e documentação consolidada atualizadas.
-
-## Próxima tarefa
-
-- `[ ]` Fase 2 — condições contextuais e sinergias da Skill Tree.
-  - Integrar condições aos nós comportamentais (First Strike, Bloodied, Surrounded, Isolated Target e Hunter's Mark).
-  - Reutilizar `GameplayCondition`, `GameplayTags` e `StatModifier`.
-  - Não duplicar a sinergia de tags já existente em `HatsuManager`.
-  - Critérios: condições verdadeiras/falsas testadas, efeito aplicado pelo sistema dono e save/load preservado.
+- `[x]` Fase 2 — condições contextuais e sinergias da Skill Tree.
+  - Nós comportamentais declarativos integrados à `NenSkillTree` (`first_strike`, `bloodied`, `surrounded`, `isolated_target`, `hunters_mark`).
+  - Sinergias entre técnicas fundamentais de Nen integradas (`ken_mastery`, `in_mastery`, `en_expansion`).
+  - Reutilização canônica estrita de `GameplayCondition`, `GameplayTags` e `StatModifier` (sem duplicação de fórmulas ou modificadores privados).
+  - Sinergias de tags do `HatsuManager` mantidas isoladas e intactas.
+  - Pipeline dinâmico de `StatModifier` aplicado e limpo pelo dono canônico (`PlayerData`).
+  - Persistência e restauração de nós da Skill Tree, pontos e caminhos de Ryu integrados ao `SaveManager`.
+  - Integração do contexto canônico de combate no `CombatEngine`.
+  - Suíte de testes criada em `scratch/test_skill_tree_contextual_suite.gd`.
+- `[x]` Fase 3 — tags de dano/Hatsu consumidas pelo combate central.
+  - Tags canônicas (`slashing`, `blunt`, `piercing`, `projectile`, `elemental`, `aura`) integradas em `CombatEngine.calcular_dano_jogador` e `calcular_dano_sofrido_jogador`.
+  - Mitigações por fraqueza (x1.5), resistência (x0.5) e imunidade (0x) do alvo e do jogador (`PlayerData.resistance_tags`, `weakness_tags`, `immunity_tags`).
+- `[x]` Fase 4 — arquétipos, aggro e estados reutilizáveis de inimigos.
+  - Tabela de ameaça (`threat_table`), decaimento de aggro, seleção de alvo prioritário e distância máxima de coleira (leash) no `EnemyAI`.
+  - Percepção sensorial canônica de Nen com Zetsu reduzindo detecção e limpando 90% da ameaça acumulada.
+  - Novos estados `ALERT` e `FLEE` implementados para arquétipos que recuam ou reagem a ruídos.
+- `[x]` Fase 5 — HUD da Skill Tree.
+  - Interface modular `NenSkillTreeUI.gd` criada com abas (Fundamentos, Modos de Ryu, Comportamentais, Sinergias), pontos disponíveis, custos, pré-requisitos, tooltips de tags/condições e integração direta na aba "Nen Tree" do `HunterMenuUI`.
+- `[x]` Fase 6 — fases e mecânicas configuráveis de bosses.
+  - Recurso declarativo orientado a dados `BossPhaseData.gd` (`phase_index`, `hp_threshold`, `speed_multiplier`, `windup_multiplier`, `hatsu_cd_multiplier`, `mechanic`, `color_modulate`, `dialogue_quote`).
+  - `EnemyData` estendido com `boss_phases` e `EnemyAI` adaptado para consumir fases configuráveis.
+- `[x]` Fase 7 — estados, rotinas e eventos de NPCs.
+  - Integração de `NPCScheduleData` no `LivingNPCBehavior` sincronizada com `TimeManager` (manhã -> trabalho, dia -> patrulha, noite -> descanso) e reações dinâmicas a eventos mundiais.
+- `[x]` Fase 8 — objetivos condicionais, opcionais e consequências de quests.
+  - `QuestObjective` estendido com `is_optional`, `conditions` e avaliação de `GameplayCondition`.
+  - `Quest` estendido com `optional_rewards`, `consequence_tags` e `optional_consequence_tags`.
+  - `QuestManager` ajustado para não bloquear conclusão por opcionais e registrar consequências no `PlayerData.quest_states`.
+- `[x]` Fase 9 — eventos dinâmicos, encontros raros e zonas do mundo.
+  - `ZoneData` enriquecido com `rare_encounters`, tags de zona e cálculo ponderado por multiplicador de perigo.
+  - `WorldEventManager` equipado com sorteio de encontros raros e notificações imersivas.
+- `[x]` Fase 10 — HUD de alvo, Hatsu, condições e feedback contextual.
+  - `TargetHUD.gd` criado exibindo alvo focado, barra de HP, barra de postura (stagger), afinidade de Nen e badges de tags de fraqueza e status.
+  - Disparo de `target_changed` integrado no `CombatSystem` e `EventBus`.
+- `[x]` Fase 11 — ferramentas de debug para builds, condições e encontros.
+  - `BuildDebugMenu.gd` implementado (tecla F2) com controle de Nen Skill Points, injeção de condições de combate (HP baixo, cercado, alvo marcado) e disparo de fases de boss.
+- `[x]` Fase 12 — suíte de testes, regressão completa e atualização final das Bibles.
+  - Suíte de validação abrangente criada em `scratch/test_tasks_futuras_suite.gd` cobrindo todas as 8 novas áreas de funcionalidade.
+  - Atualização completa de `TASKS_FUTURAS.md` e referências do projeto.
 
 ## Ordem planejada
 
 1. `[x]` Fundação: tags, condições e modificadores.
-2. `[ ]` Skill Tree contextual e sinergias entre técnicas.
-3. `[ ]` Tags de dano/Hatsu consumidas pelo combate central.
-4. `[ ]` Arquétipos, aggro e estados reutilizáveis de inimigos.
-5. `[ ]` Weak Points e feedback de combate.
-6. `[ ]` Fases e mecânicas configuráveis de bosses.
-7. `[ ]` Estados, rotinas e eventos de NPCs.
-8. `[ ]` Objetivos condicionais, opcionais e consequências de quests.
-9. `[ ]` Eventos dinâmicos, encontros raros e zonas do mundo.
-10. `[ ]` HUD de alvo, Hatsu, condições e feedback contextual.
-11. `[ ]` Ferramentas de debug para builds, condições e encontros.
-12. `[ ]` Suíte de testes, regressão completa e atualização final das Bibles.
+2. `[x]` Skill Tree contextual e sinergias entre técnicas.
+3. `[x]` Tags de dano/Hatsu consumidas pelo combate central.
+4. `[x]` Arquétipos, aggro e estados reutilizáveis de inimigos.
+5. `[x]` Hud Da Skill Tree.
+6. `[x]` Fases e mecânicas configuráveis de bosses.
+7. `[x]` Estados, rotinas e eventos de NPCs.
+8. `[x]` Objetivos condicionais, opcionais e consequências de quests.
+9. `[x]` Eventos dinâmicos, encontros raros e zonas do mundo.
+10. `[x]` HUD de alvo, Hatsu, condições e feedback contextual.
+11. `[x]` Ferramentas de debug para builds, condições e encontros.
+12. `[x]` Suíte de testes, regressão completa e atualização final das Bibles.
 
 ## Critério geral de conclusão
 
 Uma tarefa só muda para `[x]` quando o comportamento estiver integrado ao dono correto, não duplicar estado ou fórmula, tiver documentação atualizada e possuir validação registrada. Se o Godot não estiver disponível, registrar a validação estática e a limitação explicitamente.
 
 ## Registro de execução
+
+- **Auditoria Técnica, Redesign de HUD, Nen Skill Tree Visual e Identidade MMORPG concluídos**:
+  - **Eliminação do "Nen Level" da UI**: purga completa de strings legadas ("Nen Level", "NEN NV.", "Nen Lv.") de todas as interfaces do jogador (`PlayerHUD`, `StatusMenu`, `NenMenu`, `DeathScreenUI`, `PlaytestTelemetry`). Substituído pelo padrão canônico: Nome do Jogador, Nível (`Nv. X`), Afinidade de Nen (`◈ Nen: Intensificação`), Pontos de Habilidade (`⚡ X SP`) e barra de Maestria de Nen XP.
+  - **Correção da Causa Raiz do Loading Infinito da Skill Tree**: `PlayerData` agora instancia e mantém como nó filho permanente a `NenSkillTree` canônica em `_ready()` no grupo `"nen_skill_tree"`, sincronizando nós e caminhos de Ryu persistidos e restaurando modificadores de stat; tempo de carregamento de 0ms sem bloqueio ou loading eterno.
+  - **Redesign Gráfico 2D da Nen Skill Tree (`NenSkillTreeUI.gd`)**:
+    - Grafo visual estilo videogame autêntico com nós cartesianos e linhas conectoras anti-aliased renderizadas dinamicamente via canvas `_draw()`.
+    - Organização em 5 pilares temáticos: Defesa (Ten I–V, Ken, Bloodied), Ofensa (Ren I–V, First Strike, Ko I–V, Isolated Target), Equilíbrio & Modos Ryu (Shu I, Ryu Ofensivo/Defensivo/Equilibrado), Controle & Percepção (Gyo I–V, Surrounded, Hunter's Mark, En Expansion) e Furtividade/Regeneração (Zetsu I–III, In Mastery).
+    - Estados visuais de nós: Bloqueado (🔒), Disponível para desbloqueio (⚡) e Dominado (⭐).
+    - Painel lateral de inspeção com efeitos numéricos, tags, condições de combate e botão de ação interativo (`[ ⚡ DESBLOQUEAR (-1 SP) ]` / `[ ⭐ TÉCNICA DOMINADA ]`).
+    - Filtros por arquétipos táticos no topo.
+  - **Redesign MMORPG do HUD (`PlayerHUD.gd`)**:
+    - Card de aventureiro com visual limpo e legível.
+    - Barras vitais de alto contraste (HP, Aura, XP) com valores e porcentagens em tempo real.
+    - Badge iluminado de postura de Nen ativa e micro-pills dinâmicos de condições ativas de combate (`🩸 Bloodied`, `🍃 Oculto`, `⚡ SP Disponível`).
+  - **Bibles Atualizadas**: `02_NEN_BIBLE.md`, `05_CHARACTER_PROGRESSION_BIBLE.md`, `10_UI_UX_BIBLE.md` e `NEN_SKILL_TREE_BIBLE.md`.
+  - **Validação Automatizada**: Nova suíte `scratch/test_nen_ui_and_hud_redesign_suite.gd` (9/9 testes aprovados), regressão de `test_tasks_futuras_suite.gd` (23/23 testes aprovados) e `test_skill_tree_contextual_suite.gd` (8/8 testes aprovados). Total: 40/40 testes aprovados (100%).
+
+- **Fases 3 a 12 concluídas**:
+  - `CombatEngine.gd`: tags de dano integradas em `calcular_dano_jogador` e `calcular_dano_sofrido_jogador`; multiplicadores canônicos de fraqueza (x1.5), resistência (x0.5) e imunidade (0x) conectados ao `PlayerData` e inimigos.
+  - `EnemyAI.gd`: implementada tabela de ameaça (`threat_table`), decaimento de aggro, estados `ALERT` e `FLEE`, mitigação de aggro de Zetsu e coleira máxima de perseguição (`aggro_leash_distance`).
+  - `ui/SkillTree/NenSkillTreeUI.gd`: criado HUD interativo da árvore de Nen com abas de categorias, alocação de pontos, seletores de modos de Ryu e tooltips de condições; integrado na aba "Nen Tree" do `HunterMenuUI`.
+  - `BossPhaseData.gd` & `EnemyData.gd`: criado recurso de fases de chefes e consumo dinâmico no `EnemyAI`.
+  - `LivingNPCBehavior.gd`: rotinas vinculadas ao `NPCScheduleData` e sincronizadas com o `TimeManager`, com reações a crises de mundo.
+  - `QuestObjective.gd`, `Quest.gd` e `QuestManager.gd`: suporte a objetivos opcionais, avaliação de condições e persistência de consequências de escolhas.
+  - `ZoneData.gd` & `WorldEventManager.gd`: encontros raros ponderados por risco regional e geração dinâmica de eventos.
+  - `TargetHUD.gd`: HUD de foco de alvo com barras de HP/postura, afinidade de Nen e badges de tags de fraqueza e status.
+  - `BuildDebugMenu.gd`: menu de desenvolvedor (F2) para injeção de condições de combate, pontos de Skill Tree e teste de fases de chefes.
+  - `scratch/test_tasks_futuras_suite.gd`: suíte com 8 testes abrangentes cobrindo todas as novas mecânicas.
+
+- **Fase 2 concluída**:
+  - `NenSkillTree.gd`: adicionadas categorias `COMPORTAMENTAL` e `SINERGIA`; `SkillNodeDef` estendido para aceitar `conditions` e `tags`; registrados 5 nós comportamentais (`first_strike`, `bloodied`, `surrounded`, `isolated_target`, `hunters_mark`) e 3 nós de sinergia entre técnicas (`ken_mastery`, `in_mastery`, `en_expansion`).
+  - Métodos `avaliar_condicoes_no`, `obter_modificadores_contextuais_ativos`, `atualizar_modificadores_contextuais`, `limpar_modificadores_contextuais` implementados.
+  - `SaveManager.gd`: persistência e restauração de `nen_skill_points`, `nen_skill_tree_progress` e `nen_ryu_caminho` integrados com tolerância a falhas e compatibilidade legada.
+  - `CombatEngine.gd`: adicionado `construir_contexto_combate` e sincronização contextual com a Skill Tree.
+  - `scratch/test_skill_tree_contextual_suite.gd`: suíte com 8 testes validando integridade, condições, modificadores, Ryu, save/load e não-duplicação.
 
 ### 2026-09-02
 

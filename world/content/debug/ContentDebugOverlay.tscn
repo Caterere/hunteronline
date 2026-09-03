@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://world/content/debug/ContentDebugOverlay.gd" id="1_overlay"]
 
 [node name="ContentDebugOverlay" type="CanvasLayer"]
+visible = false
 layer = 100
 script = ExtResource("1_overlay")
 

@@ -41,6 +41,7 @@ class_name EnemyData
 @export_category("Combat")
 
 @export var is_boss: bool = false
+@export var is_elite: bool = false
 @export var knockback_resistance: float = 0.0
 @export var hit_invulnerability_time: float = 0.15
 @export var hatsu_name: String = ""
@@ -50,7 +51,36 @@ class_name EnemyData
 @export var attack_windup: float = 0.25
 @export var attack_recovery: float = 0.35
 @export var attack_telegraph_type: String = "flash" # "flash", "exclamation", "aoe_circle"
-@export var role: String = "bruiser" # "bruiser", "fast", "tank", "ranged", "boss"
+@export var role: String = "bruiser" # "bruiser", "fast", "tank", "ranged", "boss", "swarm"
+
+# Tags Canônicas de Combate & Fraquezas
+@export var attack_tags: Array[String] = []
+@export var weakness_tags: Array[String] = []
+@export var resistance_tags: Array[String] = []
+@export var immunity_tags: Array[String] = []
+
+# =========================================================
+# AGGRO, ARQUÉTIPOS & FASES DE CHEFE (FASES 4 & 6)
+# =========================================================
+
+@export_category("Aggro & Boss Phases")
+@export var aggro_leash_distance: float = 420.0
+@export var can_flee_at_low_hp: bool = false
+@export var flee_hp_threshold: float = 0.20
+@export var aggro_decay_rate: float = 5.0
+@export var boss_phases: Array[Resource] = []
+
+
+func eh_vulneravel_a(tags: Array) -> bool:
+	return GameplayTags.has_any(weakness_tags, tags)
+
+
+func eh_resistente_a(tags: Array) -> bool:
+	return GameplayTags.has_any(resistance_tags, tags)
+
+
+func eh_imune_a(tags: Array) -> bool:
+	return GameplayTags.has_any(immunity_tags, tags)
 
 
 

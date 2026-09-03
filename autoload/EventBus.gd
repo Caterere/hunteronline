@@ -45,16 +45,30 @@ signal enemy_damaged(enemy_node: Node, current_hp: int, max_hp: int)
 signal enemy_staggered(enemy_node: Node)
 signal enemy_defeated(enemy_id: String, xp_reward: int, nen_xp_reward: int)
 signal boss_phase_changed(boss_name: String, new_phase: int)
+signal target_changed(new_target: Node)
+signal target_cleared()
 
 
 
-var _hitstop_end_time_msec: int = 0
+var _is_hitstop_active: bool = false
 
 
 func emit_hitstop(duration: float = 0.04) -> void:
 	hitstop_requested.emit(duration)
-	# Garante que a Engine opere sempre em velocidade normal sem câmera lenta
-	Engine.time_scale = 1.0
+	if duration <= 0.0 or _is_hitstop_active:
+		return
+	_executar_hitstop(duration)
+
+
+func _executar_hitstop(duration: float) -> void:
+	_is_hitstop_active = true
+	var prev_scale = Engine.time_scale
+	Engine.time_scale = 0.05
+	var tree = get_tree()
+	if tree != null:
+		await tree.create_timer(duration, true, false, true).timeout
+	Engine.time_scale = prev_scale
+	_is_hitstop_active = false
 
 
 func emit_camera_shake(intensity: float = 0.3, duration: float = 0.2) -> void:

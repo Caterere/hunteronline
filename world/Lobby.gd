@@ -49,14 +49,16 @@ func _ready() -> void:
 	_popular_portao_mundo_exterior()
 
 	# Fluxo de Início: Tutorial Inicial Guiado -> Conclusão -> Story Intro Tour
-	if not PlayerData.tutorial_concluido:
-		await get_tree().create_timer(0.6).timeout
+	if not PlayerData.tutorial_concluido and not PlayerData.quest_states.get("tutorial_elena_auto_iniciado", false):
+		PlayerData.quest_states["tutorial_elena_auto_iniciado"] = true
+		await get_tree().create_timer(0.8).timeout
 		var elena = get_node_or_null("RecepcionistaElena") as NPC
 		var ply = get_tree().get_first_node_in_group("player") as CharacterBody2D
-		if elena != null and ply != null:
+		if elena != null and ply != null and not elena._interacao_em_processamento:
 			elena._on_interacted(ply)
-	elif not PlayerData.tour_lobby_concluido:
-		await get_tree().create_timer(0.6).timeout
+	elif PlayerData.tutorial_concluido and not PlayerData.tour_lobby_concluido and not PlayerData.quest_states.get("tour_lobby_auto_iniciado", false):
+		PlayerData.quest_states["tour_lobby_auto_iniciado"] = true
+		await get_tree().create_timer(0.8).timeout
 		var elena = get_node_or_null("RecepcionistaElena") as NPC
 		var ply = get_tree().get_first_node_in_group("player") as CharacterBody2D
 		if elena != null and ply != null:
@@ -132,6 +134,24 @@ func _popular_praca_central() -> void:
 				spr.position = Vector2(0, -17)
 				spr.modulate = Color(0.4, 0.8, 1.0, 1.0)
 			add_child(instrutor)
+
+	# Guia da História (Story Gateway NPC)
+	if get_node_or_null("StoryGatewayNPC") == null:
+		var scn_npc = load("res://entities/npc/NPC.tscn")
+		if scn_npc:
+			var guia = scn_npc.instantiate()
+			guia.name = "StoryGatewayNPC"
+			guia.set_script(load("res://entities/npc/story_gateway/StoryGatewayNPC.gd"))
+			guia.position = Vector2(120, -100)
+			var spr = guia.get_node_or_null("Sprite2D") as Sprite2D
+			if spr:
+				spr.texture = load("res://assets/sprites/characters/player.png")
+				spr.hframes = 6
+				spr.vframes = 10
+				spr.frame = 2
+				spr.position = Vector2(0, -17)
+				spr.modulate = Color(0.2, 0.9, 1.0, 1.0)
+			add_child(guia)
 
 	# Estátua do 12º Presidente Isaac Netero
 	if get_node_or_null("EstatuaNetero") == null:

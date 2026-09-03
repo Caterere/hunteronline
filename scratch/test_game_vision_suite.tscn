@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c89gvsuite1"]
+
+[ext_resource type="Script" path="res://scratch/test_game_vision_suite.gd" id="1_gv_test"]
+
+[node name="TestGameVisionSuite" type="Node2D"]
+script = ExtResource("1_gv_test")

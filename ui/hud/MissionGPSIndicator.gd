@@ -207,11 +207,34 @@ func _atualizar_alvo_ativo() -> void:
 	if obj_pendente == null:
 		var transicoes: Array = []
 		_coletar_areas_transicao(get_tree().current_scene, transicoes)
-		if not transicoes.is_empty():
-			var p = transicoes[0] as Node2D
-			current_target_node = p
-			current_target_pos = p.global_position
-			current_target_name = "Portão de Avanço da História"
+		var portal_avanco: Node2D = null
+
+		# 1º: Priorizar portal com story_gate ativo que abre o próximo arco/etapa
+		for t in transicoes:
+			if t is MapTransitionArea and t.story_gate != null:
+				portal_avanco = t
+				break
+
+		# 2º: Priorizar portal que avança para fora e não é de retorno ao Lobby ou interior de casa
+		if portal_avanco == null:
+			for t in transicoes:
+				if t is MapTransitionArea:
+					var t_name = t.name.to_lower()
+					var target_p = t.target_scene_path.to_lower()
+					if not "retorno" in t_name and not "lobby" in target_p and not "interior" in target_p and not "casa" in target_p:
+						portal_avanco = t
+						break
+
+		if portal_avanco == null and not transicoes.is_empty():
+			portal_avanco = transicoes[0] as Node2D
+
+		if portal_avanco != null:
+			current_target_node = portal_avanco
+			current_target_pos = portal_avanco.global_position
+			if portal_avanco is MapTransitionArea and not portal_avanco.portal_name.is_empty():
+				current_target_name = portal_avanco.portal_name
+			else:
+				current_target_name = "Portão de Avanço da História"
 			current_target_type = "portal"
 			target_found = true
 			_atualizar_render_gps(total_objetivos - 1, total_objetivos, 0)
@@ -228,7 +251,7 @@ func _atualizar_alvo_ativo() -> void:
 
 	# 1. Tentar localizar o alvo localmente na cena atual
 	match obj_pendente.type:
-		QuestObjective.Type.VISIT:
+		QuestObjective.Type.VISIT, QuestObjective.Type.PERSUASION:
 			current_target_type = "npc"
 			var target_id_str = str(obj_pendente.target_npc_id).to_lower()
 			var target_name_str = obj_pendente.target_npc_name.to_lower()
@@ -343,6 +366,46 @@ func _atualizar_alvo_ativo() -> void:
 					target_found = true
 					break
 
+		QuestObjective.Type.INVESTIGATE:
+			current_target_type = "clue"
+			var clue_str = str(obj_pendente.target_clue_id).to_lower()
+			current_target_name = "Pista de Aura [GYO]" if clue_str.is_empty() else clue_str.replace("_", " ").capitalize()
+			var clues = get_tree().get_nodes_in_group("gyo_inspectable")
+			var best_clue: Node2D = null
+			var best_dist: float = 999999.0
+			for c in clues:
+				if c is Node2D and is_instance_valid(c) and not c.is_queued_for_deletion():
+					var c_id = str(c.clue_id).to_lower() if "clue_id" in c else ""
+					if clue_str.is_empty() or clue_str in c_id or c_id in clue_str or clue_str in c.name.to_lower():
+						var d = player_ref.global_position.distance_to(c.global_position)
+						if d < best_dist:
+							best_dist = d
+							best_clue = c
+			if best_clue != null:
+				current_target_node = best_clue
+				current_target_pos = best_clue.global_position
+				target_found = true
+
+		QuestObjective.Type.STEALTH_PASS:
+			current_target_type = "stealth"
+			var zone_str = str(obj_pendente.target_zone_id).to_lower()
+			current_target_name = "Zona Furtiva [ZETSU]" if zone_str.is_empty() else zone_str.replace("_", " ").capitalize()
+			var zones = get_tree().get_nodes_in_group("zetsu_sensor_zone")
+			var best_zone: Node2D = null
+			var best_dist: float = 999999.0
+			for z in zones:
+				if z is Node2D and is_instance_valid(z) and not z.is_queued_for_deletion():
+					var z_id = str(z.zone_id).to_lower() if "zone_id" in z else ""
+					if zone_str.is_empty() or zone_str in z_id or z_id in zone_str or zone_str in z.name.to_lower():
+						var d = player_ref.global_position.distance_to(z.global_position)
+						if d < best_dist:
+							best_dist = d
+							best_zone = z
+			if best_zone != null:
+				current_target_node = best_zone
+				current_target_pos = best_zone.global_position
+				target_found = true
+
 	# 2. ROTEAMENTO INTER-MAPAS: Se o alvo NÃO foi encontrado no mapa atual,
 	# encontrar o portão/transição que conecta em direção à região da missão
 	if not target_found:
@@ -352,14 +415,31 @@ func _atualizar_alvo_ativo() -> void:
 		var destino_mapa_esperado: String = _obter_mapa_esperado_da_quest(quest)
 		var transicao_candidata: Node2D = null
 
-		# Procura primeiro a transição cujo target_scene_path bate com o mapa esperado
+		# 1º: Procura primeiro a transição cujo target_scene_path bate com o mapa esperado
 		for t in transicoes:
 			if t is MapTransitionArea and not destino_mapa_esperado.is_empty():
 				if t.target_scene_path == destino_mapa_esperado or destino_mapa_esperado in t.target_scene_path:
 					transicao_candidata = t
 					break
 
-		# Se não encontrou exato, escolhe a transição mais relevante
+		# 2º: Procura portal com StoryGate que autoriza o avanço
+		if transicao_candidata == null:
+			for t in transicoes:
+				if t is MapTransitionArea and t.story_gate != null:
+					transicao_candidata = t
+					break
+
+		# 3º: Procura transição de mapa que não seja interior de residência nem retorno
+		if transicao_candidata == null:
+			for t in transicoes:
+				if t is MapTransitionArea:
+					var target_p = t.target_scene_path.to_lower()
+					var t_name = t.name.to_lower()
+					if not "interior" in target_p and not "casa" in target_p and not "retorno" in t_name:
+						transicao_candidata = t
+						break
+
+		# Fallback geral
 		if transicao_candidata == null and not transicoes.is_empty():
 			transicao_candidata = transicoes[0] as Node2D
 
@@ -386,6 +466,12 @@ func _atualizar_alvo_ativo() -> void:
 func _obter_mapa_esperado_da_quest(quest: Quest) -> String:
 	if quest == null:
 		return ""
+	var q_name = quest.quest_name.to_lower()
+	if "padokia" in q_name or "wing" in q_name or "guardião" in q_name:
+		if "guardião" in q_name or "ruínas" in q_name or "dungeon" in q_name:
+			return "res://world/maps/dungeon_ruinas_zaban.tscn"
+		return "res://world/maps/regiao_vale_padokia.tscn"
+
 	var arco: int = PlayerData.arco_atual
 	match arco:
 		1: return "res://world/maps/exame_maratona.tscn"
@@ -423,6 +509,12 @@ func _atualizar_render_gps(pendente_idx: int, total_objetivos: int, faltam: int 
 			"loot":
 				lbl_target_info.text = "🎒 [E] Colete [%s] no chão!" % current_target_name
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
+			"clue":
+				lbl_target_info.text = "🔍 [GYO] Examine [%s] com técnica GYO!" % current_target_name
+				lbl_target_info.add_theme_color_override("font_color", Color(0.2, 0.9, 1.0, 1.0))
+			"stealth":
+				lbl_target_info.text = "🥷 [ZETSU] Atravesse [%s] em modo ZETSU!" % current_target_name
+				lbl_target_info.add_theme_color_override("font_color", Color(0.4, 1.0, 0.7, 1.0))
 			"portal":
 				lbl_target_info.text = "⛩️ [E] Entre no [%s] para prosseguir!" % current_target_name
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.9, 0.2, 1.0))
@@ -441,6 +533,12 @@ func _atualizar_render_gps(pendente_idx: int, total_objetivos: int, faltam: int 
 			"loot":
 				lbl_target_info.text = "%s: Colete [%s] (Faltam %d) ➔ %s (%dm)" % [prefixo_passo, current_target_name, faltam, seta_char, metros]
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
+			"clue":
+				lbl_target_info.text = "%s: Investigue [%s] com GYO ➔ %s (%dm)" % [prefixo_passo, current_target_name, seta_char, metros]
+				lbl_target_info.add_theme_color_override("font_color", Color(0.2, 0.9, 1.0, 1.0))
+			"stealth":
+				lbl_target_info.text = "%s: Atravesse [%s] com ZETSU ➔ %s (%dm)" % [prefixo_passo, current_target_name, seta_char, metros]
+				lbl_target_info.add_theme_color_override("font_color", Color(0.4, 1.0, 0.7, 1.0))
 			"portal":
 				lbl_target_info.text = "%s: Siga pelo [%s] ➔ %s (%dm)" % [prefixo_passo, current_target_name, seta_char, metros]
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2, 1.0))

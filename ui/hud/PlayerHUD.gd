@@ -31,6 +31,8 @@ var nen_action_bar: Control = null
 # Painel Principal Topo-Esquerdo
 var player_card_panel: PanelContainer
 var lbl_player_header: Label
+var lbl_player_affinity: Label
+var lbl_sp_badge: Label
 var lbl_gold: Label
 
 var bar_hp: ProgressBar
@@ -44,6 +46,7 @@ var lbl_xp_num: Label
 
 var lbl_nen_status: Label
 var lbl_beast_status: Label
+var hbox_conditions: HBoxContainer
 
 # Hotbar de Hatsu (Estilo Minecraft)
 var hatsu_slots_container: HBoxContainer
@@ -64,6 +67,9 @@ var lbl_boss_name: Label
 var boss_hp_bar: ProgressBar
 var lbl_boss_hp: Label
 
+# Target HUD (Fase 10)
+var target_hud: TargetHUD = null
+
 # Onboarding / Tutorial Prompt (Fase 5)
 var tutorial_panel: PanelContainer = null
 var lbl_tutorial: Label = null
@@ -75,12 +81,20 @@ func _ready() -> void:
 
 	_criar_card_jogador_top_left()
 	_criar_boss_bar()
+	_criar_target_hud()
 	_criar_painel_hatsu_slots()
 	_criar_nen_quick_action_bar()
 	_instanciar_menus_auxiliares()
 	_conectar_event_bus()
 	_conectar_player_e_sistemas()
 	_atualizar_hud()
+
+
+func _criar_target_hud() -> void:
+	if target_hud == null:
+		target_hud = TargetHUD.new()
+		target_hud.name = "TargetHUD"
+		add_child(target_hud)
 
 
 func _criar_nen_quick_action_bar() -> void:
@@ -121,12 +135,12 @@ func _criar_card_jogador_top_left() -> void:
 	vbox.add_theme_constant_override("separation", 1)
 	margin.add_child(vbox)
 
-	# Linha 1: Nome do Jogador e Nível
+	# Linha 1: Nome do Jogador, Nível e Jenny
 	var hbox_header := HBoxContainer.new()
 	vbox.add_child(hbox_header)
 
 	lbl_player_header = Label.new()
-	lbl_player_header.text = "🔰 HUNTER | LV. 1"
+	lbl_player_header.text = "🔰 HUNTER (Nv. 1)"
 	lbl_player_header.add_theme_font_size_override("font_size", 7)
 	lbl_player_header.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_player_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -137,6 +151,24 @@ func _criar_card_jogador_top_left() -> void:
 	lbl_gold.add_theme_font_size_override("font_size", 7)
 	lbl_gold.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD)
 	hbox_header.add_child(lbl_gold)
+
+	# Linha 1.5: Afinidade de Nen e Badge de SP Disponíveis
+	var hbox_sub := HBoxContainer.new()
+	vbox.add_child(hbox_sub)
+
+	lbl_player_affinity = Label.new()
+	lbl_player_affinity.text = "◈ Aura Adormecida"
+	lbl_player_affinity.add_theme_font_size_override("font_size", 5)
+	lbl_player_affinity.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+	lbl_player_affinity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox_sub.add_child(lbl_player_affinity)
+
+	lbl_sp_badge = Label.new()
+	lbl_sp_badge.text = "⚡ 0 SP"
+	lbl_sp_badge.add_theme_font_size_override("font_size", 5)
+	lbl_sp_badge.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_sp_badge.visible = false
+	hbox_sub.add_child(lbl_sp_badge)
 
 	# Linha 2: Barra de Vida (HP) com Números
 	var hp_box := _criar_barra_com_label(
@@ -185,6 +217,11 @@ func _criar_card_jogador_top_left() -> void:
 	lbl_beast_status.add_theme_font_size_override("font_size", 6)
 	lbl_beast_status.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_PURPLE)
 	hbox_status.add_child(lbl_beast_status)
+
+	# Linha 6: Micro-pills de Condições Ativas de Combate
+	hbox_conditions = HBoxContainer.new()
+	hbox_conditions.add_theme_constant_override("separation", 2)
+	vbox.add_child(hbox_conditions)
 
 
 func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: String) -> Dictionary:
@@ -454,18 +491,93 @@ func _atualizar_hud() -> void:
 	_atualizar_aura()
 	_atualizar_xp()
 	_atualizar_nen_e_besta()
+	_atualizar_condicoes_combate()
 	_atualizar_hatsu_slots()
 
 
 func _atualizar_header_e_gold() -> void:
 	if lbl_player_header:
+		var nome: String = PlayerData.nome_personagem if not PlayerData.nome_personagem.is_empty() else "Hunter"
 		var nivel: int = int(PlayerData.attributes.get("nivel", 1))
-		var nivel_nen: int = int(PlayerData.attributes.get("nivel_nen", 0))
-		lbl_player_header.text = "🔰 NV. %d (NEN NV. %d)" % [nivel, nivel_nen]
+		lbl_player_header.text = "🔰 %s (Nv. %d)" % [nome, nivel]
+
+	if lbl_player_affinity:
+		if PlayerData.despertou_nen:
+			var af_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+			lbl_player_affinity.text = "◈ Nen: %s" % af_nome
+			lbl_player_affinity.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+		else:
+			lbl_player_affinity.text = "◈ Aura Adormecida"
+			lbl_player_affinity.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_SECONDARY)
+
+	if lbl_sp_badge:
+		var sp: int = PlayerData.nen_skill_points
+		if sp > 0:
+			lbl_sp_badge.text = "⚡ %d SP [N]" % sp
+			lbl_sp_badge.visible = true
+		else:
+			lbl_sp_badge.visible = false
 
 	if lbl_gold:
 		var gold: int = Economy.obter_gold()
 		lbl_gold.text = "💰 %s J" % _formatar_numero(gold)
+
+
+func _atualizar_condicoes_combate() -> void:
+	if hbox_conditions == null:
+		return
+	for child in hbox_conditions.get_children():
+		child.queue_free()
+
+	var condicoes_ativas: Array[Dictionary] = []
+
+	# 1. Bloodied (<35% HP)
+	var hp: float = float(PlayerData.attributes.get("vida", 100))
+	var hp_max: float = max(1.0, float(PlayerData.attributes.get("vida_max", 100)))
+	if (hp / hp_max) < 0.35:
+		condicoes_ativas.append({"nome": "🩸 Bloodied", "cor": Color(1.0, 0.25, 0.25, 0.9)})
+
+	# 2. Em Zetsu / Furtivo
+	if nen_system != null and nen_system.tecnica_ativa(NenSystem.Tecnica.ZETSU):
+		condicoes_ativas.append({"nome": "🍃 Oculto (Zetsu)", "cor": Color(0.3, 0.9, 0.4, 0.9)})
+
+	# 3. Em En
+	if nen_system != null and nen_system.has_method("tecnica_ativa") and nen_system.tecnica_ativa(NenSystem.Tecnica.EN):
+		condicoes_ativas.append({"nome": "🌐 Campo En", "cor": HunterUIStyle.COLOR_AURA_CYAN})
+
+	# 4. Godspeed Ativo
+	if PlayerData.quest_states.get("godspeed_ativo", false):
+		condicoes_ativas.append({"nome": "⚡ Godspeed", "cor": Color(0.2, 0.95, 1.0, 1.0)})
+
+	# 5. Guanyin Bodhisattva Ativo
+	if PlayerData.quest_states.get("guanyin_bodhisattva_ativo", false):
+		condicoes_ativas.append({"nome": "🙏 Bodhisattva", "cor": HunterUIStyle.COLOR_GOLD_LIGHT})
+
+	# 6. SP Disponível alerta
+	if PlayerData.nen_skill_points > 0 and condicoes_ativas.size() < 4:
+		condicoes_ativas.append({"nome": "⚡ +%d SP" % PlayerData.nen_skill_points, "cor": HunterUIStyle.COLOR_GOLD})
+
+	for c in condicoes_ativas:
+		var pill := PanelContainer.new()
+		var st := StyleBoxFlat.new()
+		st.bg_color = Color(c["cor"].r * 0.2, c["cor"].g * 0.2, c["cor"].b * 0.2, 0.85)
+		st.border_color = c["cor"]
+		st.border_width_left = 1
+		st.border_width_top = 1
+		st.border_width_right = 1
+		st.border_width_bottom = 1
+		st.corner_radius_top_left = 2
+		st.corner_radius_top_right = 2
+		st.corner_radius_bottom_right = 2
+		st.corner_radius_bottom_left = 2
+		pill.add_theme_stylebox_override("panel", st)
+
+		var lbl := Label.new()
+		lbl.text = c["nome"]
+		lbl.add_theme_font_size_override("font_size", 4)
+		lbl.add_theme_color_override("font_color", c["cor"])
+		pill.add_child(lbl)
+		hbox_conditions.add_child(pill)
 
 
 func _atualizar_hp() -> void:

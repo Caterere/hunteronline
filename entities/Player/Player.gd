@@ -73,7 +73,7 @@ func _ready() -> void:
 	else:
 		var wpm = get_node_or_null("/root/WorldProgressionManager")
 		if wpm != null and wpm.has_method("posicionar_player_no_spawn"):
-			wpm.posicionar_player_no_spawn.call_deferred(self)
+			wpm.call_deferred("posicionar_player_no_spawn", self)
 
 
 func _on_camera_shake_requested(intensity: float, _duration: float) -> void:

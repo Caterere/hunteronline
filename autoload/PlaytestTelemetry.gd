@@ -900,15 +900,22 @@ func _obter_player_node() -> CharacterBody2D:
 	return null
 
 
+var build_debug_menu_instance: CanvasLayer = null
+
 func _instanciar_overlay_ui() -> void:
-	if overlay_instance != null and is_instance_valid(overlay_instance):
-		return
-		
-	var scn = load("res://debug/telemetry/PlaytestDebugOverlay.tscn") as PackedScene
-	if scn != null:
-		overlay_instance = scn.instantiate() as CanvasLayer
-		add_child(overlay_instance)
-		print("[PlaytestTelemetry] PlaytestDebugOverlay instanciado com sucesso (Atalho: F3).")
+	if overlay_instance == null or not is_instance_valid(overlay_instance):
+		var scn = load("res://debug/telemetry/PlaytestDebugOverlay.tscn") as PackedScene
+		if scn != null:
+			overlay_instance = scn.instantiate() as CanvasLayer
+			add_child(overlay_instance)
+			print("[PlaytestTelemetry] PlaytestDebugOverlay instanciado com sucesso (Atalho: F3).")
+
+	if build_debug_menu_instance == null or not is_instance_valid(build_debug_menu_instance):
+		var b_script = load("res://debug/BuildDebugMenu.gd")
+		if b_script != null:
+			build_debug_menu_instance = b_script.new()
+			add_child(build_debug_menu_instance)
+			print("[PlaytestTelemetry] BuildDebugMenu instanciado com sucesso (Atalho: F2).")
 
 
 # ============================================================

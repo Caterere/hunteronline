@@ -164,6 +164,11 @@ func register_enemy_kill(enemy_id: StringName) -> void:
 		if not _enemy_id_corresponde(objective.enemy_type, enemy_id):
 			continue
 
+		if not objective.conditions.is_empty():
+			var ctx: Dictionary = CombatEngine.construir_contexto_combate(null, null, {"enemy_id": enemy_id}) if CombatEngine != null else {}
+			if not objective.avaliar_condicoes(ctx):
+				continue
+
 		var progress := PlayerData.get_quest_objective_progress(quest, active_idx)
 		if progress >= objective.required_amount:
 			continue
@@ -363,34 +368,30 @@ func _notificar_progresso_hud(obj: QuestObjective, progresso: int, quest: Quest)
 
 func _check_completion(quest: Quest) -> void:
 
-	var completed_objectives := 0
+	var mandatory_objectives := 0
+	var completed_mandatory := 0
+	var completed_optional := 0
 
 	for i in range(quest.objectives.size()):
-
 		var objective: QuestObjective = quest.objectives[i]
-
-		var progress := PlayerData.get_quest_objective_progress(
-			quest,
-			i
-		)
-
-		if progress >= objective.required_amount:
-			completed_objectives += 1
-
+		if objective == null:
+			continue
+		var progress := PlayerData.get_quest_objective_progress(quest, i)
+		var is_done = (progress >= objective.required_amount)
+		if objective.is_optional:
+			if is_done:
+				completed_optional += 1
+		else:
+			mandatory_objectives += 1
+			if is_done:
+				completed_mandatory += 1
 
 	var completed := false
 
-
 	if quest.completion == Quest.Completion.ALL:
-
-		completed = (
-			completed_objectives == quest.objectives.size()
-		)
-
+		completed = (completed_mandatory >= mandatory_objectives)
 	else:
-
-		completed = completed_objectives > 0
-
+		completed = (completed_mandatory > 0 or (mandatory_objectives == 0 and completed_optional > 0))
 
 	if completed:
 
@@ -431,7 +432,12 @@ func complete_quest(quest: Quest) -> void:
 		hud_notif.exibir_notificacao("🏆 Missão Concluída: %s" % quest.quest_name)
 
 	# Avançar para a próxima missão sequencial do arco
-	if PlayerData != null:
+	if StoryManager != null:
+		StoryManager.avancar_capitulo()
+		var prox_quest := CanonQuestCatalog.obter_quest_da_etapa(StoryManager.current_saga, StoryManager.current_chapter)
+		if prox_quest != null:
+			start_quest(prox_quest)
+	elif PlayerData != null:
 		var total_etapas := CanonQuestCatalog.obter_total_quests_do_arco(PlayerData.arco_atual)
 		if PlayerData.etapa_quest_arco < total_etapas:
 			PlayerData.etapa_quest_arco += 1
@@ -447,8 +453,8 @@ func complete_quest(quest: Quest) -> void:
 			if hud != null and hud.has_method("exibir_notificacao"):
 				hud.exibir_notificacao("🏆 Saga Concluída! Dirija-se ao Portal de Transição para o próximo Arco.")
 
-	if GameState != null:
-		GameState.salvar_jogo()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
 
 
 # =========================================================
@@ -510,6 +516,40 @@ func _give_rewards(quest: Quest) -> void:
 			quest.reward_gold,
 			" Gold"
 		)
+
+	# =====================================================
+	# RECOMPENSAS OPCIONAIS & CONSEQUÊNCIAS
+	# =====================================================
+
+	var cumpriu_opcionais := false
+	for i in range(quest.objectives.size()):
+		var obj = quest.objectives[i]
+		if obj != null and obj.is_optional:
+			if PlayerData.get_quest_objective_progress(quest, i) >= obj.required_amount:
+				cumpriu_opcionais = true
+				break
+
+	if cumpriu_opcionais:
+		if quest.optional_reward_xp > 0:
+			var player = get_tree().get_first_node_in_group("player")
+			if player != null:
+				var xp_system = player.get_node_or_null("XPSystem")
+				if xp_system != null:
+					xp_system.adicionar_xp(quest.optional_reward_xp, "Bônus Opcional: " + quest.quest_name)
+		if quest.optional_reward_gold > 0:
+			if Economy != null:
+				Economy.adicionar_gold(quest.optional_reward_gold)
+			elif PlayerData != null and PlayerData.attributes.has("gold"):
+				PlayerData.attributes["gold"] += quest.optional_reward_gold
+
+		for tag in quest.optional_consequence_tags:
+			if PlayerData != null:
+				PlayerData.quest_states["consequence_" + tag] = true
+
+	# Consequências principais da missão
+	for tag in quest.consequence_tags:
+		if PlayerData != null:
+			PlayerData.quest_states["consequence_" + tag] = true
 
 
 # =========================================================

@@ -55,5 +55,11 @@ The six canonical affinities should remain represented:
 
 Affinity should influence Hatsu design and efficiency without preventing creative builds.
 
-## Training
-Nen techniques should be acquired/improved through training, progression, quests and/or controlled challenges rather than arbitrary instant unlocks.
+## Training & Progression
+Nen techniques should be acquired and upgraded through training, progression, quests and the Nen Skill Tree rather than arbitrary instant unlocks or generic "Nen Level" counters.
+Progression operates via:
+- Nen Awakening (`despertou_nen`) via Wing or specific narrative milestones.
+- Water Divination revealing the player's affinity (`afinidade_nen`).
+- Nen Skill Points (SP) awarded through progression and training.
+- Investment in the 5 pillars of the Nen Skill Tree (Defense, Offense, Stances, Control, Stealth/Regen).
+- Custom Hatsu creation unlocked after sufficient Nen mastery.

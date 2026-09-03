@@ -169,7 +169,7 @@ func _atualizar_hud() -> void:
 	# CONTEXTO 1: LOBBY HUB
 	# =========================================================
 	if is_lobby:
-		lbl_arco.text = "ðŸ›ï¸ PRAÇA CENTRAL (LOBBY)"
+		lbl_arco.text = "🏛️ PRAÇA CENTRAL (LOBBY)"
 		lbl_quest_nome.text = "📜 Guia da Cidade dos Caçadores"
 		if not PlayerData.tour_lobby_concluido:
 			lbl_objetivo.text = "👉 Passo 1/2: Fale com a Recepcionista Elena\n⬜ Passo 2/2: Siga até o Portal Hunter a Leste"
@@ -177,33 +177,31 @@ func _atualizar_hud() -> void:
 			lbl_bussola.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
 		else:
 			lbl_objetivo.text = "✅ Passo 1/2: Apresentação da Cidade Concluída\n👉 Passo 2/2: Siga até o Portal Hunter a Leste"
-			lbl_bussola.text = "⛩️ Dirija-se ao Portal Hunter (Leste) para Iniciar a História!"
-			lbl_bussola.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
+			lbl_bussola.text = "⛩️ Dirija-se ao Portal Hunter (Leste) para Iniciar a História!"
+			lbl_bussola.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1.0))
 		return
 
 	# =========================================================
-	# CONTEXTO 2: MAPA DE MISSÃO DA HISTÓRIA
+	# CONTEXTO 2: MISSÃO ATIVA DA SAGA
 	# =========================================================
-	# Garantir que a quest do arco esteja ativa
-	if QuestSystem.active_quests.is_empty():
+	var quest: Quest = QuestSystem.active_quests[0] if (QuestSystem != null and not QuestSystem.active_quests.is_empty()) else null
+	if quest == null and QuestSystem != null and QuestSystem.has_method("garantir_quest_do_arco"):
 		QuestSystem.garantir_quest_do_arco(PlayerData.arco_atual)
-
-	var quests_ativas: Array = QuestSystem.active_quests
-	if quests_ativas.is_empty():
-		lbl_arco.text = "ðŸ¹ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
-		lbl_quest_nome.text = "📜 Sem Missão Ativa"
-		lbl_objetivo.text = "Fale com os personagens da área para avançar."
-		lbl_bussola.text = "🗺️ Explore o mapa da missão"
-		return
-
-	var quest: Quest = quests_ativas[0] as Quest
+		if not QuestSystem.active_quests.is_empty():
+			quest = QuestSystem.active_quests[0]
 	if quest == null:
+		lbl_arco.text = "🏛️ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
+		lbl_quest_nome.text = "📜 Sem Missão Ativa"
+		lbl_objetivo.text = "Aguardando início de novo arco narrativo..."
+		lbl_bussola.text = "Explore o mundo e converse com os cidadãos."
+		lbl_bussola.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9, 1.0))
 		return
 
-	lbl_arco.text = "ðŸ¹ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
+	lbl_arco.text = "🏛️ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
 	lbl_quest_nome.text = "📜 " + quest.quest_name
 
-	var texto_obj: String = ""
+	var mand_text: String = ""
+	var opt_text: String = ""
 	var objetivo_pendente: QuestObjective = null
 	var pendente_idx: int = 0
 	var total_objetivos: int = quest.objectives.size()
@@ -212,6 +210,7 @@ func _atualizar_hud() -> void:
 		var obj: QuestObjective = quest.objectives[i]
 		var progresso: int = PlayerData.get_quest_objective_progress(quest, i)
 		var completo: bool = progresso >= obj.required_amount
+		var is_optional: bool = obj.is_optional if "is_optional" in obj else false
 		
 		var icone: String = "✓ "
 		if not completo:
@@ -222,9 +221,17 @@ func _atualizar_hud() -> void:
 			else:
 				icone = "🔒 " # Passo Futuro
 
-		texto_obj += "%sPasso %d/%d: %s (%d/%d)\n" % [icone, i + 1, total_objetivos, obj.describe(), progresso, obj.required_amount]
+		var linha: String = "%sPasso %d/%d: %s (%d/%d)\n" % [icone, i + 1, total_objetivos, obj.describe(), progresso, obj.required_amount]
+		if is_optional:
+			opt_text += linha
+		else:
+			mand_text += linha
 
-	lbl_objetivo.text = texto_obj.strip_edges()
+	var final_obj_text := mand_text.strip_edges()
+	if not opt_text.is_empty():
+		final_obj_text += "\n\n🎯 OPCIONAIS:\n" + opt_text.strip_edges()
+
+	lbl_objetivo.text = final_obj_text
 
 	# Calcular Bússola e Direção até o alvo
 	_atualizar_bussola(objetivo_pendente, pendente_idx, total_objetivos)
@@ -242,13 +249,13 @@ func _obter_player() -> Node2D:
 
 func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objetivos: int = 1) -> void:
 	if obj == null:
-		lbl_bussola.text = "✓¨ Todos os requisitos cumpridos! Missão concluída."
+		lbl_bussola.text = "✅ Todos os requisitos cumpridos! Missão concluída."
 		lbl_bussola.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
 		return
 
 	var player = _obter_player()
 	if player == null:
-		lbl_bussola.text = "ðŸ§­ Passo %d/%d: %s" % [pendente_idx + 1, total_objetivos, obj.describe()]
+		lbl_bussola.text = "🧭 Passo %d/%d: %s" % [pendente_idx + 1, total_objetivos, obj.describe()]
 		lbl_bussola.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 		return
 

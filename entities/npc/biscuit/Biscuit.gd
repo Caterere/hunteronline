@@ -23,12 +23,9 @@ func _ready() -> void:
 
 
 func _on_interacted(_player: CharacterBody2D) -> void:
-	var greed_island_completed: bool = PlayerData.is_greed_island_concluida()
+	var arco_atual: int = PlayerData.arco_atual if PlayerData != null else 1
+	var max_arco: int = PlayerData.max_arco_desbloqueado if PlayerData != null else 1
 	var hatsu_creation_unlocked: bool = PlayerData.hatsu_creation_unlocked or PlayerData.hatsu_desbloqueado
-
-	print("[BISCUIT] Greed Island Completed: ", greed_island_completed)
-	print("[BISCUIT] Hatsu Creation Unlocked: ", hatsu_creation_unlocked)
-	print("[BISCUIT] Hatsu Creator Available: ", hatsu_creation_unlocked)
 
 	if QuestSystem != null and QuestSystem.has_method("register_npc_visit"):
 		QuestSystem.register_npc_visit(&"biscuit")
@@ -44,16 +41,21 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 			])
 		return
 
-	# CASO 2: Jogador não concluiu a Saga de Greed Island
-	if not hatsu_creation_unlocked:
+	# CASO 2: Jogador despertou Nen mas ainda está antes do Arco 5 (Greed Island)
+	if not hatsu_creation_unlocked and arco_atual < 5 and max_arco < 5:
 		if visual_dialogue != null:
 			visual_dialogue.exibir_sequencia_falas([
 				{"falante": "Biscuit Krueger", "texto": "Ora ora! Vejo que você já conhece os fundamentos com o Wing, mas ainda é como uma pedra bruta precisando de lapidação!"},
-				{"falante": "Biscuit Krueger", "texto": "🔒 REQUISITO: Você ainda tem muito a aprender antes de criar seu próprio Hatsu. Conclua a Saga de Greed Island (Arco 5) para dominar as técnicas avançadas e forjar sua habilidade comigo!"}
+				{"falante": "Biscuit Krueger", "texto": "🔒 REQUISITO: Avance em sua jornada até a Saga de Greed Island (Arco 5) para iniciar o treinamento avançado e forjar seu Hatsu supremo comigo!"}
 			])
 		return
 
-	# CASO 3: Hatsu Creator desbloqueado -> Abrir Menu Interativo da Biscuit
+	# CASO 3: Alcançou Greed Island (Arco 5+) ou já desbloqueou -> Desbloquear Hatsu Creator se necessário e abrir menu
+	if not hatsu_creation_unlocked:
+		PlayerData.desbloquear_hatsu_creator()
+		if EventBus != null:
+			EventBus.emit_toast("🥋 MESTRA BISCUIT: Treinamento de Hatsu Desbloqueado!", Color(1.0, 0.85, 0.3))
+
 	_abrir_menu_interacao()
 
 

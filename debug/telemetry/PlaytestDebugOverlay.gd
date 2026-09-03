@@ -261,7 +261,7 @@ func _atualizar_tab_overview(tele: Node) -> void:
 💾 Save Status: %s  |  Load: %s  |  Pronto: %s
 📍 Posição: (%.0f, %.0f)  |  Tile: (%d, %d)
 🗺️ Mapa: %s (%s)
-🎖️ Level Normal: %d  |  Level Nen: %d
+🎖️ Level: %d  |  Nen SP: %d
 ❤️ HP: %d / %d (%.0f%%)
 ✨ Aura: %.0f / %.0f (%.0f%%)
 🥋 Nen Ativo: %s
@@ -274,7 +274,7 @@ func _atualizar_tab_overview(tele: Node) -> void:
 			ply.get("position", Vector2.ZERO).x, ply.get("position", Vector2.ZERO).y,
 			ply.get("tile_coords", Vector2i.ZERO).x, ply.get("tile_coords", Vector2i.ZERO).y,
 			ply.get("map_name", ""), ply.get("scene_path", ""),
-			ply.get("level", 1), ply.get("level_nen", 0),
+			ply.get("level", 1), PlayerData.nen_skill_points if PlayerData else 0,
 			ply.get("hp", 100), ply.get("hp_max", 100), ply.get("hp_pct", 100.0),
 			ply.get("aura", 0.0), ply.get("aura_max", 0.0), ply.get("aura_pct", 0.0),
 			", ".join(ply.get("active_nen_techniques", [])) if not ply.get("active_nen_techniques", []).is_empty() else "Nenhum",

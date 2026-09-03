@@ -25,40 +25,12 @@ var _marcos_notificados: Dictionary = {
 func _ready() -> void:
 	_garantir_dialogue_ui()
 	_popular_npcs_arco3()
+	_garantir_objeto_teste_agua()
 	_configurar_inimigos()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
-
-
-func _process(_delta: float) -> void:
-	var player = get_tree().get_first_node_in_group("player")
-	if player == null:
-		return
-
-	var px: float = player.global_position.x
-	var hud = get_tree().get_first_node_in_group("player_hud")
-
-	if px >= 0 and px < 800 and not _marcos_notificados["recepcao"]:
-		_marcos_notificados["recepcao"] = true
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏢 Recepção da Arena Celestial — Registre-se para lutar!")
-
-	elif px >= 800 and px < 2200 and not _marcos_notificados["ringues_inferiores"]:
-		_marcos_notificados["ringues_inferiores"] = true
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🥊 Ringues Inferiores — Ganhe dinheiro e suba de andar!")
-
-	elif px >= 2200 and px < 3400 and not _marcos_notificados["ringues_superiores"]:
-		_marcos_notificados["ringues_superiores"] = true
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("⚡ Ringues Superiores — Andares onde o uso de Nen é obrigatório!")
-
-	elif px >= 3400 and not _marcos_notificados["topo"]:
-		_marcos_notificados["topo"] = true
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("👑 Topo da Arena (Andar 200+) — Mestres de Andar e a aura assassina de Hisoka!")
 
 
 func _garantir_dialogue_ui() -> void:
@@ -152,13 +124,79 @@ func _popular_npcs_arco3() -> void:
 		add_child(hisoka)
 
 
+func _garantir_objeto_teste_agua() -> void:
+	if get_node_or_null("TesteAguaWing") != null:
+		return
+
+	var trigger := Area2D.new()
+	trigger.name = "TesteAguaWing"
+	trigger.position = Vector2(1160, -80)
+	trigger.collision_layer = 0
+	trigger.collision_mask = 2
+
+	var col := CollisionShape2D.new()
+	var shape := CircleShape2D.new()
+	shape.radius = 24.0
+	col.shape = shape
+	trigger.add_child(col)
+
+	var inter := InteractionComponent.new()
+	inter.name = "InteractionComponent"
+	inter.interaction_text = "[E] Realizar o Teste da Água (Water Divination)"
+	inter.interaction_radius = 28.0
+	trigger.add_child(inter)
+
+	var lbl := Label.new()
+	lbl.name = "VisualLabel"
+	lbl.text = "🍵 Teste da Água (Folha de Nen)\n[E] Inspecionar"
+	lbl.position = Vector2(-70, -32)
+	lbl.custom_minimum_size = Vector2(140, 14)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 4)
+	lbl.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
+	trigger.add_child(lbl)
+
+	inter.interacted.connect(func(_player):
+		print("[ArenaCelestial] Jogador inspecionou o Teste da Água!")
+		if QuestSystem != null:
+			QuestSystem.register_investigation(&"teste_agua_wing")
+		var afinidade_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+		if EventBus != null:
+			EventBus.emit_toast("🍵 A água reagiu! Afinidade revelada: %s!" % afinidade_nome.to_upper(), Color(0.2, 1.0, 0.6))
+		var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
+		if visual_dialogue != null:
+			visual_dialogue.exibir_sequencia_falas([
+				{"falante": "Mestre Wing", "texto": "Incrível! Ao aproximar suas mãos do copo com aura concentrada, a reação foi instantânea!"},
+				{"falante": "Mestre Wing", "texto": "Sua afinidade é oficialmente comprovada como: %s!" % afinidade_nome.to_upper()},
+				{"falante": "Mestre Wing", "texto": "Agora que sua natureza de Nen foi revelada, fale comigo para abrir seus poros e dominar o TEN!"}
+			])
+	)
+	add_child(trigger)
+
+
 func _configurar_inimigos() -> void:
 	# Lutadores dos Andares Inferiores (Arco 3, Etapas 2, 3, 4, 5)
 	var lutadores = ["LutadorArena1", "LutadorArena2", "LutadorArena3", "LutadorArena4"]
+	var posicoes_padrao = [
+		Vector2(600, -80),   # 1º Andar
+		Vector2(1100, 150),  # 50º Andar
+		Vector2(1600, -120), # 100º Andar
+		Vector2(2100, 100)   # 190º Andar
+	]
+	var scn_enemy = load("res://scripts/systems/EnemySystem/Enemy.tscn")
+
 	for i in range(lutadores.size()):
 		var nome = lutadores[i]
 		var node = get_node_or_null(nome)
+		if node == null and scn_enemy != null:
+			node = scn_enemy.instantiate()
+			node.name = nome
+			node.position = posicoes_padrao[i]
+			add_child(node)
+
 		if node != null:
+			node.add_to_group("enemy")
+			node.add_to_group("enemies")
 			var es = node.get_node_or_null("EnemySystem")
 			if es != null:
 				es.is_mission_enemy = true
@@ -182,6 +220,8 @@ func _configurar_inimigos() -> void:
 	for nome in configs:
 		var node = get_node_or_null(nome)
 		if node != null:
+			node.add_to_group("enemy")
+			node.add_to_group("enemies")
 			var es = node.get_node_or_null("EnemySystem")
 			if es != null:
 				es.is_mission_enemy = true

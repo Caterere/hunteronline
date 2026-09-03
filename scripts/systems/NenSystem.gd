@@ -84,23 +84,29 @@ enum Tecnica {
 signal tecnica_ativada(tecnica: Tecnica)
 signal tecnica_desativada(tecnica: Tecnica)
 
+const PassiveNenControllerScript = preload("res://scripts/systems/nen/PassiveNenController.gd")
+const ActiveNenControllerScript = preload("res://scripts/systems/nen/ActiveNenController.gd")
+
+var passive_controller = PassiveNenControllerScript.new()
+var active_controller = ActiveNenControllerScript.new()
+
 func esta_em_gyo() -> bool:
-	return tecnica_ativa(Tecnica.GYO)
+	return active_controller.gyo_ativo if active_controller != null else false
 
 func esta_em_zetsu() -> bool:
-	return tecnica_ativa(Tecnica.ZETSU)
+	return active_controller.zetsu_ativo if active_controller != null else false
 
 func esta_em_ren() -> bool:
-	return tecnica_ativa(Tecnica.REN)
+	return PlayerData.despertou_nen if PlayerData != null else false
 
 func esta_em_ten() -> bool:
-	return tecnica_ativa(Tecnica.TEN)
+	return PlayerData.despertou_nen if PlayerData != null else false
 
 func esta_em_ko() -> bool:
-	return tecnica_ativa(Tecnica.KO)
+	return bool(tecnicas.get(Tecnica.KO, {}).get("desbloqueada", false))
 
 func esta_em_en() -> bool:
-	return tecnica_ativa(Tecnica.EN)
+	return active_controller.en_ativo if active_controller != null else false
 
 # Aliases canônicos de utilidade
 func gyo_ativo() -> bool: return esta_em_gyo()
@@ -109,6 +115,15 @@ func zetsu_ativo() -> bool: return esta_em_zetsu()
 func en_ativo() -> bool: return esta_em_en()
 func ten_ativo() -> bool: return esta_em_ten()
 func ren_ativo() -> bool: return esta_em_ren()
+
+func obter_fator_stealth_zetsu() -> float:
+	return active_controller.obter_fator_stealth_zetsu() if active_controller != null else 0.0
+
+func obter_raio_en() -> float:
+	return active_controller.obter_raio_en() if active_controller != null else 120.0
+
+func obter_nivel_gyo() -> int:
+	return active_controller.obter_nivel_percepcao_gyo() if active_controller != null else 1
 
 
 
@@ -454,179 +469,57 @@ func sincronizar_nen_com_player_data() -> void:
 #
 # ============================================================
 
-func _processar_input() -> void:
-	if owner_body == null or not PlayerData.despertou_nen:
+func _unhandled_input(event: InputEvent) -> void:
+	if PlayerData == null or not PlayerData.despertou_nen:
 		return
 
+	if event.is_action_pressed("nen_zetsu"):
+		toggle_tecnica(Tecnica.ZETSU)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("nen_en"):
+		toggle_tecnica(Tecnica.EN)
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed("nen_gyo"):
+		toggle_tecnica(Tecnica.GYO)
+		get_viewport().set_input_as_handled()
 
-	# ========================================================
-	# TEN
-	# ========================================================
 
-	if Input.is_key_pressed(KEY_T):
-
-		if not tecnica_ativa(Tecnica.TEN):
-
-			ativar_tecnica(
-				Tecnica.TEN
-			)
-
+func toggle_tecnica(tecnica: Tecnica) -> bool:
+	if tecnica_ativa(tecnica):
+		desativar_tecnica(tecnica)
+		return false
 	else:
-
-		if tecnica_ativa(Tecnica.TEN):
-
-			desativar_tecnica(
-				Tecnica.TEN
-			)
-
-
-	# ========================================================
-	# REN
-	# ========================================================
-
-	if Input.is_key_pressed(KEY_R):
-
-		if not tecnica_ativa(Tecnica.REN):
-
-			ativar_tecnica(
-				Tecnica.REN
-			)
-
-	else:
-
-		if tecnica_ativa(Tecnica.REN):
-
-			desativar_tecnica(
-				Tecnica.REN
-			)
-
-
-	# ========================================================
-	# GYO
-	# ========================================================
-
-	if Input.is_key_pressed(KEY_G):
-
-		if not tecnica_ativa(Tecnica.GYO):
-
-			ativar_tecnica(
-				Tecnica.GYO
-			)
-
-	else:
-
-		if tecnica_ativa(Tecnica.GYO):
-
-			desativar_tecnica(
-				Tecnica.GYO
-			)
-
-
-	# ========================================================
-	# KO
-	# ========================================================
-
-	if Input.is_key_pressed(KEY_K):
-
-		if not _ko_input_bloqueado:
-
-			_ko_input_bloqueado = true
-
-			toggle_ko()
-
-	else:
-
-		_ko_input_bloqueado = false
-
-
-	# ========================================================
-	# EN (Radar de Aura - Tecla E ou Menu)
-	# ========================================================
-
-	if Input.is_key_pressed(KEY_E) and not get_tree().paused:
-
-		if not tecnica_ativa(Tecnica.EN):
-
-			ativar_tecnica(Tecnica.EN)
-
-	else:
-
-		if tecnica_ativa(Tecnica.EN):
-
-			desativar_tecnica(Tecnica.EN)
-
-
-	# ========================================================
-	# SHU (Tecla 6)
-	# ========================================================
-
-	if Input.is_key_pressed(KEY_6):
-
-		if not tecnica_ativa(Tecnica.SHU):
-
-			ativar_tecnica(Tecnica.SHU)
-
-	# ========================================================
-	# KEN (Tecla 7)
-	# ========================================================
-
-	if Input.is_key_pressed(KEY_7):
-
-		if not tecnica_ativa(Tecnica.KEN):
-
-			ativar_tecnica(Tecnica.KEN)
-
-	# ========================================================
-	# RYU (Tecla 8 para Ativar, TAB para Alternar Módulo)
-	# ========================================================
-
-	if Input.is_key_pressed(KEY_8):
-
-		if not tecnica_ativa(Tecnica.RYU):
-
-			ativar_tecnica(Tecnica.RYU)
-
-	if Input.is_action_just_pressed("ui_focus_next") or Input.is_key_pressed(KEY_TAB):
-
-		if tecnica_ativa(Tecnica.RYU):
-
-			alternar_modulo_ryu()
-
-
+		return ativar_tecnica(tecnica)
 
 
 # ============================================================
-# PROCESSAR TÉCNICAS
+# PROCESSAR TÉCNICAS (PULSO DE EN, DRENO E REGENERAÇÃO PASSIVA)
 # ============================================================
 
 func _processar_tecnicas(delta: float) -> void:
+	if PlayerData == null or not PlayerData.despertou_nen:
+		return
 
-	var tecnicas_continuas: Array[Tecnica] = [
-		Tecnica.TEN,
-		Tecnica.REN,
-		Tecnica.GYO
-	]
+	if active_controller != null:
+		# Processar pulso periódico de En na área
+		if active_controller.en_ativo:
+			var centro: Vector2 = owner_body.global_position if owner_body != null else Vector2.ZERO
+			active_controller.processar_pulso_en(delta, centro, get_tree())
 
+		# Dreno contínuo suave de técnicas ativas que consomem concentração (En / Gyo)
+		var dreno: float = active_controller.calcular_dreno_aura_por_segundo() * delta
+		if dreno > 0.0:
+			if not gastar_aura_float(dreno):
+				active_controller.desativar_en()
+				active_controller.desativar_gyo(get_tree())
+				tecnicas[Tecnica.EN]["ativo"] = false
+				tecnicas[Tecnica.GYO]["ativo"] = false
 
-	for tecnica in tecnicas_continuas:
-
-		if not tecnica_ativa(tecnica):
-			continue
-
-
-		var custo: float = obter_custo_por_segundo(
-			tecnica
-		)
-
-
-		var gasto: float = custo * delta
-
-
-		if not gastar_aura_float(gasto):
-
-			desativar_tecnica(
-				tecnica
-			)
+		# Regeneração natural de vitalidade (acelerada por Zetsu)
+		if active_controller.zetsu_ativo:
+			regenerar_aura(8.0 * delta)
+		elif not active_controller.en_ativo:
+			regenerar_aura(3.0 * delta)
 
 
 # ============================================================
@@ -923,7 +816,39 @@ func ativar_tecnica(
 	# --------------------------------------------------------
 
 	if tecnica_ativa(tecnica):
+		if tecnica == Tecnica.GYO and active_controller != null:
+			active_controller.ativar_gyo(get_tree())
 		return true
+
+	# Delegação para ActiveNenController (Técnicas Ativas Especiais)
+	if tecnica == Tecnica.ZETSU:
+		if active_controller != null:
+			var ok: bool = active_controller.ativar_zetsu()
+			if ok:
+				tecnicas[Tecnica.ZETSU]["ativo"] = true
+				tecnicas[Tecnica.EN]["ativo"] = false
+				tecnicas[Tecnica.GYO]["ativo"] = false
+				tecnica_ativada.emit(Tecnica.ZETSU)
+				if EventBus != null: EventBus.nen_technique_activated.emit("ZETSU")
+			return ok
+	elif tecnica == Tecnica.EN:
+		if active_controller != null:
+			var ok: bool = active_controller.ativar_en()
+			if ok:
+				tecnicas[Tecnica.EN]["ativo"] = true
+				tecnicas[Tecnica.ZETSU]["ativo"] = false
+				tecnica_ativada.emit(Tecnica.EN)
+				if EventBus != null: EventBus.nen_technique_activated.emit("EN")
+			return ok
+	elif tecnica == Tecnica.GYO:
+		if active_controller != null:
+			var ok: bool = active_controller.ativar_gyo(get_tree())
+			if ok:
+				tecnicas[Tecnica.GYO]["ativo"] = true
+				tecnicas[Tecnica.ZETSU]["ativo"] = false
+				tecnica_ativada.emit(Tecnica.GYO)
+				if EventBus != null: EventBus.nen_technique_activated.emit("GYO")
+			return ok
 
 	tecnicas[tecnica]["ativo"] = true
 	tecnica_ativada.emit(tecnica)
@@ -934,9 +859,6 @@ func ativar_tecnica(
 	if AudioManager != null:
 		var sfx_id := "nen_" + t_nome.to_lower()
 		AudioManager.tocar_sfx_tipo(sfx_id, 0.95)
-
-	if tecnica == Tecnica.GYO:
-		_notificar_nos_gyo(true)
 
 	print(
 		"NEN ATIVADO: ",
@@ -959,14 +881,33 @@ func desativar_tecnica(
 	if not tecnica_ativa(tecnica):
 		return
 
+	if tecnica == Tecnica.ZETSU:
+		if active_controller != null:
+			active_controller.desativar_zetsu()
+		tecnicas[Tecnica.ZETSU]["ativo"] = false
+		tecnica_desativada.emit(Tecnica.ZETSU)
+		if EventBus != null: EventBus.nen_technique_deactivated.emit("ZETSU")
+		return
+	elif tecnica == Tecnica.EN:
+		if active_controller != null:
+			active_controller.desativar_en()
+		tecnicas[Tecnica.EN]["ativo"] = false
+		tecnica_desativada.emit(Tecnica.EN)
+		if EventBus != null: EventBus.nen_technique_deactivated.emit("EN")
+		return
+	elif tecnica == Tecnica.GYO:
+		if active_controller != null:
+			active_controller.desativar_gyo(get_tree())
+		tecnicas[Tecnica.GYO]["ativo"] = false
+		tecnica_desativada.emit(Tecnica.GYO)
+		if EventBus != null: EventBus.nen_technique_deactivated.emit("GYO")
+		return
+
 	tecnicas[tecnica]["ativo"] = false
 	tecnica_desativada.emit(tecnica)
 	var t_nome := nome_tecnica(tecnica)
 	if EventBus != null:
 		EventBus.nen_technique_deactivated.emit(t_nome)
-
-	if tecnica == Tecnica.GYO:
-		_notificar_nos_gyo(false)
 
 	print(
 		"NEN DESATIVADO: ",
@@ -982,25 +923,15 @@ func desativar_todas() -> void:
 	desativar_todas_tecnicas()
 
 func desativar_todas_tecnicas() -> void:
-	var tinha_gyo = tecnica_ativa(Tecnica.GYO)
+	if active_controller != null:
+		active_controller.desativar_zetsu()
+		active_controller.desativar_en()
+		active_controller.desativar_gyo(get_tree())
 
 	for tecnica in tecnicas:
 		if tecnicas[tecnica]["ativo"]:
 			tecnicas[tecnica]["ativo"] = false
 			tecnica_desativada.emit(tecnica)
-
-	if tinha_gyo:
-		_notificar_nos_gyo(false)
-
-
-func _notificar_nos_gyo(ativo: bool) -> void:
-	var tree = get_tree()
-	if tree != null:
-		var nos = tree.get_nodes_in_group("gyo_inspectable")
-		for no in nos:
-			if no.has_method("atualizar_estado_gyo"):
-				no.atualizar_estado_gyo(ativo)
-
 
 
 # ============================================================
@@ -1008,18 +939,10 @@ func _notificar_nos_gyo(ativo: bool) -> void:
 # ============================================================
 
 func toggle_ko() -> void:
-
 	if tecnica_ativa(Tecnica.KO):
-
-		desativar_tecnica(
-			Tecnica.KO
-		)
-
+		desativar_tecnica(Tecnica.KO)
 	else:
-
-		ativar_tecnica(
-			Tecnica.KO
-		)
+		ativar_tecnica(Tecnica.KO)
 
 
 # ============================================================
@@ -1029,10 +952,31 @@ func toggle_ko() -> void:
 func tecnica_ativa(
 	tecnica: Tecnica
 ) -> bool:
+	if PlayerData == null or not PlayerData.despertou_nen:
+		return false
 
-	return bool(
-		tecnicas[tecnica]["ativo"]
-	)
+	match tecnica:
+		Tecnica.TEN:
+			return true # Ten protege permanentemente o Hunter após o despertar
+		Tecnica.REN:
+			return bool(tecnicas.get(Tecnica.REN, {}).get("desbloqueada", true))
+		Tecnica.SHU:
+			return bool(tecnicas.get(Tecnica.SHU, {}).get("desbloqueada", false))
+		Tecnica.KO:
+			return bool(tecnicas.get(Tecnica.KO, {}).get("desbloqueada", false))
+		Tecnica.KEN:
+			return bool(tecnicas.get(Tecnica.KEN, {}).get("desbloqueada", false))
+		Tecnica.RYU:
+			return bool(tecnicas.get(Tecnica.RYU, {}).get("desbloqueada", false))
+		# Técnicas Ativas Especiais (consultam ActiveNenController):
+		Tecnica.ZETSU:
+			return active_controller.zetsu_ativo if active_controller != null else bool(tecnicas.get(Tecnica.ZETSU, {}).get("ativo", false))
+		Tecnica.EN:
+			return active_controller.en_ativo if active_controller != null else bool(tecnicas.get(Tecnica.EN, {}).get("ativo", false))
+		Tecnica.GYO:
+			return active_controller.gyo_ativo if active_controller != null else bool(tecnicas.get(Tecnica.GYO, {}).get("ativo", false))
+		_:
+			return bool(tecnicas.get(tecnica, {}).get("ativo", false))
 
 
 # ============================================================

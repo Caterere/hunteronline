@@ -50,30 +50,25 @@ func can_advance() -> bool:
 func get_unmet_requirements() -> Array[String]:
 	var pendencias: Array[String] = []
 
-	if PlayerData == null:
-		pendencias.append("Perfil do jogador não inicializado")
-		return pendencias
-
-	# 1. Validação de Arco
-	if PlayerData.arco_atual < required_arc:
-		pendencias.append("Necessário alcançar o Arco %d da História" % required_arc)
-		return pendencias
-
-	# Se o jogador já está em um arco superior, a passagem de arcos anteriores está liberada
-	if PlayerData.arco_atual > required_arc:
-		return pendencias
-
-	# 2. Validação de Etapas do Arco Atual
-	if required_all_arc_stages:
-		var total_etapas = CanonQuestCatalog.obter_total_quests_do_arco(required_arc)
-		if PlayerData.etapa_quest_arco < total_etapas:
-			pendencias.append("Conclua todas as %d fases do Arco %d (Progresso atual: %d/%d)" % [
-				total_etapas, required_arc, PlayerData.etapa_quest_arco, total_etapas
+	if StoryManager != null:
+		return StoryManager.obter_pendencias_gate(required_arc, required_stage_min, required_all_arc_stages)
+	elif PlayerData != null:
+		# Fallback legado
+		if PlayerData.arco_atual < required_arc:
+			pendencias.append("Necessário alcançar o Arco %d da História" % required_arc)
+			return pendencias
+		if PlayerData.arco_atual > required_arc:
+			return pendencias
+		if required_all_arc_stages:
+			var total_etapas = CanonQuestCatalog.obter_total_quests_do_arco(required_arc)
+			if PlayerData.etapa_quest_arco < total_etapas:
+				pendencias.append("Conclua todas as %d fases do Arco %d (Progresso atual: %d/%d)" % [
+					total_etapas, required_arc, PlayerData.etapa_quest_arco, total_etapas
+				])
+		elif required_stage_min > 1 and PlayerData.etapa_quest_arco < required_stage_min:
+			pendencias.append("Conclua a Etapa %d do Arco %d (Progresso atual: %d/%d)" % [
+				required_stage_min, required_arc, PlayerData.etapa_quest_arco, required_stage_min
 			])
-	elif required_stage_min > 1 and PlayerData.etapa_quest_arco < required_stage_min:
-		pendencias.append("Conclua a Etapa %d do Arco %d (Progresso atual: %d/%d)" % [
-			required_stage_min, required_arc, PlayerData.etapa_quest_arco, required_stage_min
-		])
 
 	# 3. Validação de Objetivos da Quest Ativa Atual
 	if QuestSystem != null and not QuestSystem.active_quests.is_empty():

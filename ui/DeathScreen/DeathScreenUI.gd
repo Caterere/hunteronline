@@ -161,10 +161,9 @@ func exibir() -> void:
 
 	# Atualizar dados do Hunter
 	if lbl_status_hunter != null:
-		var nivel: int = int(PlayerData.attributes.get("nivel", 1))
-		var nivel_nen: int = int(PlayerData.attributes.get("nivel_nen", 0))
-		var cat_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
-		lbl_status_hunter.text = "🔰 %s | Nv. %d | Nen: %s (Nv. %d)" % [PlayerData.nome_personagem, nivel, cat_nome, nivel_nen]
+		var sp: int = PlayerData.nen_skill_points
+		var cat_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen) if PlayerData.despertou_nen else "Aura Oculta"
+		lbl_status_hunter.text = "🔰 %s | Nv. %d | Afinidade: %s | ⚡ %d SP" % [PlayerData.nome_personagem, nivel, cat_nome, sp]
 
 	# Frases dramáticas aleatórias
 	if lbl_frase_morte != null:

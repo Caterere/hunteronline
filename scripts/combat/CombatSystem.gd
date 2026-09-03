@@ -366,6 +366,7 @@ func _on_attack_hit(
 			EventBus.emit_hitstop(0.04)
 			EventBus.emit_camera_shake(0.20, 0.15)
 		EventBus.combat_hit_landed.emit(owner_body, enemy, dano, is_crit)
+		EventBus.target_changed.emit(enemy)
 
 	if enemy_system != null and enemy_system.has_method("take_damage"):
 		enemy_system.take_damage(dano, ultima_direcao, knockback_val, owner_body)
@@ -398,9 +399,9 @@ func _on_attack_hit(
 # DANO FÍSICO & TÁTICAS DE NEN (SKILL-BASED)
 # ============================================================
 
-func calcular_dano_fisico(inimigo_alvo: Node = null) -> int:
+func calcular_dano_fisico(inimigo_alvo: Node = null, attack_tags: Array = [], hatsu: Resource = null) -> int:
 	if CombatEngine != null and CombatEngine.has_method("calcular_dano_jogador"):
-		return CombatEngine.calcular_dano_jogador(owner_body, nen_system, inimigo_alvo)
+		return CombatEngine.calcular_dano_jogador(owner_body, nen_system, inimigo_alvo, {}, attack_tags, hatsu)
 
 	var forca: float = float(obter_forca())
 	var dano_base: float = float(ataque_dano_base)
@@ -415,7 +416,8 @@ func receber_dano(
 	dano: int,
 	direcao_ataque: Vector2 = Vector2.ZERO,
 	forca_knockback: float = 140.0,
-	atacante: Node = null
+	atacante: Node = null,
+	attack_tags: Array = []
 ) -> void:
 	if estado == Estado.MORTO:
 		return
@@ -430,7 +432,7 @@ func receber_dano(
 
 	var dano_final: int = 1
 	if CombatEngine != null and CombatEngine.has_method("calcular_dano_sofrido_jogador"):
-		dano_final = CombatEngine.calcular_dano_sofrido_jogador(dano, nen_system, hatsu_system, atacante)
+		dano_final = CombatEngine.calcular_dano_sofrido_jogador(dano, nen_system, hatsu_system, atacante, {}, attack_tags)
 	else:
 		var defesa: int = obter_defesa()
 		dano_final = max(1, dano - defesa)
@@ -845,6 +847,12 @@ func _executar_perfect_dodge(_atacante: Node) -> void:
 func _mostrar_texto_flutuante(texto: String, cor: Color) -> void:
 	if owner_body == null:
 		return
+	var tree := get_tree()
+	if tree != null:
+		var dns = tree.root.get_node_or_null("DamageNumberSystem")
+		if dns != null and dns.has_method("spawn_texto"):
+			dns.spawn_texto(owner_body, texto, cor, 1.1)
+			return
 	var lbl := Label.new()
 	lbl.text = texto
 	lbl.add_theme_font_size_override("font_size", 5)

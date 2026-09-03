@@ -43,6 +43,9 @@ func _conectar_event_bus() -> void:
 		EventBus.time_hour_ticked.connect(_on_time_hour_ticked)
 
 
+func iniciar_evento(id: String, titulo: String, desc: String, regiao: String, duracao_horas: float, dificuldade: int = 50) -> void:
+	criar_evento_dinamico(id, titulo, desc, regiao, duracao_horas, dificuldade)
+
 func criar_evento_dinamico(id: String, titulo: String, desc: String, regiao: String, duracao_horas: float, dificuldade: int = 50) -> void:
 	active_world_events[id] = {
 		"id": id,
@@ -145,6 +148,21 @@ func _sortear_crise_organica() -> void:
 		6.0, # 6 horas para expirar ou resolver
 		60   # Dificuldade 60
 	)
+
+
+# ============================================================
+# ENCONTROS RAROS & ZONAS (FASE 9)
+# ============================================================
+
+func sortear_encontro_zona(zona: ZoneData) -> Dictionary:
+	if zona == null:
+		return {}
+	var enc = zona.sortear_encontro_raro()
+	if not enc.is_empty():
+		print("[WorldEventManager] Encontro Raro Gerado na Zona %s: %s" % [zona.zone_name, enc.get("nome", "")])
+		if EventBus != null and EventBus.has_signal("toast_requested"):
+			EventBus.emit_toast("⚡ [Encontro Raro] %s avistado na área!" % enc.get("nome", "Inimigo Lendário"), Color(1.0, 0.4, 0.2))
+	return enc
 
 
 # ============================================================

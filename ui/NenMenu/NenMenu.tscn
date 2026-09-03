@@ -84,7 +84,7 @@ theme_override_constants/separation = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
 theme_override_font_sizes/font_size = 9
-text = "Nen Lv. 0"
+text = "Pontos de Habilidade: ⚡ 0 SP"
 
 [node name="NenXPLabel" type="Label" parent="Panel/MarginContainer/VBoxMain/HBoxContent/ColEsquerda"]
 layout_mode = 2

@@ -67,6 +67,7 @@ const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd"
 
 ## Posição original de spawn para fins de reconciliação e respawn.
 var spawn_position_origin: Vector2 = Vector2.ZERO
+var spawner_ref: Node = null
 
 
 # =========================================================
@@ -450,6 +451,10 @@ func take_damage(
 
 	if attacker != null:
 		last_attacker = attacker
+		if enemy_body != null:
+			var ai = enemy_body.get_node_or_null("EnemyAI")
+			if ai != null and ai.has_method("adicionar_ameaca"):
+				ai.adicionar_ameaca(attacker, float(damage) * 1.5)
 
 	# -----------------------------------------------------
 	# REDUÇÃO DE POSTURA & STAGGER
@@ -757,8 +762,10 @@ func die() -> void:
 	).timeout
 
 
-	if enemy_body != null:
+	if spawner_ref != null and spawner_ref.has_method("on_spawned_died"):
+		spawner_ref.on_spawned_died(enemy_body)
 
+	if enemy_body != null:
 		enemy_body.queue_free()
 
 

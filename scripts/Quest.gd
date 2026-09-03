@@ -73,10 +73,31 @@ enum RequiresMode {
 
 @export var reward_items: Array[QuestReward] = []
 
+@export_group("Optional Rewards & Consequences")
+@export var optional_reward_xp: int = 0
+@export var optional_reward_gold: int = 0
+@export var optional_rewards: Array[QuestReward] = []
+@export var consequence_tags: Array[String] = []
+@export var optional_consequence_tags: Array[String] = []
+
 
 # =========================================================
 # FUNÇÕES
 # =========================================================
+
+func has_optional_objectives() -> bool:
+	for obj in objectives:
+		if obj != null and obj.is_optional:
+			return true
+	return false
+
+
+func get_mandatory_objectives() -> Array[QuestObjective]:
+	var mandatory: Array[QuestObjective] = []
+	for obj in objectives:
+		if obj != null and not obj.is_optional:
+			mandatory.append(obj)
+	return mandatory
 
 ## Verifica se os pré-requisitos básicos da quest foram cumpridos.
 func prerequisites_met(player_data) -> bool:

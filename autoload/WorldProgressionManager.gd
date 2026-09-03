@@ -211,8 +211,8 @@ func definir_destino_spawn(spawn_id: StringName = &"default", pos_exata: Vector2
 	target_spawn_position = pos_exata
 
 
-func posicionar_player_no_spawn(player: Node2D) -> bool:
-	if player == null or not is_instance_valid(player):
+func posicionar_player_no_spawn(player: Variant) -> bool:
+	if player == null or not is_instance_valid(player) or not (player is Node2D):
 		return false
 
 	# 1. Se houver uma posição exata de transição (ex: retorno por portal)

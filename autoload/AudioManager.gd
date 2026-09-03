@@ -173,7 +173,6 @@ const ARC_TRACKS: Dictionary = {
 # Mapeamento por Caminho de Cena
 const SCENE_TRACKS: Dictionary = {
 	"res://ui/CharacterSelection/CharacterSelectionUI.tscn": "the_world_of_adventurers",
-	"res://ui/CharacterCreation/CharacterCreationUI.tscn": "tomodachi_ni_narouyo",
 	"res://world/lobby.tscn": "the_world_of_adventurers",
 	"res://world/maps/PlayerHouse.tscn": "kujirato_yori",
 	"res://world/maps/CelestialTowerArena.tscn": "legend_of_the_martial_artist",

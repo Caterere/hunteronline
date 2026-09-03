@@ -17,7 +17,7 @@ var panel_main: PanelContainer
 # Abas
 var tab_status: VBoxContainer
 var tab_inv: ScrollContainer
-var tab_nen: ScrollContainer
+var tab_nen: Control
 var tab_hatsu: ScrollContainer
 var tab_license: VBoxContainer
 var tab_factions: ScrollContainer
@@ -155,15 +155,25 @@ func _criar_aba_inventario() -> void:
 	tab_inv.add_child(inv_list_container)
 
 
+var nen_skill_tree_ui_instance: NenSkillTreeUI = null
+
 func _criar_aba_nen() -> void:
-	tab_nen = ScrollContainer.new()
+	tab_nen = PanelContainer.new()
 	tab_nen.name = "Nen Tree"
+	tab_nen.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tab_nen.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var st_empty := StyleBoxEmpty.new()
+	tab_nen.add_theme_stylebox_override("panel", st_empty)
 	tab_container.add_child(tab_nen)
 
 	nen_list_container = VBoxContainer.new()
 	nen_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	nen_list_container.add_theme_constant_override("separation", 2)
+	nen_list_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tab_nen.add_child(nen_list_container)
+
+	nen_skill_tree_ui_instance = NenSkillTreeUI.new()
+	nen_skill_tree_ui_instance.name = "NenSkillTreeUIComponent"
+	nen_list_container.add_child(nen_skill_tree_ui_instance)
 
 
 func _criar_aba_hatsu() -> void:
@@ -523,6 +533,10 @@ func _atualizar_conteudo_inventario() -> void:
 
 
 func _atualizar_conteudo_nen() -> void:
+	if nen_skill_tree_ui_instance != null:
+		nen_skill_tree_ui_instance._atualizar_exibicao()
+		return
+
 	if nen_list_container == null:
 		return
 	for c in nen_list_container.get_children():

@@ -46,14 +46,25 @@ const COLOR_TEXT_MUTED          := Color(0.50, 0.58, 0.55, 1.0) # Texto Apagado
 # 1.1 HIERARQUIA TIPOGRÁFICA (VIEWPORT 640x480)
 const FONT_SIZE_TITLE           := 11 # Cabeçalhos principais e nomes de chefes
 const FONT_SIZE_SUBTITLE        := 9  # Subtítulos, abas e nomes de regiões
+const FONT_SIZE_HEADING         := 9  # Cabeçalhos de seção e títulos de cards
 const FONT_SIZE_BODY            := 8  # Diálogos, objetivos e descrições
 const FONT_SIZE_SMALL           := 7  # Números de HP/AP/XP e tooltips
 const FONT_SIZE_MICRO           := 6  # Badges e hotkeys de atalho ([E], [1-4])
+const FONT_SIZE_NUMERIC         := 10 # Números destacados de atributos e níveis
+const FONT_SIZE_DAMAGE          := 9  # Números de dano flutuante em combate
 
 const COLOR_HP_CRIMSON          := Color(0.92, 0.22, 0.25, 1.0) # Barra de HP
 const COLOR_AURA_BAR            := Color(0.18, 0.75, 1.00, 1.0) # Barra de Aura
 const COLOR_XP_BAR              := Color(0.15, 0.82, 0.42, 1.0) # Barra de XP Normal
 const COLOR_NEN_XP_BAR          := Color(0.70, 0.40, 1.00, 1.0) # Barra de XP Nen
+
+# 1.2 CORES DE COMBATE & FEEDBACK DINÂMICO
+const COLOR_CRIT_GOLD           := Color(1.00, 0.88, 0.25, 1.0) # Acerto Crítico
+const COLOR_DODGE_CYAN          := Color(0.30, 0.95, 1.00, 1.0) # Esquiva / Perfect Dodge
+const COLOR_BLOCK_STEEL         := Color(0.65, 0.75, 0.90, 1.0) # Bloqueio / Ten
+const COLOR_WEAK_ORANGE         := Color(1.00, 0.45, 0.15, 1.0) # Ponto Fraco / Weak Point
+const COLOR_HEAL_GREEN          := Color(0.25, 1.00, 0.45, 1.0) # Regeneração de HP
+const COLOR_DANGER_RED          := Color(0.95, 0.20, 0.20, 1.0) # Perigo / Alerta Máximo
 
 
 # ============================================================
@@ -86,6 +97,22 @@ static func criar_style_card_interno(cor_borda: Color = COLOR_BORDER_GREEN, raio
 	style.border_width_right = 1
 	style.border_width_bottom = 1
 	style.border_color = cor_borda
+	style.corner_radius_top_left = raio
+	style.corner_radius_top_right = raio
+	style.corner_radius_bottom_right = raio
+	style.corner_radius_bottom_left = raio
+	return style
+
+
+static func criar_style_box(cor_bg: Color, cor_borda: Color = Color.TRANSPARENT, raio: int = 2) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = cor_bg
+	if cor_borda != Color.TRANSPARENT:
+		style.border_width_left = 1
+		style.border_width_top = 1
+		style.border_width_right = 1
+		style.border_width_bottom = 1
+		style.border_color = cor_borda
 	style.corner_radius_top_left = raio
 	style.corner_radius_top_right = raio
 	style.corner_radius_bottom_right = raio
@@ -186,6 +213,86 @@ static func criar_style_overhead_badge(cor_borda: Color = COLOR_BORDER_SUBTLE) -
 	return style
 
 
+static func criar_style_card_personagem(cor_borda: Color = COLOR_BORDER_GOLD, raio: int = 4) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.08, 0.13, 0.96)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = cor_borda
+	style.corner_radius_top_left = raio
+	style.corner_radius_top_right = raio
+	style.corner_radius_bottom_right = raio
+	style.corner_radius_bottom_left = raio
+	style.shadow_color = Color(0, 0, 0, 0.5)
+	style.shadow_size = 3
+	return style
+
+
+static func criar_style_licenca_hunter() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.08, 0.11, 0.17, 0.98)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = COLOR_GOLD_LIGHT
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	style.shadow_color = Color(0.85, 0.70, 0.20, 0.25)
+	style.shadow_size = 4
+	return style
+
+
+static func criar_style_condition_box(atendida: bool = false) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.05, 0.15, 0.08, 0.85) if atendida else Color(0.06, 0.08, 0.12, 0.85)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = COLOR_BORDER_GREEN if atendida else COLOR_BORDER_SUBTLE
+	style.corner_radius_top_left = 2
+	style.corner_radius_top_right = 2
+	style.corner_radius_bottom_right = 2
+	style.corner_radius_bottom_left = 2
+	return style
+
+
+static func criar_style_floating_text(cor_borda: Color = Color.TRANSPARENT) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.02, 0.03, 0.05, 0.75)
+	if cor_borda != Color.TRANSPARENT:
+		style.border_width_left = 1
+		style.border_width_top = 1
+		style.border_width_right = 1
+		style.border_width_bottom = 1
+		style.border_color = cor_borda
+	style.corner_radius_top_left = 2
+	style.corner_radius_top_right = 2
+	style.corner_radius_bottom_right = 2
+	style.corner_radius_bottom_left = 2
+	return style
+
+
+static func criar_style_boss_phase_badge() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.20, 0.04, 0.05, 0.92)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = COLOR_HP_CRIMSON
+	style.corner_radius_top_left = 2
+	style.corner_radius_top_right = 2
+	style.corner_radius_bottom_right = 2
+	style.corner_radius_bottom_left = 2
+	return style
+
+
 # ============================================================
 # FACTORY: BOTÕES & INTERAÇÕES
 # ============================================================
@@ -261,6 +368,26 @@ static func aplicar_estilo_botao(btn: Button, cor_borda: Color = COLOR_BORDER_GR
 	btn.add_theme_color_override("font_color", COLOR_TEXT_PRIMARY)
 	btn.add_theme_color_override("font_hover_color", COLOR_GOLD_LIGHT)
 	btn.add_theme_color_override("font_pressed_color", COLOR_GOLD)
+
+
+static func aplicar_estilo_botao_estado(btn: Button, estado: String) -> void:
+	if btn == null: return
+	match estado.to_lower():
+		"danger":
+			btn.add_theme_stylebox_override("normal", criar_style_botao_normal(COLOR_DANGER_RED))
+			btn.add_theme_color_override("font_color", COLOR_DANGER_RED)
+		"selected", "special":
+			btn.add_theme_stylebox_override("normal", criar_style_botao_normal(COLOR_BORDER_GOLD))
+			btn.add_theme_color_override("font_color", COLOR_GOLD_LIGHT)
+		"available":
+			btn.add_theme_stylebox_override("normal", criar_style_botao_normal(COLOR_BORDER_CYAN))
+			btn.add_theme_color_override("font_color", COLOR_AURA_CYAN)
+		"disabled", "locked":
+			btn.add_theme_stylebox_override("normal", criar_style_botao_normal(COLOR_BORDER_SUBTLE))
+			btn.add_theme_color_override("font_color", COLOR_TEXT_MUTED)
+			btn.disabled = true
+		_:
+			aplicar_estilo_botao(btn, COLOR_BORDER_GREEN)
 
 
 # ============================================================

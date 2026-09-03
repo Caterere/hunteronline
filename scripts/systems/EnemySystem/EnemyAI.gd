@@ -3,6 +3,7 @@ extends Node
 
 const ComicBalloon = preload("res://scripts/ui/ComicBalloon.gd")
 const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd")
+const BossPhaseDataScript = preload("res://resource/status/BossPhaseData.gd")
 
 # =========================================================
 # CONFIGURAÇÕES
@@ -58,7 +59,9 @@ enum State {
 	ATTACK,
 	RECOVERY,
 	RETURN,
-	STAGGER
+	STAGGER,
+	ALERT,
+	FLEE
 }
 
 var current_state = State.IDLE
@@ -67,6 +70,50 @@ var current_state = State.IDLE
 var windup_timer: float = 0.0
 var recovery_timer: float = 0.0
 var _telegraph_indicator: Node = null
+
+# Aggro & Estados Canônicos (Fase 4)
+var threat_table: Dictionary = {}
+var current_target: Node2D = null
+var alert_timer: float = 0.0
+var flee_timer: float = 0.0
+var active_boss_phase_indices: Array[int] = []
+
+func adicionar_ameaca(alvo: Node, valor: float) -> void:
+	if alvo == null or not is_instance_valid(alvo):
+		return
+	var atual: float = float(threat_table.get(alvo, 0.0))
+	threat_table[alvo] = atual + valor
+	if current_state == State.IDLE or current_state == State.RETURN:
+		current_state = State.ALERT
+		alert_timer = 0.6
+
+func obter_alvo_principal() -> Node2D:
+	var para_remover: Array = []
+	var melhor_alvo: Node2D = null
+	var maior_ameaca: float = -1.0
+	for node in threat_table.keys():
+		if node == null or not is_instance_valid(node):
+			para_remover.append(node)
+			continue
+		var ameaca = float(threat_table[node])
+		if ameaca > maior_ameaca and ameaca > 0.0:
+			maior_ameaca = ameaca
+			melhor_alvo = node as Node2D
+	for r in para_remover:
+		threat_table.erase(r)
+	if melhor_alvo != null:
+		return melhor_alvo
+	return player
+
+func limpar_ameacas() -> void:
+	threat_table.clear()
+
+func _processar_decaimento_aggro(delta: float) -> void:
+	var decay: float = 5.0
+	if enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.aggro_decay_rate > 0.0:
+		decay = enemy_system.enemy_data.aggro_decay_rate
+	for k in threat_table.keys():
+		threat_table[k] = max(0.0, float(threat_table[k]) - decay * delta)
 
 
 
@@ -120,6 +167,51 @@ var hatsu_cooldown: float = 4.5
 var nobunaga_en_ativo: bool = false
 var phinks_windup_count: int = 0
 
+var intimidacao_en_timer: float = 0.0
+var intimidacao_red_defesa: float = 0.0
+
+
+func aplicar_intimidacao_en(red_def: float, duracao: float = 1.0) -> void:
+	if intimidacao_en_timer <= 0.0 and enemy_body != null:
+		ComicBalloon.mostrar(enemy_body, "⚡ Que aura sufocante...!", 1.2, -40.0)
+	intimidacao_red_defesa = max(intimidacao_red_defesa, red_def)
+	intimidacao_en_timer = duracao
+
+
+func obter_defesa_efetiva() -> float:
+	var def_base: float = float(enemy_system.defense) if enemy_system != null else 10.0
+	if intimidacao_en_timer > 0.0 and intimidacao_red_defesa > 0.0:
+		return max(0.0, def_base * (1.0 - intimidacao_red_defesa))
+	return def_base
+
+
+func obter_raio_deteccao_efetivo(target: Node2D = null) -> float:
+	var alvo_ref: Node2D = target if target != null else (current_target if current_target != null else player)
+	var obs = enemy_body if enemy_body != null else self
+	if PerceptionSystem != null and PerceptionSystem.has_method("calcular_raio_deteccao_efetivo"):
+		return PerceptionSystem.calcular_raio_deteccao_efetivo(obs, alvo_ref)
+
+	var range_base: float = detection_range
+	if alvo_ref != null and is_instance_valid(alvo_ref):
+		var nen_sys = alvo_ref.get_node_or_null("NenSystem")
+		if nen_sys == null:
+			for ch in alvo_ref.get_children():
+				if ch.has_method("esta_em_zetsu"):
+					nen_sys = ch
+					break
+		if nen_sys != null:
+			if nen_sys.has_method("esta_em_zetsu") and nen_sys.esta_em_zetsu():
+				var fator_stealth: float = nen_sys.obter_fator_stealth_zetsu() if nen_sys.has_method("obter_fator_stealth_zetsu") else 0.20
+				return range_base * (1.0 - fator_stealth)
+			elif nen_sys.has_method("esta_em_ren") and nen_sys.esta_em_ren():
+				return range_base * 1.30
+
+	if WorldState != null and WorldState.obter_infamia() >= 100:
+		return range_base * 1.40
+
+	return range_base
+
+
 # =========================================================
 # PROCESSAMENTO
 # =========================================================
@@ -132,6 +224,11 @@ func _physics_process(delta: float) -> void:
 	if hatsu_timer > 0.0:
 		hatsu_timer -= delta
 
+	if intimidacao_en_timer > 0.0:
+		intimidacao_en_timer -= delta
+		if intimidacao_en_timer <= 0.0:
+			intimidacao_red_defesa = 0.0
+
 	if enemy_body == null:
 		return
 
@@ -141,20 +238,31 @@ func _physics_process(delta: float) -> void:
 	if enemy_system == null:
 		enemy_system = enemy_body.get_node_or_null("EnemySystem") as EnemySystem
 
-	# Checar transição de Fase para Chefes (GDD Vol 5 & 7 — 3 Fases Canônicas)
+	_processar_decaimento_aggro(delta)
+
+	# Checar transição de Fase para Chefes (Orientado a dados com BossPhaseData ou fallback canônico)
 	if enemy_system != null and (enemy_system.is_boss or (enemy_system.enemy_data != null and enemy_system.enemy_data.is_boss)):
-		if not is_fase_2 and enemy_system.health <= enemy_system.max_health * 0.50 and enemy_system.health > 0:
-			_entrar_fase_2_boss()
-		elif not is_fase_3 and enemy_system.health <= enemy_system.max_health * 0.25 and enemy_system.health > 0:
-			_entrar_fase_3_boss()
+		if enemy_system.enemy_data != null and not enemy_system.enemy_data.boss_phases.is_empty():
+			for b_phase in enemy_system.enemy_data.boss_phases:
+				if b_phase != null and not (b_phase.phase_index in active_boss_phase_indices):
+					if enemy_system.health <= enemy_system.max_health * b_phase.hp_threshold and enemy_system.health > 0:
+						_executar_fase_boss_configurada(b_phase)
+		else:
+			if not is_fase_2 and enemy_system.health <= enemy_system.max_health * 0.50 and enemy_system.health > 0:
+				_entrar_fase_2_boss()
+			elif not is_fase_3 and enemy_system.health <= enemy_system.max_health * 0.25 and enemy_system.health > 0:
+				_entrar_fase_3_boss()
 
 	if player == null or not is_instance_valid(player):
 		_find_player()
 
-	# Disparar Hatsu Canônico do Inimigo se o jogador estiver ao alcance
-	if player != null and is_instance_valid(player) and hatsu_timer <= 0.0:
-		var dist_player: float = enemy_body.global_position.distance_to(player.global_position)
-		if dist_player <= detection_range:
+	current_target = obter_alvo_principal()
+
+	# Disparar Hatsu Canônico do Inimigo se o alvo principal estiver ao alcance
+	var target_ref = current_target if current_target != null else player
+	if target_ref != null and is_instance_valid(target_ref) and hatsu_timer <= 0.0:
+		var dist_target: float = enemy_body.global_position.distance_to(target_ref.global_position)
+		if dist_target <= detection_range:
 			executar_hatsu_inimigo()
 			var cd_base: float = enemy_system.enemy_data.hatsu_cooldown if (enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.hatsu_cooldown > 0.0) else hatsu_cooldown
 			var mult_cd: float = 0.45 if is_fase_3 else (0.65 if is_fase_2 else 1.0)
@@ -217,6 +325,50 @@ func _entrar_fase_3_boss() -> void:
 
 	if enemy_system != null:
 		ComicBalloon.mostrar(enemy_body, "🔥 SOBRECARGA TOTAL DE AURA! FASE FINAL!", 3.0, -48.0)
+
+
+func _executar_fase_boss_configurada(b_phase: Resource) -> void:
+	if b_phase == null:
+		return
+	active_boss_phase_indices.append(b_phase.phase_index)
+	if b_phase.phase_index == 2:
+		is_fase_2 = true
+	elif b_phase.phase_index >= 3:
+		is_fase_3 = true
+
+	move_speed *= b_phase.speed_multiplier
+	attack_cooldown *= b_phase.attack_cd_multiplier
+	hatsu_cooldown *= b_phase.hatsu_cd_multiplier
+
+	var boss_nome = enemy_system.enemy_name if enemy_system != null else "Chefe"
+	print("=================================")
+	print("[BOSS FASE %d] %s ativou: %s" % [b_phase.phase_index, boss_nome, b_phase.phase_name])
+	print("=================================")
+
+	var sprite = enemy_body.get_node_or_null("Sprite2D")
+	if sprite != null:
+		sprite.modulate = b_phase.color_modulate
+
+	if EventBus != null:
+		EventBus.boss_phase_changed.emit(boss_nome, b_phase.phase_index)
+		EventBus.emit_camera_shake(b_phase.camera_shake_intensity, b_phase.camera_shake_duration)
+		EventBus.emit_hitstop(0.08)
+
+	if enemy_system != null and not b_phase.dialogue_quote.is_empty():
+		ComicBalloon.mostrar(enemy_body, b_phase.dialogue_quote, 2.5, -45.0)
+
+	match b_phase.mechanic:
+		BossPhaseDataScript.MecanicaFase.INVOCAR_MINIONS:
+			_invocar_minions_boss()
+		BossPhaseDataScript.MecanicaFase.AOE_BURST:
+			_executar_terremoto_com_telegrafia()
+		BossPhaseDataScript.MecanicaFase.ESCUDO_AURA:
+			if enemy_system != null:
+				enemy_system.escudo_imune_ativo = true
+				get_tree().create_timer(4.0).timeout.connect(func():
+					if is_instance_valid(enemy_system):
+						enemy_system.escudo_imune_ativo = false
+				)
 
 
 func _invocar_minions_boss() -> void:
@@ -349,41 +501,55 @@ func _update_state() -> void:
 					enemy_body.velocity = Vector2.ZERO
 				return
 
-	# Manter estados atômicos de combate (Windup, Ataque e Recuperação)
+	# Manter estados atômicos de combate (Windup, Ataque, Recuperação, Alerta, Fuga)
 	if current_state == State.PREPARE_ATTACK or current_state == State.ATTACK or current_state == State.RECOVERY:
 		return
+	if current_state == State.ALERT and alert_timer > 0.0:
+		return
+	if current_state == State.FLEE and flee_timer > 0.0:
+		return
 
-	if player == null or not is_instance_valid(player):
+	# Checar retorno por distância máxima de coleira (leash)
+	var leash: float = enemy_system.enemy_data.aggro_leash_distance if (enemy_system != null and enemy_system.enemy_data != null) else 420.0
+	if enemy_body != null and enemy_body.global_position.distance_to(initial_position) > leash:
+		limpar_ameacas()
+		current_state = State.RETURN
+		return
+
+	# Checar fuga por vida baixa para arquétipos que fogem
+	if enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.can_flee_at_low_hp:
+		var hp_ratio = float(enemy_system.health) / max(1.0, float(enemy_system.max_health))
+		if hp_ratio <= enemy_system.enemy_data.flee_hp_threshold and flee_timer <= 0.0:
+			flee_timer = 2.5
+			current_state = State.FLEE
+			ComicBalloon.mostrar(enemy_body, "🏃 Recuar para reagrupar!", 1.5, -35.0)
+			return
+
+	current_target = obter_alvo_principal()
+	if current_target == null or not is_instance_valid(current_target):
 		current_state = State.IDLE
 		return
 
 	var distance: float = enemy_body.global_position.distance_to(
-		player.global_position
+		current_target.global_position
 	)
 
 	# -----------------------------------------------------
-	# LEITURA DE NEN DO JOGADOR (ZETSU & REN)
+	# LEITURA DE NEN DO ALVO (ZETSU COM STEALTH REAL)
 	# -----------------------------------------------------
-	var range_ativo = detection_range
-	var nen_sys = player.get_node_or_null("NenSystem")
-	var em_zetsu = (nen_sys != null and nen_sys.has_method("tecnica_ativa") and nen_sys.tecnica_ativa(NenSystem.Tecnica.ZETSU))
-	var em_ren = (nen_sys != null and nen_sys.has_method("tecnica_ativa") and nen_sys.tecnica_ativa(NenSystem.Tecnica.REN))
+	var range_ativo: float = obter_raio_deteccao_efetivo(current_target)
+	var nen_sys = current_target.get_node_or_null("NenSystem")
+	var em_zetsu = (nen_sys != null and nen_sys.has_method("esta_em_zetsu") and nen_sys.esta_em_zetsu())
 
 	if em_zetsu:
-		# Zetsu reduz a percepção do inimigo apenas para contato direto
-		range_ativo = min(detection_range, stop_distance + 16.0)
+		if threat_table.has(current_target):
+			threat_table[current_target] = float(threat_table[current_target]) * 0.1
 		if current_state == State.CHASE and distance > range_ativo:
 			ComicBalloon.mostrar(enemy_body, "❓ A presença sumiu?! Onde foi?!", 1.8, -38.0)
 			current_state = State.RETURN if return_to_position else State.IDLE
 			return
-	elif em_ren:
-		# Ren emite pressão intensa de aura, alertando inimigos mais longe
-		range_ativo = detection_range * 1.30
-	elif WorldState != null and WorldState.obter_infamia() >= 100:
-		# Alta infâmia atrai atenção redobrada de patrulhas e caçadores
-		range_ativo = detection_range * 1.40
 
-	# Player fora do alcance de detecção
+	# Alvo fora do alcance de detecção
 	if distance > range_ativo:
 		if return_to_position:
 			current_state = State.RETURN
@@ -420,6 +586,9 @@ func _execute_state() -> void:
 		State.IDLE:
 			_idle()
 
+		State.ALERT:
+			_alert()
+
 		State.CHASE:
 			_chase()
 
@@ -435,8 +604,33 @@ func _execute_state() -> void:
 		State.RETURN:
 			_return()
 
+		State.FLEE:
+			_flee()
+
 		State.STAGGER:
 			_stagger()
+
+
+func _alert() -> void:
+	_remover_telegraph()
+	if enemy_body != null:
+		enemy_body.velocity = Vector2.ZERO
+	alert_timer -= get_physics_process_delta_time()
+	if alert_timer <= 0.0:
+		current_state = State.CHASE
+
+
+func _flee() -> void:
+	_remover_telegraph()
+	var alvo = obter_alvo_principal()
+	if alvo != null and is_instance_valid(alvo) and enemy_body != null:
+		var flee_dir = (enemy_body.global_position - alvo.global_position).normalized()
+		enemy_body.velocity = flee_dir * (move_speed * 1.25)
+		enemy_body.move_and_slide()
+		_set_animation_direction(flee_dir)
+	flee_timer -= get_physics_process_delta_time()
+	if flee_timer <= 0.0:
+		current_state = State.IDLE
 
 
 # =========================================================
@@ -767,15 +961,16 @@ func get_current_state():
 
 
 func is_player_detected() -> bool:
-
 	if player == null:
 		return false
 
-	var distance: float = enemy_body.global_position.distance_to(
-		player.global_position
-	)
+	var obs = enemy_body if enemy_body != null else self
+	if PerceptionSystem != null and PerceptionSystem.has_method("verificar_alvo_detectado"):
+		return PerceptionSystem.verificar_alvo_detectado(obs, player)
 
-	return distance <= detection_range
+	var pos_obs: Vector2 = enemy_body.global_position if enemy_body != null else Vector2.ZERO
+	var distance: float = pos_obs.distance_to(player.global_position)
+	return distance <= obter_raio_deteccao_efetivo(player)
 
 
 # =========================================================

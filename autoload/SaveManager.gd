@@ -155,7 +155,8 @@ func salvar_jogo(slot: int = -1) -> bool:
 				"hatsu_data": h_dict
 			})
 
-	var save_data := {
+	var save_data: Dictionary = {
+		"save_version": 1,
 		"version": SAVE_VERSION,
 		"slot": slot,
 		"character_id": PlayerData.character_id,
@@ -163,6 +164,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"timestamp": Time.get_datetime_string_from_system(),
 		"mapa_atual": cena_atual,
 		"posicao_player": pos_array,
+		"story_data": StoryManager.serializar() if StoryManager != null else {},
 		"nome_personagem": PlayerData.nome_personagem,
 		"afinidade_nen": int(PlayerData.afinidade_nen),
 		"dificuldade": int(PlayerData.dificuldade),
@@ -197,10 +199,17 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"hatsu_slots": PlayerData.hatsu_slots.duplicate(),
 		"stored_hatsus": stored_hatsus_serialized,
 		"despertou_nen": PlayerData.despertou_nen,
+		"nen_skill_points": PlayerData.nen_skill_points,
+		"nen_skill_tree_progress": PlayerData.nen_skill_tree_progress.duplicate(),
+		"nen_ryu_caminho": PlayerData.nen_ryu_caminho,
+		"resistance_tags": PlayerData.resistance_tags.duplicate(),
+		"weakness_tags": PlayerData.weakness_tags.duplicate(),
+		"immunity_tags": PlayerData.immunity_tags.duplicate(),
 		"hatsu_desbloqueado": PlayerData.hatsu_desbloqueado,
 		"hatsu_creation_unlocked": PlayerData.hatsu_creation_unlocked,
 		"besta_nen_desbloqueada": PlayerData.besta_nen_desbloqueada,
 		"parallel_quests_concluidas": PlayerData.parallel_quests_concluidas.duplicate(),
+		"reputation_system_data": ReputationSystem.reputacao_dados.duplicate() if ReputationSystem != null else {},
 		"world_state": WorldState.salvar_dados() if WorldState != null else {},
 		"regiao_atual": String(WorldProgressionManager.regiao_atual_id) if WorldProgressionManager != null else "lobby",
 		"regioes_desbloqueadas": WorldProgressionManager.regioes_desbloqueadas.map(func(r): return String(r)) if WorldProgressionManager != null else ["lobby"],
@@ -359,6 +368,13 @@ func carregar_jogo(slot: int = -1) -> bool:
 	PlayerData.tutorial_concluido = bool(data.get("tutorial_concluido", false))
 	PlayerData.tutorial_data = (data.get("tutorial_data", {}) as Dictionary).duplicate(true)
 
+	if data.has("story_data") and data["story_data"] is Dictionary and StoryManager != null:
+		StoryManager.deserializar(data["story_data"])
+	elif StoryManager != null:
+		StoryManager.current_saga = PlayerData.arco_atual
+		StoryManager.current_chapter = PlayerData.etapa_quest_arco
+		StoryManager.max_saga_unlocked = PlayerData.max_arco_desbloqueado
+
 	PlayerData.conhecimentos_desbloqueados.clear()
 	for cd in data.get("conhecimentos_desbloqueados", []):
 		PlayerData.conhecimentos_desbloqueados.append(str(cd))
@@ -367,22 +383,18 @@ func carregar_jogo(slot: int = -1) -> bool:
 	for pq in data.get("parallel_quests_concluidas", []):
 		PlayerData.parallel_quests_concluidas.append(str(pq))
 
-	# Sanitização Estrita do Mapa Salvo (Nunca permitir UI como mapa salvo)
-	var raw_mapa: String = data.get("mapa_atual", MAPA_PADRAO_FALLBACK)
-	if is_valid_world_map(raw_mapa):
-		PlayerData.mapa_atual_salvo = raw_mapa
-	else:
-		PlayerData.mapa_atual_salvo = MAPA_PADRAO_FALLBACK
+	# HUB WORLD MANDATE (Hunter Online Definitive Direction):
+	# O jogo SEMPRE spawna o jogador no Hub Central (Lobby). O progresso da missão
+	# e checkpoints seguros são retomados através do Story Gateway NPC no Hub.
+	PlayerData.mapa_atual_salvo = MAPA_PADRAO_FALLBACK
+	PlayerData.posicao_salva = Vector2.ZERO
 
-	# Posição do jogador
-	var pos_data = data.get("posicao_player", [0.0, 0.0])
-	if pos_data is Array and pos_data.size() >= 2:
-		var px = float(pos_data[0])
-		var py = float(pos_data[1])
-		if px != 0.0 or py != 0.0:
-			PlayerData.posicao_salva = Vector2(px, py)
-		else:
-			PlayerData.posicao_salva = Vector2.ZERO
+	# Restauração de Reputação Multi-Facção
+	if data.has("reputation_system_data") and ReputationSystem != null:
+		var rep_dict = data["reputation_system_data"]
+		if rep_dict is Dictionary:
+			for faccao_key in rep_dict:
+				ReputationSystem.reputacao_dados[int(faccao_key)] = int(rep_dict[faccao_key])
 
 	# Cores
 	if data.has("character_colors"):
@@ -484,6 +496,34 @@ func carregar_jogo(slot: int = -1) -> bool:
 
 	# Besta de Nen
 	PlayerData.besta_nen_desbloqueada = bool(data.get("besta_nen_desbloqueada", false))
+
+	# Nen Skill Tree & Ryu (com fallback seguro para saves legados)
+	PlayerData.nen_skill_points = int(data.get("nen_skill_points", 0))
+	PlayerData.nen_skill_tree_progress = (data.get("nen_skill_tree_progress", {}) as Dictionary).duplicate(true)
+	PlayerData.nen_ryu_caminho = str(data.get("nen_ryu_caminho", ""))
+
+	# Tags Canônicas de Mitigação
+	PlayerData.resistance_tags.clear()
+	for rt in data.get("resistance_tags", []):
+		PlayerData.resistance_tags.append(str(rt))
+
+	PlayerData.weakness_tags.clear()
+	for wt in data.get("weakness_tags", []):
+		PlayerData.weakness_tags.append(str(wt))
+
+	PlayerData.immunity_tags.clear()
+	for it in data.get("immunity_tags", []):
+		PlayerData.immunity_tags.append(str(it))
+
+	# Sincronizar instâncias ativas da NenSkillTree se presentes na árvore de cena
+	if get_tree() != null:
+		var skill_trees := get_tree().get_nodes_in_group("nen_skill_tree")
+		for st in skill_trees:
+			if st.has_method("from_dict"):
+				st.from_dict({
+					"node_levels": PlayerData.nen_skill_tree_progress,
+					"ryu_caminho": PlayerData.nen_ryu_caminho
+				})
 
 	# Tutorial & Conhecimentos (Hunter Guide)
 	PlayerData.tour_lobby_concluido = bool(data.get("tour_lobby_concluido", false))

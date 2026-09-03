@@ -24,6 +24,7 @@ var show_markers: bool = true
 
 
 func _ready() -> void:
+	visible = false
 	if director_node == null:
 		director_node = get_tree().get_first_node_in_group("content_director") as Node2D
 		
@@ -32,7 +33,15 @@ func _ready() -> void:
 		chk_markers.toggled.connect(func(val): show_markers = val)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_F6:
+			visible = not visible
+
+
 func _process(_delta: float) -> void:
+	if not visible:
+		return
 	if director_node == null:
 		director_node = get_tree().get_first_node_in_group("content_director") as Node2D
 		return

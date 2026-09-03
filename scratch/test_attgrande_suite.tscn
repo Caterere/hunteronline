@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://b4v7hta5m7rfw"]
+
+[ext_resource type="Script" path="res://scratch/test_attgrande_suite.gd" id="1_test_attgrande"]
+
+[node name="TestAttGrandeSuite" type="Node2D"]
+script = ExtResource("1_test_attgrande")

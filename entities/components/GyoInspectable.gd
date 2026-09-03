@@ -24,6 +24,7 @@ signal visibilidade_aura_alterada(visivel: bool)
 @export_multiline var descricao_pista: String = "Uma concentração residual de aura foi descoberta aqui."
 @export var categoria_nen: String = "Desconhecida"
 @export var requer_gyo: bool = true
+@export var nivel_gyo_minimo: int = 1
 @export var consumir_ao_inspecionar: bool = false
 
 @export_category("Visual da Aura")
@@ -67,8 +68,16 @@ func _criar_elementos_visuais() -> void:
 		add_child(label_dica)
 
 func atualizar_estado_gyo(ativo: bool) -> void:
-	gyo_ativo_no_jogador = ativo
-	var visivel = (not requer_gyo) or ativo
+	atualizar_estado_gyo_com_nivel(ativo, 1)
+
+func atualizar_estado_gyo_com_nivel(ativo: bool, nivel_percepcao: int) -> void:
+	var visivel: bool = false
+	if PerceptionSystem != null and PerceptionSystem.has_method("avaliar_visibilidade_segredo"):
+		visivel = PerceptionSystem.avaliar_visibilidade_segredo(nivel_percepcao, ativo, nivel_gyo_minimo, requer_gyo)
+		gyo_ativo_no_jogador = ativo and (nivel_percepcao >= nivel_gyo_minimo)
+	else:
+		gyo_ativo_no_jogador = ativo and (nivel_percepcao >= nivel_gyo_minimo)
+		visivel = (not requer_gyo) or gyo_ativo_no_jogador
 	
 	if label_dica != null:
 		label_dica.visible = visivel and (jogador_proximo != null)
@@ -81,8 +90,12 @@ func _on_body_entered(body: Node2D) -> void:
 		jogador_proximo = body
 		# Verificar estado de Gyo atual do player
 		var nen_sys = body.get_node_or_null("NenSystem")
-		if nen_sys != null and nen_sys.has_method("tecnica_ativa"):
-			gyo_ativo_no_jogador = nen_sys.tecnica_ativa(NenSystem.Tecnica.GYO)
+		var nivel_p: int = 1
+		if nen_sys != null:
+			if nen_sys.has_method("obter_nivel_gyo"):
+				nivel_p = nen_sys.obter_nivel_gyo()
+			if nen_sys.has_method("esta_em_gyo"):
+				gyo_ativo_no_jogador = nen_sys.esta_em_gyo() and (nivel_p >= nivel_gyo_minimo)
 		
 		if label_dica != null:
 			label_dica.visible = (not requer_gyo) or gyo_ativo_no_jogador

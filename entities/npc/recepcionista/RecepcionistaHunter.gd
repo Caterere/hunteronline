@@ -65,6 +65,11 @@ func _processar_interacao_tutorial(visual_dialogue: CanvasLayer) -> void:
 	var falas: Array[Dictionary] = TutorialManager.obter_dialogo_elena()
 	_interacao_em_processamento = true
 
+	# Watchdog de resiliência: garante destravamento seguro mesmo se a UI falhar
+	get_tree().create_timer(4.0).timeout.connect(func():
+		_interacao_em_processamento = false
+	)
+
 	match etapa:
 		TutorialManager.Step.INTRODUCAO:
 			if visual_dialogue != null:

@@ -1,6 +1,6 @@
-[gd_scene format=3 uid="uid://bvtslice1pad0k1"]
+[gd_scene load_steps=2 format=3 uid="uid://c_vert_slice_suite_01"]
 
-[ext_resource type="Script" path="res://scratch/test_vertical_slice_suite.gd" id="1_test"]
+[ext_resource type="Script" path="res://scratch/test_vertical_slice_suite.gd" id="1_vert_slice"]
 
-[node name="TestVerticalSliceSuite" type="Node2D"]
-script = ExtResource("1_test")
+[node name="TestVerticalSliceSuite" type="Node"]
+script = ExtResource("1_vert_slice")

@@ -153,7 +153,7 @@ func _atualizar_nen_menu() -> void:
 		titulo_label.text = "MENU DE NEN — " + nome.to_upper()
 
 	if nen_level_label != null:
-		nen_level_label.text = "Nen Lv. %d" % nivel_nen
+		nen_level_label.text = "Pontos de Habilidade: ⚡ %d SP" % PlayerData.nen_skill_points
 
 	if nen_xp_label != null:
 		nen_xp_label.text = "XP Nen: %d / %d" % [xp_nen, xp_necessario]

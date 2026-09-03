@@ -52,6 +52,23 @@ var attributes: Dictionary = {
 	"nivel": 1
 }
 
+# ============================================================
+# TAGS CANÔNICAS DE RESISTÊNCIA & MITIGAÇÃO (FASE 3)
+# ============================================================
+
+var resistance_tags: Array[String] = []
+var weakness_tags: Array[String] = []
+var immunity_tags: Array[String] = []
+
+func eh_vulneravel_a(tags: Array) -> bool:
+	return GameplayTags.has_any(weakness_tags, tags)
+
+func eh_resistente_a(tags: Array) -> bool:
+	return GameplayTags.has_any(resistance_tags, tags)
+
+func eh_imune_a(tags: Array) -> bool:
+	return GameplayTags.has_any(immunity_tags, tags)
+
 
 # ============================================================
 # QUESTS
@@ -310,11 +327,28 @@ var absorbed_stats_registry: Dictionary = {} # {"enemy_id": int(count)} para dim
 var hatsu_fragments_discovered: Array[String] = [] # Modificadores e fragmentos descobertos
 var aura_visual_profile: AuraVisualProfile = null
 var is_debug_mode: bool = false
+var skill_tree: Node = null # Instância canônica permanente de NenSkillTree
 var backup_state_before_debug: Dictionary = {}
 
 
 func _ready() -> void:
 	reset()
+	_inicializar_skill_tree()
+
+
+func _inicializar_skill_tree() -> void:
+	if skill_tree == null or not is_instance_valid(skill_tree):
+		var st_script = load("res://scripts/systems/NenSkillTree.gd")
+		if st_script != null:
+			skill_tree = st_script.new()
+			skill_tree.name = "NenSkillTree"
+			add_child(skill_tree)
+
+
+func obter_skill_tree() -> Node:
+	if skill_tree == null or not is_instance_valid(skill_tree):
+		_inicializar_skill_tree()
+	return skill_tree
 
 
 func reset() -> void:
@@ -349,6 +383,8 @@ func reset() -> void:
 	nen_skill_points = 0
 	nen_skill_tree_progress.clear()
 	nen_ryu_caminho = ""
+	if skill_tree != null and is_instance_valid(skill_tree) and skill_tree.has_method("resetar_arvore"):
+		skill_tree.resetar_arvore()
 
 
 
@@ -379,6 +415,45 @@ func remover_modificadores_da_fonte(source: String) -> void:
 		if active_modifiers[i].source == source:
 			active_modifiers.remove_at(i)
 	recalcular_todos_atributos()
+
+func obter_modificador_total(stat_name: String) -> float:
+	var total: float = 0.0
+	for m in active_modifiers:
+		if m == null or str(m.stat_name) != stat_name:
+			continue
+		total += float(m.value)
+	return total
+
+func obter_modificador_flat(stat_name: String) -> float:
+	var total: float = 0.0
+	for m in active_modifiers:
+		if m == null or str(m.stat_name) != stat_name:
+			continue
+		if int(m.type) == 0:
+			total += float(m.value)
+	return total
+
+func obter_modificador_percentual(stat_name: String) -> float:
+	var total: float = 0.0
+	for m in active_modifiers:
+		if m == null or str(m.stat_name) != stat_name:
+			continue
+		if int(m.type) == 1:
+			total += float(m.value)
+	return total
+
+func obter_aura() -> float:
+	return float(attributes.get("aura", 0.0))
+
+func obter_aura_max() -> float:
+	return float(attributes.get("aura_max", 100.0))
+
+func consumir_aura(quantidade: float) -> bool:
+	var atual: float = obter_aura()
+	if atual >= quantidade:
+		attributes["aura"] = max(0.0, atual - quantidade)
+		return true
+	return false
 
 func obter_stat_calculado(stat_name: String) -> float:
 	var nivel: int = int(attributes.get("nivel", 1))
