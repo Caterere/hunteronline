@@ -22,9 +22,9 @@ var database: SkillTreeDatabase = null
 # Câmera e Navegação
 var pan_offset: Vector2 = Vector2.ZERO
 var target_pan: Vector2 = Vector2.ZERO
-var zoom_level: float = 0.85
-var target_zoom: float = 0.85
-const MIN_ZOOM: float = 0.25
+var zoom_level: float = 0.70
+var target_zoom: float = 0.70
+const MIN_ZOOM: float = 0.20
 const MAX_ZOOM: float = 2.20
 var is_dragging: bool = false
 var drag_start_mouse: Vector2 = Vector2.ZERO
@@ -514,7 +514,7 @@ func _on_map_draw() -> void:
 
 func _draw_background_grid(center_screen: Vector2) -> void:
 	# Círculos concêntricos e eixos radiais sutis
-	var rings: Array[float] = [300.0, 600.0, 1000.0, 1500.0, 2100.0, 2600.0]
+	var rings: Array[float] = [300.0, 700.0, 1200.0, 1800.0, 2400.0, 3000.0]
 	for r: float in rings:
 		var r_screen: float = r * zoom_level
 		var center_pt := center_screen + pan_offset
