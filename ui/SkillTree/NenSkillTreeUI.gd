@@ -31,12 +31,15 @@ var drag_start_mouse: Vector2 = Vector2.ZERO
 var drag_start_pan: Vector2 = Vector2.ZERO
 var has_dragged: bool = false
 
+signal fullscreen_toggled(is_fullscreen: bool)
+
 # Seleção e Hover
 var hovered_node_id: StringName = &""
 var selected_node_id: StringName = &"nexus_center"
 var search_filter: String = ""
 var selected_region_filter: StringName = &""
 var is_fullscreen: bool = false
+var is_inspector_collapsed: bool = false
 
 # Componentes de UI
 var map_viewport: Control
@@ -49,6 +52,9 @@ var search_edit: LineEdit
 var lbl_points: Label
 var btn_fullscreen: Button
 var btn_invest: Button
+var btn_collapse: Button = null
+var scroll_insp: ScrollContainer = null
+var vbox_insp_main: VBoxContainer = null
 
 # Inspetor
 var lbl_insp_name: Label
@@ -58,6 +64,11 @@ var lbl_insp_desc: Label
 var lbl_insp_effects: Label
 var lbl_insp_prereqs: Label
 var lbl_insp_tags: Label
+var lbl_insp_condicao: Label
+
+# Compatibilidade com testes e integrações legadas
+var tree_canvas: Control = null
+var node_buttons: Dictionary = {}
 
 # Tooltip Flutuante
 var lbl_tip_title: Label
@@ -81,6 +92,9 @@ func _ready() -> void:
 	_localizar_skill_tree()
 	_construir_ui()
 
+	resized.connect(_atualizar_layout_responsivo)
+	call_deferred("_atualizar_layout_responsivo")
+
 	# Centralizar inicialmente no Nexus (0,0)
 	call_deferred("_centralizar_no_nexus")
 
@@ -89,7 +103,7 @@ func _localizar_skill_tree() -> void:
 	if PlayerData != null and "skill_tree" in PlayerData and PlayerData.skill_tree != null:
 		skill_tree = PlayerData.skill_tree as NenSkillTree
 
-	if skill_tree == null:
+	if skill_tree == null and is_inside_tree() and get_tree() != null:
 		var trees = get_tree().get_nodes_in_group("nen_skill_tree")
 		if not trees.is_empty():
 			skill_tree = trees[0] as NenSkillTree
@@ -137,6 +151,8 @@ func _construir_ui() -> void:
 	map_viewport.draw.connect(_on_map_draw)
 	map_viewport.gui_input.connect(_on_map_gui_input)
 	add_child(map_viewport)
+	tree_canvas = map_viewport
+	_sincronizar_node_buttons()
 
 	# 2. Top Header Bar (Controles de Navegação, Filtros, Busca, Zoom)
 	_construir_top_bar()
@@ -161,70 +177,72 @@ func _construir_ui() -> void:
 func _construir_top_bar() -> void:
 	top_bar = PanelContainer.new()
 	top_bar.set_anchors_preset(Control.PRESET_TOP_WIDE)
-	top_bar.offset_bottom = 44.0
-	top_bar.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD, 2))
+	top_bar.offset_bottom = 24.0
+	top_bar.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD, 1))
 	add_child(top_bar)
 
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 8)
+	hbox.add_theme_constant_override("separation", 4)
 	top_bar.add_child(hbox)
 
 	var lbl_title := Label.new()
-	lbl_title.text = "🌌 CONSTELAÇÃO DO NEN"
-	lbl_title.add_theme_font_size_override("font_size", 11)
+	lbl_title.text = "🌌 NEN TREE"
+	lbl_title.add_theme_font_size_override("font_size", 7)
 	lbl_title.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	hbox.add_child(lbl_title)
 
-	# Busca de Nós
+	# Busca de Nós Compacta
 	search_edit = LineEdit.new()
-	search_edit.placeholder_text = "🔍 Buscar nó por nome, stat ou tag..."
-	search_edit.custom_minimum_size = Vector2(210, 24)
-	search_edit.add_theme_font_size_override("font_size", 9)
+	search_edit.placeholder_text = "🔍 Buscar nó, stat, tag..."
+	search_edit.custom_minimum_size = Vector2(110, 18)
+	search_edit.add_theme_font_size_override("font_size", 6)
 	search_edit.text_changed.connect(_on_search_changed)
 	hbox.add_child(search_edit)
 
-	# Menu de Regiões
+	# Menu de Regiões Compacto
 	var opt_regions := OptionButton.new()
-	opt_regions.add_item("Todas as Regiões", 0)
+	opt_regions.add_item("Regiões (Todas)", 0)
 	var idx := 1
 	for reg_id in database.REGIONS.keys():
 		opt_regions.add_item(database.REGIONS[reg_id]["name"], idx)
 		opt_regions.set_item_metadata(idx, reg_id)
 		idx += 1
 	opt_regions.item_selected.connect(_on_region_selected)
-	opt_regions.add_theme_font_size_override("font_size", 8)
+	opt_regions.add_theme_font_size_override("font_size", 6)
 	hbox.add_child(opt_regions)
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox.add_child(spacer)
 
-	# Controles de Zoom
+	# Controles de Zoom Compactos
 	var btn_zoom_out := Button.new()
-	btn_zoom_out.text = " ➖ "
+	btn_zoom_out.text = " - "
+	btn_zoom_out.add_theme_font_size_override("font_size", 6)
 	btn_zoom_out.pressed.connect(func(): _ajustar_zoom(1.0 / 1.25))
 	hbox.add_child(btn_zoom_out)
 
 	var btn_zoom_in := Button.new()
-	btn_zoom_in.text = " ➕ "
+	btn_zoom_in.text = " + "
+	btn_zoom_in.add_theme_font_size_override("font_size", 6)
 	btn_zoom_in.pressed.connect(func(): _ajustar_zoom(1.25))
 	hbox.add_child(btn_zoom_in)
 
 	var btn_center_nexus := Button.new()
-	btn_center_nexus.text = " 🎯 Nexus "
-	btn_center_nexus.add_theme_font_size_override("font_size", 8)
+	btn_center_nexus.text = "🎯 Nexus"
+	btn_center_nexus.add_theme_font_size_override("font_size", 6)
 	btn_center_nexus.pressed.connect(_centralizar_no_nexus)
 	hbox.add_child(btn_center_nexus)
 
 	var btn_center_last := Button.new()
-	btn_center_last.text = " ⭐ Progresso "
-	btn_center_last.add_theme_font_size_override("font_size", 8)
+	btn_center_last.text = "⭐ Progresso"
+	btn_center_last.add_theme_font_size_override("font_size", 6)
 	btn_center_last.pressed.connect(_centralizar_no_progresso)
 	hbox.add_child(btn_center_last)
 
 	btn_fullscreen = Button.new()
-	btn_fullscreen.text = " ⛶ Tela Cheia "
-	btn_fullscreen.add_theme_font_size_override("font_size", 8)
+	btn_fullscreen.text = "⛶ Tela Cheia"
+	btn_fullscreen.add_theme_font_size_override("font_size", 6)
 	btn_fullscreen.pressed.connect(_toggle_fullscreen)
 	hbox.add_child(btn_fullscreen)
 
@@ -232,17 +250,17 @@ func _construir_top_bar() -> void:
 func _construir_bottom_bar() -> void:
 	bottom_bar = PanelContainer.new()
 	bottom_bar.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
-	bottom_bar.offset_top = -36.0
-	bottom_bar.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_CYAN, 2))
+	bottom_bar.offset_top = -20.0
+	bottom_bar.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_CYAN, 1))
 	add_child(bottom_bar)
 
 	var hbox := HBoxContainer.new()
-	hbox.add_theme_constant_override("separation", 10)
+	hbox.add_theme_constant_override("separation", 6)
 	bottom_bar.add_child(hbox)
 
 	lbl_points = Label.new()
-	lbl_points.text = "⭐ PONTOS DE NEN DISPONÍVEIS: %d" % (PlayerData.nen_skill_points if PlayerData != null else 0)
-	lbl_points.add_theme_font_size_override("font_size", 10)
+	lbl_points.text = "⭐ PONTOS DE NEN: %d SP" % (PlayerData.nen_skill_points if PlayerData != null else 0)
+	lbl_points.add_theme_font_size_override("font_size", 6)
 	lbl_points.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	hbox.add_child(lbl_points)
 
@@ -251,8 +269,8 @@ func _construir_bottom_bar() -> void:
 	hbox.add_child(spacer)
 
 	var btn_reset := Button.new()
-	btn_reset.text = " 🔄 Resetar Árvore "
-	btn_reset.add_theme_font_size_override("font_size", 9)
+	btn_reset.text = "🔄 Resetar"
+	btn_reset.add_theme_font_size_override("font_size", 6)
 	btn_reset.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
 	btn_reset.pressed.connect(func(): confirmation_dialog.popup_centered())
 	hbox.add_child(btn_reset)
@@ -261,36 +279,60 @@ func _construir_bottom_bar() -> void:
 func _construir_inspector() -> void:
 	inspector_panel = PanelContainer.new()
 	inspector_panel.set_anchors_preset(Control.PRESET_RIGHT_WIDE)
-	inspector_panel.offset_left = -260.0
-	inspector_panel.offset_top = 48.0
-	inspector_panel.offset_bottom = -40.0
-	inspector_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 3))
+	var initial_w := clampf(size.x * 0.14, 130.0, 190.0) if size.x > 50.0 else 140.0
+	inspector_panel.offset_left = -initial_w
+	inspector_panel.offset_top = 26.0
+	inspector_panel.offset_bottom = -22.0
+	inspector_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD, 2))
 	add_child(inspector_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_top", 4)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_bottom", 4)
 	inspector_panel.add_child(margin)
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 6)
-	margin.add_child(vbox)
+	vbox_insp_main = VBoxContainer.new()
+	vbox_insp_main.add_theme_constant_override("separation", 2)
+	margin.add_child(vbox_insp_main)
+
+	# Cabeçalho com Nome e Botão de Recolher
+	var hbox_header := HBoxContainer.new()
+	vbox_insp_main.add_child(hbox_header)
 
 	lbl_insp_name = Label.new()
 	lbl_insp_name.text = "Selecione um Nó"
 	lbl_insp_name.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_insp_name.add_theme_font_size_override("font_size", 11)
+	lbl_insp_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl_insp_name.add_theme_font_size_override("font_size", 7)
 	lbl_insp_name.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
-	vbox.add_child(lbl_insp_name)
+	hbox_header.add_child(lbl_insp_name)
+
+	btn_collapse = Button.new()
+	btn_collapse.text = "▶"
+	btn_collapse.tooltip_text = "Recolher / Expandir Painel"
+	btn_collapse.add_theme_font_size_override("font_size", 6)
+	btn_collapse.pressed.connect(_toggle_inspector_collapse)
+	hbox_header.add_child(btn_collapse)
+
+	# Conteúdo Rolável
+	scroll_insp = ScrollContainer.new()
+	scroll_insp.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll_insp.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	vbox_insp_main.add_child(scroll_insp)
+
+	var vbox := VBoxContainer.new()
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 2)
+	scroll_insp.add_child(vbox)
 
 	var hbox_type := HBoxContainer.new()
 	vbox.add_child(hbox_type)
 
 	lbl_insp_type = Label.new()
 	lbl_insp_type.text = "TIPO: -"
-	lbl_insp_type.add_theme_font_size_override("font_size", 8)
+	lbl_insp_type.add_theme_font_size_override("font_size", 5)
 	hbox_type.add_child(lbl_insp_type)
 
 	var sp_typ := Control.new()
@@ -299,23 +341,23 @@ func _construir_inspector() -> void:
 
 	lbl_insp_rank = Label.new()
 	lbl_insp_rank.text = "Rank: 0/1"
-	lbl_insp_rank.add_theme_font_size_override("font_size", 8)
+	lbl_insp_rank.add_theme_font_size_override("font_size", 5)
 	hbox_type.add_child(lbl_insp_rank)
 
 	var sep1 := HSeparator.new()
 	vbox.add_child(sep1)
 
 	lbl_insp_desc = Label.new()
-	lbl_insp_desc.text = "Clique em qualquer nó da constelação para visualizar sua descrição e efeitos de progressão."
+	lbl_insp_desc.text = "Clique em qualquer nó da constelação para visualizar sua descrição e efeitos."
 	lbl_insp_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_insp_desc.add_theme_font_size_override("font_size", 8)
+	lbl_insp_desc.add_theme_font_size_override("font_size", 5)
 	lbl_insp_desc.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_SECONDARY)
 	vbox.add_child(lbl_insp_desc)
 
 	lbl_insp_effects = Label.new()
 	lbl_insp_effects.text = ""
 	lbl_insp_effects.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_insp_effects.add_theme_font_size_override("font_size", 9)
+	lbl_insp_effects.add_theme_font_size_override("font_size", 6)
 	lbl_insp_effects.add_theme_color_override("font_color", Color(0.3, 0.95, 0.5))
 	vbox.add_child(lbl_insp_effects)
 
@@ -325,48 +367,52 @@ func _construir_inspector() -> void:
 	lbl_insp_prereqs = Label.new()
 	lbl_insp_prereqs.text = "Pré-requisitos: Nenhum"
 	lbl_insp_prereqs.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_insp_prereqs.add_theme_font_size_override("font_size", 8)
+	lbl_insp_prereqs.add_theme_font_size_override("font_size", 5)
 	vbox.add_child(lbl_insp_prereqs)
 
 	lbl_insp_tags = Label.new()
 	lbl_insp_tags.text = "Tags: -"
 	lbl_insp_tags.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_insp_tags.add_theme_font_size_override("font_size", 8)
+	lbl_insp_tags.add_theme_font_size_override("font_size", 5)
 	lbl_insp_tags.add_theme_color_override("font_color", Color(0.7, 0.7, 0.85))
 	vbox.add_child(lbl_insp_tags)
 
-	var sp_end := Control.new()
-	sp_end.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(sp_end)
+	lbl_insp_condicao = Label.new()
+	lbl_insp_condicao.text = ""
+	lbl_insp_condicao.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_insp_condicao.add_theme_font_size_override("font_size", 5)
+	lbl_insp_condicao.add_theme_color_override("font_color", Color(0.9, 0.7, 0.4))
+	vbox.add_child(lbl_insp_condicao)
 
+	# Botão de Investimento na base
 	btn_invest = Button.new()
-	btn_invest.text = "⚡ INVESTIR PONTO (1 SP)"
-	btn_invest.custom_minimum_size = Vector2(0, 32)
-	btn_invest.add_theme_font_size_override("font_size", 10)
+	btn_invest.text = "⚡ INVESTIR (1 SP)"
+	btn_invest.custom_minimum_size = Vector2(0, 20)
+	btn_invest.add_theme_font_size_override("font_size", 6)
 	btn_invest.pressed.connect(_on_invest_pressed)
-	vbox.add_child(btn_invest)
+	vbox_insp_main.add_child(btn_invest)
 
 
 func _construir_floating_tooltip() -> void:
 	tooltip_panel = PanelContainer.new()
 	tooltip_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tooltip_panel.visible = false
-	tooltip_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD, 2))
+	tooltip_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD, 1))
 	add_child(tooltip_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_top", 4)
-	margin.add_theme_constant_override("margin_right", 6)
-	margin.add_theme_constant_override("margin_bottom", 4)
+	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_top", 3)
+	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_bottom", 3)
 	tooltip_panel.add_child(margin)
 
 	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 2)
+	vbox.add_theme_constant_override("separation", 1)
 	margin.add_child(vbox)
 
 	lbl_tip_title = Label.new()
-	lbl_tip_title.add_theme_font_size_override("font_size", 9)
+	lbl_tip_title.add_theme_font_size_override("font_size", 6)
 	lbl_tip_title.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	vbox.add_child(lbl_tip_title)
 
@@ -374,7 +420,7 @@ func _construir_floating_tooltip() -> void:
 	vbox.add_child(hbox)
 
 	lbl_tip_type = Label.new()
-	lbl_tip_type.add_theme_font_size_override("font_size", 7)
+	lbl_tip_type.add_theme_font_size_override("font_size", 5)
 	hbox.add_child(lbl_tip_type)
 
 	var sp := Control.new()
@@ -382,11 +428,12 @@ func _construir_floating_tooltip() -> void:
 	hbox.add_child(sp)
 
 	lbl_tip_cost = Label.new()
-	lbl_tip_cost.add_theme_font_size_override("font_size", 7)
+	lbl_tip_cost.add_theme_font_size_override("font_size", 5)
+	lbl_tip_cost.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	hbox.add_child(lbl_tip_cost)
 
 	lbl_tip_effects = Label.new()
-	lbl_tip_effects.add_theme_font_size_override("font_size", 8)
+	lbl_tip_effects.add_theme_font_size_override("font_size", 5)
 	lbl_tip_effects.add_theme_color_override("font_color", Color(0.35, 1.0, 0.6))
 	vbox.add_child(lbl_tip_effects)
 
@@ -656,7 +703,11 @@ func _obter_no_sob_cursor(screen_pos: Vector2) -> StringName:
 # ATUALIZAÇÃO DO INSPETOR E TOOLTIP
 # ------------------------------------------------------------------------------
 func _atualizar_inspector() -> void:
-	if not database.nodes.has(selected_node_id):
+	if database == null:
+		database = SkillTreeDatabase.get_instance()
+	if database == null or not database.nodes.has(selected_node_id):
+		return
+	if lbl_insp_name == null:
 		return
 
 	var node: SkillTreeNodeData = database.nodes[selected_node_id]
@@ -707,6 +758,20 @@ func _atualizar_inspector() -> void:
 
 	lbl_insp_tags.text = "Tags: %s" % ", ".join(node.tags)
 
+	if lbl_insp_condicao != null:
+		if node.tags.has("bloodied"):
+			lbl_insp_condicao.text = "Condição: Vida abaixo de 40%"
+		elif node.tags.has("isolated_target"):
+			lbl_insp_condicao.text = "Condição: Alvo isolado"
+		elif node.tags.has("surrounded"):
+			lbl_insp_condicao.text = "Condição: Cercado por 3+ inimigos"
+		elif node.tags.has("first_strike"):
+			lbl_insp_condicao.text = "Condição: Primeiro golpe contra o alvo"
+		elif not node.tags.is_empty():
+			lbl_insp_condicao.text = "Condição: Requisitos de combate padrão"
+		else:
+			lbl_insp_condicao.text = ""
+
 	# Botão de Investimento
 	if is_maxed:
 		btn_invest.text = "✓ DOMINADO NO MÁXIMO"
@@ -753,12 +818,14 @@ func _atualizar_floating_tooltip(mouse_pos: Vector2) -> void:
 
 
 func _posicionar_tooltip(mouse_pos: Vector2) -> void:
-	var offset := Vector2(16, 16)
-	var pos := mouse_pos + offset
-	if pos.x + 200.0 > size.x:
-		pos.x = mouse_pos.x - 210.0
-	if pos.y + 100.0 > size.y:
-		pos.y = mouse_pos.y - 110.0
+	var tip_sz: Vector2 = tooltip_panel.size if tooltip_panel.size.x > 10.0 else Vector2(120, 50)
+	var pos := mouse_pos + Vector2(10, 10)
+	if pos.x + tip_sz.x > size.x:
+		pos.x = mouse_pos.x - tip_sz.x - 10.0
+	if pos.y + tip_sz.y > size.y:
+		pos.y = mouse_pos.y - tip_sz.y - 10.0
+	pos.x = maxf(pos.x, 4.0)
+	pos.y = maxf(pos.y, 4.0)
 	tooltip_panel.position = pos
 
 
@@ -859,12 +926,59 @@ func _navegar_para_posicao_mundo(world_pos: Vector2, target_z: float = 0.85) -> 
 func _toggle_fullscreen() -> void:
 	is_fullscreen = not is_fullscreen
 	if is_fullscreen:
-		btn_fullscreen.text = " 🗗 Reduzir "
-		inspector_panel.offset_left = -300.0
+		btn_fullscreen.text = "🗗 Reduzir"
 	else:
-		btn_fullscreen.text = " ⛶ Tela Cheia "
-		inspector_panel.offset_left = -260.0
+		btn_fullscreen.text = "⛶ Tela Cheia"
+	_atualizar_layout_responsivo()
+	fullscreen_toggled.emit(is_fullscreen)
 	map_viewport.queue_redraw()
+
+
+func _atualizar_layout_responsivo() -> void:
+	if inspector_panel != null:
+		if is_inspector_collapsed:
+			inspector_panel.offset_left = -22.0
+		else:
+			var cur_w: float = size.x if size.x > 50.0 else (get_viewport().get_visible_rect().size.x if get_viewport() != null else 1280.0)
+			# Ocupa estritamente entre 12% e 15% da largura da tela (130px a 190px)
+			var target_w: float = clampf(cur_w * 0.14, 130.0, 190.0)
+			inspector_panel.offset_left = -target_w
+		inspector_panel.offset_top = 26.0
+		inspector_panel.offset_bottom = -22.0
+
+	if top_bar != null:
+		top_bar.offset_bottom = 24.0
+
+	if bottom_bar != null:
+		bottom_bar.offset_top = -20.0
+
+	if map_viewport != null:
+		map_viewport.queue_redraw()
+
+
+func _toggle_inspector_collapse() -> void:
+	is_inspector_collapsed = not is_inspector_collapsed
+	if is_inspector_collapsed:
+		if btn_collapse != null:
+			btn_collapse.text = "◀"
+		if scroll_insp != null:
+			scroll_insp.visible = false
+		if btn_invest != null:
+			btn_invest.visible = false
+		if lbl_insp_name != null:
+			lbl_insp_name.visible = false
+		if inspector_panel != null:
+			inspector_panel.offset_left = -22.0
+	else:
+		if btn_collapse != null:
+			btn_collapse.text = "▶"
+		if scroll_insp != null:
+			scroll_insp.visible = true
+		if btn_invest != null:
+			btn_invest.visible = true
+		if lbl_insp_name != null:
+			lbl_insp_name.visible = true
+		_atualizar_layout_responsivo()
 
 
 func _node_matches_search(node: SkillTreeNodeData) -> bool:
@@ -881,3 +995,80 @@ func _node_matches_search(node: SkillTreeNodeData) -> bool:
 		if ef.get("stat", "").to_lower().contains(search_filter):
 			return true
 	return false
+
+
+# ------------------------------------------------------------------------------
+# ATUALIZAÇÃO DA EXIBIÇÃO & COMPATIBILIDADE CANÔNICA
+# ------------------------------------------------------------------------------
+func _atualizar_exibicao() -> void:
+	atualizar_exibicao()
+
+
+func atualizar_exibicao() -> void:
+	if database == null:
+		database = SkillTreeDatabase.get_instance()
+	_localizar_skill_tree()
+	_atualizar_badge_pontos()
+	_atualizar_inspector()
+	if map_viewport != null:
+		map_viewport.queue_redraw()
+
+
+func _sincronizar_node_buttons() -> void:
+	node_buttons.clear()
+	if database == null:
+		database = SkillTreeDatabase.get_instance()
+	if database != null:
+		for nid in database.nodes.keys():
+			node_buttons[nid] = map_viewport
+			node_buttons[String(nid)] = map_viewport
+
+
+func _atualizar_painel_inspetor() -> void:
+	_atualizar_inspector()
+
+
+func _on_botao_investir_pressionado() -> void:
+	_on_invest_pressed()
+
+
+func _corresponde_ao_filtro(cat: int, filtro: String) -> bool:
+	var f := filtro.to_lower()
+	match f:
+		"todos":
+			return true
+		"fundamentos":
+			return cat in [
+				NenSkillTree.Categoria.TEN,
+				NenSkillTree.Categoria.ZETSU,
+				NenSkillTree.Categoria.REN,
+				NenSkillTree.Categoria.GYO,
+				NenSkillTree.Categoria.EN,
+				NenSkillTree.Categoria.KO,
+				NenSkillTree.Categoria.SHU
+			]
+		"defesa":
+			return cat in [
+				NenSkillTree.Categoria.TEN,
+				NenSkillTree.Categoria.ZETSU,
+				NenSkillTree.Categoria.RYU_DEFENSIVO
+			]
+		"ofensa":
+			return cat in [
+				NenSkillTree.Categoria.REN,
+				NenSkillTree.Categoria.KO,
+				NenSkillTree.Categoria.RYU_OFENSIVO
+			]
+		"ryu":
+			return cat in [
+				NenSkillTree.Categoria.RYU_OFENSIVO,
+				NenSkillTree.Categoria.RYU_DEFENSIVO,
+				NenSkillTree.Categoria.RYU_EQUILIBRADO
+			]
+		"comportamentais", "comportamental":
+			return cat == NenSkillTree.Categoria.COMPORTAMENTAL
+		"sinergias", "sinergia":
+			return cat == NenSkillTree.Categoria.SINERGIA
+		_:
+			return true
+

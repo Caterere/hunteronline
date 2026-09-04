@@ -13,6 +13,9 @@ extends CanvasLayer
 
 var tab_container: TabContainer
 var panel_main: PanelContainer
+var center_container: CenterContainer
+var margin_main: MarginContainer
+var hbox_header: HBoxContainer
 
 # Abas
 var tab_status: VBoxContainer
@@ -53,6 +56,14 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = false
 	_construir_ui()
+	get_viewport().size_changed.connect(_on_viewport_resized)
+
+
+func _on_viewport_resized() -> void:
+	if tab_container != null:
+		var cur = tab_container.get_current_tab_control()
+		if cur != null and cur.name == "Nen Tree":
+			_configurar_layout_aba("Nen Tree")
 
 
 func _construir_ui() -> void:
@@ -69,7 +80,7 @@ func _construir_ui() -> void:
 	root_control.add_child(bg)
 
 	# CenterContainer para centralização responsiva absoluta em qualquer resolução
-	var center_container := CenterContainer.new()
+	center_container = CenterContainer.new()
 	center_container.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root_control.add_child(center_container)
 
@@ -78,19 +89,19 @@ func _construir_ui() -> void:
 	panel_main.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
 	center_container.add_child(panel_main)
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_top", 6)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_bottom", 6)
-	panel_main.add_child(margin)
+	margin_main = MarginContainer.new()
+	margin_main.add_theme_constant_override("margin_left", 8)
+	margin_main.add_theme_constant_override("margin_top", 6)
+	margin_main.add_theme_constant_override("margin_right", 8)
+	margin_main.add_theme_constant_override("margin_bottom", 6)
+	panel_main.add_child(margin_main)
 
 	var vbox := VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 3)
-	margin.add_child(vbox)
+	margin_main.add_child(vbox)
 
 	# Header com Dica de Teclas e Brasão Hunter
-	var hbox_header := HBoxContainer.new()
+	hbox_header = HBoxContainer.new()
 	vbox.add_child(hbox_header)
 
 	var lbl_title := Label.new()
@@ -173,7 +184,24 @@ func _criar_aba_nen() -> void:
 
 	nen_skill_tree_ui_instance = NenSkillTreeUI.new()
 	nen_skill_tree_ui_instance.name = "NenSkillTreeUIComponent"
+	nen_skill_tree_ui_instance.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nen_skill_tree_ui_instance.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	if nen_skill_tree_ui_instance.has_signal("fullscreen_toggled"):
+		nen_skill_tree_ui_instance.fullscreen_toggled.connect(_on_nen_tree_fullscreen_toggled)
 	nen_list_container.add_child(nen_skill_tree_ui_instance)
+
+
+func _on_nen_tree_fullscreen_toggled(is_fs: bool) -> void:
+	if hbox_header != null:
+		hbox_header.visible = not is_fs
+	if tab_container != null:
+		tab_container.tabs_visible = not is_fs
+	if margin_main != null:
+		var m := 0 if is_fs else 2
+		margin_main.add_theme_constant_override("margin_left", m)
+		margin_main.add_theme_constant_override("margin_top", m)
+		margin_main.add_theme_constant_override("margin_right", m)
+		margin_main.add_theme_constant_override("margin_bottom", m)
 
 
 func _criar_aba_hatsu() -> void:
@@ -409,6 +437,35 @@ func definir_aba_ativa(aba_index: int) -> void:
 		_atualizar_aba_atual()
 
 
+func _configurar_layout_aba(nome_aba: String) -> void:
+	var is_nen := (nome_aba == "Nen Tree")
+	if is_nen:
+		var vp_size := Vector2(get_viewport().get_visible_rect().size) if get_viewport() != null else Vector2(1280, 720)
+		if panel_main != null:
+			panel_main.custom_minimum_size = vp_size
+			panel_main.size = vp_size
+		if margin_main != null:
+			margin_main.add_theme_constant_override("margin_left", 2)
+			margin_main.add_theme_constant_override("margin_top", 2)
+			margin_main.add_theme_constant_override("margin_right", 2)
+			margin_main.add_theme_constant_override("margin_bottom", 2)
+		if nen_skill_tree_ui_instance != null and nen_skill_tree_ui_instance.has_method("_atualizar_layout_responsivo"):
+			nen_skill_tree_ui_instance._atualizar_layout_responsivo()
+	else:
+		if panel_main != null:
+			panel_main.custom_minimum_size = Vector2(460, 260)
+			panel_main.size = Vector2(460, 260)
+		if margin_main != null:
+			margin_main.add_theme_constant_override("margin_left", 8)
+			margin_main.add_theme_constant_override("margin_top", 6)
+			margin_main.add_theme_constant_override("margin_right", 8)
+			margin_main.add_theme_constant_override("margin_bottom", 6)
+		if hbox_header != null:
+			hbox_header.visible = true
+		if tab_container != null:
+			tab_container.tabs_visible = true
+
+
 func _atualizar_aba_atual() -> void:
 	if not visible:
 		return
@@ -416,6 +473,8 @@ func _atualizar_aba_atual() -> void:
 	var cur = tab_container.get_current_tab_control()
 	if cur == null:
 		return
+
+	_configurar_layout_aba(cur.name)
 
 	match cur.name:
 		"Status":
@@ -534,7 +593,10 @@ func _atualizar_conteudo_inventario() -> void:
 
 func _atualizar_conteudo_nen() -> void:
 	if nen_skill_tree_ui_instance != null:
-		nen_skill_tree_ui_instance._atualizar_exibicao()
+		if nen_skill_tree_ui_instance.has_method("_atualizar_exibicao"):
+			nen_skill_tree_ui_instance._atualizar_exibicao()
+		elif nen_skill_tree_ui_instance.has_method("atualizar_exibicao"):
+			nen_skill_tree_ui_instance.atualizar_exibicao()
 		return
 
 	if nen_list_container == null:

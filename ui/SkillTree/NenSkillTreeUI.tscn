@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://b7v4k2q8x1naa"]
+
+[ext_resource type="Script" path="res://ui/SkillTree/NenSkillTreeUI.gd" id="1_nenskilltree"]
+
+[node name="NenSkillTreeUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_nenskilltree")
