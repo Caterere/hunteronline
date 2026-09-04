@@ -426,10 +426,10 @@ func _atualizar_inspetor() -> void:
 
 func _equipar_hatsu_no_slot(slot_id: int, hid: String) -> void:
 	if HatsuProgressionManager != null:
-		var check := HatsuProgressionManager.can_equip_to_slot(slot_id, hid)
+		var check: Dictionary = HatsuProgressionManager.can_equip_to_slot(slot_id, hid)
 		if not check.get("can_equip", false):
 			if EventBus != null and EventBus.has_signal("toast_enviado"):
-				EventBus.emit_toast(check.get("message", "Não é possível equipar."), Color(1.0, 0.4, 0.4))
+				EventBus.emit_toast(str(check.get("message", "Não é possível equipar.")), Color(1.0, 0.4, 0.4))
 			return
 		HatsuProgressionManager.equipar_hatsu(slot_id, hid)
 	else:
@@ -454,11 +454,11 @@ func _atualizar_footer_timer() -> void:
 		lbl_footer_status.text = "Forja de Hatsu disponível."
 		return
 
-	var check := HatsuProgressionManager.can_create_hatsu()
-	var cur_arch := check.get("archive_count", 0)
-	var max_arch := check.get("archive_max", 12)
-	var cost := check.get("cost_jenny", 5000)
-	var rem_sec := check.get("remaining_seconds", 0)
+	var check: Dictionary = HatsuProgressionManager.can_create_hatsu()
+	var cur_arch: int = int(check.get("archive_count", 0))
+	var max_arch: int = int(check.get("archive_max", 12))
+	var cost: int = int(check.get("cost_jenny", 5000))
+	var rem_sec: int = int(check.get("remaining_seconds", 0))
 
 	if not check.get("can_create", false):
 		if check.get("reason") == "SLOT_LOCKED":
@@ -489,10 +489,10 @@ func _formatar_tempo(segundos: int) -> String:
 
 func _abrir_criador_hatsu() -> void:
 	if HatsuProgressionManager != null:
-		var check := HatsuProgressionManager.can_create_hatsu()
+		var check: Dictionary = HatsuProgressionManager.can_create_hatsu()
 		if not check.get("can_create", false):
 			if EventBus != null and EventBus.has_signal("toast_enviado"):
-				EventBus.emit_toast(check.get("message", "Forja indisponível."), Color(1.0, 0.4, 0.4))
+				EventBus.emit_toast(str(check.get("message", "Forja indisponível.")), Color(1.0, 0.4, 0.4))
 			return
 
 	fechar()

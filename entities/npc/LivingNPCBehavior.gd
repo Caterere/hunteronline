@@ -165,9 +165,24 @@ func _on_time_phase_changed(nova_fase: String) -> void:
 				velocidade_andar = 24.0
 
 
+@export var schedule_waypoints: Array[Vector2] = []
+var current_waypoint_idx: int = 0
+var _cached_player: Node2D = null
+
+
 func _physics_process(delta: float) -> void:
 	if npc_body == null:
 		return
+
+	# Otimização: se o jogador estiver muito distante (> 480px), suspende cálculo de movimento
+	if _cached_player == null or not is_instance_valid(_cached_player):
+		var players = get_tree().get_nodes_in_group("player") if get_tree() else []
+		if not players.is_empty():
+			_cached_player = players[0] as Node2D
+
+	if _cached_player != null and is_instance_valid(_cached_player):
+		if npc_body.global_position.distance_to(_cached_player.global_position) > 480.0:
+			return
 
 	if timer_espera > 0.0:
 		timer_espera -= delta
@@ -186,8 +201,12 @@ func _physics_process(delta: float) -> void:
 	npc_body.move_and_slide()
 
 
-
 func _escolher_novo_destino() -> void:
+	if not schedule_waypoints.is_empty():
+		current_waypoint_idx = (current_waypoint_idx + 1) % schedule_waypoints.size()
+		pos_alvo = schedule_waypoints[current_waypoint_idx]
+		return
+
 	var angulo = randf_range(0, TAU)
 	var dist = randf_range(20.0, raio_patrulha)
 	pos_alvo = pos_inicial + Vector2(cos(angulo), sin(angulo)) * dist
@@ -202,6 +221,19 @@ func obter_rumor_aleatorio() -> String:
 
 
 func obter_dialogo_reativo() -> String:
+	# 0. Reatividade à Escolhas do Protagonista (Causalidade Narrativa da Fase F)
+	if StoryManager != null:
+		if StoryManager.get_choice("suco_tonpa") == "desmascarar":
+			return "🗣️ Bravo! Ouvi dizer que você desmascarou o 'Novato Killer' e o suco adulterado dele!"
+		elif StoryManager.get_choice("suco_tonpa") == "recusar":
+			return "🧐 Você tem bons instintos. O Exame Hunter não perdoa quem aceita gentilezas fáceis."
+		elif StoryManager.get_story_flag("zaban_treino_concluido", false):
+			return "🥋 Sua postura mudou... Sinto a estabilidade do fluxo de Nen ao seu redor."
+
+	# 0.01 Reatividade à Saga Atual
+	if StoryManager != null and StoryManager.current_saga >= 2:
+		return "🏆 Você é um dos sobreviventes do 287º Exame Hunter! O mundo dos Caçadores respeita seu nome."
+
 	# 0. Reatividade ao Medo / Hostilidade pelo RelationshipSystem
 	if RelationshipSystem != null and RelationshipSystem.obter_medo(npc_id) >= 70.0:
 		return "😨 P-Por favor, não me machuque! Eu não vi nada, juro!"
@@ -249,5 +281,38 @@ func obter_dialogo_reativo() -> String:
 
 	# 6. Rumor orgânico do RumorSystem ou ambiente
 	return obter_rumor_aleatorio()
+
+
+# ============================================================
+# SUPORTE A TREINAMENTO ESTRUTURADO (FASE F - PROGRESSÃO)
+# ============================================================
+
+func pode_treinar() -> bool:
+	return tipo_marcador == "trainer" or "treinador" in npc_nome.to_lower() or "wing" in npc_nome.to_lower() or "biscuit" in npc_nome.to_lower()
+
+
+func executar_treinamento(tipo_treino: String = "ten_basico") -> Dictionary:
+	if not pode_treinar():
+		return {"sucesso": false, "mensagem": "Este cidadão não é um instrutor de Nen ou físico."}
+
+	var resultado: Dictionary = {"sucesso": true, "recompensa": ""}
+	match tipo_treino:
+		"ten_basico":
+			PlayerData.attributes["aura_max"] = float(PlayerData.attributes.get("aura_max", 100.0)) + 15.0
+			PlayerData.attributes["aura"] = PlayerData.attributes["aura_max"]
+			resultado["recompensa"] = "+15 Aura Máxima permanente pelo refinamento de Ten!"
+		"resistencia_fisica":
+			PlayerData.attributes["defesa"] = int(PlayerData.attributes.get("defesa", 10)) + 3
+			resultado["recompensa"] = "+3 Defesa permanente pela postura corporal firme!"
+		_:
+			PlayerData.attributes["vida_max"] = int(PlayerData.attributes.get("vida_max", 100)) + 20
+			PlayerData.attributes["vida"] = PlayerData.attributes["vida_max"]
+			resultado["recompensa"] = "+20 Vida Máxima pelo treino de vigor!"
+
+	if StoryManager != null:
+		StoryManager.set_story_flag("treino_concluido_" + tipo_treino, true)
+		StoryManager.set_pacing_state(StoryManager.StoryPacingState.EXPLORATION)
+
+	return resultado
 
 

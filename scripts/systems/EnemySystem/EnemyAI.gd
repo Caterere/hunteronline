@@ -274,7 +274,6 @@ func _physics_process(delta: float) -> void:
 	_processar_habilidades_boss_fases(delta)
 
 
-
 var is_fase_3: bool = false
 var earthquake_timer: float = 6.0
 
@@ -778,12 +777,34 @@ func _chase() -> void:
 	# Atualiza direção da animação
 	_set_animation_direction(direction)
 
-	# Modificador de velocidade por arquétipo
-	var vel_atual = move_speed
-	if role == "fast":
-		vel_atual *= 1.35
-	elif role == "tank":
-		vel_atual *= 0.85
+	# Modificador de velocidade e movimentação tática por arquétipo (Combat 2.0 - Fase F)
+	var vel_atual: float = move_speed
+	match role:
+		"brute", "tank":
+			vel_atual *= 0.78
+		"assassin", "fast":
+			vel_atual *= 1.40
+			# Flanqueamento orbital se a distância for média
+			if distance > stop_distance * 1.4:
+				var perp = Vector2(-direction.y, direction.x)
+				direction = (direction * 0.75 + perp * 0.50).normalized()
+		"ranged":
+			# Mantém distância tática entre 120 e 200 units
+			if distance < 130.0:
+				direction = -direction # Recua para manter distância de disparo
+				vel_atual *= 1.15
+			elif distance <= 200.0:
+				vel_atual *= 0.15 # Fixa posição para atacar
+		"tactician":
+			# Reage ao estado do jogador (se o jogador estiver atacando/carregando, esquiva lateral)
+			if player != null and ("_is_attacking" in player and player._is_attacking):
+				var perp = Vector2(-direction.y, direction.x)
+				direction = (perp * 0.85 - direction * 0.35).normalized()
+				vel_atual *= 1.30
+		"nen_user":
+			vel_atual *= 1.05
+		"boss":
+			vel_atual *= (1.20 if is_fase_2 else 1.0)
 
 	# Modificador de velocidade se intimidado por Ren do jogador
 	var nen_sys = player.get_node_or_null("NenSystem")
@@ -1038,9 +1059,26 @@ func executar_hatsu_inimigo() -> void:
 	elif "morel" in e_name:
 		_hatsu_morel()
 
-	# 6. Monstros e Quimeras Menores
+	# 6. Hatsu Modular Orientado a Dados (Fase F - Universal Nen Engine)
+	elif enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.modular_hatsu != null:
+		_executar_hatsu_modular(dir, enemy_system.enemy_data.modular_hatsu)
+
+	# 7. Monstros e Quimeras Menores
 	else:
 		_hatsu_monstro_padrao(dir)
+
+
+func _executar_hatsu_modular(dir: Vector2, h: HatsuData) -> void:
+	if h == null: return
+	ComicBalloon.mostrar(enemy_body, "⚡ [%s]!" % h.nome.to_upper(), 2.0, -42.0)
+	if EventBus != null:
+		EventBus.emit_camera_shake(0.40, 0.20)
+	var dano_calc: int = CombatEngine.calcular_dano(enemy_body, player, h, false, h.tags if "tags" in h else [])
+	if dano_calc <= 0:
+		dano_calc = int(h.custom_damage) if h.custom_damage > 0 else 25
+	var max_range: float = 220.0 if h.forma == HatsuData.Forma.PROJETIL else (140.0 if h.forma == HatsuData.Forma.AREA else 65.0)
+	if enemy_body.global_position.distance_to(player.global_position) <= max_range:
+		_aplicar_dano_jogador(dano_calc, dir, 220.0)
 
 
 func _aplicar_dano_jogador(dano_val: int, dir_val: Vector2, knock_val: float = 0.0) -> void:

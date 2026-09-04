@@ -254,7 +254,9 @@ func _teste_7_biscuit_greed_island() -> void:
 	# Simular jogador no Arco 5 (Greed Island) com Nen despertado
 	PlayerData.despertou_nen = true
 	PlayerData.arco_atual = 5
-	PlayerData.max_arco_desbloqueado = 5
+	PlayerData.quest_states["arco5_concluido"] = true
+	if StoryManager != null:
+		StoryManager.set_story_flag("saga_5_completed", true)
 	PlayerData.hatsu_creation_unlocked = false
 	PlayerData.hatsu_desbloqueado = false
 

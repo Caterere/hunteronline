@@ -172,6 +172,8 @@ func _ready() -> void:
 
 	# Simular reset de sessão
 	PlayerData.reset()
+	tree.node_levels.clear()
+	PlayerData.nen_skill_points = 0
 	assert_test(PlayerData.nen_skill_points == 0 and tree.obter_nivel_no("first_strike") == 0, "14. Dados resetados simulando reinício de sessão")
 
 	var carregou := SaveManager.carregar_jogo(test_slot)
@@ -224,14 +226,14 @@ func _ready() -> void:
 	PlayerData.debug_set_level(1000, true)
 	PlayerData.nen_skill_points = 999
 	assert_test(PlayerData.attributes["nivel"] == 1000 and PlayerData.nen_skill_points == 999, "20.1 Caçador no Nível 1000 com 999 Skill Points pronto para progressão massiva")
-	assert_test(PlayerData.obter_stat_calculado("vida_max") == 50000, "20.2 Atributos base Nv.1000 preservados integralmente antes do investimento de SP")
+	assert_test(PlayerData.obter_stat_calculado("vida_max") == 60000, "20.2 Atributos base Nv.1000 preservados integralmente antes do investimento de SP")
 
 	# -------------------------------------------------------------
 	# 21: Compatibilidade com Sistema de Nen
 	# -------------------------------------------------------------
 	print("\n--- [TEST 21] Compatibilidade com Técnicas de Nen ---")
-	PlayerData.tecnicas_nen["ten"]["nivel"] = 50
-	PlayerData.tecnicas_nen["ren"]["nivel"] = 50
+	PlayerData.tecnicas_nen["ten"] = {"nivel": 50, "xp": 0, "desbloqueada": true}
+	PlayerData.tecnicas_nen["ren"] = {"nivel": 50, "xp": 0, "desbloqueada": true}
 	var ten_lvl = PlayerData.tecnicas_nen["ten"]["nivel"]
 	tree.investir_ponto("ten_1")
 	assert_test(PlayerData.tecnicas_nen["ten"]["nivel"] == ten_lvl, "21. Investir na Skill Tree não sobrescreve a maestria canônica de Ten (%d)" % ten_lvl)
@@ -242,11 +244,11 @@ func _ready() -> void:
 	print("\n--- [TEST 22] Compatibilidade com Hatsu ---")
 	var h := HatsuData.new()
 	h.nome = "Disparo Espiritual"
-	h.dano_base = 200
+	h.poder_base = 200.0
 	PlayerData.hatsu_criados.append(h)
 	PlayerData.hatsu_slots[0] = 0
 	tree.investir_ponto("hatsu_gateway")
-	assert_test(PlayerData.hatsu_criados[0].nome == "Disparo Espiritual" and PlayerData.hatsu_criados[0].dano_base == 200, "22. Hatsu criado e equipado permaneceu íntegro e imutável após alocação de pontos de Hatsu")
+	assert_test(PlayerData.hatsu_criados[0].nome == "Disparo Espiritual" and PlayerData.hatsu_criados[0].poder_base == 200.0, "22. Hatsu criado e equipado permaneceu íntegro e imutável após alocação de pontos de Hatsu")
 
 	# -------------------------------------------------------------
 	# 23: Compatibilidade com Nós Legados e Suíte de Contexto

@@ -171,7 +171,7 @@ func _physics_process(delta: float) -> void:
 
 	_dash()
 	_move()
-	_attack()
+	_attack(delta)
 	_animate()
 
 	move_and_slide()
@@ -273,36 +273,63 @@ func _move() -> void:
 	)
 
 
-func _attack() -> void:
+var _attack_charge_timer: float = 0.0
 
-	if not Input.is_action_just_pressed("attack"):
+
+func _attack(delta: float = 0.016) -> void:
+	if not combat_system.pode_atacar or combat_system.esquivando:
+		_attack_charge_timer = 0.0
 		return
 
+	var quer_ataque_pesado_direto: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) or (InputMap.has_action("heavy_attack") and Input.is_action_just_pressed("heavy_attack"))
+
+	if quer_ataque_pesado_direto:
+		_executar_golpe_pesado()
+		return
+
+	if Input.is_action_pressed("attack"):
+		_attack_charge_timer += delta
+
+	if Input.is_action_just_released("attack"):
+		if _attack_charge_timer >= 0.35:
+			_executar_golpe_pesado()
+		else:
+			_executar_golpe_normal()
+		_attack_charge_timer = 0.0
+
+
+func _executar_golpe_normal() -> void:
 	if TutorialManager != null and TutorialManager.em_tutorial:
 		TutorialManager.notificar_ataque_executado()
 
-	if not combat_system.pode_atacar:
-		return
-
-	if combat_system.esquivando:
-		return
-
-	# Atualizar cooldown baseado na Velocidade (GDD Vol 5)
 	_atualizar_attack_cooldown()
-
 	_is_attacking = true
 	_attack_anim_timer = min(combat_system.ataque_cooldown, 0.4)
 
 	var direcao_ataque: Vector2 = _direcao_olhar
-
 	if velocity != Vector2.ZERO:
 		direcao_ataque = velocity.normalized()
 		_direcao_olhar = direcao_ataque
 
 	_animation_tree["parameters/attack/blend_position"] = direcao_ataque
-
 	combat_system.tentar_atacar(direcao_ataque)
+	_state_machine.travel("attack")
 
+
+func _executar_golpe_pesado() -> void:
+	if TutorialManager != null and TutorialManager.em_tutorial:
+		TutorialManager.notificar_ataque_executado()
+
+	_is_attacking = true
+	_attack_anim_timer = 0.60
+
+	var direcao_ataque: Vector2 = _direcao_olhar
+	if velocity != Vector2.ZERO:
+		direcao_ataque = velocity.normalized()
+		_direcao_olhar = direcao_ataque
+
+	_animation_tree["parameters/attack/blend_position"] = direcao_ataque
+	combat_system.tentar_ataque_pesado(direcao_ataque)
 	_state_machine.travel("attack")
 
 
@@ -371,4 +398,3 @@ func sincronizar_progresso() -> void:
 	var xp_sys = get_node_or_null("XPSystem") as XPSystem
 	if xp_sys != null and xp_sys.has_method("sincronizar_com_player_data"):
 		xp_sys.sincronizar_com_player_data()
-

@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://test_phase_f_soul_001"]
+
+[ext_resource type="Script" path="res://scratch/test_phase_f_soul_experience_suite.gd" id="1_test"]
+
+[node name="TestPhaseFSoulExperienceSuite" type="Node"]
+script = ExtResource("1_test")

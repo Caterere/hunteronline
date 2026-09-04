@@ -233,7 +233,7 @@ func _construir_bottom_bar() -> void:
 	bottom_bar = PanelContainer.new()
 	bottom_bar.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
 	bottom_bar.offset_top = -36.0
-	bottom_bar.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_BLUE, 2))
+	bottom_bar.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_CYAN, 2))
 	add_child(bottom_bar)
 
 	var hbox := HBoxContainer.new()
@@ -467,9 +467,9 @@ func _on_map_draw() -> void:
 
 func _draw_background_grid(center_screen: Vector2) -> void:
 	# Círculos concêntricos e eixos radiais sutis
-	var rings := [300.0, 600.0, 1000.0, 1500.0, 2100.0, 2600.0]
-	for r in rings:
-		var r_screen := r * zoom_level
+	var rings: Array[float] = [300.0, 600.0, 1000.0, 1500.0, 2100.0, 2600.0]
+	for r: float in rings:
+		var r_screen: float = r * zoom_level
 		var center_pt := center_screen + pan_offset
 		map_viewport.draw_arc(center_pt, r_screen, 0.0, TAU, 64, Color(0.15, 0.25, 0.40, 0.15), 1.0)
 
@@ -483,15 +483,17 @@ func _draw_node_icon(node: SkillTreeNodeData, pos: Vector2) -> void:
 	var is_hovered := (node.id == hovered_node_id)
 
 	# Raio base dependendo do tipo do nó
-	var base_radius := 12.0
+	var base_radius: float = 12.0
 	match node.node_type:
 		SkillTreeNodeData.NodeType.SMALL: base_radius = 11.0
 		SkillTreeNodeData.NodeType.MEDIUM: base_radius = 16.0
 		SkillTreeNodeData.NodeType.MAJOR: base_radius = 22.0
 		SkillTreeNodeData.NodeType.KEYSTONE: base_radius = 30.0
 
-	var radius := base_radius * clamp(zoom_level, 0.5, 1.4)
-	var reg_color := database.REGIONS.get(node.region_id, {}).get("color", Color.WHITE) as Color
+	var radius: float = base_radius * clampf(zoom_level, 0.5, 1.4)
+	var reg_color: Color = Color.WHITE
+	if database != null and database.REGIONS.has(node.region_id):
+		reg_color = database.REGIONS[node.region_id].get("color", Color.WHITE)
 
 	# Filtro de Busca
 	var is_highlighted := true
@@ -602,8 +604,8 @@ func _ajustar_zoom(factor: float) -> void:
 
 func _ajustar_zoom_no_cursor(factor: float, cursor_pos: Vector2) -> void:
 	var center_screen := size * 0.5
-	var old_zoom := target_zoom
-	var new_zoom := clamp(old_zoom * factor, MIN_ZOOM, MAX_ZOOM)
+	var old_zoom: float = target_zoom
+	var new_zoom: float = clampf(old_zoom * factor, MIN_ZOOM, MAX_ZOOM)
 	if is_equal_approx(old_zoom, new_zoom):
 		return
 
@@ -696,7 +698,7 @@ func _atualizar_inspector() -> void:
 		var all_met := true
 		for pr in node.prerequisites:
 			var pr_node = database.nodes.get(pr)
-			var pr_n := pr_node.name if pr_node != null else String(pr)
+			var pr_n: String = pr_node.name if pr_node != null else String(pr)
 			var met: bool = skill_tree != null and skill_tree.no_desbloqueado(pr)
 			if not met: all_met = false
 			pr_names.append("%s (%s)" % [pr_n, "✓" if met else "✗"])

@@ -181,6 +181,44 @@ func _process(delta: float) -> void:
 		if _hitbox_desativar_timer <= 0.0:
 			_desativar_hitbox_ataque()
 
+var is_heavy_attack: bool = false
+
+
+# ============================================================
+# ATAQUE PESADO / FORTE E LENTO (COMBAT 2.0 - FASE F)
+# ============================================================
+
+func tentar_ataque_pesado(direcao: Vector2) -> bool:
+	if not pode_atacar or esquivando or estado == Estado.MORTO or owner_body == null:
+		return false
+
+	if hatsu_system != null and hatsu_system.has_method("ataques_bloqueados") and hatsu_system.ataques_bloqueados():
+		_mostrar_texto_flutuante("🛡️ DEFESA PACÍFICA: ATAQUE BLOQUEADO", Color(0.3, 0.8, 1.0))
+		return false
+
+	if direcao == Vector2.ZERO:
+		direcao = ultima_direcao
+
+	ultima_direcao = direcao.normalized()
+	pode_atacar = false
+	estado = Estado.ATACANDO
+	is_heavy_attack = true
+
+	# Consumo leve de aura por impacto de Ko concentrado se Nen despertado
+	if PlayerData != null and PlayerData.despertou_nen:
+		var aura_atual: float = float(PlayerData.attributes.get("aura", 0.0))
+		if aura_atual >= 10.0:
+			PlayerData.attributes["aura"] = aura_atual - 10.0
+
+	_mostrar_texto_flutuante("💥 IMPACTO PESADO!", Color(1.0, 0.85, 0.2))
+	if AudioManager != null:
+		AudioManager.tocar_punch()
+
+	_disparar_hitbox_ataque(ultima_direcao)
+	ataque_timer = ataque_cooldown * 2.2 # Recuperação mais lenta
+	return true
+
+
 # ============================================================
 # ATAQUE (COMBO SYSTEM DE 3 GOLPES)
 # ============================================================
@@ -188,6 +226,8 @@ func _process(delta: float) -> void:
 func tentar_atacar(direcao: Vector2) -> void:
 	if not pode_atacar or esquivando or estado == Estado.MORTO or owner_body == null:
 		return
+
+	is_heavy_attack = false
 
 	if hatsu_system != null and hatsu_system.has_method("ataques_bloqueados") and hatsu_system.ataques_bloqueados():
 		_mostrar_texto_flutuante("🛡️ DEFESA PACÍFICA: ATAQUE BLOQUEADO", Color(0.3, 0.8, 1.0))
@@ -330,23 +370,27 @@ func _on_attack_hit(
 
 	var dano_base_calc: int = calcular_dano_fisico(enemy)
 	
-	# Multiplicador do Combo Step (1.0x -> 1.25x -> 1.80x)
+	# Multiplicador do Combo Step (1.0x -> 1.25x -> 1.80x) ou Ataque Pesado (2.4x)
 	var mult_combo: float = 1.0
 	var knockback_val: float = 80.0
-	match combo_step:
-		0:
-			mult_combo = 1.0
-			knockback_val = 80.0
-		1:
-			mult_combo = 1.25
-			knockback_val = 130.0
-		2:
-			mult_combo = 1.80
-			knockback_val = 240.0
+	if is_heavy_attack:
+		mult_combo = 2.40
+		knockback_val = 360.0
+	else:
+		match combo_step:
+			0:
+				mult_combo = 1.0
+				knockback_val = 80.0
+			1:
+				mult_combo = 1.25
+				knockback_val = 130.0
+			2:
+				mult_combo = 1.80
+				knockback_val = 240.0
 
 	var dano: int = max(1, int(round(float(dano_base_calc) * mult_combo)))
 
-	var is_crit: bool = false
+	var is_crit: bool = is_heavy_attack
 	if nen_system != null and (nen_system.tecnica_ativa(NenSystem.Tecnica.KO) or nen_system.tecnica_ativa(NenSystem.Tecnica.GYO)):
 		is_crit = true
 
@@ -359,7 +403,10 @@ func _on_attack_hit(
 
 	# Disparar Hitstop e Camera Shake (Fase 1 & 2: Game Feel & Juice)
 	if EventBus != null:
-		if is_crit or combo_step == 2:
+		if is_heavy_attack:
+			EventBus.emit_hitstop(0.12)
+			EventBus.emit_camera_shake(0.65, 0.35)
+		elif is_crit or combo_step == 2:
 			EventBus.emit_hitstop(0.08)
 			EventBus.emit_camera_shake(0.45, 0.25)
 		else:
@@ -369,6 +416,8 @@ func _on_attack_hit(
 		EventBus.target_changed.emit(enemy)
 
 	if enemy_system != null and enemy_system.has_method("take_damage"):
+		if is_heavy_attack and enemy_system.has_method("aplicar_dano_postura"):
+			enemy_system.aplicar_dano_postura(45.0)
 		enemy_system.take_damage(dano, ultima_direcao, knockback_val, owner_body)
 	elif alvo.has_method("receber_dano"):
 		alvo.receber_dano(dano, ultima_direcao, knockback_val, owner_body)

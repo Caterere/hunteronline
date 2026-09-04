@@ -1410,4 +1410,3 @@ func debug_set_level(target_level: int, awaken_nen: bool = true) -> Dictionary:
 		"level": lvl_clamped,
 		"attributes": attributes.duplicate()
 	}
-

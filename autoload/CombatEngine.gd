@@ -361,7 +361,7 @@ func calcular_dano_jogador(
 			if GameplayTags.has_any(def_resistance, tags_efetivas):
 				dano_final *= 0.50
 
-	var dano_calculado := max(1 if dano_final > 0.0 else 0, int(round(dano_final)))
+	var dano_calculado: int = maxi(1 if dano_final > 0.0 else 0, int(round(dano_final)))
 
 	# Life Steal / Drenagem Vital
 	var life_steal_pct = PlayerData.obter_stat_calculado("life_steal")

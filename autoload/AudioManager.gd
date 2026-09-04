@@ -547,6 +547,9 @@ func tocar_hit(is_crit: bool = false) -> void:
 func tocar_slash() -> void:
 	tocar_sfx_tipo("slash")
 
+func tocar_punch() -> void:
+	tocar_sfx_tipo("hit_heavy")
+
 func tocar_dodge() -> void:
 	tocar_sfx_tipo("dodge")
 

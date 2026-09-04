@@ -741,7 +741,7 @@ func _verificar_nen_level_up() -> void:
 		)
 		print(
 			"NOVA AURA MÁXIMA: ",
-			nova_aura_maxima
+			PlayerData.attributes.get("aura_max", 100)
 		)
 		print("=================================")
 

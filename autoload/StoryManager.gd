@@ -15,6 +15,20 @@ signal saga_iniciada(saga_id: int, nome: String)
 signal capitulo_avancado(saga_id: int, capitulo: int)
 signal saga_concluida(saga_id: int)
 signal story_flag_alterada(flag: String, valor: Variant)
+signal story_pacing_changed(novo_estado: int, estado_anterior: int)
+signal character_choice_registered(choice_id: String, option: String)
+
+enum StoryPacingState {
+	EXPLORATION,
+	DIALOGUE,
+	CUTSCENE,
+	COMBAT_EVENT,
+	TRAINING_SESSION,
+	REST_PACE
+}
+
+var current_pacing_state: StoryPacingState = StoryPacingState.EXPLORATION
+var character_choices: Dictionary = {}
 
 const SAGAS_CANONICAS: Dictionary = {
 	1: "287º Exame Hunter",
@@ -343,6 +357,44 @@ func continuar_do_checkpoint(tree: SceneTree = null) -> bool:
 	return false
 
 
+func set_pacing_state(novo_estado: StoryPacingState) -> void:
+	if current_pacing_state != novo_estado:
+		var ant := current_pacing_state
+		current_pacing_state = novo_estado
+		story_pacing_changed.emit(int(novo_estado), int(ant))
+		print("[StoryManager] 🎭 RITMO NARRATIVO: %s -> %s" % [StoryPacingState.keys()[ant], StoryPacingState.keys()[novo_estado]])
+
+
+func get_pacing_state() -> StoryPacingState:
+	return current_pacing_state
+
+
+func register_choice(choice_id: String, option: String) -> void:
+	character_choices[choice_id] = option
+	set_story_flag("choice_" + choice_id, option)
+	character_choice_registered.emit(choice_id, option)
+	print("[StoryManager] ⚖️ ESCOLHA REGISTRADA: [%s] = '%s'" % [choice_id, option])
+
+
+func has_choice(choice_id: String) -> bool:
+	return character_choices.has(choice_id)
+
+
+func get_choice(choice_id: String, default_val: String = "") -> String:
+	return str(character_choices.get(choice_id, default_val))
+
+
+func obter_progresso_saga_atual() -> float:
+	var total_capitulos: int = 1
+	if sagas_registradas.has(current_saga):
+		total_capitulos = sagas_registradas[current_saga].get("total_capitulos", 1)
+	elif CanonQuestCatalog != null:
+		total_capitulos = CanonQuestCatalog.obter_total_quests_do_arco(current_saga)
+	if total_capitulos <= 0:
+		return 0.0
+	return clampf((float(current_chapter) / float(total_capitulos)) * 100.0, 0.0, 100.0)
+
+
 # ============================================================
 # PERSISTÊNCIA SERIALIZÁVEL
 # ============================================================
@@ -355,7 +407,9 @@ func serializar() -> Dictionary:
 		"completed_sagas": completed_sagas.duplicate(),
 		"story_flags": story_flags.duplicate(),
 		"current_story_checkpoint": String(current_story_checkpoint),
-		"last_safe_checkpoint": String(last_safe_checkpoint)
+		"last_safe_checkpoint": String(last_safe_checkpoint),
+		"current_pacing_state": int(current_pacing_state),
+		"character_choices": character_choices.duplicate()
 	}
 
 
@@ -369,6 +423,8 @@ func deserializar(data: Dictionary) -> void:
 	story_flags = data.get("story_flags", {}).duplicate()
 	current_story_checkpoint = StringName(data.get("current_story_checkpoint", "exame_hunter_inicio"))
 	last_safe_checkpoint = StringName(data.get("last_safe_checkpoint", "hunter_plaza_lobby"))
+	current_pacing_state = int(data.get("current_pacing_state", StoryPacingState.EXPLORATION)) as StoryPacingState
+	character_choices = data.get("character_choices", {}).duplicate()
 
 	# Refletir no PlayerData
 	if PlayerData != null:

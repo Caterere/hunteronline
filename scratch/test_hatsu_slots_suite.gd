@@ -40,10 +40,8 @@ func _ready() -> void:
 	# TEST 3: Completar Greed Island e desbloquear Slot 1
 	print("\n--- [TEST 3] Conclusão de Greed Island ---")
 	StoryManager.concluir_saga(5)
-	assert_test(hpm.can_unlock_slot(1)["can_unlock"], "3.1 Greed Island concluída: Slot 1 elegível para desbloqueio")
-	hpm.unlock_slot(1)
-	assert_test(hpm.is_slot_unlocked(1), "3.2 Slot 1 desbloqueado")
-	assert_test(not hpm.is_slot_unlocked(2) and hpm.can_unlock_slot(2)["reason"] == "REQUIRED_LEVEL", "3.3 Slot 2 permanece bloqueado por nível (400 < 600)")
+	assert_test(hpm.is_slot_unlocked(1), "3.1 Greed Island concluída: Slot 1 desbloqueado automaticamente")
+	assert_test(not hpm.is_slot_unlocked(2) and hpm.can_unlock_slot(2)["reason"] == "REQUIRED_LEVEL", "3.2 Slot 2 permanece bloqueado por nível (400 < 600)")
 
 	# TEST 4: Level 600 com Slot 1 desbloqueado
 	print("\n--- [TEST 4] Level 600 + Slot 1 ---")

@@ -227,14 +227,62 @@ func _atualizar_hud() -> void:
 		else:
 			mand_text += linha
 
-	var final_obj_text := mand_text.strip_edges()
+	# Cálculo de Progresso Canônico da Saga
+	var pct_saga: float = 0.0
+	if StoryManager != null and StoryManager.has_method("obter_progresso_saga_atual"):
+		pct_saga = StoryManager.obter_progresso_saga_atual()
+	else:
+		pct_saga = clampf((float(PlayerData.etapa_quest_arco) / max(1.0, float(total_objetivos))) * 100.0, 0.0, 100.0)
+
+	var barra_ascii: String = _gerar_barra_progresso_ascii(pct_saga, 10)
+
+	# Seção de Atividades Secundárias (Fase F - Seção 5)
+	var atividades_texto: String = "\n📋 ATIVIDADES"
+	var treino_status: String = "Disponível com Instrutores"
+	if StoryManager != null and StoryManager.get_story_flag("zaban_treino_concluido", false):
+		treino_status = "Básico de Ten Concluído"
+	atividades_texto += "\n○ Treino: " + treino_status
+
+	# Verificar Side Quests ativas
+	var side_quest_nome: String = "Nenhuma ativa"
+	if QuestSystem != null and QuestSystem.active_quests.size() > 1:
+		side_quest_nome = QuestSystem.active_quests[1].quest_name
+	elif SurpriseQuestSystem != null and SurpriseQuestSystem.has_method("tem_missao_ativa") and SurpriseQuestSystem.tem_missao_ativa():
+		side_quest_nome = SurpriseQuestSystem.obter_nome_missao_ativa()
+	atividades_texto += "\n○ Side Quest: " + side_quest_nome
+
+	var evento_txt: String = "Região Segura"
+	if WorldEventManager != null and WorldEventManager.has_method("obter_eventos_ativos"):
+		var evs = WorldEventManager.obter_eventos_ativos()
+		if not evs.is_empty():
+			evento_txt = evs[0].get("titulo", "Alerta Local")
+	atividades_texto += "\n○ Evento: " + evento_txt
+
+	var final_obj_text := "HISTÓRIA PRINCIPAL\nProgresso: %s\n\n%s" % [
+		barra_ascii,
+		mand_text.strip_edges()
+	]
 	if not opt_text.is_empty():
 		final_obj_text += "\n\n🎯 OPCIONAIS:\n" + opt_text.strip_edges()
+
+	final_obj_text += "\n" + atividades_texto
 
 	lbl_objetivo.text = final_obj_text
 
 	# Calcular Bússola e Direção até o alvo
 	_atualizar_bussola(objetivo_pendente, pendente_idx, total_objetivos)
+
+
+func _gerar_barra_progresso_ascii(percentual: float, blocos_total: int = 10) -> String:
+	var preenchidos: int = int(round((clampf(percentual, 0.0, 100.0) / 100.0) * float(blocos_total)))
+	var vazios: int = blocos_total - preenchidos
+	var barra: String = "["
+	for j in range(preenchidos):
+		barra += "█"
+	for k in range(vazios):
+		barra += "░"
+	barra += "] %d%%" % int(round(percentual))
+	return barra
 
 
 func _obter_player() -> Node2D:

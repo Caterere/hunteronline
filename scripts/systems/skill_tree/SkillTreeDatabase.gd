@@ -199,22 +199,21 @@ func _register_legacy_canonical_nodes() -> void:
 	# Nós Comportamentais & Contextuais (GameplayConditions)
 	var cond_fs := GameplayCondition.new()
 	cond_fs.condition_type = GameplayCondition.Type.NO_DAMAGE_FOR_SECONDS
-	cond_fs.target_value = 4.0
+	cond_fs.threshold = 4.0
 	_add_node(SkillTreeNodeData.new(&"first_strike", "Primeiro Golpe", "Sem receber dano há 4s: Primeiro acerto causa +35% de dano", &"warrior", SkillTreeNodeData.NodeType.KEYSTONE, Vector2(320, -80), 1, 1, [&"ren_1"], [{"type": "stat_modifier", "stat": "forca", "mod_type": 1, "value_per_rank": 0.35}], [cond_fs], ["first_strike", "contextual", "keystone"]))
 
 	var cond_bl := GameplayCondition.new()
 	cond_bl.condition_type = GameplayCondition.Type.PLAYER_HP_BELOW
-	cond_bl.target_value = 0.35
+	cond_bl.threshold = 0.35
 	_add_node(SkillTreeNodeData.new(&"bloodied", "Fúria do Sangue", "HP abaixo de 35%: Força +20% e Resistência +15%", &"body", SkillTreeNodeData.NodeType.KEYSTONE, Vector2(160, -340), 1, 1, [&"ten_2"], [{"type": "stat_modifier", "stat": "forca", "mod_type": 1, "value_per_rank": 0.20}, {"type": "stat_modifier", "stat": "defesa", "mod_type": 1, "value_per_rank": 0.15}], [cond_bl], ["bloodied", "contextual", "keystone"]))
 
 	var cond_sr := GameplayCondition.new()
 	cond_sr.condition_type = GameplayCondition.Type.ENEMIES_NEARBY_AT_LEAST
-	cond_sr.target_value = 3.0
+	cond_sr.required_count = 3
 	_add_node(SkillTreeNodeData.new(&"surrounded", "Cercado", "3+ inimigos por perto: Defesa +20% e Evasão +10%", &"body", SkillTreeNodeData.NodeType.MEDIUM, Vector2(180, 360), 1, 1, [&"gyo_2"], [{"type": "stat_modifier", "stat": "defesa", "mod_type": 1, "value_per_rank": 0.20}, {"type": "stat_modifier", "stat": "esquiva", "mod_type": 1, "value_per_rank": 0.10}], [cond_sr], ["surrounded", "contextual"]))
 
 	var cond_iso := GameplayCondition.new()
 	cond_iso.condition_type = GameplayCondition.Type.SINGLE_TARGET
-	cond_iso.target_value = 1.0
 	_add_node(SkillTreeNodeData.new(&"isolated_target", "Alvo Isolado", "Apenas 1 inimigo por perto: Dano de Combate +25%", &"warrior", SkillTreeNodeData.NodeType.MEDIUM, Vector2(460, -120), 1, 1, [&"ko_1"], [{"type": "stat_modifier", "stat": "forca", "mod_type": 1, "value_per_rank": 0.25}], [cond_iso], ["isolated_target", "contextual"]))
 
 	var cond_hm := GameplayCondition.new()

@@ -223,4 +223,3 @@ func obter_level() -> int:
 
 func obter_xp_necessario() -> int:
 	return xp_necessario()
-
