@@ -2,12 +2,16 @@ class_name HatsuEquipUI
 extends CanvasLayer
 
 # ============================================================
-# HUNTER ONLINE - HATSU EQUIPMENT & MANAGEMENT MENU
+# HUNTER ONLINE - HATSU EQUIPMENT & ARCHIVE MANAGEMENT MENU
 # ============================================================
 #
-# Permite ao jogador visualizar todos os seus Hatsus desbloqueados/criados,
-# analisar a eficiência de Nen por categoria natal, e equipar/trocar
-# habilidades livremente entre os 4 Slots (1, 2, 3, 4).
+# Permite ao jogador:
+# 1. Gerenciar os 4 SLOTS ATIVOS de combate (com regras de desbloqueio em cadeia).
+# 2. Navegar pelo HATSU ARCHIVE (1 a 12 slots para habilidades conhecidas).
+# 3. Inspecionar a MASTERY (0 a 100) da técnica selecionada, visualizando
+#    a barra de avanço, bônus de poder, eficiência de aura e badge ★ MASTERED.
+# 4. Equipar/Trocar Hatsu respeitando o Switch Cooldown (estabilização de aura).
+# 5. Monitorar o Cooldown de Criação (30 min) e Custo em Jenny da Forja.
 #
 # Abre e fecha com a tecla [H] ou via botão na HUD.
 #
@@ -16,8 +20,13 @@ extends CanvasLayer
 signal menu_fechado
 
 var slot_containers: Array[PanelContainer] = []
-var vbox_hatsus_lista: VBoxContainer
+var grid_archive: GridContainer
+var panel_inspector: PanelContainer
 var lbl_afinidade_info: Label
+var lbl_footer_status: Label
+var btn_forjar_footer: Button
+
+var hatsu_selecionado_id: String = ""
 var _aberto_no_frame: bool = false
 
 
@@ -26,6 +35,11 @@ func _ready() -> void:
 	layer = 25
 	visible = false
 	_construir_ui()
+
+
+func _process(_delta: float) -> void:
+	if visible:
+		_atualizar_footer_timer()
 
 
 func toggle_menu() -> void:
@@ -47,19 +61,22 @@ func fechar() -> void:
 
 
 func _construir_ui() -> void:
+	for c in get_children():
+		c.queue_free()
+
 	var root := Control.new()
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
 
 	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.85)
+	bg.color = Color(0, 0, 0, 0.88)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_child(bg)
 
-	# Painel Central Fixo (304x168)
+	# Painel Central Fixo (304x170)
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(304, 168)
-	panel.size = Vector2(304, 168)
+	panel.custom_minimum_size = Vector2(304, 170)
+	panel.size = Vector2(304, 170)
 	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
@@ -82,7 +99,7 @@ func _construir_ui() -> void:
 	vbox_main.add_child(hbox_hdr)
 
 	var lbl_title := Label.new()
-	lbl_title.text = "⚡ GERENCIADOR DE HATSU (1-4)"
+	lbl_title.text = "⚡ HATSU: SLOTS ATIVOS & ARCHIVE (12)"
 	lbl_title.add_theme_font_size_override("font_size", 5)
 	lbl_title.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	lbl_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -100,7 +117,7 @@ func _construir_ui() -> void:
 	lbl_afinidade_info.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0, 1.0))
 	vbox_main.add_child(lbl_afinidade_info)
 
-	# Seção Superior: 4 Slots Ativos
+	# 1. Seção Superior: 4 Slots Ativos
 	var lbl_slots_hdr := Label.new()
 	lbl_slots_hdr.text = "SLOTS ATIVOS DE COMBATE (Teclas 1, 2, 3, 4):"
 	lbl_slots_hdr.add_theme_font_size_override("font_size", 4)
@@ -116,74 +133,106 @@ func _construir_ui() -> void:
 		var p_slot := PanelContainer.new()
 		p_slot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		p_slot.custom_minimum_size = Vector2(70, 26)
-
-		var st := StyleBoxFlat.new()
-		st.bg_color = Color(0.11, 0.14, 0.20, 0.95)
-		st.border_width_left = 1
-		st.border_width_top = 1
-		st.border_width_right = 1
-		st.border_width_bottom = 1
-		st.border_color = Color(0.45, 0.55, 0.75, 1.0)
-		st.corner_radius_top_left = 3
-		st.corner_radius_top_right = 3
-		st.corner_radius_bottom_right = 3
-		st.corner_radius_bottom_left = 3
-		p_slot.add_theme_stylebox_override("panel", st)
-
 		hbox_slots.add_child(p_slot)
 		slot_containers.append(p_slot)
 
-	# Divisor
-	var lbl_inv_hdr := Label.new()
-	lbl_inv_hdr.text = "LISTA DE HABILIDADES (Clique no número 1, 2, 3 ou 4 para equipar):"
-	lbl_inv_hdr.add_theme_font_size_override("font_size", 4)
-	lbl_inv_hdr.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3, 1.0))
-	vbox_main.add_child(lbl_inv_hdr)
+	# 2. Seção Central Dividida: Archive Grid (Esquerda) + Inspetor de Mastery (Direita)
+	var hbox_mid := HBoxContainer.new()
+	hbox_mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hbox_mid.add_theme_constant_override("separation", 4)
+	vbox_main.add_child(hbox_mid)
 
-	# Seção Inferior: Scroll com Lista de Hatsus
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.custom_minimum_size = Vector2(290, 68)
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	vbox_main.add_child(scroll)
+	# Esquerda: Grid do Archive (6x2 = 12 Slots)
+	var vbox_left := VBoxContainer.new()
+	vbox_left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox_left.add_theme_constant_override("separation", 1)
+	hbox_mid.add_child(vbox_left)
 
-	vbox_hatsus_lista = VBoxContainer.new()
-	vbox_hatsus_lista.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	vbox_hatsus_lista.add_theme_constant_override("separation", 2)
-	scroll.add_child(vbox_hatsus_lista)
+	var lbl_arch_hdr := Label.new()
+	lbl_arch_hdr.text = "HATSU ARCHIVE (Capacidade: 12 Habilidades):"
+	lbl_arch_hdr.add_theme_font_size_override("font_size", 4)
+	lbl_arch_hdr.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3, 1.0))
+	vbox_left.add_child(lbl_arch_hdr)
 
-	# Rodapé com botão de Criar Hatsu
+	grid_archive = GridContainer.new()
+	grid_archive.columns = 4
+	grid_archive.add_theme_constant_override("h_separation", 2)
+	grid_archive.add_theme_constant_override("v_separation", 2)
+	vbox_left.add_child(grid_archive)
+
+	# Direita: Inspetor de Mastery do Hatsu Selecionado
+	panel_inspector = PanelContainer.new()
+	panel_inspector.custom_minimum_size = Vector2(120, 68)
+	var st_insp := StyleBoxFlat.new()
+	st_insp.bg_color = Color(0.08, 0.10, 0.15, 0.95)
+	st_insp.border_width_left = 1
+	st_insp.border_width_top = 1
+	st_insp.border_width_right = 1
+	st_insp.border_width_bottom = 1
+	st_insp.border_color = Color(0.3, 0.45, 0.65, 1.0)
+	st_insp.corner_radius_top_left = 3
+	st_insp.corner_radius_top_right = 3
+	st_insp.corner_radius_bottom_right = 3
+	st_insp.corner_radius_bottom_left = 3
+	panel_inspector.add_theme_stylebox_override("panel", st_insp)
+	hbox_mid.add_child(panel_inspector)
+
+	# 3. Rodapé: Cooldown de Criação & Botão de Forja
 	var hbox_footer := HBoxContainer.new()
 	vbox_main.add_child(hbox_footer)
 
-	var btn_forjar := Button.new()
-	btn_forjar.text = "🔨 Forjar Novo Hatsu (Juramentos & Restrições)"
-	btn_forjar.add_theme_font_size_override("font_size", 4)
-	btn_forjar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	btn_forjar.pressed.connect(_abrir_criador_hatsu)
-	hbox_footer.add_child(btn_forjar)
+	lbl_footer_status = Label.new()
+	lbl_footer_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl_footer_status.add_theme_font_size_override("font_size", 4)
+	lbl_footer_status.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85, 1.0))
+	hbox_footer.add_child(lbl_footer_status)
+
+	btn_forjar_footer = Button.new()
+	btn_forjar_footer.text = "🔨 Forjar Novo Hatsu"
+	btn_forjar_footer.add_theme_font_size_override("font_size", 4)
+	btn_forjar_footer.pressed.connect(_abrir_criador_hatsu)
+	hbox_footer.add_child(btn_forjar_footer)
 
 
 func _atualizar_ui() -> void:
+	if PlayerData == null:
+		return
+
 	var afinidade_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
 	lbl_afinidade_info.text = "Afinidade: " + afinidade_nome + (" (100% de Eficiência em tudo!)" if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO else "")
 
-	# Atualizar 4 Slots Superiores
+	# 1. Atualizar 4 Slots Ativos
 	for i in range(4):
+		var slot_id: int = i + 1
 		var p_slot := slot_containers[i]
 		for c in p_slot.get_children():
 			c.queue_free()
 
-		var hatsu: HatsuData = PlayerData.obter_hatsu_slot(i)
+		var is_unlocked: bool = HatsuProgressionManager == null or HatsuProgressionManager.is_slot_unlocked(slot_id)
+		var hatsu: HatsuData = null
+		if is_unlocked:
+			if HatsuProgressionManager != null:
+				hatsu = HatsuProgressionManager.obter_hatsu_ativo(slot_id)
+			else:
+				hatsu = PlayerData.obter_hatsu_slot(i)
+
+		var st := StyleBoxFlat.new()
+		st.corner_radius_top_left = 3
+		st.corner_radius_top_right = 3
+		st.corner_radius_bottom_right = 3
+		st.corner_radius_bottom_left = 3
+		st.border_width_left = 1
+		st.border_width_top = 1
+		st.border_width_right = 1
+		st.border_width_bottom = 1
+
 		var vb := VBoxContainer.new()
 		vb.alignment = BoxContainer.ALIGNMENT_CENTER
 		vb.add_theme_constant_override("separation", 1)
 		p_slot.add_child(vb)
 
 		var lbl_num := Label.new()
-		lbl_num.text = "SLOT " + str(i + 1)
 		lbl_num.add_theme_font_size_override("font_size", 4)
-		lbl_num.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4, 1.0))
 		lbl_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vb.add_child(lbl_num)
 
@@ -193,132 +242,259 @@ func _atualizar_ui() -> void:
 		lbl_n.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		lbl_n.clip_text = true
 		lbl_n.add_theme_font_size_override("font_size", 4)
+		vb.add_child(lbl_n)
 
-		if hatsu != null:
-			var display_nome := hatsu.nome
-			if display_nome.contains("Guanyin"):
-				display_nome = "100-Type Guanyin"
-			lbl_n.text = display_nome
+		if not is_unlocked:
+			# ESTADO: LOCKED 🔒
+			st.bg_color = Color(0.08, 0.08, 0.10, 0.95)
+			st.border_color = Color(0.5, 0.25, 0.25, 0.8)
+			lbl_num.text = "🔒 SLOT " + str(slot_id)
+			lbl_num.add_theme_color_override("font_color", Color(0.8, 0.35, 0.35, 1.0))
+			lbl_n.text = "[ BLOQUEADO ]"
+			lbl_n.add_theme_color_override("font_color", Color(0.6, 0.45, 0.45, 1.0))
+
+			var btn_req := Button.new()
+			btn_req.text = "Requisitos"
+			btn_req.add_theme_font_size_override("font_size", 4)
+			var s_id_captured := slot_id
+			btn_req.pressed.connect(func(): _mostrar_requisitos_slot(s_id_captured))
+			vb.add_child(btn_req)
+		elif hatsu != null:
+			# ESTADO: EQUIPPED ✓
+			st.bg_color = Color(0.12, 0.15, 0.22, 0.95)
+			st.border_color = Color(1.0, 0.85, 0.3, 1.0)
+			lbl_num.text = "✓ SLOT %d %s" % [slot_id, ("★" if hatsu.is_mastered() else "M:%d" % int(hatsu.mastery))]
+			lbl_num.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4, 1.0))
+
+			lbl_n.text = hatsu.nome
 			lbl_n.add_theme_color_override("font_color", Color.WHITE)
-			vb.add_child(lbl_n)
 
 			var btn_desequipar := Button.new()
 			btn_desequipar.text = "Desequipar"
 			btn_desequipar.add_theme_font_size_override("font_size", 4)
-			var current_slot = i
-			btn_desequipar.pressed.connect(func(): _desequipar_slot(current_slot))
+			var s_id_deseq := slot_id
+			btn_desequipar.pressed.connect(func(): _desequipar_slot(s_id_deseq))
 			vb.add_child(btn_desequipar)
 		else:
+			# ESTADO: UNLOCKED (Vazio)
+			st.bg_color = Color(0.10, 0.16, 0.14, 0.95)
+			st.border_color = Color(0.3, 0.85, 0.5, 0.9)
+			lbl_num.text = "✓ SLOT " + str(slot_id)
+			lbl_num.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1.0))
 			lbl_n.text = "[ Vazio ]"
-			lbl_n.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1.0))
-			vb.add_child(lbl_n)
+			lbl_n.add_theme_color_override("font_color", Color(0.6, 0.85, 0.7, 1.0))
 
-	# Atualizar Lista de Hatsus
-	for c in vbox_hatsus_lista.get_children():
+		p_slot.add_theme_stylebox_override("panel", st)
+
+	# 2. Atualizar Grid do Archive (12 Slots)
+	for c in grid_archive.get_children():
 		c.queue_free()
 
-	# Obter todos os Hatsus do jogador
-	var todos_hatsus: Array[HatsuData] = PlayerData.obter_todos_hatsus_disponiveis()
+	var arch: Array[HatsuData] = []
+	if HatsuProgressionManager != null:
+		arch = HatsuProgressionManager.obter_todos_hatsus_archive()
+	else:
+		arch = PlayerData.obter_todos_hatsus_disponiveis()
 
-	if todos_hatsus.is_empty():
+	# Se nenhum hatsu selecionado mas houver no archive, selecionar o primeiro
+	if hatsu_selecionado_id.is_empty() and not arch.is_empty():
+		hatsu_selecionado_id = arch[0].hatsu_id
+
+	for i in range(HatsuConfig.MAX_ARCHIVE_SLOTS):
+		var btn_slot := Button.new()
+		btn_slot.custom_minimum_size = Vector2(40, 20)
+		btn_slot.add_theme_font_size_override("font_size", 4)
+
+		if i < arch.size():
+			var h: HatsuData = arch[i]
+			var is_sel: bool = (h.hatsu_id == hatsu_selecionado_id)
+			var prefix := "★ " if h.is_mastered() else ""
+			btn_slot.text = "%s[%d] %s (M:%d)" % [prefix, i + 1, h.nome.substr(0, 7), int(h.mastery)]
+			if is_sel:
+				btn_slot.modulate = Color(1.0, 0.9, 0.4, 1.0)
+			else:
+				btn_slot.modulate = Color(0.85, 0.95, 1.0, 1.0)
+			var h_id_cap := h.hatsu_id
+			btn_slot.pressed.connect(func(): _selecionar_hatsu_archive(h_id_cap))
+		else:
+			btn_slot.text = "[%d] Vazio" % (i + 1)
+			btn_slot.modulate = Color(0.5, 0.5, 0.5, 0.8)
+			btn_slot.disabled = true
+
+		grid_archive.add_child(btn_slot)
+
+	# 3. Atualizar Inspetor de Mastery
+	_atualizar_inspetor()
+
+	# 4. Atualizar Footer
+	_atualizar_footer_timer()
+
+
+func _selecionar_hatsu_archive(hid: String) -> void:
+	hatsu_selecionado_id = hid
+	_atualizar_ui()
+
+
+func _atualizar_inspetor() -> void:
+	for c in panel_inspector.get_children():
+		c.queue_free()
+
+	var h: HatsuData = null
+	if HatsuProgressionManager != null:
+		h = HatsuProgressionManager.obter_hatsu_archive_por_id(hatsu_selecionado_id)
+	else:
+		h = PlayerData.obter_hatsu_por_id(hatsu_selecionado_id)
+
+	if h == null:
 		var lbl_empty := Label.new()
-		lbl_empty.text = "Nenhum Hatsu forjado ainda. Clique no botão abaixo para criar seu primeiro Hatsu!"
+		lbl_empty.text = "Selecione um Hatsu no Archive para inspecionar sua maestria."
 		lbl_empty.add_theme_font_size_override("font_size", 4)
-		lbl_empty.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
-		vbox_hatsus_lista.add_child(lbl_empty)
+		lbl_empty.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+		lbl_empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		panel_inspector.add_child(lbl_empty)
 		return
 
-	for hatsu_idx in range(todos_hatsus.size()):
-		var hatsu := todos_hatsus[hatsu_idx]
-		var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, hatsu.categoria)
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 3)
+	margin.add_theme_constant_override("margin_top", 2)
+	margin.add_theme_constant_override("margin_right", 3)
+	margin.add_theme_constant_override("margin_bottom", 2)
+	panel_inspector.add_child(margin)
 
-		var p_item := PanelContainer.new()
-		p_item.custom_minimum_size = Vector2(286, 22)
-		var st_item := StyleBoxFlat.new()
-		st_item.bg_color = Color(0.10, 0.12, 0.18, 0.95)
-		st_item.border_width_bottom = 1
-		st_item.border_color = Color(0.2, 0.25, 0.35, 1.0)
-		p_item.add_theme_stylebox_override("panel", st_item)
-		vbox_hatsus_lista.add_child(p_item)
+	var vb := VBoxContainer.new()
+	vb.add_theme_constant_override("separation", 1)
+	margin.add_child(vb)
 
-		var hb_row := HBoxContainer.new()
-		hb_row.add_theme_constant_override("separation", 2)
-		p_item.add_child(hb_row)
+	# Título & Badge
+	var lbl_nome := Label.new()
+	lbl_nome.text = ("★ MASTERED " if h.is_mastered() else "") + h.nome
+	lbl_nome.add_theme_font_size_override("font_size", 4)
+	lbl_nome.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2) if h.is_mastered() else Color(0.4, 0.95, 1.0))
+	vb.add_child(lbl_nome)
 
-		var vb_info := VBoxContainer.new()
-		vb_info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		vb_info.add_theme_constant_override("separation", 0)
-		hb_row.add_child(vb_info)
+	# Mastery Progress
+	var lbl_m_val := Label.new()
+	lbl_m_val.text = "Mastery: %d / 100" % int(h.mastery)
+	lbl_m_val.add_theme_font_size_override("font_size", 4)
+	lbl_m_val.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+	vb.add_child(lbl_m_val)
 
-		var lbl_hn := Label.new()
-		lbl_hn.text = hatsu.nome + " [" + HatsuManager.obter_nome_categoria(hatsu.categoria) + "]"
-		lbl_hn.add_theme_font_size_override("font_size", 4)
-		lbl_hn.add_theme_color_override("font_color", Color(0.4, 0.95, 1.0, 1.0))
-		lbl_hn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		vb_info.add_child(lbl_hn)
+	var bar := ProgressBar.new()
+	bar.custom_minimum_size = Vector2(100, 4)
+	bar.max_value = 100.0
+	bar.value = h.mastery
+	bar.show_percentage = false
+	vb.add_child(bar)
 
-		var obj_tag: String = "Dano"
-		var poder_txt: String = "%d Poder" % int(hatsu.obter_poder_final())
-		match hatsu.objetivo:
-			HatsuData.ObjetivoPrincipal.DEFESA:
-				obj_tag = "Defesa"
-				poder_txt = "%d Escudo" % int(hatsu.obter_poder_final())
-			HatsuData.ObjetivoPrincipal.CURA:
-				obj_tag = "Cura"
-				poder_txt = "%d Cura" % int(hatsu.obter_poder_final())
-			HatsuData.ObjetivoPrincipal.MOBILIDADE:
-				obj_tag = "Mobilidade"
-				poder_txt = "Dash"
-			HatsuData.ObjetivoPrincipal.CONTROLE:
-				obj_tag = "Controle"
-				poder_txt = "Stun"
+	# Escala de Poder e Eficiência
+	var p_ratio: int = int(h.obter_multiplicador_mastery() * 100)
+	var eff_bonus: int = int((1.0 - h.obter_reducao_custo_mastery()) * 100)
+	var cd_bonus: int = int((1.0 - h.obter_reducao_cooldown_mastery()) * 100)
+	var rng_bonus: int = int((h.obter_bonus_alcance_mastery() - 1.0) * 100)
 
-		var extra_tag: String = ""
-		if HatsuData.Condicao.ALMAS_INIMIGOS in hatsu.condicoes or hatsu.vow_custom_cat == "ALMAS":
-			extra_tag = " | 💀 %d Almas" % hatsu.almas_acumuladas
+	var lbl_stats := Label.new()
+	lbl_stats.text = "Poder: %d%%\nAura: -%d%% | CD: -%d%% | Alc: +%d%%" % [p_ratio, eff_bonus, cd_bonus, rng_bonus]
+	lbl_stats.add_theme_font_size_override("font_size", 4)
+	lbl_stats.add_theme_color_override("font_color", Color(0.8, 0.9, 0.85))
+	vb.add_child(lbl_stats)
 
-		var lbl_stats := Label.new()
-		lbl_stats.text = "[%s] %d%% Efic. | %d Aura | %.1fs CD | %s%s" % [
-			obj_tag,
-			int(ef * 100),
-			int(hatsu.obter_custo_final()),
-			hatsu.obter_cooldown_final(),
-			poder_txt,
-			extra_tag
-		]
-		lbl_stats.add_theme_font_size_override("font_size", 4)
-		lbl_stats.add_theme_color_override("font_color", Color(0.8, 0.85, 0.9, 1.0))
-		vb_info.add_child(lbl_stats)
+	# Botões de Equipar no Slot 1..4
+	var hb_eq := HBoxContainer.new()
+	hb_eq.add_theme_constant_override("separation", 1)
+	vb.add_child(hb_eq)
 
-		# Botões de Equipar nos Slots 1, 2, 3, 4
-		var hb_btns := HBoxContainer.new()
-		hb_btns.add_theme_constant_override("separation", 1)
-		hb_row.add_child(hb_btns)
+	var lbl_eq := Label.new()
+	lbl_eq.text = "Equipar:"
+	lbl_eq.add_theme_font_size_override("font_size", 4)
+	hb_eq.add_child(lbl_eq)
 
-		for s_idx in range(4):
-			var btn_eq := Button.new()
-			btn_eq.text = str(s_idx + 1)
-			btn_eq.custom_minimum_size = Vector2(16, 16)
-			btn_eq.add_theme_font_size_override("font_size", 4)
-			var h_index = hatsu_idx
-			var target_slot = s_idx
-			btn_eq.pressed.connect(func(): _equipar_hatsu_slot(h_index, target_slot))
-			hb_btns.add_child(btn_eq)
+	for sid in range(1, 5):
+		var btn_s := Button.new()
+		btn_s.text = str(sid)
+		btn_s.custom_minimum_size = Vector2(14, 12)
+		btn_s.add_theme_font_size_override("font_size", 4)
+		var check_eq: Dictionary = HatsuProgressionManager.can_equip_to_slot(sid, h.hatsu_id) if HatsuProgressionManager != null else {"can_equip": true}
+		btn_s.disabled = not check_eq.get("can_equip", false)
+		if not check_eq.get("can_equip", false):
+			btn_s.tooltip_text = check_eq.get("message", "Bloqueado")
+
+		var target_sid := sid
+		var target_hid := h.hatsu_id
+		btn_s.pressed.connect(func(): _equipar_hatsu_no_slot(target_sid, target_hid))
+		hb_eq.add_child(btn_s)
 
 
-func _equipar_hatsu_slot(hatsu_index: int, slot: int) -> void:
-	PlayerData.equipar_hatsu(slot, hatsu_index)
+func _equipar_hatsu_no_slot(slot_id: int, hid: String) -> void:
+	if HatsuProgressionManager != null:
+		var check := HatsuProgressionManager.can_equip_to_slot(slot_id, hid)
+		if not check.get("can_equip", false):
+			if EventBus != null and EventBus.has_signal("toast_enviado"):
+				EventBus.emit_toast(check.get("message", "Não é possível equipar."), Color(1.0, 0.4, 0.4))
+			return
+		HatsuProgressionManager.equipar_hatsu(slot_id, hid)
+	else:
+		PlayerData.equipar_hatsu(slot_id - 1, 0)
+
 	_atualizar_ui()
-	print("[HatsuEquipUI] Equipou Hatsu index ", hatsu_index, " no Slot ", slot)
 
 
-func _desequipar_slot(slot: int) -> void:
-	PlayerData.desequipar_hatsu(slot)
+func _desequipar_slot(slot_id: int) -> void:
+	if HatsuProgressionManager != null:
+		HatsuProgressionManager.desequipar_hatsu(slot_id)
+	else:
+		PlayerData.desequipar_hatsu(slot_id - 1)
 	_atualizar_ui()
-	print("[HatsuEquipUI] Desequipou Slot ", slot)
+
+
+func _atualizar_footer_timer() -> void:
+	if lbl_footer_status == null or btn_forjar_footer == null:
+		return
+
+	if HatsuProgressionManager == null:
+		lbl_footer_status.text = "Forja de Hatsu disponível."
+		return
+
+	var check := HatsuProgressionManager.can_create_hatsu()
+	var cur_arch := check.get("archive_count", 0)
+	var max_arch := check.get("archive_max", 12)
+	var cost := check.get("cost_jenny", 5000)
+	var rem_sec := check.get("remaining_seconds", 0)
+
+	if not check.get("can_create", false):
+		if check.get("reason") == "SLOT_LOCKED":
+			lbl_footer_status.text = "🔒 Requer conclusão de Greed Island e treino com Biscuit."
+			btn_forjar_footer.disabled = true
+		elif check.get("reason") == "COOLDOWN":
+			lbl_footer_status.text = "⏳ Cooldown de Criação: %s | Custo: %d Jenny" % [_formatar_tempo(rem_sec), cost]
+			btn_forjar_footer.disabled = true
+		elif check.get("reason") == "ARCHIVE_FULL":
+			lbl_footer_status.text = "⚠️ Archive Cheio (%d/%d Hatsus). Exclua um antigo." % [cur_arch, max_arch]
+			btn_forjar_footer.disabled = true
+		elif check.get("reason") == "INSUFFICIENT_JENNY":
+			lbl_footer_status.text = "💰 Custo: %d Jenny (Saldo Insuficiente) | Archive: %d/%d" % [cost, cur_arch, max_arch]
+			btn_forjar_footer.disabled = true
+		else:
+			lbl_footer_status.text = "Forja indisponível."
+			btn_forjar_footer.disabled = true
+	else:
+		lbl_footer_status.text = "✅ Pronto para Forjar | Custo: %d Jenny | Archive: %d/%d" % [cost, cur_arch, max_arch]
+		btn_forjar_footer.disabled = false
+
+
+func _formatar_tempo(segundos: int) -> String:
+	var m: int = segundos / 60
+	var s: int = segundos % 60
+	return "%02d:%02d" % [m, s]
 
 
 func _abrir_criador_hatsu() -> void:
+	if HatsuProgressionManager != null:
+		var check := HatsuProgressionManager.can_create_hatsu()
+		if not check.get("can_create", false):
+			if EventBus != null and EventBus.has_signal("toast_enviado"):
+				EventBus.emit_toast(check.get("message", "Forja indisponível."), Color(1.0, 0.4, 0.4))
+			return
+
 	fechar()
 	var creation_ui := get_tree().root.get_node_or_null("HatsuCreationUI") as HatsuCreationUI
 	if creation_ui != null:
@@ -328,3 +504,101 @@ func _abrir_criador_hatsu() -> void:
 		new_ui.name = "HatsuCreationUI"
 		get_tree().root.add_child(new_ui)
 		new_ui.abrir()
+
+
+func _mostrar_requisitos_slot(slot_id: int) -> void:
+	var diag: Dictionary = {}
+	if HatsuProgressionManager != null:
+		diag = HatsuProgressionManager.can_unlock_slot(slot_id)
+	else:
+		diag = {
+			"can_unlock": false,
+			"required_level": 600 if slot_id == 2 else (800 if slot_id == 3 else 1000),
+			"current_level": PlayerData.attributes.get("nivel", 1) if PlayerData != null else 1,
+			"required_slot": slot_id - 1,
+			"previous_slot_unlocked": false,
+			"story_completed": false
+		}
+
+	var modal := CanvasLayer.new()
+	modal.layer = 35
+	add_child(modal)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0, 0, 0, 0.75)
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	modal.add_child(bg)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	modal.add_child(center)
+
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(240, 140)
+	panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
+	center.add_child(panel)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 8)
+	margin.add_theme_constant_override("margin_top", 6)
+	margin.add_theme_constant_override("margin_right", 8)
+	margin.add_theme_constant_override("margin_bottom", 6)
+	panel.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 3)
+	margin.add_child(vbox)
+
+	var lbl_t := Label.new()
+	lbl_t.text = "🔒 HATSU SLOT %d" % slot_id
+	lbl_t.add_theme_font_size_override("font_size", 5)
+	lbl_t.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
+	lbl_t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vbox.add_child(lbl_t)
+
+	var lbl_reqs := Label.new()
+	lbl_reqs.text = "REQUISITOS DE DOMÍNIO:"
+	lbl_reqs.add_theme_font_size_override("font_size", 4)
+	lbl_reqs.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0, 1.0))
+	vbox.add_child(lbl_reqs)
+
+	if slot_id == 1:
+		var gi_ok: bool = bool(diag.get("story_completed", false))
+		var lbl_gi := Label.new()
+		lbl_gi.text = "%s Concluir Saga de Greed Island (Arco 5)" % ("✓" if gi_ok else "✗")
+		lbl_gi.add_theme_font_size_override("font_size", 4)
+		lbl_gi.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4) if gi_ok else Color(1.0, 0.4, 0.4))
+		vbox.add_child(lbl_gi)
+	else:
+		var prev_ok: bool = bool(diag.get("previous_slot_unlocked", false))
+		var lbl_prev := Label.new()
+		lbl_prev.text = "%s Hatsu Slot %d Desbloqueado" % [("✓" if prev_ok else "✗"), slot_id - 1]
+		lbl_prev.add_theme_font_size_override("font_size", 4)
+		lbl_prev.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4) if prev_ok else Color(1.0, 0.4, 0.4))
+		vbox.add_child(lbl_prev)
+
+	var req_lvl: int = int(diag.get("required_level", 0))
+	var cur_lvl: int = int(diag.get("current_level", 1))
+	if req_lvl > 0:
+		var lvl_ok: bool = cur_lvl >= req_lvl
+		var lbl_lvl := Label.new()
+		lbl_lvl.text = "%s Nível %d (Seu Nível: %d)" % [("✓" if lvl_ok else "✗"), req_lvl, cur_lvl]
+		lbl_lvl.add_theme_font_size_override("font_size", 4)
+		lbl_lvl.add_theme_color_override("font_color", Color(0.3, 1.0, 0.4) if lvl_ok else Color(1.0, 0.4, 0.4))
+		vbox.add_child(lbl_lvl)
+
+	var lbl_status := Label.new()
+	lbl_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_status.add_theme_font_size_override("font_size", 4)
+	if slot_id == 1:
+		lbl_status.text = "Conclua Greed Island e treine com Biscuit Krueger para manifestar seu primeiro Hatsu."
+	else:
+		lbl_status.text = "Continue sua evolução para desbloquear este slot."
+	lbl_status.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8))
+	vbox.add_child(lbl_status)
+
+	var btn_ok := Button.new()
+	btn_ok.text = "Entendido"
+	btn_ok.add_theme_font_size_override("font_size", 4)
+	btn_ok.pressed.connect(func(): modal.queue_free())
+	vbox.add_child(btn_ok)

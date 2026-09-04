@@ -118,6 +118,15 @@ func toggle_menu() -> void:
 
 
 func abrir() -> void:
+	if HatsuProgressionManager != null:
+		var check: Dictionary = HatsuProgressionManager.can_create_hatsu()
+		if not check.get("can_create", false):
+			push_warning("[HatsuCreationUI] Bloqueio de criação: %s" % check.get("reason", "DESCONHECIDO"))
+			if EventBus != null and EventBus.has_signal("toast_enviado"):
+				EventBus.emit_toast(check.get("message", "Criação de Hatsu indisponível."), Color(1.0, 0.4, 0.4))
+			fechar()
+			return
+
 	if panel_main == null:
 		_construir_ui()
 	etapa_atual = Etapa.TIPO_NEN
@@ -1305,14 +1314,21 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 		print("[HatsuCreationUI] ❌ Criação bloqueada devido a Déficit de Créditos: ", novo_hatsu.credit_deficit)
 		return
 
-	var index: int = PlayerData.adicionar_hatsu(novo_hatsu)
+	var index: int = -1
+	if not is_draft and HatsuProgressionManager != null:
+		var forge_res: Dictionary = HatsuProgressionManager.criar_e_registrar_hatsu(novo_hatsu)
+		if not forge_res.get("success", false):
+			lbl_desc.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
+			lbl_desc.text = "❌ FALHA NA FORJA: %s" % forge_res.get("message", "Condições não atendidas.")
+			print("[HatsuCreationUI] ❌ Forja rejeitada por HatsuProgressionManager: ", forge_res.get("reason"))
+			return
+		index = forge_res.get("archive_index", -1)
+	else:
+		index = PlayerData.adicionar_hatsu(novo_hatsu)
+		if SaveManager != null:
+			SaveManager.salvar_jogo()
+
 	hatsu_criado.emit(novo_hatsu)
-
-	if SaveManager != null:
-		SaveManager.salvar_jogo()
-
-	if EventBus != null:
-		EventBus.emit_toast("⚡ Hatsu '%s' forjado com sucesso!" % novo_hatsu.nome, Color(0.4, 1.0, 0.6))
 
 	# Atualizar HunterMenuUI se estiver instanciado
 	var root = get_tree().root if get_tree() else null

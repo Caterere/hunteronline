@@ -414,12 +414,15 @@ func _atualizar_status() -> void:
 		xp_nec = max(1, int(PlayerData.attributes.get("xp_necessario", 100)))
 
 	if level_label != null:
-		var pct_xp: int = int((float(xp_atual) / float(xp_nec)) * 100.0)
-		level_label.text = "XP: %d / %d (%d%%)" % [xp_atual, xp_nec, pct_xp]
+		if nivel >= ProgressionConfig.MAX_LEVEL:
+			level_label.text = "XP: MÁXIMO (Cap Nv. %d)" % ProgressionConfig.MAX_LEVEL
+		else:
+			var pct_xp: int = int((float(xp_atual) / float(xp_nec)) * 100.0)
+			level_label.text = "XP: %d / %d (%d%%)" % [xp_atual, xp_nec, pct_xp]
 
 	if bar_xp != null:
 		bar_xp.max_value = xp_nec
-		bar_xp.value = clamp(xp_atual, 0, xp_nec)
+		bar_xp.value = xp_nec if nivel >= ProgressionConfig.MAX_LEVEL else clamp(xp_atual, 0, xp_nec)
 
 	# HP
 	var hp: int = int(PlayerData.attributes.get("vida", 100))

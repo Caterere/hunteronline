@@ -100,17 +100,65 @@ var current_chapter: int = 1
 var max_saga_unlocked: int = 1
 var completed_sagas: Array[int] = []
 var story_flags: Dictionary = {}
+var sagas_registradas: Dictionary = {}
 
 var current_story_checkpoint: StringName = &"exame_hunter_inicio"
 var last_safe_checkpoint: StringName = &"hunter_plaza_lobby"
 
 
 func _ready() -> void:
+	_inicializar_sagas_canonicas()
 	print("============================================================")
-	print("[StoryManager] SINGLE SOURCE OF TRUTH ATIVO")
+	print("[StoryManager] SINGLE SOURCE OF TRUTH ATIVO (DATA-DRIVEN)")
 	print("  Saga Inicial: %d (%s) | Capítulo: %d" % [current_saga, obter_nome_saga(current_saga), current_chapter])
 	print("============================================================")
 	_sincronizar_com_player_data()
+
+
+func _inicializar_sagas_canonicas() -> void:
+	for s_id in SAGAS_CANONICAS.keys():
+		var nome = SAGAS_CANONICAS[s_id]
+		var faixa = ProgressionConfig.obter_faixa_saga(s_id) if ProgressionConfig != null else Vector2i(1, 1000)
+		var total_c = CanonQuestCatalog.obter_total_quests_do_arco(s_id) if CanonQuestCatalog != null else 1
+		sagas_registradas[s_id] = {
+			"id": s_id,
+			"nome": nome,
+			"lvl_min": faixa.x,
+			"lvl_max": faixa.y,
+			"total_capitulos": total_c
+		}
+
+
+func registrar_saga(saga_id: int, nome: String, lvl_min: int = 1, lvl_max: int = 1000, total_caps: int = 1) -> void:
+	sagas_registradas[saga_id] = {
+		"id": saga_id,
+		"nome": nome,
+		"lvl_min": lvl_min,
+		"lvl_max": lvl_max,
+		"total_capitulos": total_caps
+	}
+	print("[StoryManager] 📦 NOVA SAGA REGISTRADA: Saga %d — %s (Nível %d–%d | %d caps)" % [saga_id, nome, lvl_min, lvl_max, total_caps])
+
+
+func tem_saga(saga_id: int) -> bool:
+	return sagas_registradas.has(saga_id) or SAGAS_CANONICAS.has(saga_id)
+
+
+func tem_proxima_saga(saga_atual: int) -> bool:
+	return tem_saga(saga_atual + 1)
+
+
+func obter_faixa_nivel_saga(saga_id: int) -> Vector2i:
+	if sagas_registradas.has(saga_id):
+		return Vector2i(sagas_registradas[saga_id]["lvl_min"], sagas_registradas[saga_id]["lvl_max"])
+	if ProgressionConfig != null:
+		return ProgressionConfig.obter_faixa_saga(saga_id)
+	return Vector2i(1, 1000)
+
+
+func jogador_atende_nivel_saga(saga_id: int, nivel_jogador: int) -> bool:
+	var faixa = obter_faixa_nivel_saga(saga_id)
+	return nivel_jogador >= faixa.x
 
 
 func _sincronizar_com_player_data() -> void:
@@ -122,12 +170,14 @@ func _sincronizar_com_player_data() -> void:
 
 
 func obter_nome_saga(saga_id: int) -> String:
-	return SAGAS_CANONICAS.get(saga_id, "Saga Desconhecida")
+	if sagas_registradas.has(saga_id):
+		return sagas_registradas[saga_id]["nome"]
+	return SAGAS_CANONICAS.get(saga_id, "Saga %d" % saga_id)
 
 
 func iniciar_saga(saga_id: int) -> void:
-	if saga_id < 1 or saga_id > 9:
-		push_warning("[StoryManager] Tentativa de iniciar saga inválida: %d" % saga_id)
+	if not tem_saga(saga_id):
+		push_warning("[StoryManager] Tentativa de iniciar saga não registrada: %d" % saga_id)
 		return
 
 	current_saga = saga_id
@@ -147,7 +197,12 @@ func iniciar_saga(saga_id: int) -> void:
 
 
 func avancar_capitulo() -> void:
-	var total_capitulos: int = CanonQuestCatalog.obter_total_quests_do_arco(current_saga)
+	var total_capitulos: int = 1
+	if sagas_registradas.has(current_saga):
+		total_capitulos = sagas_registradas[current_saga].get("total_capitulos", 1)
+	elif CanonQuestCatalog != null:
+		total_capitulos = CanonQuestCatalog.obter_total_quests_do_arco(current_saga)
+
 	if current_chapter < total_capitulos:
 		current_chapter += 1
 		if PlayerData != null:
@@ -162,10 +217,16 @@ func concluir_saga(saga_id: int) -> void:
 	if not completed_sagas.has(saga_id):
 		completed_sagas.append(saga_id)
 
+	if saga_id == 5:
+		set_story_flag("greed_island_completed", true)
+
 	print("[StoryManager] 🏆 SAGA CONCLUÍDA: Arco %d — %s!" % [saga_id, obter_nome_saga(saga_id)])
 	saga_concluida.emit(saga_id)
 
-	if saga_id < 9:
+	if HatsuProgressionManager != null:
+		HatsuProgressionManager.check_and_unlock_slots()
+
+	if tem_proxima_saga(saga_id):
 		iniciar_saga(saga_id + 1)
 	else:
 		set_story_flag("modo_historia_concluido", true)

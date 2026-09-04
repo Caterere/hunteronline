@@ -238,9 +238,12 @@ var alvo_marcado_ref: Node = null
 @export var velocidade_bonus: float = 0.0
 @export var stun_duracao: float = 1.5
 
-# Hatsu Evolutivo (Lv. 1 ao Lv. 100)
+# Hatsu Evolutivo & Mastery (Lv. 0 ao Lv. 100)
 @export var nivel_evolucao_hatsu: int = 1
 @export var xp_evolucao_hatsu: int = 0
+@export var mastery: float = 0.0
+@export var mastery_xp: float = 0.0
+@export var created_timestamp: int = 0
 
 # Arquitetura de Loadout, Canais & Compatibilidade (GDD Vol 5 & Hatsu Refined)
 @export var activation_type: ActivationType = ActivationType.INSTANT
@@ -990,38 +993,114 @@ func obter_multiplicador_poder() -> float:
 	return mult_final
 
 
+# ============================================================
+# SISTEMA DE MASTERY (0 A 100) & PROGRESSÃO DE PODER
+# ============================================================
+
+func obter_multiplicador_mastery() -> float:
+	var max_m: float = HatsuConfig.MAX_MASTERY if ClassDB.class_exists(&"HatsuConfig") or Engine.has_singleton(&"HatsuConfig") or true else 100.0
+	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
+	var initial_ratio: float = HatsuConfig.INITIAL_POWER_RATIO if "INITIAL_POWER_RATIO" in HatsuConfig else 0.30
+	return initial_ratio + (1.0 - initial_ratio) * ratio
+
+
+func obter_reducao_custo_mastery() -> float:
+	var max_m: float = HatsuConfig.MAX_MASTERY if "MAX_MASTERY" in HatsuConfig else 100.0
+	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
+	var max_bonus: float = HatsuConfig.MAX_AURA_EFFICIENCY_BONUS if "MAX_AURA_EFFICIENCY_BONUS" in HatsuConfig else 0.20
+	return 1.0 - (max_bonus * ratio)
+
+
+func obter_reducao_cooldown_mastery() -> float:
+	var max_m: float = HatsuConfig.MAX_MASTERY if "MAX_MASTERY" in HatsuConfig else 100.0
+	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
+	var max_bonus: float = HatsuConfig.MAX_COOLDOWN_REDUCTION_BONUS if "MAX_COOLDOWN_REDUCTION_BONUS" in HatsuConfig else 0.20
+	return 1.0 - (max_bonus * ratio)
+
+
+func obter_bonus_alcance_mastery() -> float:
+	var max_m: float = HatsuConfig.MAX_MASTERY if "MAX_MASTERY" in HatsuConfig else 100.0
+	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
+	var max_bonus: float = HatsuConfig.MAX_RANGE_BONUS if "MAX_RANGE_BONUS" in HatsuConfig else 0.20
+	return 1.0 + (max_bonus * ratio)
+
+
+func is_mastered() -> bool:
+	var max_m: float = HatsuConfig.MAX_MASTERY if "MAX_MASTERY" in HatsuConfig else 100.0
+	return mastery >= max_m
+
+
+func adicionar_mastery_xp(ganho_xp: float) -> Dictionary:
+	var max_m: float = HatsuConfig.MAX_MASTERY if "MAX_MASTERY" in HatsuConfig else 100.0
+	if is_mastered():
+		return {
+			"subiu_nivel": false,
+			"novo_nivel": int(mastery),
+			"mastered": true,
+			"xp_atual": 0.0,
+			"xp_necessario": 0.0
+		}
+
+	mastery_xp += ganho_xp
+	var subiu: bool = false
+	var cur_lvl: int = int(mastery)
+
+	while cur_lvl < int(max_m):
+		var req: float = HatsuConfig.get_xp_for_mastery_level(cur_lvl)
+		if mastery_xp >= req:
+			mastery_xp -= req
+			cur_lvl += 1
+			mastery = float(cur_lvl)
+			nivel_evolucao_hatsu = cur_lvl
+			subiu = true
+		else:
+			break
+
+	if cur_lvl >= int(max_m):
+		mastery = max_m
+		mastery_xp = 0.0
+		nivel_evolucao_hatsu = 100
+
+	var req_prox: float = HatsuConfig.get_xp_for_mastery_level(int(mastery)) if int(mastery) < int(max_m) else 0.0
+
+	return {
+		"subiu_nivel": subiu,
+		"novo_nivel": int(mastery),
+		"mastered": is_mastered(),
+		"xp_atual": mastery_xp,
+		"xp_necessario": req_prox
+	}
+
+
 func obter_poder_final() -> float:
 	var base_dmg: float = custom_damage if custom_damage > 0.0 else poder_base
-	return base_dmg * obter_multiplicador_poder()
+	return base_dmg * obter_multiplicador_poder() * obter_multiplicador_mastery()
 
 
 func obter_custo_final() -> float:
-	if custom_aura_cost > 0.0:
-		return custom_aura_cost
+	var base_cost: float = custom_aura_cost if custom_aura_cost > 0.0 else custo_aura_base
 	var mult: float = 1.0
 	if Condicao.CUSTO_DUPLO in condicoes:
 		mult *= 2.0
-	return custo_aura_base * mult
+	return base_cost * mult * obter_reducao_custo_mastery()
 
 
 func obter_cooldown_final() -> float:
-	if custom_cooldown > 0.0:
-		return custom_cooldown
+	var base_cd: float = custom_cooldown if custom_cooldown > 0.0 else cooldown_base
 	var mult: float = 1.0
 	if Condicao.COOLDOWN_LONGO in condicoes:
 		mult *= 2.0
-	return cooldown_base * mult
+	return base_cd * mult * obter_reducao_cooldown_mastery()
+
+
+func obter_alcance_final() -> float:
+	var base_alcance: float = custom_range if custom_range > 0.0 else alcance
+	return base_alcance * obter_bonus_alcance_mastery()
 
 
 func adicionar_xp_evolucao(ganho_xp: int) -> bool:
-	xp_evolucao_hatsu += ganho_xp
-	var xp_prox: int = nivel_evolucao_hatsu * 100
-	if xp_evolucao_hatsu >= xp_prox and nivel_evolucao_hatsu < 100:
-		xp_evolucao_hatsu -= xp_prox
-		nivel_evolucao_hatsu += 1
-		print("[Hatsu Evolutivo] %s evoluiu para o Nível %d!" % [nome, nivel_evolucao_hatsu])
-		return true
-	return false
+	var res := adicionar_mastery_xp(float(ganho_xp))
+	return res.get("subiu_nivel", false)
 
 
 # ============================================================
@@ -1200,6 +1279,9 @@ func to_dict() -> Dictionary:
 		"duracao": duracao,
 		"nivel_evolucao_hatsu": nivel_evolucao_hatsu,
 		"xp_evolucao_hatsu": xp_evolucao_hatsu,
+		"mastery": mastery,
+		"mastery_xp": mastery_xp,
+		"created_timestamp": created_timestamp,
 		"vow_custom_text": vow_custom_text,
 		"vow_custom_mult": vow_custom_mult,
 		"tags": GameplayTags.normalize(tags),
@@ -1307,6 +1389,9 @@ static func from_dict(data: Dictionary) -> HatsuData:
 	h.duracao = data.get("duracao", 5.0)
 	h.nivel_evolucao_hatsu = data.get("nivel_evolucao_hatsu", 1)
 	h.xp_evolucao_hatsu = data.get("xp_evolucao_hatsu", 0)
+	h.mastery = float(data.get("mastery", max(0.0, float(data.get("nivel_evolucao_hatsu", 1) - 1))))
+	h.mastery_xp = float(data.get("mastery_xp", float(data.get("xp_evolucao_hatsu", 0))))
+	h.created_timestamp = int(data.get("created_timestamp", 0))
 	h.vow_custom_text = data.get("vow_custom_text", "")
 	h.vow_custom_mult = data.get("vow_custom_mult", 1.0)
 	h.usuario_original = data.get("usuario_original", "")

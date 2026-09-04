@@ -113,17 +113,17 @@ const RANK_MULTIPLIERS: Dictionary = {
 # ============================================================
 
 func obter_tier_por_nivel(nivel: int) -> Tier:
-	if nivel <= 10:
+	if nivel <= 80:
 		return Tier.HUMANO
-	elif nivel <= 25:
+	elif nivel <= 200:
 		return Tier.HUNTER_INICIANTE
-	elif nivel <= 45:
+	elif nivel <= 400:
 		return Tier.HUNTER_EXPERIENTE
-	elif nivel <= 65:
+	elif nivel <= 600:
 		return Tier.USUARIO_NEN
-	elif nivel <= 80:
+	elif nivel <= 800:
 		return Tier.HUNTER_ELITE
-	elif nivel <= 95:
+	elif nivel <= 950:
 		return Tier.MONSTRO
 	else:
 		return Tier.ENDGAME

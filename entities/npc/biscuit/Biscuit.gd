@@ -23,17 +23,13 @@ func _ready() -> void:
 
 
 func _on_interacted(_player: CharacterBody2D) -> void:
-	var arco_atual: int = PlayerData.arco_atual if PlayerData != null else 1
-	var max_arco: int = PlayerData.max_arco_desbloqueado if PlayerData != null else 1
-	var hatsu_creation_unlocked: bool = PlayerData.hatsu_creation_unlocked or PlayerData.hatsu_desbloqueado
-
 	if QuestSystem != null and QuestSystem.has_method("register_npc_visit"):
 		QuestSystem.register_npc_visit(&"biscuit")
 
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
 
 	# CASO 1: Jogador ainda nem despertou Nen
-	if not PlayerData.despertou_nen:
+	if PlayerData == null or not PlayerData.despertou_nen:
 		if visual_dialogue != null:
 			visual_dialogue.exibir_sequencia_falas([
 				{"falante": "Biscuit Krueger", "texto": "Ora ora! Vejo que você ainda nem despertou seus nós de Nen!"},
@@ -41,20 +37,41 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 			])
 		return
 
-	# CASO 2: Jogador despertou Nen mas ainda está antes do Arco 5 (Greed Island)
-	if not hatsu_creation_unlocked and arco_atual < 5 and max_arco < 5:
+	# CASO 2: Verificar se o Hatsu Slot 1 já está desbloqueado
+	var slot1_desbloqueado: bool = false
+	if HatsuProgressionManager != null:
+		slot1_desbloqueado = HatsuProgressionManager.is_slot_unlocked(1)
+	else:
+		slot1_desbloqueado = PlayerData.hatsu_creation_unlocked or PlayerData.hatsu_desbloqueado
+
+	if not slot1_desbloqueado:
+		# Checar se cumpriu os requisitos de Greed Island
+		var pode_desbloquear: bool = false
+		if HatsuProgressionManager != null:
+			var check: Dictionary = HatsuProgressionManager.can_unlock_slot(1)
+			pode_desbloquear = check.get("can_unlock", false)
+		else:
+			pode_desbloquear = PlayerData.is_greed_island_concluida()
+
+		if not pode_desbloquear:
+			if visual_dialogue != null:
+				visual_dialogue.exibir_sequencia_falas([
+					{"falante": "Biscuit Krueger", "texto": "Ora ora! Vejo que você já conhece os fundamentos de Nen, mas ainda é como uma pedra bruta precisando de lapidação!"},
+					{"falante": "Biscuit Krueger", "texto": "🔒 REQUISITO: Complete a Saga de Greed Island (Arco 5) e supere as provações para iniciar o treinamento avançado e desbloquear seu Hatsu Slot 1 comigo!"}
+				])
+			return
+
+		# Cumpriu Greed Island -> Iniciação da Mestra Biscuit e Desbloqueio do Slot 1
+		if HatsuProgressionManager != null:
+			HatsuProgressionManager.unlock_slot(1)
+		else:
+			PlayerData.desbloquear_hatsu_creator()
+
 		if visual_dialogue != null:
 			visual_dialogue.exibir_sequencia_falas([
-				{"falante": "Biscuit Krueger", "texto": "Ora ora! Vejo que você já conhece os fundamentos com o Wing, mas ainda é como uma pedra bruta precisando de lapidação!"},
-				{"falante": "Biscuit Krueger", "texto": "🔒 REQUISITO: Avance em sua jornada até a Saga de Greed Island (Arco 5) para iniciar o treinamento avançado e forjar seu Hatsu supremo comigo!"}
+				{"falante": "Biscuit Krueger", "texto": "Excelente! Você sobreviveu e completou Greed Island! Sua aura foi forjada no calor das batalhas reais."},
+				{"falante": "Biscuit Krueger", "texto": "Você provou que está pronto para manifestar sua individualidade através do Nen. Hatsu Slot 1 DESBLOQUEADO!"}
 			])
-		return
-
-	# CASO 3: Alcançou Greed Island (Arco 5+) ou já desbloqueou -> Desbloquear Hatsu Creator se necessário e abrir menu
-	if not hatsu_creation_unlocked:
-		PlayerData.desbloquear_hatsu_creator()
-		if EventBus != null:
-			EventBus.emit_toast("🥋 MESTRA BISCUIT: Treinamento de Hatsu Desbloqueado!", Color(1.0, 0.85, 0.3))
 
 	_abrir_menu_interacao()
 

@@ -63,6 +63,12 @@ func _ready() -> void:
 	# Attack speed escalado pelo atributo Velocidade (GDD Vol 5)
 	_atualizar_attack_cooldown()
 
+	if SaveManager != null and not SaveManager.jogo_carregado.is_connected(_on_save_carregado):
+		SaveManager.jogo_carregado.connect(_on_save_carregado)
+
+	if PlayerData != null and not PlayerData.nivel_alterado.is_connected(_on_nivel_alterado):
+		PlayerData.nivel_alterado.connect(_on_nivel_alterado)
+
 	add_to_group("player")
 	_aplicar_customizacao_visual()
 
@@ -328,3 +334,41 @@ func _animate() -> void:
 
 
 	_state_machine.travel("idle")
+
+
+func _on_save_carregado(_slot: int) -> void:
+	sincronizar_progresso()
+	_atualizar_attack_cooldown()
+
+
+func _on_nivel_alterado(_novo_nivel: int) -> void:
+	sincronizar_progresso()
+	_atualizar_attack_cooldown()
+
+
+func obter_nivel() -> int:
+	var xp_sys = get_node_or_null("XPSystem") as XPSystem
+	if xp_sys != null:
+		return xp_sys.obter_level()
+	return int(PlayerData.attributes.get("nivel", 1))
+
+
+func obter_xp() -> int:
+	var xp_sys = get_node_or_null("XPSystem") as XPSystem
+	if xp_sys != null:
+		return xp_sys.obter_xp()
+	return int(PlayerData.attributes.get("xp", 0))
+
+
+func obter_xp_necessario() -> int:
+	var xp_sys = get_node_or_null("XPSystem") as XPSystem
+	if xp_sys != null:
+		return xp_sys.obter_xp_necessario()
+	return ProgressionConfig.calcular_xp_necessario(obter_nivel())
+
+
+func sincronizar_progresso() -> void:
+	var xp_sys = get_node_or_null("XPSystem") as XPSystem
+	if xp_sys != null and xp_sys.has_method("sincronizar_com_player_data"):
+		xp_sys.sincronizar_com_player_data()
+

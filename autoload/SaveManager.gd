@@ -197,9 +197,12 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"tecnicas_nen": PlayerData.tecnicas_nen.duplicate(),
 		"hatsu_criados": hatsus_serialized,
 		"hatsu_slots": PlayerData.hatsu_slots.duplicate(),
+		"hatsu_system_version": 3,
+		"hatsu_progression": HatsuProgressionManager.serializar() if HatsuProgressionManager != null else {},
 		"stored_hatsus": stored_hatsus_serialized,
 		"despertou_nen": PlayerData.despertou_nen,
 		"nen_skill_points": PlayerData.nen_skill_points,
+		"nen_skill_tree_version": 2,
 		"nen_skill_tree_progress": PlayerData.nen_skill_tree_progress.duplicate(),
 		"nen_ryu_caminho": PlayerData.nen_ryu_caminho,
 		"resistance_tags": PlayerData.resistance_tags.duplicate(),
@@ -428,7 +431,8 @@ func carregar_jogo(slot: int = -1) -> bool:
 		"aura_max": 0.0,
 		"nivel_nen": 0,
 		"xp_nen": 0,
-		"nivel": 1
+		"nivel": 1,
+		"xp": 0
 	}
 	if data.has("attributes") and data["attributes"] is Dictionary:
 		for k in attrs_padrao.keys():
@@ -436,14 +440,11 @@ func carregar_jogo(slot: int = -1) -> bool:
 	else:
 		PlayerData.attributes = attrs_padrao.duplicate()
 
-	# Garantir que vida e nivel estão dentro dos limites mínimos válidos
-	PlayerData.attributes["nivel"] = max(1, int(PlayerData.attributes.get("nivel", 1)))
+	# Garantir que vida e nivel estão dentro dos limites válidos (1 a MAX_LEVEL)
+	PlayerData.attributes["nivel"] = clamp(int(PlayerData.attributes.get("nivel", 1)), ProgressionConfig.BASE_LEVEL, ProgressionConfig.MAX_LEVEL)
+	PlayerData.recalcular_todos_atributos()
 	var raw_vida = int(PlayerData.attributes.get("vida", 100))
-	var raw_vida_max = max(100, int(PlayerData.attributes.get("vida_max", 100)))
-	if raw_vida > raw_vida_max:
-		raw_vida_max = raw_vida
-	PlayerData.attributes["vida_max"] = raw_vida_max
-	PlayerData.attributes["vida"] = clamp(raw_vida, 1, raw_vida_max)
+	PlayerData.attributes["vida"] = clamp(raw_vida, 1, PlayerData.attributes["vida_max"])
 
 	# Inventário
 	if data.has("inventory"):
@@ -494,6 +495,13 @@ func carregar_jogo(slot: int = -1) -> bool:
 	else:
 		PlayerData.hatsu_slots = [-1, -1, -1, -1]
 
+	# Carregar progressão de Hatsu Slots e executar revalidação obrigatória anti-bypass
+	if HatsuProgressionManager != null:
+		if data.has("hatsu_progression") and data["hatsu_progression"] is Dictionary:
+			HatsuProgressionManager.deserializar(data["hatsu_progression"])
+		else:
+			HatsuProgressionManager.revalidate_all_slots()
+
 	# Besta de Nen
 	PlayerData.besta_nen_desbloqueada = bool(data.get("besta_nen_desbloqueada", false))
 
@@ -515,15 +523,20 @@ func carregar_jogo(slot: int = -1) -> bool:
 	for it in data.get("immunity_tags", []):
 		PlayerData.immunity_tags.append(str(it))
 
-	# Sincronizar instâncias ativas da NenSkillTree se presentes na árvore de cena
+	# Sincronizar instâncias ativas da NenSkillTree com suporte a versão de schema V2
+	var st_payload: Dictionary = {
+		"version": int(data.get("nen_skill_tree_version", 1)),
+		"node_levels": PlayerData.nen_skill_tree_progress,
+		"ryu_caminho": PlayerData.nen_ryu_caminho
+	}
+	if PlayerData.skill_tree != null and is_instance_valid(PlayerData.skill_tree) and PlayerData.skill_tree.has_method("from_dict"):
+		PlayerData.skill_tree.from_dict(st_payload)
+
 	if get_tree() != null:
 		var skill_trees := get_tree().get_nodes_in_group("nen_skill_tree")
 		for st in skill_trees:
-			if st.has_method("from_dict"):
-				st.from_dict({
-					"node_levels": PlayerData.nen_skill_tree_progress,
-					"ryu_caminho": PlayerData.nen_ryu_caminho
-				})
+			if st != PlayerData.skill_tree and st.has_method("from_dict"):
+				st.from_dict(st_payload)
 
 	# Tutorial & Conhecimentos (Hunter Guide)
 	PlayerData.tour_lobby_concluido = bool(data.get("tour_lobby_concluido", false))
@@ -585,11 +598,13 @@ func carregar_jogo(slot: int = -1) -> bool:
 	if GameManager != null:
 		GameManager.set_flow_state(GameManager.GameFlowState.SAVE_LOADED)
 
-	print("=================================")
-	print("[SaveManager] SLOT ", slot, " CARREGADO COM SUCESSO!")
-	print("  ID: ", PlayerData.character_id, " | Nome: ", PlayerData.nome_personagem)
-	print("  Mapa Alvo: ", PlayerData.mapa_atual_salvo, " | Fonte: ", path_utilizado)
-	print("=================================")
+	if get_tree() != null:
+		var ply = get_tree().get_first_node_in_group("player")
+		if ply != null and ply.has_method("sincronizar_progresso"):
+			ply.sincronizar_progresso()
+		var xp_sys = get_tree().get_first_node_in_group("xp_system")
+		if xp_sys != null and xp_sys.has_method("sincronizar_com_player_data"):
+			xp_sys.sincronizar_com_player_data()
 
 	jogo_carregado.emit(slot)
 	return true

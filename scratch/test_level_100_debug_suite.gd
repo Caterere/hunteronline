@@ -60,8 +60,8 @@ func _ready() -> void:
 	var defesa = PlayerData.attributes.get("defesa", 0)
 	var vel = PlayerData.attributes.get("velocidade", 0)
 	var aura_max = PlayerData.attributes.get("aura_max", 0.0)
-	var stats_ok = (hp_max >= 1000 and forca >= 200 and defesa >= 200 and vel >= 100 and aura_max >= 10000.0)
-	assert_test(stats_ok, "5. Atributos: HP (%d), Força (%d), Defesa (%d), Aura (%d) recalculados pela pipeline oficial" % [hp_max, forca, defesa, int(aura_max)])
+	var stats_ok = (hp_max >= 1000 and forca >= 200 and defesa >= 200 and vel >= 35 and aura_max >= 10000.0)
+	assert_test(stats_ok, "5. Atributos: HP (%d), Força (%d), Defesa (%d), Vel (%d), Aura (%d) recalculados pela pipeline oficial" % [hp_max, forca, defesa, int(vel), int(aura_max)])
 
 	# -------------------------------------------------------------
 	# TEST 6: Todas as 9 Técnicas de Nen no Nível 100

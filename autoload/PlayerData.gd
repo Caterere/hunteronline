@@ -21,8 +21,11 @@ const AuraVisualProfile = preload("res://resource/hatsu/AuraVisualProfile.gd")
 
 
 # ============================================================
-# ATRIBUTOS
+# SINAIS DE PROGRESSÃO E ATRIBUTOS
 # ============================================================
+
+signal nivel_alterado(novo_nivel: int)
+signal atributos_recalculados()
 
 var attributes: Dictionary = {
 
@@ -46,10 +49,11 @@ var attributes: Dictionary = {
 	"xp_nen": 0,
 
 	# ========================================================
-	# LEVEL NORMAL
+	# LEVEL NORMAL & XP
 	# ========================================================
 
-	"nivel": 1
+	"nivel": 1,
+	"xp": 0
 }
 
 # ============================================================
@@ -113,10 +117,16 @@ var mapa_atual_salvo: String = "res://world/lobby.tscn"
 var posicao_salva: Vector2 = Vector2.ZERO
 
 func avancar_arco() -> void:
-	if arco_atual < 9:
+	var tem_prox: bool = false
+	if StoryManager != null and StoryManager.has_method("tem_proxima_saga"):
+		tem_prox = StoryManager.tem_proxima_saga(arco_atual)
+	else:
+		tem_prox = arco_atual < 9
+
+	if tem_prox:
 		arco_atual += 1
 		etapa_quest_arco = 1
-	elif arco_atual == 9:
+	else:
 		modo_historia_concluido = true
 		print("[PlayerData] MODO HISTÓRIA TOTALMENTE CONCLUÍDO!")
 		
@@ -153,7 +163,9 @@ func is_greed_island_concluida() -> bool:
 
 
 func desbloquear_hatsu_creator() -> void:
-	if not hatsu_creation_unlocked or not hatsu_desbloqueado:
+	if HatsuProgressionManager != null and not HatsuProgressionManager.is_slot_unlocked(1):
+		HatsuProgressionManager.unlock_slot(1)
+	elif not hatsu_creation_unlocked or not hatsu_desbloqueado:
 		hatsu_creation_unlocked = true
 		hatsu_desbloqueado = true
 		print("[PlayerData] 🥋 HATSU CREATOR DESBLOQUEADO PERMANENTEMENTE!")
@@ -359,6 +371,13 @@ func reset() -> void:
 	stored_hatsus.clear()
 	hatsu_creation_unlocked = false
 	hatsu_desbloqueado = false
+	if HatsuProgressionManager != null:
+		HatsuProgressionManager.unlocked_slots = {1: false, 2: false, 3: false, 4: false}
+		HatsuProgressionManager.archive.clear()
+		HatsuProgressionManager.active_slots_map = {1: "", 2: "", 3: "", 4: ""}
+		HatsuProgressionManager.last_creation_timestamp = 0
+		HatsuProgressionManager.slot_switch_timestamps = {1: 0, 2: 0, 3: 0, 4: 0}
+		HatsuProgressionManager.hatsu_slots_atualizados.emit()
 	absorbed_stats_registry.clear()
 	hatsu_fragments_discovered.clear()
 	active_modifiers.clear()
@@ -373,7 +392,8 @@ func reset() -> void:
 		"aura_max": 100.0,
 		"nivel_nen": 1,
 		"xp_nen": 0,
-		"nivel": 1
+		"nivel": 1,
+		"xp": 0
 	}
 	recalcular_todos_atributos()
 	attributes["vida"] = attributes["vida_max"]
@@ -459,13 +479,13 @@ func obter_stat_calculado(stat_name: String) -> float:
 	var nivel: int = int(attributes.get("nivel", 1))
 	var nivel_nen: int = int(attributes.get("nivel_nen", 0))
 
-	var base_val: float = 10.0
-	match stat_name:
-		"vida_max": base_val = 100.0 + float((nivel - 1) * 10)
-		"forca": base_val = 10.0 + float((nivel - 1) * 2)
-		"defesa": base_val = 10.0 + float((nivel - 1) * 2)
-		"velocidade": base_val = 10.0 + float(nivel - 1)
-		"aura_max": base_val = float(nivel_nen) * 100.0
+	var base_val: float = ProgressionConfig.calcular_stat_base(stat_name, nivel)
+	if stat_name == "aura_max":
+		if not despertou_nen and nivel_nen <= 0:
+			base_val = 0.0
+		else:
+			# Base canônica pelo Nível do personagem + refino adicional por maestria/nível_nen
+			base_val = ProgressionConfig.calcular_stat_base("aura_max", nivel) + float(nivel_nen * 25)
 
 	# 1. Bônus Base por Afinidade
 	var mult_afinidade: float = 1.0
@@ -502,7 +522,11 @@ func obter_stat_calculado(stat_name: String) -> float:
 				mult_product *= m.value
 
 	var final_val: float = (base_val + flat_sum) * (1.0 + pct_sum) * mult_product
-	return max(1.0, final_val) if stat_name != "aura_max" or nivel_nen > 0 else 0.0
+	if stat_name == "aura_max":
+		return max(0.0, final_val) if (despertou_nen or nivel_nen > 0) else 0.0
+	if stat_name in ["vida_max", "forca", "defesa", "velocidade"]:
+		return max(1.0, final_val)
+	return max(0.0, final_val)
 
 func recalcular_todos_atributos() -> void:
 	attributes["vida_max"] = int(obter_stat_calculado("vida_max"))
@@ -516,6 +540,15 @@ func recalcular_todos_atributos() -> void:
 		attributes["vida"] = clamp(attributes["vida"], 0, attributes["vida_max"])
 	if attributes.has("aura"):
 		attributes["aura"] = clamp(attributes["aura"], 0.0, attributes["aura_max"])
+
+	atributos_recalculados.emit()
+
+func curar_vida(quantidade: int) -> void:
+	if quantidade <= 0:
+		return
+	var hp_atual: int = int(attributes.get("vida", 100))
+	var hp_max: int = int(attributes.get("vida_max", 100))
+	attributes["vida"] = clamp(hp_atual + quantidade, 0, hp_max)
 
 # ============================================================
 # ATRIBUTOS
@@ -531,14 +564,22 @@ func get_attributes() -> Dictionary:
 func aplicar_nivel(novo_nivel: int) -> void:
 	if novo_nivel < 1:
 		novo_nivel = 1
+	if novo_nivel > ProgressionConfig.MAX_LEVEL:
+		novo_nivel = ProgressionConfig.MAX_LEVEL
 
 	attributes["nivel"] = novo_nivel
 	recalcular_todos_atributos()
 	attributes["vida"] = attributes["vida_max"]
+	if despertou_nen or int(attributes.get("nivel_nen", 0)) > 0:
+		attributes["aura"] = attributes["aura_max"]
+
+	nivel_alterado.emit(novo_nivel)
+	if HatsuProgressionManager != null:
+		HatsuProgressionManager.check_and_unlock_slots()
 
 	print("=================================")
 	print("ATRIBUTOS ATUALIZADOS")
-	print("LEVEL NORMAL: ", novo_nivel)
+	print("LEVEL NORMAL: ", novo_nivel, " / ", ProgressionConfig.MAX_LEVEL)
 	print("VIDA: ", attributes["vida"], "/", attributes["vida_max"])
 	print("FORÇA: ", attributes["forca"])
 	print("DEFESA: ", attributes["defesa"])
@@ -942,21 +983,40 @@ func obter_todos_hatsus_disponiveis() -> Array[HatsuData]:
 func adicionar_hatsu(hatsu: HatsuData) -> int:
 	if hatsu == null:
 		return -1
-		
+
+	if HatsuProgressionManager != null:
+		var check = HatsuProgressionManager.can_create_hatsu()
+		if not check.get("can_create", false):
+			push_warning("[PlayerData] Bloqueio anti-bypass: %s" % check.get("message", "Criação não permitida"))
+			return -1
+
 	if hatsu.hatsu_id.is_empty():
 		hatsu.gerar_novo_id()
-		
-	hatsu_criados.append(hatsu)
+
+	if HatsuProgressionManager != null:
+		if not (hatsu in HatsuProgressionManager.archive):
+			HatsuProgressionManager.archive.append(hatsu)
+		HatsuProgressionManager._sync_player_data_archive()
+	else:
+		hatsu_criados.append(hatsu)
+
 	hatsu_desbloqueado = true
-	var index: int = hatsu_criados.size() - 1
-	
-	# Auto-equipar no primeiro slot livre
+	var index: int = hatsu_criados.find(hatsu)
+	if index == -1:
+		index = hatsu_criados.size() - 1
+
+	# Auto-equipar APENAS no primeiro slot livre que esteja DESBLOQUEADO
 	for i in range(hatsu_slots.size()):
 		if hatsu_slots[i] == -1:
-			hatsu_slots[i] = index
-			print("[PlayerData] Hatsu auto-equipado no slot ", i + 1, " (ID: ", hatsu.hatsu_id, ")")
-			break
-			
+			var slot_id: int = i + 1
+			if HatsuProgressionManager == null or HatsuProgressionManager.is_slot_unlocked(slot_id):
+				if HatsuProgressionManager != null:
+					HatsuProgressionManager.equipar_hatsu(slot_id, hatsu.hatsu_id)
+				else:
+					hatsu_slots[i] = index
+				print("[PlayerData] Hatsu auto-equipado no slot ", i + 1, " (ID: ", hatsu.hatsu_id, ")")
+				break
+
 	print("[PlayerData] Hatsu registrado com sucesso: '%s' [ID: %s] | Total de Hatsus: %d" % [hatsu.nome, hatsu.hatsu_id, hatsu_criados.size()])
 	return index
 
@@ -964,6 +1024,8 @@ func adicionar_hatsu(hatsu: HatsuData) -> int:
 func obter_hatsu_por_id(id: String) -> HatsuData:
 	if id.is_empty():
 		return null
+	if HatsuProgressionManager != null:
+		return HatsuProgressionManager.obter_hatsu_archive_por_id(id)
 	for h in hatsu_criados:
 		if h is HatsuData and h.hatsu_id == id:
 			return h
@@ -973,7 +1035,12 @@ func obter_hatsu_por_id(id: String) -> HatsuData:
 func remover_hatsu(index: int) -> bool:
 	if index < 0 or index >= hatsu_criados.size():
 		return false
-	# Desequipar de qualquer slot
+	var h: HatsuData = hatsu_criados[index] as HatsuData
+	if HatsuProgressionManager != null and h != null:
+		var res: Dictionary = HatsuProgressionManager.excluir_hatsu_archive(h.hatsu_id)
+		return res.get("success", false)
+
+	# Fallback legado
 	for s in range(hatsu_slots.size()):
 		if hatsu_slots[s] == index:
 			hatsu_slots[s] = -1
@@ -986,30 +1053,47 @@ func remover_hatsu(index: int) -> bool:
 func equipar_hatsu(slot: int, hatsu_index: int) -> bool:
 	if slot < 0 or slot >= hatsu_slots.size():
 		return false
-		
 	if hatsu_index < 0 or hatsu_index >= hatsu_criados.size():
 		return false
-		
+
+	var slot_id: int = slot + 1
+	if HatsuProgressionManager != null:
+		return HatsuProgressionManager.equipar_hatsu(slot_id, hatsu_index)
+
 	hatsu_slots[slot] = hatsu_index
 	return true
+
 
 func equipar_hatsu_slot(slot: int, hatsu: HatsuData) -> bool:
 	if hatsu == null or slot < 0 or slot >= hatsu_slots.size():
 		return false
+	var slot_id: int = slot + 1
+	if HatsuProgressionManager != null and not HatsuProgressionManager.is_slot_unlocked(slot_id):
+		push_warning("[PlayerData] Bloqueio anti-bypass: Slot %d não está desbloqueado para equipar Hatsu!" % slot_id)
+		return false
 	var idx: int = adicionar_hatsu(hatsu)
+	if idx < 0:
+		return false
 	return equipar_hatsu(slot, idx)
-
 
 
 func desequipar_hatsu(slot: int) -> void:
 	if slot >= 0 and slot < hatsu_slots.size():
-		hatsu_slots[slot] = -1
+		var slot_id: int = slot + 1
+		if HatsuProgressionManager != null:
+			HatsuProgressionManager.desequipar_hatsu(slot_id)
+		else:
+			hatsu_slots[slot] = -1
 
 
 func obter_hatsu_slot(slot: int) -> HatsuData:
 	if slot < 0 or slot >= hatsu_slots.size():
 		return null
-		
+
+	var slot_id: int = slot + 1
+	if HatsuProgressionManager != null:
+		return HatsuProgressionManager.obter_hatsu_ativo(slot_id)
+
 	var idx: int = hatsu_slots[slot]
 	if idx < 0 or idx >= hatsu_criados.size():
 		return null
@@ -1185,7 +1269,7 @@ func debug_create_level_100_hunter(equip_all_hatsus: bool = true) -> Dictionary:
 	# 3. Progressão de Nível e Nível de Nen
 	attributes["nivel"] = 100
 	attributes["nivel_nen"] = 100
-	var xp_tabelado: int = 475467 # Base 300 * (100^1.6)
+	var xp_tabelado: int = ProgressionConfig.calcular_xp_necessario(100)
 	attributes["xp"] = xp_tabelado
 	attributes["xp_nen"] = 1000000
 	attributes["gold"] = max(int(attributes.get("gold", 0)), 999999)
@@ -1298,3 +1382,32 @@ func reset_debug_character() -> bool:
 	print("LEVEL: %d" % cur_lvl)
 	print("========================================")
 	return true
+
+
+func debug_set_level(target_level: int, awaken_nen: bool = true) -> Dictionary:
+	var lvl_clamped: int = clamp(target_level, ProgressionConfig.BASE_LEVEL, ProgressionConfig.MAX_LEVEL)
+	attributes["nivel"] = lvl_clamped
+	attributes["xp"] = ProgressionConfig.calcular_xp_necessario(lvl_clamped)
+	if awaken_nen:
+		despertou_nen = true
+		attributes["nivel_nen"] = min(100, int(lvl_clamped / 10))
+	recalcular_todos_atributos()
+	attributes["vida"] = attributes["vida_max"]
+	attributes["aura"] = attributes["aura_max"]
+	
+	var tree := get_tree()
+	if tree != null:
+		var xp_sys = tree.get_first_node_in_group("xp_system")
+		if xp_sys != null and xp_sys.has_method("sincronizar_com_player_data"):
+			xp_sys.sincronizar_com_player_data()
+			
+		var nen_sys = tree.get_first_node_in_group("nen_system")
+		if nen_sys != null and nen_sys.has_method("sincronizar_com_player_data"):
+			nen_sys.sincronizar_com_player_data()
+	
+	nivel_alterado.emit(lvl_clamped)
+	return {
+		"level": lvl_clamped,
+		"attributes": attributes.duplicate()
+	}
+

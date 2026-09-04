@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_progression_level_1000_suite.gd" id="1_prog_test"]
+
+[node name="TestProgressionLevel1000Suite" type="Node"]
+script = ExtResource("1_prog_test")

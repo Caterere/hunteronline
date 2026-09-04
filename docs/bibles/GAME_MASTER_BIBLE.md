@@ -36,22 +36,22 @@ O jogo opera em um loop contínuo e orgânico de exploração, desafio e recompe
     COMBAT (Ataque básico confiável + 4 slots de Hatsu ativo)   │
        │                                                        │
        ▼                                                        │
-    XP & PROGRESSÃO (Pontos de Experiência e Nível)             │
+    XP & PROGRESSÃO (Pontos de Experiência e Nível de 1 a 1000)│
        │                                                        │
        ▼                                                        │
-    LEVEL UP (+1 Nen Skill Point por nível alcançado)           │
+    LEVEL UP (Crescimento automático de atributos base + 1 SP) │
        │                                                        │
        ▼                                                        │
-    NEN SKILL TREE (Passivos Ten/Ren/Shu/Ko/Ryu + Ativos Zetsu/En/Gyo)
+    NEN SKILL TREE (Especialização: Zetsu, En, Gyo, Ten, Ren...)│
        │                                                        │
        ▼                                                        │
-    BUILD (Customização de estilo de luta e sinergias)          │
+    BUILD (Customização de estilo de luta, sinergias e Hatsu)  │
        │                                                        │
        ▼                                                        │
     REPUTATION (Impacto nas 6 Facções do mundo)                 │
        │                                                        │
        ▼                                                        │
-    NEW CONTENT (Acesso a novos mestres, lojas e territórios)   │
+    NEW CONTENT (Acesso a novas sagas data-driven, lojas e mapas)
        │                                                        │
        ▼                                                        │
     STORY CHECKPOINT (Gravação do progresso no Hub World)───────┘
@@ -83,9 +83,17 @@ O combate de Hunter Online rejeita o modelo de "esmagamento descontrolado de tec
      - Golpe 3: Finalizador pesado (1.80x), fortalecido pelo passivo de **Ko**.
    - **Game Feel & Feedback:** Hit stop em acertos pesados, screenshake direcional e cancelamento defensivo por Dash.
 
-2. **Sistema de Hatsu (Skills Ativas 1 a 4):**
-   - **Inputs:** Teclas `1`, `2`, `3`, `4` (`hatsu_slot_1..4`).
-   - **Custo e Recarga:** Consomem quantidade exata de Aura e entram em cooldown tático.
+2. **Sistema de Hatsu (Skills Ativas 1 a 4 — Desbloqueio Progressivo & Maestria):**
+   - **Evolução Espiritual Narrativa:** O personagem inicia sem Hatsu. Os 4 slots são conquistados progressivamente:
+     - **Slot 1:** Conclusão da Saga de Greed Island (Arco 5) + Treinamento com Biscuit Krueger.
+     - **Slot 2:** Slot 1 Desbloqueado **E** Nível $\ge$ 600.
+     - **Slot 3:** Slot 2 Desbloqueado **E** Nível $\ge$ 800.
+     - **Slot 4:** Slot 3 Desbloqueado **E** Nível $\ge$ 1000 (Domínio Máximo dos 4 Slots).
+   - **Dependência Obrigatória em Cadeia (Anti-Bypass):** O nível isolado NUNCA desbloqueia slots. A cadeia de pré-requisitos é rigorosamente validada pelo `HatsuProgressionManager`.
+   - **Mastery Contínua (Nível 0 a 100):** Hatsu recém-criado nasce imperfeito (30% do poder). Através do uso em combate real, sobe até 100 de Mastery, atingindo 100% de dano base, -20% de custo de aura, -20% de recarga, +20% de alcance e o status de `★ MASTERED`. Proteção anti-farm zera XP em inimigos 30+ níveis abaixo.
+   - **Hatsu Archive (12 Slots):** Repositório dedicado de habilidades do caçador, desacoplado dos 4 slots de combate ativos. A maestria conquistada é 100% permanente no Hatsu, mesmo quando guardado no Archive.
+   - **Economia e Peso da Criação:** Forjar um Hatsu consome 5.000 Jenny e impõe cooldown de 30 minutos persistente via timestamp Unix, incentivando especialização e apego emocional em vez de refações impulsivas. Troca de slots em combate possui cooldown de 10 minutos.
+   - **Inputs:** Teclas `1`, `2`, `3`, `4` (`hatsu_slot_1..4`), estritamente bloqueadas se o slot correspondente estiver travado.
    - **Afinidades:** Intensificação, Transformação, Emissão, Materialização, Manipulação e Especialização.
    - **Juramentos & Votos:** Restrições autoimpostas aumentam drasticamente a potência.
    - **Regra de Ouro:** **Zetsu, En e Gyo NUNCA ocupam slots de Hatsu.**
@@ -170,6 +178,6 @@ Para implementar ou auditar qualquer área do jogo, consulte o catálogo de Bibl
 | [`ECONOMY_BIBLE.md`](file:///c:/Users/Ditec/Documents/hunteronline/docs/bibles/ECONOMY_BIBLE.md) | Moeda Jenny, fórmulas de precificação, recompensas e controle inflacionário. |
 | [`EQUIPMENT_BIBLE.md`](file:///c:/Users/Ditec/Documents/hunteronline/docs/bibles/EQUIPMENT_BIBLE.md) | Armas, vestimentas, anéis e catalisadores que potencializam o Nen/Shu. |
 | [`UI_UX_BIBLE.md`](file:///c:/Users/Ditec/Documents/hunteronline/docs/bibles/UI_UX_BIBLE.md) | HUD limpa, GPS contextual, feedback de status e árvore visual de habilidades. |
-| [`PROGRESSION_BIBLE.md`](file:///c:/Users/Ditec/Documents/hunteronline/docs/bibles/PROGRESSION_BIBLE.md) | Fórmulas de XP, atributos primários e secundários, licença Hunter e ranks. |
+| [`PROGRESSION_BIBLE.md`](file:///c:/Users/Ditec/Documents/hunteronline/docs/bibles/PROGRESSION_BIBLE.md) | Level Cap 1000, crescimento determinístico de atributos base, curvas de XP, marcos e sagas data-driven. |
 | [`GAMEPLAY_BIBLE.md`](file:///c:/Users/Ditec/Documents/hunteronline/docs/bibles/GAMEPLAY_BIBLE.md) | Visão geral da experiência e ritmo de jogo minuto a minuto. |
 | [`TECHNICAL_ARCHITECTURE_BIBLE.md`](file:///c:/Users/Ditec/Documents/hunteronline/docs/bibles/TECHNICAL_ARCHITECTURE_BIBLE.md) | Single Sources of Truth, EventBus, isolamento de camadas e regras de código. |

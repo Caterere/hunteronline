@@ -31,6 +31,7 @@ var nen_action_bar: Control = null
 # Painel Principal Topo-Esquerdo
 var player_card_panel: PanelContainer
 var lbl_player_header: Label
+var lbl_player_level_badge: Label
 var lbl_player_affinity: Label
 var lbl_sp_badge: Label
 var lbl_gold: Label
@@ -87,6 +88,8 @@ func _ready() -> void:
 	_instanciar_menus_auxiliares()
 	_conectar_event_bus()
 	_conectar_player_e_sistemas()
+	if HatsuProgressionManager != null and HatsuProgressionManager.has_signal("hatsu_slots_atualizados"):
+		HatsuProgressionManager.hatsu_slots_atualizados.connect(_atualizar_hatsu_slots)
 	_atualizar_hud()
 
 
@@ -140,11 +143,17 @@ func _criar_card_jogador_top_left() -> void:
 	vbox.add_child(hbox_header)
 
 	lbl_player_header = Label.new()
-	lbl_player_header.text = "🔰 HUNTER (Nv. 1)"
+	lbl_player_header.text = "🔰 HUNTER"
 	lbl_player_header.add_theme_font_size_override("font_size", 7)
 	lbl_player_header.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_player_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_player_header)
+
+	lbl_player_level_badge = Label.new()
+	lbl_player_level_badge.text = "★ Nv. 1"
+	lbl_player_level_badge.add_theme_font_size_override("font_size", 7)
+	lbl_player_level_badge.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	hbox_header.add_child(lbl_player_level_badge)
 
 	lbl_gold = Label.new()
 	lbl_gold.text = "💰 0 J"
@@ -464,19 +473,26 @@ func _atualizar_selecao_slots() -> void:
 # ============================================================
 
 func _conectar_player_e_sistemas() -> void:
-	if player != null:
-		return
+	if player == null or not is_instance_valid(player):
+		player = get_tree().get_first_node_in_group("player")
+		if player != null:
+			xp_system = player.get_node_or_null("XPSystem") as XPSystem
+			hatsu_system = player.get_node_or_null("HatsuSystem") as HatsuSystem
+			nen_system = player.get_node_or_null("NenSystem") as NenSystem
 
-	player = get_tree().get_first_node_in_group("player")
-	if player == null:
-		return
+			if xp_system != null:
+				if not xp_system.level_up.is_connected(_on_level_up):
+					xp_system.level_up.connect(_on_level_up)
+				if not xp_system.xp_changed.is_connected(_on_xp_changed):
+					xp_system.xp_changed.connect(_on_xp_changed)
+				if not xp_system.skill_points_changed.is_connected(_on_sp_changed):
+					xp_system.skill_points_changed.connect(_on_sp_changed)
 
-	xp_system = player.get_node_or_null("XPSystem") as XPSystem
-	hatsu_system = player.get_node_or_null("HatsuSystem") as HatsuSystem
-	nen_system = player.get_node_or_null("NenSystem") as NenSystem
+	if SaveManager != null and not SaveManager.jogo_carregado.is_connected(_on_save_carregado):
+		SaveManager.jogo_carregado.connect(_on_save_carregado)
 
-	if xp_system != null and not xp_system.level_up.is_connected(_on_level_up):
-		xp_system.level_up.connect(_on_level_up)
+	if PlayerData != null and not PlayerData.nivel_alterado.is_connected(_on_level_up):
+		PlayerData.nivel_alterado.connect(_on_level_up)
 
 
 func _process(_delta: float) -> void:
@@ -496,10 +512,26 @@ func _atualizar_hud() -> void:
 
 
 func _atualizar_header_e_gold() -> void:
+	var nivel: int = 1
+	if player != null and is_instance_valid(player) and player.has_method("obter_nivel"):
+		nivel = player.obter_nivel()
+	elif xp_system != null and is_instance_valid(xp_system):
+		nivel = xp_system.obter_level()
+	elif PlayerData != null:
+		nivel = int(PlayerData.attributes.get("nivel", 1))
+
+	var nome: String = PlayerData.nome_personagem if (PlayerData != null and not PlayerData.nome_personagem.is_empty()) else "Hunter"
+
 	if lbl_player_header:
-		var nome: String = PlayerData.nome_personagem if not PlayerData.nome_personagem.is_empty() else "Hunter"
-		var nivel: int = int(PlayerData.attributes.get("nivel", 1))
-		lbl_player_header.text = "🔰 %s (Nv. %d)" % [nome, nivel]
+		lbl_player_header.text = "🔰 %s" % nome
+
+	if lbl_player_level_badge:
+		lbl_player_level_badge.text = "★ Nv. %d" % nivel
+
+	# Sincronizar também o LevelLabel do MarginContainer em HUD.tscn para compatibilidade total
+	var legacy_lvl = get_node_or_null("MarginContainer/VBoxContainer/LevelLabel") as Label
+	if legacy_lvl != null:
+		legacy_lvl.text = "Lv. %d" % nivel
 
 	if lbl_player_affinity:
 		if PlayerData.despertou_nen:
@@ -589,6 +621,11 @@ func _atualizar_hp() -> void:
 	var pct: int = int((float(hp) / float(max(1, hp_max))) * 100.0)
 	lbl_hp_num.text = "❤️ HP: %s / %s (%d%%)" % [_formatar_numero(hp), _formatar_numero(hp_max), pct]
 
+	var legacy_hp = get_node_or_null("MarginContainer/VBoxContainer/HPBar") as ProgressBar
+	if legacy_hp != null:
+		legacy_hp.max_value = bar_hp.max_value
+		legacy_hp.value = bar_hp.value
+
 
 func _atualizar_aura() -> void:
 	if bar_aura == null or lbl_aura_num == null: return
@@ -599,22 +636,41 @@ func _atualizar_aura() -> void:
 	var pct: int = int((float(aura) / float(max(1, aura_max))) * 100.0)
 	lbl_aura_num.text = "⚡ AURA: %s / %s (%d%%)" % [_formatar_numero(aura), _formatar_numero(aura_max), pct]
 
+	var legacy_aura = get_node_or_null("MarginContainer/VBoxContainer/AuraBar") as ProgressBar
+	if legacy_aura != null:
+		legacy_aura.max_value = bar_aura.max_value
+		legacy_aura.value = bar_aura.value
+
 
 func _atualizar_xp() -> void:
 	if bar_xp == null or lbl_xp_num == null: return
+	var nivel: int = int(PlayerData.attributes.get("nivel", 1))
+	if player != null and is_instance_valid(player) and player.has_method("obter_nivel"):
+		nivel = player.obter_nivel()
+
 	var xp_atual: int = 0
 	var xp_nec: int = 100
-	if xp_system != null:
+	if xp_system != null and is_instance_valid(xp_system):
 		xp_atual = xp_system.obter_xp()
 		xp_nec = max(1, xp_system.obter_xp_necessario())
 	else:
 		xp_atual = int(PlayerData.attributes.get("xp", 0))
-		xp_nec = max(1, int(PlayerData.attributes.get("xp_necessario", 100)))
+		xp_nec = max(1, ProgressionConfig.calcular_xp_necessario(nivel))
 
-	bar_xp.max_value = xp_nec
-	bar_xp.value = clamp(xp_atual, 0, xp_nec)
-	var pct: int = int((float(xp_atual) / float(xp_nec)) * 100.0)
-	lbl_xp_num.text = "✨ XP: %s / %s (%d%%)" % [_formatar_numero(xp_atual), _formatar_numero(xp_nec), pct]
+	if nivel >= ProgressionConfig.MAX_LEVEL:
+		bar_xp.max_value = xp_nec
+		bar_xp.value = xp_nec
+		lbl_xp_num.text = "✨ XP: MÁXIMO (Cap Nv. %d)" % ProgressionConfig.MAX_LEVEL
+	else:
+		bar_xp.max_value = xp_nec
+		bar_xp.value = clamp(xp_atual, 0, xp_nec)
+		var pct: int = int((float(xp_atual) / float(xp_nec)) * 100.0)
+		lbl_xp_num.text = "✨ XP: %s / %s (%d%%)" % [_formatar_numero(xp_atual), _formatar_numero(xp_nec), pct]
+
+	var legacy_xp = get_node_or_null("MarginContainer/VBoxContainer/XPBar") as ProgressBar
+	if legacy_xp != null:
+		legacy_xp.max_value = bar_xp.max_value
+		legacy_xp.value = bar_xp.value
 
 
 func _atualizar_nen_e_besta() -> void:
@@ -684,8 +740,16 @@ func _atualizar_hatsu_slots() -> void:
 			if i < hatsu_system.slot_states.size():
 				st = int(hatsu_system.slot_states[i])
 
-		if hatsu != null:
-			slot_name_labels[i].text = hatsu.nome.left(6)
+		var is_unlocked: bool = HatsuProgressionManager == null or HatsuProgressionManager.is_slot_unlocked(i + 1)
+		if not is_unlocked:
+			slot_name_labels[i].text = "🔒"
+			slot_name_labels[i].add_theme_color_override("font_color", Color(0.6, 0.35, 0.35, 0.8))
+			slot_panels[i].add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(Color(0.35, 0.15, 0.15, 0.5), 3))
+			if i < slot_cost_labels.size():
+				slot_cost_labels[i].visible = false
+		elif hatsu != null:
+			var prefix: String = "★" if hatsu.is_mastered() else ""
+			slot_name_labels[i].text = prefix + hatsu.nome.left(6 - prefix.length())
 			if st == 3: # SlotState.ACTIVE
 				slot_name_labels[i].add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 				slot_panels[i].add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_GOLD, 3))
@@ -715,6 +779,7 @@ func _atualizar_hatsu_slots() -> void:
 			slot_name_labels[i].add_theme_color_override("font_color", Color(0.5, 0.5, 0.5, 1.0))
 			if i < slot_cost_labels.size():
 				slot_cost_labels[i].text = ""
+			slot_panels[i].add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 3))
 
 		# Atualizar Cooldown
 		if cd_atual > 0.0 and cd_max > 0.0:
@@ -801,6 +866,18 @@ func _instanciar_menus_auxiliares() -> void:
 func _on_level_up(new_level: int) -> void:
 	print("HUD: LEVEL UP -> ", new_level)
 	exibir_notificacao("✨ NÍVEL UP! Você alcançou o Nível %d!" % new_level)
+	_atualizar_hud()
+
+
+func _on_xp_changed(_cur_xp: int, _req_xp: int) -> void:
+	_atualizar_xp()
+
+
+func _on_sp_changed(_sp: int) -> void:
+	_atualizar_header_e_gold()
+
+
+func _on_save_carregado(_slot: int) -> void:
 	_atualizar_hud()
 
 

@@ -52,23 +52,13 @@ signal skill_points_changed(pontos_disponiveis: int)
 
 func _ready() -> void:
 	add_to_group("xp_system")
-	# Sincronizar nível e XP atuais do PlayerData
-	level = int(PlayerData.attributes.get("nivel", 1))
-	xp = int(PlayerData.attributes.get("xp", 0))
-	if level >= 100:
-		level = 100
-		xp = xp_necessario()
+	sincronizar_com_player_data()
 
 	print("=================================")
-	print("NEN XP SYSTEM INICIADO")
-	print("LEVEL: ", level)
-	print(
-		"NEN XP: ",
-		xp,
-		"/",
-		xp_necessario()
-	)
-	print("SKILL POINTS: ", PlayerData.nen_skill_points)
+	print("XP SYSTEM INICIADO (CENTRALIZADO)")
+	print("LEVEL: %d / %d" % [level, ProgressionConfig.MAX_LEVEL])
+	print("XP: %d / %d" % [xp, xp_necessario()])
+	print("SKILL POINTS: %d" % PlayerData.nen_skill_points)
 	print("=================================")
 
 
@@ -78,7 +68,7 @@ func _ready() -> void:
 #
 # Toda fonte de XP chama esta função.
 # O nome permanece "adicionar_xp" para compatibilidade
-# com todos os 14+ locais que já a chamam.
+# com todos os locais que já a chamam.
 #
 # ============================================================
 
@@ -90,11 +80,11 @@ func adicionar_xp(
 	if valor <= 0:
 		return
 
-	# Se já for nível 100 (Cap Máximo), não reseta nem ultrapassa
-	if level >= 100:
-		level = 100
+	# Se já for nível máximo configurado (Cap 1000), mantém no topo
+	if level >= ProgressionConfig.MAX_LEVEL:
+		level = ProgressionConfig.MAX_LEVEL
 		xp = xp_necessario()
-		PlayerData.attributes["nivel"] = 100
+		PlayerData.attributes["nivel"] = ProgressionConfig.MAX_LEVEL
 		PlayerData.attributes["xp"] = xp
 		xp_changed.emit(xp, xp_necessario())
 		return
@@ -108,17 +98,14 @@ func adicionar_xp(
 	xp += valor_final
 	PlayerData.attributes["xp"] = xp
 
-
 	print(
-		"NEN XP RECEBIDO: +",
+		"XP RECEBIDO: +",
 		valor_final,
 		" | Origem: ",
 		origem
 	)
 
-
 	_verificar_level_up()
-
 
 	xp_changed.emit(
 		xp,
@@ -144,12 +131,6 @@ func receber_xp_quest(valor: int) -> void:
 # ============================================================
 # ADICIONAR XP NEN (WRAPPER DE COMPATIBILIDADE)
 # ============================================================
-#
-# Para compatibilidade com código que chamava
-# NenSystem.adicionar_xp_nen(), o NenSystem agora
-# redireciona para este método.
-#
-# ============================================================
 
 func adicionar_xp_nen(valor: int) -> void:
 	adicionar_xp(valor, "Nen")
@@ -160,48 +141,43 @@ func adicionar_xp_nen(valor: int) -> void:
 # ============================================================
 
 func _verificar_level_up() -> void:
-	if level >= 100:
-		level = 100
+	if level >= ProgressionConfig.MAX_LEVEL:
+		level = ProgressionConfig.MAX_LEVEL
 		xp = xp_necessario()
-		PlayerData.attributes["nivel"] = 100
+		PlayerData.attributes["nivel"] = ProgressionConfig.MAX_LEVEL
 		PlayerData.attributes["xp"] = xp
 		return
 
-	while xp >= xp_necessario():
+	while xp >= xp_necessario() and level < ProgressionConfig.MAX_LEVEL:
 		xp -= xp_necessario()
 		level += 1
 
 		print("=================================")
 		print("LEVEL UP!")
-		print("NOVO LEVEL: ", level)
+		print("NOVO LEVEL: %d / %d" % [level, ProgressionConfig.MAX_LEVEL])
 		print("=================================")
 
-		# 1. Atributos base
+		# 1. Atributos base aumentados automaticamente pela pipeline determinística
 		PlayerData.aplicar_nivel(
 			level
 		)
 		PlayerData.attributes["xp"] = xp
 
-		# 2. Nen Level (aura máxima)
-		PlayerData.attributes["nivel_nen"] = level
-		var nova_aura_maxima: float = float(level) * 100.0
-		PlayerData.attributes["aura_max"] = nova_aura_maxima
-		PlayerData.attributes["aura"] = nova_aura_maxima
-
-		# 3. +1 Nen Skill Point
-		PlayerData.nen_skill_points += 1
+		# 2. Concessão de Skill Point (+1 SP por nível)
+		var sp_ganhos: int = ProgressionConfig.obter_skill_points_por_level(level)
+		PlayerData.nen_skill_points += sp_ganhos
 		skill_points_changed.emit(PlayerData.nen_skill_points)
 
-		print("+1 NEN SKILL POINT (Total: ", PlayerData.nen_skill_points, ")")
+		print("+%d SKILL POINT (Total: %d)" % [sp_ganhos, PlayerData.nen_skill_points])
 
 		level_up.emit(
 			level
 		)
 
-		if level >= 100:
-			level = 100
+		if level >= ProgressionConfig.MAX_LEVEL:
+			level = ProgressionConfig.MAX_LEVEL
 			xp = xp_necessario()
-			PlayerData.attributes["nivel"] = 100
+			PlayerData.attributes["nivel"] = ProgressionConfig.MAX_LEVEL
 			PlayerData.attributes["xp"] = xp
 			break
 
@@ -211,14 +187,7 @@ func _verificar_level_up() -> void:
 # ============================================================
 
 func xp_necessario() -> int:
-
-	return int(
-		xp_base
-		* pow(
-			level,
-			xp_growth
-		)
-	)
+	return ProgressionConfig.calcular_xp_necessario(level)
 
 
 # ============================================================
@@ -227,12 +196,12 @@ func xp_necessario() -> int:
 
 func sincronizar_com_player_data() -> void:
 	var old_lvl = level
-	level = int(PlayerData.attributes.get("nivel", 1))
+	level = clamp(int(PlayerData.attributes.get("nivel", 1)), ProgressionConfig.BASE_LEVEL, ProgressionConfig.MAX_LEVEL)
 	xp = int(PlayerData.attributes.get("xp", 0))
-	if level >= 100:
-		level = 100
+	if level >= ProgressionConfig.MAX_LEVEL:
+		level = ProgressionConfig.MAX_LEVEL
 		xp = xp_necessario()
-		PlayerData.attributes["nivel"] = 100
+		PlayerData.attributes["nivel"] = ProgressionConfig.MAX_LEVEL
 		PlayerData.attributes["xp"] = xp
 
 	if old_lvl != level:
@@ -240,13 +209,8 @@ func sincronizar_com_player_data() -> void:
 	xp_changed.emit(xp, xp_necessario())
 
 
-static func obter_xp_acumulado_para_nivel(target_level: int, base_val: int = 300, growth_val: float = 1.6) -> int:
-	if target_level <= 1:
-		return 0
-	var total: int = 0
-	for l in range(1, target_level):
-		total += int(base_val * pow(l, growth_val))
-	return total
+static func obter_xp_acumulado_para_nivel(target_level: int, _base_val: int = 300, _growth_val: float = 1.6) -> int:
+	return ProgressionConfig.calcular_xp_acumulado(target_level)
 
 
 func obter_xp() -> int:
@@ -259,3 +223,4 @@ func obter_level() -> int:
 
 func obter_xp_necessario() -> int:
 	return xp_necessario()
+

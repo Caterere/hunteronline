@@ -312,6 +312,32 @@ func calcular_dano_jogador(
 	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
 		dano_final *= 1.50
 
+	# Modificadores específicos da Skill Tree (Hatsu vs Básico vs Nen)
+	if hatsu != null:
+		var bonus_hatsu = PlayerData.obter_stat_calculado("dano_hatsu")
+		if bonus_hatsu > 0.0:
+			dano_final *= (1.0 + bonus_hatsu)
+	else:
+		var bonus_basico = PlayerData.obter_stat_calculado("dano_ataque_basico")
+		if bonus_basico > 0.0:
+			dano_final *= (1.0 + bonus_basico)
+
+	var bonus_nen = PlayerData.obter_stat_calculado("dano_nen")
+	if bonus_nen > 0.0 and dano_nen > 0.0:
+		dano_final += dano_nen * bonus_nen
+
+	# Keystone: Instinto Predador (dano extra contra alvos com HP <= 40%)
+	if ctx.get("target_hp_percent", 1.0) <= 0.40 and PlayerData.has_method("obter_skill_tree"):
+		var tree_ref = PlayerData.obter_skill_tree()
+		if tree_ref != null and tree_ref.has_method("no_desbloqueado") and tree_ref.no_desbloqueado("spec_keystone_predator_instinct"):
+			dano_final *= 1.30
+
+	# Sistema de Acerto Crítico (Base 5% + Nós de Crítico)
+	var crit_chance = PlayerData.obter_stat_calculado("crit_chance")
+	var crit_mult = PlayerData.obter_stat_calculado("crit_damage")
+	if crit_chance > 0.0 and randf() <= crit_chance:
+		dano_final *= max(1.5, crit_mult)
+
 	# Mitigações do alvo com base em fraquezas, resistências e imunidades
 	if inimigo_alvo != null and not tags_efetivas.is_empty():
 		var def_weakness: Array = []
@@ -335,7 +361,16 @@ func calcular_dano_jogador(
 			if GameplayTags.has_any(def_resistance, tags_efetivas):
 				dano_final *= 0.50
 
-	return max(1 if dano_final > 0.0 else 0, int(round(dano_final)))
+	var dano_calculado := max(1 if dano_final > 0.0 else 0, int(round(dano_final)))
+
+	# Life Steal / Drenagem Vital
+	var life_steal_pct = PlayerData.obter_stat_calculado("life_steal")
+	if life_steal_pct > 0.0 and dano_calculado > 0:
+		var cura_steal = int(float(dano_calculado) * life_steal_pct)
+		if cura_steal > 0 and PlayerData.has_method("curar_vida"):
+			PlayerData.curar_vida(cura_steal)
+
+	return dano_calculado
 
 func calcular_dano_sofrido_jogador(
 	dano_bruto: int,

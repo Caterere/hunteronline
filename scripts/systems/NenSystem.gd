@@ -721,28 +721,10 @@ func _verificar_nen_level_up() -> void:
 
 
 		# ----------------------------------------------------
-		# AURA MÁXIMA
+		# Recalcular atributos com nova maestria de Nen
 		# ----------------------------------------------------
-
-		var nova_aura_maxima: float = (
-			float(novo_nivel)
-			*
-			aura_por_nen_level
-		)
-
-
-		PlayerData.attributes["aura_max"] = (
-			nova_aura_maxima
-		)
-
-
-		# ----------------------------------------------------
-		# Recupera a Aura para a nova capacidade.
-		# ----------------------------------------------------
-
-		PlayerData.attributes["aura"] = (
-			nova_aura_maxima
-		)
+		PlayerData.recalcular_todos_atributos()
+		PlayerData.attributes["aura"] = PlayerData.attributes["aura_max"]
 
 
 		print("=================================")

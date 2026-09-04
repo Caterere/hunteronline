@@ -464,6 +464,11 @@ func usar_hatsu(slot_index: int) -> bool:
 	if slot_index < 0 or slot_index >= 4:
 		return false
 
+	var slot_id: int = slot_index + 1
+	if HatsuProgressionManager != null and not HatsuProgressionManager.is_slot_unlocked(slot_id):
+		hatsu_falhou.emit(slot_index, "Slot %d bloqueado" % slot_id)
+		return false
+
 	var hatsu: HatsuData = PlayerData.obter_hatsu_slot(slot_index)
 	if hatsu == null:
 		hatsu_falhou.emit(slot_index, "Nenhum Hatsu equipado")
@@ -606,9 +611,16 @@ func usar_hatsu(slot_index: int) -> bool:
 
 	hatsu_executado.emit(slot_index, hatsu)
 	registrar_acao_combo("hatsu")
-	var subiu_nivel: bool = hatsu.adicionar_xp_evolucao(15)
-	if subiu_nivel and combat_system != null:
-		combat_system._mostrar_texto_flutuante("⭐ %s EVOLUIU PARA LV.%d!" % [hatsu.nome, hatsu.nivel_evolucao_hatsu], Color(1.0, 0.85, 0.2))
+	if hatsu.objetivo != HatsuData.ObjetivoPrincipal.DANO:
+		if HatsuProgressionManager != null:
+			var m_res = HatsuProgressionManager.conceder_mastery_xp(hatsu.hatsu_id, 0, {"level": PlayerData.attributes.get("nivel", 1) if PlayerData != null else 1})
+			if m_res.get("subiu_nivel", false) and combat_system != null:
+				if m_res.get("mastered", false):
+					combat_system._mostrar_texto_flutuante("★ %s MASTERED (100)!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
+				else:
+					combat_system._mostrar_texto_flutuante("⭐ %s MASTERY %d!" % [hatsu.nome.to_upper(), int(hatsu.mastery)], Color(1.0, 0.85, 0.3))
+	else:
+		hatsu.adicionar_mastery_xp(1.0)
 
 	print("=================================")
 	print("[HatsuSystem] Executou com sucesso: ", hatsu.nome, " (Lv. ", hatsu.nivel_evolucao_hatsu, ")")
@@ -794,6 +806,7 @@ func _aplicar_dano_area_imediato(hatsu: HatsuData, dano_val: int, raio_val: floa
 					var dir: Vector2 = (e.global_position - owner_body.global_position).normalized()
 					enemy_sys.take_damage(dano_val, dir, 200.0, owner_body)
 					print("[Hatsu Dano Área] Atingiu ", e.name, " com Dano: ", dano_val)
+					_processar_hit_mastery(hatsu, dano_val, enemy_sys)
 
 
 func _aplicar_dano_toque_imediato(hatsu: HatsuData, dano_val: int, dir_atk: Vector2, alcance_val: float) -> void:
@@ -808,6 +821,23 @@ func _aplicar_dano_toque_imediato(hatsu: HatsuData, dano_val: int, dir_atk: Vect
 				if enemy_sys != null and enemy_sys.has_method("take_damage"):
 					enemy_sys.take_damage(dano_val, dir_atk, 220.0, owner_body)
 					print("[Hatsu Golpe Toque] Atingiu ", e.name, " com Dano: ", dano_val)
+					_processar_hit_mastery(hatsu, dano_val, enemy_sys)
+
+
+func _processar_hit_mastery(hatsu: HatsuData, dano_val: int, enemy_sys: Node) -> void:
+	if HatsuProgressionManager == null or hatsu == null or enemy_sys == null:
+		return
+	var ctx: Dictionary = {
+		"level": enemy_sys.enemy_data.level if "enemy_data" in enemy_sys and enemy_sys.enemy_data != null else 1,
+		"is_boss": enemy_sys.is_boss if "is_boss" in enemy_sys else false,
+		"is_elite": enemy_sys.enemy_data.is_elite if "enemy_data" in enemy_sys and enemy_sys.enemy_data != null and "is_elite" in enemy_sys.enemy_data else false
+	}
+	var res := HatsuProgressionManager.conceder_mastery_xp(hatsu.hatsu_id, dano_val, ctx)
+	if res.get("subiu_nivel", false) and combat_system != null:
+		if res.get("mastered", false):
+			combat_system._mostrar_texto_flutuante("★ %s MASTERED (100)!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
+		else:
+			combat_system._mostrar_texto_flutuante("⭐ %s MASTERY %d!" % [hatsu.nome.to_upper(), int(hatsu.mastery)], Color(1.0, 0.85, 0.3))
 
 
 func _executar_arsenal_roleta(hatsu: HatsuData, eficiencia: float) -> void:
