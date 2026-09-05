@@ -148,6 +148,69 @@ func _construir_ui() -> void:
 	)
 	hbox_boss.add_child(btn_fase3)
 
+	# Seção 4: Co-op & Multiplayer
+	var lbl_net := Label.new()
+	lbl_net.text = "🌐 Multiplayer & Co-op:"
+	lbl_net.add_theme_font_size_override("font_size", 4)
+	lbl_net.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+	vbox.add_child(lbl_net)
+
+	var hbox_net := HBoxContainer.new()
+	hbox_net.add_theme_constant_override("separation", 3)
+	vbox.add_child(hbox_net)
+
+	var btn_host := Button.new()
+	btn_host.text = "Host (7777)"
+	btn_host.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_host, HunterUIStyle.COLOR_BORDER_GOLD)
+	btn_host.pressed.connect(func():
+		var nm = get_node_or_null("/root/NetworkManager")
+		if nm != null:
+			nm.iniciar_host(7777, 4)
+			if EventBus != null:
+				EventBus.emit_toast("🌐 Host ENet iniciado na porta 7777!", HunterUIStyle.COLOR_GOLD_LIGHT)
+	)
+	hbox_net.add_child(btn_host)
+
+	var btn_join := Button.new()
+	btn_join.text = "Join Localhost"
+	btn_join.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_join, HunterUIStyle.COLOR_BORDER_GREEN)
+	btn_join.pressed.connect(func():
+		var nm = get_node_or_null("/root/NetworkManager")
+		if nm != null:
+			nm.conectar_ao_host("127.0.0.1", 7777)
+			if EventBus != null:
+				EventBus.emit_toast("🔌 Conectando ao host 127.0.0.1:7777...", Color.WHITE)
+	)
+	hbox_net.add_child(btn_join)
+
+	var btn_dc := Button.new()
+	btn_dc.text = "Desconectar"
+	btn_dc.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_dc, Color(0.8, 0.3, 0.3))
+	btn_dc.pressed.connect(func():
+		var nm = get_node_or_null("/root/NetworkManager")
+		if nm != null:
+			nm.desconectar_sessao()
+			if EventBus != null:
+				EventBus.emit_toast("🔌 Desconectado da rede.", Color.GRAY)
+	)
+	hbox_net.add_child(btn_dc)
+
+	var btn_party := Button.new()
+	btn_party.text = "Criar Party"
+	btn_party.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_party, HunterUIStyle.COLOR_AURA_PURPLE)
+	btn_party.pressed.connect(func():
+		var pm = get_node_or_null("/root/PartyManager")
+		if pm != null:
+			pm.criar_party()
+			if EventBus != null:
+				EventBus.emit_toast("🛡️ Grupo de Caçada criado!", HunterUIStyle.COLOR_AURA_PURPLE)
+	)
+	hbox_net.add_child(btn_party)
+
 func _adicionar_toggle_condicao(parent: Control, texto: String, callback: Callable) -> void:
 	var chk := CheckBox.new()
 	chk.text = texto

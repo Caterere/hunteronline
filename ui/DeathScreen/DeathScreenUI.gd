@@ -19,6 +19,7 @@ signal retorno_ao_lobby()
 
 var root_ctrl: Control
 var panel_container: PanelContainer
+var lbl_titulo: Label
 var lbl_status_hunter: Label
 var lbl_frase_morte: Label
 var btn_reviver: Button
@@ -26,6 +27,8 @@ var btn_lobby: Button
 var btn_menu: Button
 
 var ja_aberto: bool = false
+var ultimo_algoz_nome: String = ""
+var foi_derrota_boss: bool = false
 
 
 func _init() -> void:
@@ -90,7 +93,7 @@ func _construir_ui() -> void:
 	margin.add_child(vbox)
 
 	# Título de Morte
-	var lbl_titulo := Label.new()
+	lbl_titulo = Label.new()
 	lbl_titulo.text = "💀 VOCÊ CAIU EM COMBATE 💀"
 	lbl_titulo.add_theme_font_size_override("font_size", 7)
 	lbl_titulo.add_theme_color_override("font_color", Color(1.0, 0.2, 0.25, 1.0))
@@ -150,7 +153,7 @@ func _construir_ui() -> void:
 	hbox_btns.add_child(btn_menu)
 
 
-func exibir() -> void:
+func exibir(agressor: Node = null) -> void:
 	if ja_aberto:
 		return
 	ja_aberto = true
@@ -159,21 +162,66 @@ func exibir() -> void:
 	if root_ctrl == null:
 		_construir_ui()
 
+	# Identificação do agressor e detecção de Boss / Duelo Narrativo (Task 3.3)
+	ultimo_algoz_nome = "Oponente Desconhecido"
+	foi_derrota_boss = false
+
+	if agressor != null and is_instance_valid(agressor):
+		var es = agressor.get_node_or_null("EnemySystem")
+		if es != null:
+			ultimo_algoz_nome = es.enemy_name
+			foi_derrota_boss = (es.is_boss or es.npc_tier >= 3)
+		elif "enemy_name" in agressor:
+			ultimo_algoz_nome = agressor.enemy_name
+			foi_derrota_boss = agressor.get("is_boss", false)
+		else:
+			ultimo_algoz_nome = agressor.name
+
+	var lower_algoz = ultimo_algoz_nome.to_lower()
+	if "hisoka" in lower_algoz or "razor" in lower_algoz or "meruem" in lower_algoz or "guardiao" in lower_algoz:
+		foi_derrota_boss = true
+
 	# Atualizar dados do Hunter
 	if lbl_status_hunter != null:
 		var sp: int = PlayerData.nen_skill_points
+		var nv: int = PlayerData.level
 		var cat_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen) if PlayerData.despertou_nen else "Aura Oculta"
-		lbl_status_hunter.text = "🔰 %s | Nv. %d | Afinidade: %s | ⚡ %d SP" % [PlayerData.nome_personagem, nivel, cat_nome, sp]
+		lbl_status_hunter.text = "🔰 %s | Nv. %d | Afinidade: %s | ⚡ %d SP" % [PlayerData.nome_personagem, nv, cat_nome, sp]
 
-	# Frases dramáticas aleatórias
-	if lbl_frase_morte != null:
-		var frases := [
-			"Sua aura se dissipou diante da severidade do mundo dos Caçadores...",
-			"Mesmo os maiores Hunters conheceram o limite de suas forças antes de evoluir.",
-			"A morte no Exame Hunter é real para aqueles desatentos aos perigos.",
-			"Recomponha sua determinação e volte para a batalha com mais foco!"
-		]
-		lbl_frase_morte.text = frases[randi() % frases.size()]
+	# Derrota como Conteúdo: Título e Comentário Narrativo de Resgate
+	if foi_derrota_boss:
+		if lbl_titulo != null:
+			lbl_titulo.text = "⚔️ DERROTA EM DUELO & RESGATE TÁTICO ⚔️"
+			lbl_titulo.add_theme_color_override("font_color", Color(1.0, 0.70, 0.25, 1.0))
+
+		if btn_reviver != null:
+			btn_reviver.text = "🏥 Aceitar Resgate & Treino de Recuperação"
+
+		if lbl_frase_morte != null:
+			if "hisoka" in lower_algoz:
+				lbl_frase_morte.text = "Hisoka observou seu colapso com um sorriso enigmático: 'Ainda é um fruto verde... Cresça mais antes de ser colhido.' Você foi resgatado pela equipe de emergência da Torre Celestial!"
+			elif "razor" in lower_algoz:
+				lbl_frase_morte.text = "O saque devastador dos 14 Demônios rompeu sua guarda de Ryu. Os socorristas de Greed Island o transportaram com segurança até a enfermaria."
+			elif "meruem" in lower_algoz or "quimera" in lower_algoz:
+				lbl_frase_morte.text = "A velocidade avassaladora do Rei quase foi seu fim. Caçadores veteranos intervieram a tempo de extrair seu corpo com vida."
+			else:
+				lbl_frase_morte.text = "Você caiu com honra perante %s. A Associação Hunter providenciou sua extração imediata para que possa se reerguer e treinar para a revanche!" % ultimo_algoz_nome
+	else:
+		if lbl_titulo != null:
+			lbl_titulo.text = "💀 VOCÊ CAIU EM COMBATE 💀"
+			lbl_titulo.add_theme_color_override("font_color", Color(1.0, 0.2, 0.25, 1.0))
+
+		if btn_reviver != null:
+			btn_reviver.text = "🔄 Renascer no Ponto Seguro"
+
+		if lbl_frase_morte != null:
+			var frases := [
+				"Sua aura se dissipou diante da severidade do mundo dos Caçadores...",
+				"Mesmo os maiores Hunters conheceram o limite de suas forças antes de evoluir.",
+				"A morte no Exame Hunter é real para aqueles desatentos aos perigos.",
+				"Recomponha sua determinação e volte para a batalha com mais foco!"
+			]
+			lbl_frase_morte.text = frases[randi() % frases.size()]
 
 	# Efeito de Fade-in suave
 	if root_ctrl != null:
@@ -202,6 +250,20 @@ func ocultar() -> void:
 func _on_reviver_pressed() -> void:
 	ocultar()
 	_restaurar_atributos_player()
+
+	# Se foi derrota para um Chefe, registrar marco narrativo e aplicar foco de revanche
+	if foi_derrota_boss and not ultimo_algoz_nome.is_empty():
+		if WorldState != null:
+			WorldState.registrar_marco_historico("derrota_" + ultimo_algoz_nome.to_lower(), {
+				"algoz": ultimo_algoz_nome,
+				"data_ticks": Time.get_ticks_msec()
+			})
+			WorldState.adicionar_efeito_temporario("foco_revanche_" + ultimo_algoz_nome.to_lower(), 24.0, {
+				"bonus_dano_pct": 15
+			})
+
+		if EventBus != null:
+			EventBus.emit_toast("⚔️ Sub-quest de Recuperação Ativada: Revanche contra %s (+15%% Dano por 24h)!" % ultimo_algoz_nome, Color(1.0, 0.75, 0.2))
 
 	var player = get_tree().get_first_node_in_group("player")
 	if player != null and player.has_method("reviver"):

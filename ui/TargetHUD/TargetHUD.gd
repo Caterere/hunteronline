@@ -19,6 +19,8 @@ var panel_container: PanelContainer
 var lbl_name: Label
 var lbl_affinity: Label
 var hp_bar: ProgressBar
+var hp_ghost_bar: ProgressBar
+var _ghost_tween: Tween = null
 var posture_bar: ProgressBar
 var tags_hbox: HBoxContainer
 var status_effects_hbox: HBoxContainer
@@ -106,13 +108,24 @@ func _construir_ui() -> void:
 	lbl_hp_val.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	hbox_phase.add_child(lbl_hp_val)
 
-	# Linha 2: Barra de HP
+	# Linha 2: Barra de HP com Ghost Bar (Damage Catch-Up)
+	var hp_overlay := Control.new()
+	hp_overlay.custom_minimum_size = Vector2(0, 7)
+	vbox.add_child(hp_overlay)
+
+	hp_ghost_bar = ProgressBar.new()
+	hp_ghost_bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	hp_ghost_bar.show_percentage = false
+	hp_ghost_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hp_ghost_bar.add_theme_stylebox_override("fill", HunterUIStyle.criar_style_box(Color(1.0, 0.85, 0.3, 0.85), Color.TRANSPARENT, 0))
+	hp_overlay.add_child(hp_ghost_bar)
+
 	hp_bar = ProgressBar.new()
-	hp_bar.custom_minimum_size = Vector2(0, 7)
+	hp_bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	hp_bar.show_percentage = false
 	hp_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hp_bar.add_theme_stylebox_override("fill", HunterUIStyle.criar_style_box(Color(0.85, 0.2, 0.2, 0.95), Color(0.9, 0.3, 0.3, 1.0), 1))
-	vbox.add_child(hp_bar)
+	hp_bar.add_theme_stylebox_override("fill", HunterUIStyle.criar_style_box(Color(0.85, 0.2, 0.2, 0.95), Color.TRANSPARENT, 0))
+	hp_overlay.add_child(hp_bar)
 
 	# Linha 3: Barra de Postura (Stagger)
 	posture_bar = ProgressBar.new()
@@ -152,6 +165,8 @@ func focar_alvo(alvo: Node) -> void:
 
 func limpar_alvo() -> void:
 	current_target = null
+	if _ghost_tween != null and _ghost_tween.is_valid():
+		_ghost_tween.kill()
 	visible = false
 
 func _on_enemy_damaged(enemy_node: Node, _cur_hp: int, _max_hp: int) -> void:
@@ -224,6 +239,17 @@ func _atualizar_dados_alvo() -> void:
 
 	hp_bar.max_value = max_hp
 	hp_bar.value = cur_hp
+
+	if hp_ghost_bar != null:
+		hp_ghost_bar.max_value = max_hp
+		if cur_hp < hp_ghost_bar.value:
+			if _ghost_tween != null and _ghost_tween.is_valid():
+				_ghost_tween.kill()
+			_ghost_tween = create_tween()
+			_ghost_tween.tween_interval(0.12)
+			_ghost_tween.tween_property(hp_ghost_bar, "value", cur_hp, 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		else:
+			hp_ghost_bar.value = cur_hp
 
 	# Postura / Stagger
 	if enemy_sys != null:

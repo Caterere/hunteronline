@@ -64,6 +64,51 @@ const CONQUISTAS_CATALOGO := {
 		"recompensa_titulo": "Hunter 3-Star Lendário",
 		"icone": "🥇"
 	},
+	"mestre_dos_marcos_500": {
+		"nome": "Lenda dos Continentes",
+		"categoria": "História",
+		"raridade": Raridade.OURO,
+		"descricao": "Atinja o Nível 500 de Personagem.",
+		"recompensa_jenny": 5000000,
+		"recompensa_titulo": "Lenda do Século",
+		"icone": "🥇"
+	},
+	"mestre_dos_marcos_750": {
+		"nome": "Pioneiro da Expedição",
+		"categoria": "História",
+		"raridade": Raridade.OURO,
+		"descricao": "Atinja o Nível 750 e desbrave os perigos do Novo Mundo.",
+		"recompensa_jenny": 15000000,
+		"recompensa_titulo": "Mestre da Expedição",
+		"icone": "🥇"
+	},
+	"apice_absoluto_1000": {
+		"nome": "Ápice Absoluto (Nv 1000)",
+		"categoria": "História",
+		"raridade": Raridade.PLATINA,
+		"descricao": "Alcance o lendário Nível 1000 — o ápice inigualável de um Caçador.",
+		"recompensa_jenny": 50000000,
+		"recompensa_titulo": "O Caçador Supremo",
+		"icone": "💎"
+	},
+	"chefe_secreto_derrotado": {
+		"nome": "Desvelador do Oculto",
+		"categoria": "Combate",
+		"raridade": Raridade.OURO,
+		"descricao": "Encontre e derrote um Chefe Secreto sem auxílio de GPS.",
+		"recompensa_jenny": 10000000,
+		"recompensa_titulo": "Descobridor do Oculto",
+		"icone": "🥇"
+	},
+	"mestre_dos_4_hatsus": {
+		"nome": "Polímata das 4 Habilidades",
+		"categoria": "Combate",
+		"raridade": Raridade.OURO,
+		"descricao": "Desbloqueie e equipe os 4 slots canônicos de Hatsu.",
+		"recompensa_jenny": 25000000,
+		"recompensa_titulo": "Grão-Mestre de Hatsu",
+		"icone": "🥇"
+	},
 
 	# COMBATE & NEN
 	"reflexos_cacador": {
@@ -347,6 +392,18 @@ func _checar_condicao(ach_id: String) -> bool:
 			return PlayerData.modo_historia_concluido or PlayerData.arco_atual >= 9
 		"cacador_3_estrelas":
 			return int(PlayerData.attributes.get("nivel", 1)) >= 100 and int(PlayerData.attributes.get("nivel_nen", 0)) >= 100
+		"mestre_dos_marcos_500":
+			return int(PlayerData.attributes.get("nivel", 1)) >= 500
+		"mestre_dos_marcos_750":
+			return int(PlayerData.attributes.get("nivel", 1)) >= 750
+		"apice_absoluto_1000":
+			return int(PlayerData.attributes.get("nivel", 1)) >= 1000
+		"chefe_secreto_derrotado":
+			return int(PlayerData.stats_globais.get("chefes_secretos_derrotados", 0)) >= 1
+		"mestre_dos_4_hatsus":
+			if HatsuProgressionManager != null:
+				return HatsuProgressionManager.is_slot_unlocked(1) and HatsuProgressionManager.is_slot_unlocked(2) and HatsuProgressionManager.is_slot_unlocked(3) and HatsuProgressionManager.is_slot_unlocked(4)
+			return false
 		"despertar_aura":
 			return PlayerData.despertou_nen
 		"mestre_das_9_artes":

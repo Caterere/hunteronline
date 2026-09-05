@@ -13,6 +13,16 @@ extends Node
 #
 # ============================================================
 
+enum NPCHierarchy {
+	COMMON,      # Aldeões e agricultores (diálogos leves, rotina dia/noite)
+	FUNCTIONAL,  # Vendedor, Ferreiro, Comerciante (serviços, comércio)
+	RECURRING,   # Nicol, Tonpa (aparece em múltiplas áreas/etapas comentando eventos)
+	IMPORTANT,   # Mestre Wing, Guardião da Floresta (mentores, lore, treino de Nen)
+	STORY,       # Elena, Satotz (Associação Hunter, marcos da trama principal)
+	BOSS         # Guardião Ancestral, Líder Quimera (antagonistas e chefes com fala)
+}
+
+@export var hierarchy: NPCHierarchy = NPCHierarchy.COMMON
 @export var npc_nome: String = "Cidadão"
 @export var velocidade_andar: float = 24.0
 @export var raio_patrulha: float = 80.0
@@ -46,26 +56,50 @@ func _ready() -> void:
 		pos_alvo = pos_inicial
 		timer_espera = randf_range(2.0, 5.0)
 
-		# Resolver cargo e marcador padrão por lore se não especificados
+		# Resolver cargo, marcador e hierarquia por lore se não especificados
 		var cargo_final := npc_cargo
 		var marcador_final := tipo_marcador
 		if cargo_final.is_empty():
-			match npc_nome.to_lower():
-				"wing":
-					cargo_final = "Mestre de Nen"
-					marcador_final = "trainer"
-				"biscuit", "bisky":
-					cargo_final = "Hunter Pro"
-					marcador_final = "trainer"
-				"elena":
-					cargo_final = "Recepcionista da Associação"
-					marcador_final = "story"
-				"satotz":
-					cargo_final = "Examinador Hunter"
-					marcador_final = "quest"
-				"menchi", "buhara":
-					cargo_final = "Gourmet Hunter"
-					marcador_final = "quest"
+			var n_lower = npc_nome.to_lower()
+			if "wing" in n_lower:
+				cargo_final = "Mestre de Nen"
+				marcador_final = "trainer"
+				hierarchy = NPCHierarchy.IMPORTANT
+			elif "biscuit" in n_lower or "bisky" in n_lower:
+				cargo_final = "Hunter Pro"
+				marcador_final = "trainer"
+				hierarchy = NPCHierarchy.IMPORTANT
+			elif "elena" in n_lower:
+				cargo_final = "Recepcionista da Associação"
+				marcador_final = "story"
+				hierarchy = NPCHierarchy.STORY
+			elif "satotz" in n_lower:
+				cargo_final = "Examinador Hunter"
+				marcador_final = "quest"
+				hierarchy = NPCHierarchy.STORY
+			elif "menchi" in n_lower or "buhara" in n_lower:
+				cargo_final = "Gourmet Hunter"
+				marcador_final = "quest"
+				hierarchy = NPCHierarchy.IMPORTANT
+			elif "vendedor" in n_lower or "comerciante" in n_lower:
+				cargo_final = "Comerciante Local"
+				marcador_final = "merchant"
+				hierarchy = NPCHierarchy.FUNCTIONAL
+			elif "ferreiro" in n_lower:
+				cargo_final = "Mestre Forjador"
+				marcador_final = "blacksmith"
+				hierarchy = NPCHierarchy.FUNCTIONAL
+			elif "nicol" in n_lower:
+				cargo_final = "Candidato Hunter"
+				marcador_final = "recurring"
+				hierarchy = NPCHierarchy.RECURRING
+			elif "guardião da floresta" in n_lower or "guardiao da floresta" in n_lower:
+				cargo_final = "Guardião Espiritual"
+				marcador_final = "important"
+				hierarchy = NPCHierarchy.IMPORTANT
+
+		npc_cargo = cargo_final
+		tipo_marcador = marcador_final
 
 		var badge := PanelContainer.new()
 		badge.name = "LivingNPCNameBadge"
@@ -94,6 +128,16 @@ func _ready() -> void:
 			"trainer": prefixo_marcador = "🥋 "
 			"merchant": prefixo_marcador = "💰 "
 			"story": prefixo_marcador = "⭐ "
+			"blacksmith": prefixo_marcador = "🔨 "
+			"recurring": prefixo_marcador = "👤 "
+			"important": prefixo_marcador = "💠 "
+
+		if prefixo_marcador.is_empty():
+			match hierarchy:
+				NPCHierarchy.STORY: prefixo_marcador = "⭐ "
+				NPCHierarchy.IMPORTANT: prefixo_marcador = "💠 "
+				NPCHierarchy.FUNCTIONAL: prefixo_marcador = "💼 "
+				NPCHierarchy.RECURRING: prefixo_marcador = "👤 "
 
 		var lbl := Label.new()
 		lbl.name = "LivingNPCNameLabel"
@@ -122,11 +166,45 @@ func _ready() -> void:
 			vbox.add_child(lbl_sub)
 
 		npc_body.add_child.call_deferred(badge)
+		_aplicar_estilo_visual_modular(cargo_final, marcador_final)
 
 	if EventBus != null:
 		EventBus.time_phase_changed.connect(_on_time_phase_changed)
 		if EventBus.has_signal("world_event_started"):
 			EventBus.world_event_started.connect(_on_world_event_started)
+
+	if WorldStateManager != null:
+		WorldStateManager.rotina_npc_atualizada.connect(_on_rotina_atualizada)
+		WorldStateManager.clima_alterado.connect(_on_clima_alterado)
+
+
+func _aplicar_estilo_visual_modular(cargo: String, marcador: String) -> void:
+	if npc_body == null:
+		return
+
+	var arquetipo := "civil"
+	if marcador == "merchant" or cargo.contains("Mercador") or cargo.contains("Comerciante"):
+		arquetipo = "comerciante"
+	elif marcador == "trainer" or cargo.contains("Mestre") or cargo.contains("Instrutor"):
+		arquetipo = "treinador"
+	elif cargo.contains("Guarda") or cargo.contains("Sentinela"):
+		arquetipo = "guardia"
+	elif cargo.contains("Hunter") or marcador == "quest":
+		arquetipo = "hunter"
+
+	var char_rend = npc_body.get_node_or_null("CharacterRenderer")
+	if char_rend != null and char_rend.has_method("aplicar_arquetipo"):
+		char_rend.aplicar_arquetipo(arquetipo)
+	else:
+		var spr := npc_body.get_node_or_null("Sprite2D") as Sprite2D
+		if spr != null and spr.material == null:
+			# Aplicar tint temático sutil por arquétipo se não possuir renderer modular
+			match arquetipo:
+				"guardia": spr.modulate = Color(0.85, 0.9, 1.05, 1.0)
+				"hunter": spr.modulate = Color(0.9, 1.05, 0.9, 1.0)
+				"comerciante": spr.modulate = Color(1.05, 0.95, 0.85, 1.0)
+				"treinador": spr.modulate = Color(1.0, 1.0, 1.08, 1.0)
+
 
 
 func _on_world_event_started(ev_id: String, titulo: String, regiao: String) -> void:
@@ -134,10 +212,39 @@ func _on_world_event_started(ev_id: String, titulo: String, regiao: String) -> v
 		ComicBalloon.mostrar(npc_body, "🚨 Alerta em nossa região: %s!" % titulo, 2.8, -40.0)
 
 
+func _on_clima_alterado(novo_clima: int, nome_clima: String) -> void:
+	if npc_body == null:
+		return
+	match novo_clima:
+		1: # CHUVA
+			velocidade_andar *= 0.85
+			pos_alvo = pos_inicial # Recua para perto da estrutura/toldo
+			if randf() < 0.40:
+				ComicBalloon.mostrar(npc_body, "🌧️ Chuva forte... É melhor me abrigar sob o toldo!", 2.2, -38.0)
+		2: # NEBLINA
+			velocidade_andar *= 0.90
+		3: # TEMPESTADE_AURA
+			if randf() < 0.50:
+				ComicBalloon.mostrar(npc_body, "⚡ Que sensação estranha... O ar está pesado de Nen selvagem!", 2.5, -40.0)
+
+
+func _on_rotina_atualizada(fase_tempo: int, clima: int) -> void:
+	var nome_fase := "DAY"
+	match fase_tempo:
+		0: nome_fase = "DAWN"
+		1: nome_fase = "DAY"
+		2: nome_fase = "DUSK"
+		3: nome_fase = "NIGHT"
+	_on_time_phase_changed(nome_fase)
+
+
 func _on_time_phase_changed(nova_fase: String) -> void:
+	var eh_guarda: bool = "guarda" in npc_nome.to_lower() or "sentinela" in npc_nome.to_lower() or "guarda" in npc_cargo.to_lower()
+	var eh_mercador: bool = "mercador" in npc_nome.to_lower() or tipo_marcador == "merchant"
+
 	if schedule_data != null:
 		match nova_fase:
-			"MORNING":
+			"MORNING", "DAWN":
 				schedule_data.current_state = "working"
 				if schedule_data.workplace_pos != Vector2.ZERO:
 					pos_alvo = schedule_data.workplace_pos
@@ -147,19 +254,36 @@ func _on_time_phase_changed(nova_fase: String) -> void:
 				if not schedule_data.patrol_route.is_empty():
 					pos_alvo = schedule_data.patrol_route[randi() % schedule_data.patrol_route.size()]
 				velocidade_andar = schedule_data.move_speed
-			"EVENING":
+			"EVENING", "DUSK":
 				schedule_data.current_state = "training"
 				velocidade_andar = schedule_data.move_speed * 0.8
 			"NIGHT":
-				schedule_data.current_state = "resting"
-				if schedule_data.home_pos != Vector2.ZERO:
-					pos_alvo = schedule_data.home_pos
-				velocidade_andar = schedule_data.move_speed * 0.6
+				if eh_guarda:
+					schedule_data.current_state = "guarding"
+					velocidade_andar = schedule_data.move_speed * 1.1
+					if not schedule_data.patrol_route.is_empty():
+						pos_alvo = schedule_data.patrol_route[0]
+				else:
+					schedule_data.current_state = "resting"
+					if schedule_data.home_pos != Vector2.ZERO:
+						pos_alvo = schedule_data.home_pos
+					velocidade_andar = schedule_data.move_speed * 0.6
 	else:
 		match nova_fase:
 			"NIGHT":
-				raio_patrulha = 30.0 # Reduz patrulha à noite
-				velocidade_andar = 16.0
+				if eh_guarda:
+					raio_patrulha = 100.0 # Guardas patrulham mais à noite
+					velocidade_andar = 28.0
+					if randf() < 0.35 and npc_body != null:
+						ComicBalloon.mostrar(npc_body, "🌙 Posto Noturno ativado. Vigília contra bestas!", 2.0, -38.0)
+				elif eh_mercador:
+					raio_patrulha = 10.0 # Mercador fecha barraca
+					velocidade_andar = 14.0
+					pos_alvo = pos_inicial
+				else:
+					raio_patrulha = 25.0
+					velocidade_andar = 16.0
+					pos_alvo = pos_inicial
 			"DAY":
 				raio_patrulha = 80.0
 				velocidade_andar = 24.0
@@ -221,6 +345,33 @@ func obter_rumor_aleatorio() -> String:
 
 
 func obter_dialogo_reativo() -> String:
+	# -0.3 Reatividade à Memória Contextual de Mestres e Personagens (Task 3.2)
+	if WorldState != null and WorldState.has_method("obter_dialogo_contextual_npc"):
+		var fala_ctx = WorldState.obter_dialogo_contextual_npc(npc_nome)
+		if not fala_ctx.begins_with("Saudações, Caçador"):
+			return fala_ctx
+
+	# -0.2 Reatividade à Crise Mundial / Invasão de Bestas Mágicas (Task 4.3)
+	if WorldState != null and (WorldState.tem_flag_regional(regiao_id, "invasao_bestas_ativa") or (WorldStateManager != null and WorldStateManager.evento_invasao_ativo)):
+		return "🚨 Alerta de Bestas Mágicas! Feras hostis romperam o perímetro da floresta. Cuidado redobrado!"
+
+	# -0.1 Reatividade ao Clima (Task 4.2)
+	if WorldStateManager != null:
+		var c = WorldStateManager.obter_clima_atual()
+		if c == WorldStateManager.Clima.CHUVA:
+			return "🌧️ Essa chuva torrencial não dá trégua... É melhor ficar embaixo do toldo até a tempestade passar."
+		elif c == WorldStateManager.Clima.TEMPESTADE_AURA:
+			return "⚡ O céu está brilhando com aura pura... Esse fenômeno de Nen atmosférico é raríssimo e perigoso!"
+		elif c == WorldStateManager.Clima.NEBLINA:
+			return "🌫️ Esta neblina densa oculta presenças assassinas. Mantenha seu En ou Gyo bem afiados!"
+
+	# -0.05 Reatividade a Horário Noturno para Comerciantes (Task 4.2)
+	if TimeManager != null and TimeManager.current_phase == 3:
+		if tipo_marcador == "merchant" or "mercador" in npc_nome.to_lower():
+			return "🌙 A barraca está encerrada por esta noite. Volte assim que o sol raiar para negociar!"
+		elif "guarda" in npc_nome.to_lower() or "sentinela" in npc_nome.to_lower():
+			return "🌙 Patrulha noturna em andamento. Mantenha-se nas áreas iluminadas da vila."
+
 	# 0. Reatividade à Escolhas do Protagonista (Causalidade Narrativa da Fase F)
 	if StoryManager != null:
 		if StoryManager.get_choice("suco_tonpa") == "desmascarar":

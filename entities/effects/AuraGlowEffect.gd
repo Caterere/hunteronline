@@ -47,6 +47,24 @@ func atualizar_aura(ativa: bool, cor: Color = Color(0.3, 0.7, 1.0, 0.4)) -> void
 	sprite_aura.visible = ativa
 
 
+func aplicar_modo_tecnica(tecnica_nome: String) -> void:
+	match tecnica_nome.to_upper():
+		"TEN":
+			atualizar_aura(true, Color(0.25, 0.75, 1.0, 0.45))
+		"REN":
+			atualizar_aura(true, Color(1.0, 0.85, 0.2, 0.75))
+		"KO":
+			atualizar_aura(true, Color(1.0, 0.3, 0.15, 0.90))
+		"KEN":
+			atualizar_aura(true, Color(0.2, 0.45, 0.95, 0.65))
+		"GYO":
+			atualizar_aura(true, Color(0.9, 0.9, 0.2, 0.6))
+		"ZETSU":
+			atualizar_aura(false)
+		_:
+			atualizar_aura(false)
+
+
 func _process(delta: float) -> void:
 	if sprite_aura == null or not sprite_aura.visible:
 		return

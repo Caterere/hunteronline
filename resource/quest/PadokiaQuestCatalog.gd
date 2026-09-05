@@ -35,11 +35,11 @@ static func obter_quest_principal() -> Quest:
 	obj1.target_npc_id = &"wing"
 	obj1.target_npc_name = "Mestre Wing"
 	
-	# Objetivo 2: Derrotar monstros na floresta
+	# Objetivo 2: Derrotar feras na floresta
 	var obj2 = QuestObjectiveScript.new()
 	obj2.type = QuestObjectiveScript.Type.KILL
-	obj2.enemy_type = &"slime"
-	obj2.required_amount = 3
+	obj2.enemy_type = &"fera_floresta"
+	obj2.required_amount = 2
 	
 	# Objetivo 3: Derrotar o Chefe das Ruínas
 	var obj3 = QuestObjectiveScript.new()
@@ -53,12 +53,12 @@ static func obter_quest_principal() -> Quest:
 
 
 # ------------------------------------------------------------
-# 2. QUEST SECUNDÁRIA 1: ERVAS DA FLORESTA
+# 2. QUEST SECUNDÁRIA 1: ERVAS DA FLORESTA (GATHERING/COMBAT)
 # ------------------------------------------------------------
 static func obter_quest_secundaria_1() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Ervas Medicinais da Floresta"
-	q.description = "A Herbalista da vila necessita de proteção contra as feras para coletar ervas nos arredores da Árvore Milenar."
+	q.description = "O Vendedor do Empório necessita de proteção contra as feras para reabastecer o estoque de tônicos com ervas da Árvore Milenar."
 	q.auto_complete = true
 	q.turn_in_npc_key = &"vendedor"
 	q.reward_xp = 150
@@ -66,7 +66,7 @@ static func obter_quest_secundaria_1() -> Quest:
 	
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.KILL
-	obj.enemy_type = &"slime"
+	obj.enemy_type = &"fera_floresta"
 	obj.required_amount = 2
 	
 	var objs: Array[QuestObjective] = [obj]
@@ -75,7 +75,7 @@ static func obter_quest_secundaria_1() -> Quest:
 
 
 # ------------------------------------------------------------
-# 3. QUEST SECUNDÁRIA 2: MINÉRIOS DAS RUÍNAS
+# 3. QUEST SECUNDÁRIA 2: MINÉRIOS DAS RUÍNAS (CRAFTING/COMBAT)
 # ------------------------------------------------------------
 static func obter_quest_secundaria_2() -> Quest:
 	var q = QuestScript.new()
@@ -97,13 +97,58 @@ static func obter_quest_secundaria_2() -> Quest:
 
 
 # ------------------------------------------------------------
-# 4. QUEST SECRETA: O ENIGMA DA ROCHA RACHADA (NEN KO)
+# 4. QUEST SECUNDÁRIA 3: SEGURANÇA DA ESTRADA REAL (ESCORT/PATROL)
+# ------------------------------------------------------------
+static func obter_quest_secundaria_estrada() -> Quest:
+	var q = QuestScript.new()
+	q.quest_name = "Segurança da Caravana Real"
+	q.description = "O Guarda da Vila solicitou patrulha na Estrada Real para expulsar os salteadores que armam emboscadas contra os comerciantes."
+	q.auto_complete = true
+	q.turn_in_npc_key = &"guarda_da_vila"
+	q.reward_xp = 200
+	q.reward_gold = 800
+	
+	var obj = QuestObjectiveScript.new()
+	obj.type = QuestObjectiveScript.Type.KILL
+	obj.enemy_type = &"ladrao_estrada"
+	obj.required_amount = 2
+	
+	var objs: Array[QuestObjective] = [obj]
+	q.objectives = objs
+	return q
+
+
+# ------------------------------------------------------------
+# 5. QUEST DESAFIO: PREDADORES DA RAVINA (TEN HAZARD CHALLENGE)
+# ------------------------------------------------------------
+static func obter_quest_desafio_ravina() -> Quest:
+	var q = QuestScript.new()
+	q.quest_name = "Extermínio dos Predadores da Ravina"
+	q.description = "O Caçador de Zaban adverte que as criaturas venenosas da Ravina do Miasma estão se multiplicando. Mantenha TEN ativo para resistir ao veneno e abater os predadores."
+	q.auto_complete = false
+	q.turn_in_npc_key = &"cacador_de_zaban"
+	q.reward_xp = 350
+	q.reward_gold = 1500
+	
+	var obj = QuestObjectiveScript.new()
+	obj.type = QuestObjectiveScript.Type.KILL
+	obj.enemy_type = &"predador_miasma"
+	obj.required_amount = 2
+	
+	var objs: Array[QuestObjective] = [obj]
+	q.objectives = objs
+	return q
+
+
+# ------------------------------------------------------------
+# 6. QUEST SECRETA: O ENIGMA DA ROCHA RACHADA (NEN KO)
 # ------------------------------------------------------------
 static func obter_quest_secreta() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "O Enigma da Rocha Rachada"
 	q.description = "Dizem que nas colinas ao norte há uma fenda ancestral selada por uma rocha gigantesca. Apenas um golpe concentrado de KO pode rompê-la."
 	q.auto_complete = false
+	q.is_secret = true
 	q.turn_in_npc_key = &"ermitao"
 	q.reward_xp = 400
 	q.reward_gold = 3000
@@ -118,6 +163,28 @@ static func obter_quest_secreta() -> Quest:
 
 
 # ------------------------------------------------------------
+# 7. QUEST SECRETA: O ALTAR DA CHAMA DE NEN (REN BEACON)
+# ------------------------------------------------------------
+static func obter_quest_secreta_altar() -> Quest:
+	var q = QuestScript.new()
+	q.quest_name = "O Altar da Chama de Nen"
+	q.description = "O Guardião da Floresta sussurra sobre um Altar Ancestral nas ruínas que reage à liberação de Ren. Canalize sua presença para despertar a relíquia."
+	q.auto_complete = false
+	q.is_secret = true
+	q.turn_in_npc_key = &"guardiao_da_floresta"
+	q.reward_xp = 300
+	q.reward_gold = 1200
+	
+	var obj = QuestObjectiveScript.new()
+	obj.type = QuestObjectiveScript.Type.STEALTH_PASS
+	obj.target_zone_id = &"ninho_feras_padokia"
+	
+	var objs: Array[QuestObjective] = [obj]
+	q.objectives = objs
+	return q
+
+
+# ------------------------------------------------------------
 # LISTA COMPLETA
 # ------------------------------------------------------------
 static func obter_todas_quests() -> Array[Quest]:
@@ -125,6 +192,9 @@ static func obter_todas_quests() -> Array[Quest]:
 		obter_quest_principal(),
 		obter_quest_secundaria_1(),
 		obter_quest_secundaria_2(),
-		obter_quest_secreta()
+		obter_quest_secundaria_estrada(),
+		obter_quest_desafio_ravina(),
+		obter_quest_secreta(),
+		obter_quest_secreta_altar()
 	]
 	return lista

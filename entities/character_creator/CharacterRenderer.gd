@@ -182,8 +182,62 @@ func atualizar_aparencia_completa() -> void:
 	if layers.has("EffectAura"):
 		layers["EffectAura"].visible = (appearance.effect_id != "none")
 		layers["EffectAura"].modulate = appearance.effect_color
-		
+
 	_atualizar_frames_todas_camadas()
+
+
+func definir_visual_aura(tecnica_ou_tipo: String, cor: Color = Color.TRANSPARENT, intensidade: float = 1.0) -> void:
+	if not layers.has("EffectAura"):
+		return
+	var aura_sp: Sprite2D = layers["EffectAura"]
+	if tecnica_ou_tipo.is_empty() or tecnica_ou_tipo == "none":
+		aura_sp.visible = false
+		return
+
+	aura_sp.visible = true
+	var cor_final: Color = cor
+	if cor == Color.TRANSPARENT:
+		match tecnica_ou_tipo.to_upper():
+			"TEN": cor_final = Color(0.7, 0.9, 1.0, 0.6)
+			"REN": cor_final = Color(1.0, 0.5, 0.1, 0.85)
+			"KO": cor_final = Color(1.0, 0.95, 0.3, 0.95)
+			"KEN": cor_final = Color(0.3, 0.75, 1.0, 0.8)
+			"GYO": cor_final = Color(0.4, 1.0, 0.6, 0.75)
+			"ZETSU":
+				aura_sp.visible = false
+				return
+			_: cor_final = Color(0.8, 0.7, 1.0, 0.75)
+
+	cor_final.a = clamp(cor_final.a * intensidade, 0.1, 1.0)
+	aura_sp.modulate = cor_final
+
+
+func sincronizar_com_player_data() -> void:
+	if PlayerData == null:
+		return
+
+	if appearance == null:
+		appearance = CharacterAppearance.new()
+
+	if PlayerData.character_colors.has("cabelo"):
+		appearance.hair_color = PlayerData.character_colors["cabelo"]
+	if PlayerData.character_colors.has("roupa"):
+		appearance.shirt_color = PlayerData.character_colors["roupa"]
+		appearance.pants_color = PlayerData.character_colors["roupa"].darkened(0.2)
+
+	atualizar_aparencia_completa()
+
+
+func aplicar_preset(nome: String) -> void:
+	var res := CharacterAssetDatabase.obter_preset(nome)
+	if res is CharacterAppearance:
+		set_appearance(res)
+
+
+func aplicar_arquetipo(arquetipo: String) -> void:
+	var res := CharacterAssetDatabase.gerar_aparencia_arquetipo(arquetipo)
+	if res is CharacterAppearance:
+		set_appearance(res)
 
 
 func play_animation(nome_anim: String) -> void:
@@ -211,3 +265,4 @@ func set_direction_vector(vetor: Vector2) -> void:
 			set_direction(Direction.DOWN)
 		elif vetor.y < 0:
 			set_direction(Direction.UP)
+

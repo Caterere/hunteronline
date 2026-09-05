@@ -20,7 +20,7 @@ enum CategoriaAfinidade {
 }
 
 
-static func obter_nome_afinidade(cat: CategoriaAfinidade) -> String:
+static func obter_nome_afinidade(cat: int) -> String:
 	match cat:
 		CategoriaAfinidade.INTENSIFICACAO: return "Intensificação (Enhancer)"
 		CategoriaAfinidade.TRANSFORMACAO: return "Transformação (Transmuter)"
@@ -29,6 +29,17 @@ static func obter_nome_afinidade(cat: CategoriaAfinidade) -> String:
 		CategoriaAfinidade.MANIPULACAO: return "Manipulação (Manipulator)"
 		CategoriaAfinidade.ESPECIALIZACAO: return "Especialização (Specialist)"
 	return "Desconhecida"
+
+
+static func obter_cor_afinidade(cat: int) -> Color:
+	match cat:
+		CategoriaAfinidade.INTENSIFICACAO: return Color(0.2, 0.85, 0.3)
+		CategoriaAfinidade.TRANSFORMACAO: return Color(0.95, 0.4, 0.8)
+		CategoriaAfinidade.EMISSAO: return Color(1.0, 0.55, 0.15)
+		CategoriaAfinidade.CONJURACAO: return Color(0.25, 0.75, 1.0)
+		CategoriaAfinidade.MANIPULACAO: return Color(0.85, 0.75, 0.2)
+		CategoriaAfinidade.ESPECIALIZACAO: return Color(0.7, 0.25, 1.0)
+	return Color(0.8, 0.4, 1.0)
 
 
 static func obter_descricao_afinidade(cat: CategoriaAfinidade) -> String:

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"boss_razor"
+enemy_name = "Razor"
+level = 88
+max_health = 11000
+defense = 110
+strength = 270
+xp_reward = 42000
+npc_tier = 4
+is_boss = true
+knockback_resistance = 0.92
+hit_invulnerability_time = 0.16
+hatsu_name = "14 Demônios: Saque Pesado"
+hatsu_cooldown = 4.5
+role = "boss"
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

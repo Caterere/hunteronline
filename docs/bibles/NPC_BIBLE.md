@@ -36,10 +36,34 @@ Cada NPC no jogo é composto por nós e recursos modulares especializados:
 
 ---
 
-## 3. CATEGORIAS DE NPCS
+## 3. HIERARQUIA CANÔNICA DE NPCS (6 TIERS)
 
-- **Mestres de Treino:** Wing (Despertar de Ten/Ren), Biscuit Krueger (Treino de Hatsu), Netero (Avaliação suprema).
-- **Mercadores & Corretores:** Venda de itens de suporte, equipamentos, catalisadores e informações de contratos.
-- **Oficiais da Associação:** Registro de licença Hunter, entrega de missões de exame e ranqueamento.
-- **Informantes do Submundo:** NPCs que cobram Jenny por rumores sobre chefes de área e rotas secretas.
-- **Cidadãos Comuns:** Provedores de missões secundárias locais e contexto de lore.
+A arquitetura de NPCs utiliza o enum formal `LivingNPCBehavior.NPCHierarchy`:
+
+1. **COMMON (Aldeões & Transeuntes):**
+   - Diálogos leves, fofocas e rumores de taverna.
+   - Rotina completa: caminham de dia, recolhem-se às casas à noite e abrigam-se sob toldos na chuva.
+2. **FUNCTIONAL (Comerciantes & Artesãos):**
+   - Vendedor do Empório, Ferreiro Duran.
+   - Fornecem serviços vitais (compra, venda, forja de equipamentos com trade-offs).
+   - Fecham suas lojas à noite e reagem a crimes na vila.
+3. **RECURRING (Personagens Recorrentes):**
+   - Nicol, Tonpa.
+   - Aparecem em múltiplas regiões comentando o progresso do exame ou as provações do jogador.
+4. **IMPORTANT (Mentores & Guardiões):**
+   - Mestre Wing, Guardião da Floresta.
+   - Possuem memória contextual no `WorldState`, ensinam técnicas de Nen (Ten, Ren, Gyo) e oferecem missões de progressão.
+5. **STORY (Figuras Centrais da Trama):**
+   - Recepcionista Elena, Examinador Satotz, Biscuit Krueger, Netero.
+   - Atuam como Story Gates e marcos de avanço de sagas.
+6. **BOSS / ANTAGONISTAS:**
+   - Guardião Ancestral de Zaban, Líder da Matilha Quimera.
+   - Possuem falas dramáticas via `BattlePersonality`, transição de fases de Nen e mecânicas próprias.
+
+---
+
+## 4. INTEGRAÇÃO COM CLIMA E CICLO SOLAR
+- **Noite (`NIGHT`):** Guardas aumentam o raio de patrulha e vigília (+15% velocidade); mercadores recolhem suas barracas.
+- **Chuva (`CHUVA`):** Redução na velocidade de caminhada, retorno para abrigos e toldos de edifícios.
+- **Tempestade de Aura (`TEMPESTADE_AURA`):** Cidadãos expressam espanto diante do fenômeno raro de Nen atmosférico.
+

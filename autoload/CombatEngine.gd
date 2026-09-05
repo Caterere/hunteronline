@@ -83,35 +83,43 @@ func calcular_dano_detalhado(
 	tags_efetivas = GameplayTags.normalize(tags_efetivas)
 
 	# 3. Reduções do Defensor
-	var reducao_defesa: float = 0.0
+	var defesa_val: float = 0.0
 	var reducao_ten: float = 0.0
+	var nivel_defensor: int = 1
 	var def_weakness: Array = []
 	var def_resistance: Array = []
 	var def_immunity: Array = []
 
 	if defensor is Dictionary:
-		reducao_defesa = float(defensor.get("defesa", 0.0)) * 0.5
+		defesa_val = float(defensor.get("defesa", 0.0))
+		nivel_defensor = int(defensor.get("nivel", defensor.get("level", 1)))
 		if defensor.get("ten_ativo", false):
-			reducao_ten = float(defensor.get("aura", 0.0)) * 0.1
+			reducao_ten = float(defensor.get("aura", 0.0)) * 0.08
 		def_weakness = defensor.get("weakness_tags", [])
 		def_resistance = defensor.get("resistance_tags", [])
 		def_immunity = defensor.get("immunity_tags", [])
 	elif defensor != null and defensor is Node:
 		if defensor.is_in_group("player"):
-			reducao_defesa = float(PlayerData.attributes.get("defesa", 10)) * 0.5
+			defesa_val = float(PlayerData.attributes.get("defesa", 10))
+			nivel_defensor = int(PlayerData.attributes.get("nivel", 1))
 			if PlayerData.despertou_nen:
-				# Ten Passivo: Absorção contínua de impacto sem necessidade de ativação manual
+				# Ten Passivo: Absorção contínua de impacto
 				reducao_ten = float(PlayerData.attributes.get("aura_max", 100.0)) * 0.08
 			def_weakness = PlayerData.weakness_tags
 			def_resistance = PlayerData.resistance_tags
 			def_immunity = PlayerData.immunity_tags
 		var ai = defensor.get_node_or_null("EnemyAI")
 		if ai != null and ai.has_method("obter_defesa_efetiva"):
-			reducao_defesa = ai.obter_defesa_efetiva() * 0.5
+			defesa_val = ai.obter_defesa_efetiva()
 		elif "defense" in defensor:
-			reducao_defesa = float(defensor.defense) * 0.5
+			defesa_val = float(defensor.defense)
 		elif "defesa" in defensor:
-			reducao_defesa = float(defensor.defesa) * 0.5
+			defesa_val = float(defensor.defesa)
+
+		if "level" in defensor:
+			nivel_defensor = int(defensor.level)
+		elif "enemy_data" in defensor and defensor.enemy_data != null:
+			nivel_defensor = int(defensor.enemy_data.level)
 
 		if "enemy_data" in defensor and defensor.enemy_data != null:
 			def_weakness = defensor.enemy_data.weakness_tags
@@ -141,7 +149,11 @@ func calcular_dano_detalhado(
 
 	var dano_final: float = 0.0
 	if not is_immune:
-		dano_final = max(1.0, dano - reducao_defesa - reducao_ten)
+		var fator_defesa: float = PowerScale.calcular_fator_defensivo_por_nivel(defesa_val, nivel_defensor)
+		var dano_pos_defesa: float = dano * fator_defesa
+		var absorcao_max_ten: float = dano_pos_defesa * 0.50
+		var ten_efetivo: float = min(reducao_ten, absorcao_max_ten)
+		dano_final = max(1.0, dano_pos_defesa - ten_efetivo)
 
 	# Quebra canônica de Zetsu (Stealth) ao desferir ou receber dano em combate
 	var player_node = atacante if (atacante != null and atacante is Node and atacante.is_in_group("player")) else (defensor if (defensor != null and defensor is Node and defensor.is_in_group("player")) else null)
@@ -417,8 +429,10 @@ func calcular_dano_sofrido_jogador(
 	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
 		dano_com_ten *= 0.65
 
-	var defesa: int = int(PlayerData.attributes.get("defesa", 10))
-	var dano_final: int = max(int(round(dano_com_ten)) - defesa, 1)
+	var player_lvl: int = int(PlayerData.attributes.get("nivel", 1)) if PlayerData != null else 1
+	var defesa: float = float(PlayerData.attributes.get("defesa", 10)) if PlayerData != null else 10.0
+	var fator_def: float = PowerScale.calcular_fator_defensivo_por_nivel(defesa, player_lvl)
+	var dano_final: int = max(1, int(round(dano_com_ten * fator_def)))
 
 	if hatsu_system != null:
 		if hatsu_system.has_method("registrar_dano_sofrido_vow"):

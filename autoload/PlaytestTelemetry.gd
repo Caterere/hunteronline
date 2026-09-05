@@ -901,6 +901,7 @@ func _obter_player_node() -> CharacterBody2D:
 
 
 var build_debug_menu_instance: CanvasLayer = null
+var network_debug_overlay_instance: CanvasLayer = null
 
 func _instanciar_overlay_ui() -> void:
 	if overlay_instance == null or not is_instance_valid(overlay_instance):
@@ -916,6 +917,13 @@ func _instanciar_overlay_ui() -> void:
 			build_debug_menu_instance = b_script.new()
 			add_child(build_debug_menu_instance)
 			print("[PlaytestTelemetry] BuildDebugMenu instanciado com sucesso (Atalho: F2).")
+
+	if network_debug_overlay_instance == null or not is_instance_valid(network_debug_overlay_instance):
+		var net_scn = load("res://ui/multiplayer/NetworkDebugOverlay.tscn") as PackedScene
+		if net_scn != null:
+			network_debug_overlay_instance = net_scn.instantiate() as CanvasLayer
+			add_child(network_debug_overlay_instance)
+			print("[PlaytestTelemetry] NetworkDebugOverlay instanciado com sucesso (Atalho: F4).")
 
 
 # ============================================================

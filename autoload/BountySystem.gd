@@ -71,6 +71,56 @@ func _inicializar_contratos_iniciais() -> void:
 			"descricao": "Grupo de criminosos assaltando novos candidatos a Hunter na periferia.",
 			"concluido": false,
 			"aceito": false
+		},
+		"bounty_cacador_renegado_zaban": {
+			"id": "bounty_cacador_renegado_zaban",
+			"nome_alvo": "Karkov, o Caçador Desonrado",
+			"regiao": "ruinas_zaban",
+			"nivel_alvo": 120,
+			"recompensa_jenny": 150000,
+			"descricao": "Ex-examinador que traiu a Associação vendendo credenciais a contrabandistas.",
+			"concluido": false,
+			"aceito": false
+		},
+		"bounty_exilado_greed": {
+			"id": "bounty_exilado_greed",
+			"nome_alvo": "Magnus, o Colecionador Impiedoso",
+			"regiao": "greed_island",
+			"nivel_alvo": 420,
+			"recompensa_jenny": 1800000,
+			"descricao": "PK lendário que extorquia jogadores novatos e roubou cartas raras de feitiço.",
+			"concluido": false,
+			"aceito": false
+		},
+		"bounty_esquadrao_rebelde_chimera": {
+			"id": "bounty_esquadrao_rebelde_chimera",
+			"nome_alvo": "General Formiga Renegado 'Drakon'",
+			"regiao": "ngl_formigas",
+			"nivel_alvo": 680,
+			"recompensa_jenny": 15000000,
+			"descricao": "Líder de esquadrão mutante que se recusou a obedecer a Rainha e montou fortaleza própria.",
+			"concluido": false,
+			"aceito": false
+		},
+		"bounty_assassino_heilly": {
+			"id": "bounty_assassino_heilly",
+			"nome_alvo": "Capitão Assassino da Família Heil-Ly",
+			"regiao": "black_whale_1",
+			"nivel_alvo": 850,
+			"recompensa_jenny": 45000000,
+			"descricao": "Braço-direito de Morena Prudo infectando guardas militares nos conveses profundos.",
+			"concluido": false,
+			"aceito": false
+		},
+		"bounty_calamidade_parasita": {
+			"id": "bounty_calamidade_parasita",
+			"nome_alvo": "Avatar da Besta Parasita de Brion",
+			"regiao": "continente_negro",
+			"nivel_alvo": 960,
+			"recompensa_jenny": 150000000,
+			"descricao": "Entidade simbiótica ancestral das ruínas esquecidas. Nível de ameaça de Calamidade Máxima!",
+			"concluido": false,
+			"aceito": false
 		}
 	}
 

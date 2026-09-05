@@ -20,7 +20,7 @@ var target_node: Node2D = null
 var offset_pos: Vector2 = Vector2(0, -36)
 
 
-static func mostrar(alvo: Node2D, texto: String, duracao: float = 2.2, offset_y: float = -36.0) -> Node2D:
+static func mostrar(alvo: Node2D, texto: String, duracao: float = 2.2, offset_y: float = -36.0, bg_color: Color = Color(1.0, 1.0, 1.0, 0.98), border_color: Color = Color(0.04, 0.04, 0.06, 1.0)) -> Node2D:
 	if alvo == null or not alvo.is_inside_tree() or texto.strip_edges().is_empty():
 		return null
 
@@ -40,25 +40,25 @@ static func mostrar(alvo: Node2D, texto: String, duracao: float = 2.2, offset_y:
 		alvo.add_child(balloon)
 		balloon.position = balloon.offset_pos
 
-	balloon._configurar_visual(texto, duracao)
+	balloon._configurar_visual(texto, duracao, bg_color, border_color)
 	return balloon
 
 
-func _configurar_visual(texto: String, duracao: float) -> void:
+func _configurar_visual(texto: String, duracao: float, bg_color: Color = Color(1.0, 1.0, 1.0, 0.98), border_color: Color = Color(0.04, 0.04, 0.06, 1.0)) -> void:
 	z_index = 25 # Garante que fica visível acima de inimigos e cenários
 
 	# Container Central
 	panel = PanelContainer.new()
 	panel.custom_minimum_size = Vector2(50, 20)
 	
-	# Estilo Mangá: Fundo Branco com borda preta sólida
+	# Estilo Mangá / Personalizado
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(1.0, 1.0, 1.0, 0.98)
+	style.bg_color = bg_color
 	style.border_width_left = 1
 	style.border_width_top = 1
 	style.border_width_right = 1
 	style.border_width_bottom = 1
-	style.border_color = Color(0.04, 0.04, 0.06, 1.0)
+	style.border_color = border_color
 	style.corner_radius_top_left = 4
 	style.corner_radius_top_right = 4
 	style.corner_radius_bottom_right = 4
@@ -82,8 +82,8 @@ func _configurar_visual(texto: String, duracao: float) -> void:
 	label.custom_minimum_size = Vector2(calculated_width, 0)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 8)
-	label.add_theme_color_override("font_color", Color(0.06, 0.06, 0.08, 1.0))
+	var font_col = Color(0.95, 0.95, 0.95, 1.0) if bg_color.get_luminance() < 0.5 else Color(0.06, 0.06, 0.08, 1.0)
+	label.add_theme_color_override("font_color", font_col)
 	margin.add_child(label)
 
 	# Centralizar o painel acima da origem

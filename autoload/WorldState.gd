@@ -47,7 +47,8 @@ func reinicializar_estado_padrao() -> void:
 			"calamity_level": 0,
 			"global_alert": 0,
 			"active_era": "era_exame_hunter",
-			"custom_flags": {}
+			"custom_flags": {},
+			"marcos_historicos": {}
 		},
 		"regions": {
 			"vale_padokia": {
@@ -297,13 +298,92 @@ func _on_time_hour_ticked(_hour: int, _minute: int) -> void:
 
 
 # ============================================================
-# DISPATCHER DE CONSEQUÊNCIAS CAUSAIS
+# DISPATCHER DE CONSEQUÊNCIAS CAUSAIS & MEMÓRIA CONTEXTUAL (TASK 3.2)
 # ============================================================
 
+func registrar_marco_historico(marco_id: String, dados: Dictionary = {}) -> void:
+	if not world_data.has("world"):
+		world_data["world"] = {}
+	if not world_data["world"].has("marcos_historicos"):
+		world_data["world"]["marcos_historicos"] = {}
+	world_data["world"]["marcos_historicos"][marco_id] = {
+		"timestamp_ticks": Time.get_ticks_msec(),
+		"dados": dados
+	}
+	print("[WorldState] Marco histórico gravado: %s" % marco_id)
+
+
+func tem_marco_historico(marco_id: String) -> bool:
+	if not world_data.has("world") or not world_data["world"].has("marcos_historicos"):
+		return false
+	return world_data["world"]["marcos_historicos"].has(marco_id)
+
+
+func obter_marcos_historicos() -> Dictionary:
+	if not world_data.has("world") or not world_data["world"].has("marcos_historicos"):
+		return {}
+	return world_data["world"]["marcos_historicos"]
+
+
+func registrar_treinamento_mestre(mestre_id: String, tecnica_nen: String) -> void:
+	var marco = "treino_%s_%s" % [mestre_id.to_lower(), tecnica_nen.to_lower()]
+	registrar_marco_historico(marco, {"mestre": mestre_id, "tecnica": tecnica_nen})
+	if EventBus != null:
+		EventBus.emit_toast("📜 Ensinamento gravado na memória: %s (%s)" % [mestre_id.capitalize(), tecnica_nen.to_upper()], Color(0.9, 0.85, 0.3))
+
+
+func registrar_vitoria_boss(boss_id: String, boss_nome: String) -> void:
+	var marco = "derrotou_%s" % boss_id.to_lower()
+	registrar_marco_historico(marco, {"boss_id": boss_id, "boss_nome": boss_nome})
+	if EventBus != null:
+		EventBus.emit_toast("🏆 Fama Pública: Derrota de %s reconhecida pelo mundo!" % boss_nome, Color(1.0, 0.85, 0.2))
+
+
+func obter_dialogo_contextual_npc(npc_id: String) -> String:
+	var lower_id := npc_id.to_lower()
+	match lower_id:
+		"wing":
+			if tem_marco_historico("treino_wing_gyo") or tem_marco_historico("treino_wing_nen"):
+				return "Ainda usando aquele Gyo que ensinei? Lembre-se: ver além do óbvio é a essência do combate com Nen."
+			if tem_marco_historico("derrotou_guardiao_zaban"):
+				return "Soube da sua vitória contra o Guardião das Ruínas. Sua aura está consideravelmente mais estável."
+			return "Ten, Zetsu, Ren e Hatsu... Nunca negligencie as quatro grandes bases."
+
+		"biscuit":
+			if tem_marco_historico("treino_biscuit_ko") or tem_marco_historico("treino_biscuit_nen"):
+				return "Espero que não tenha relaxado no polimento do Ko! Seus músculos de Nen precisam de 10.000 repetições diárias!"
+			if tem_marco_historico("derrotou_razor"):
+				return "Você conseguiu rebater o saque de Razor?! Hohoho... Nada mal para quem parecia uma pedra bruta!"
+			return "Ei, garoto! Quer aprender Nen de verdade ou vai continuar brincando de Caçador?"
+
+		"hisoka":
+			if tem_marco_historico("derrota_hisoka"):
+				return "♠ Schwing~! Vejo que sobreviveu à nossa última colheita... Que fruto resiliente você se tornou. ♦"
+			if tem_marco_historico("derrotou_hisoka"):
+				return "♦ Um gosto amargo de derrota... Mas que promete uma colheita ainda mais esplêndida no topo da Torre. ♥"
+			return "♥ Mostre-me sua sede de sangue... Não me deixe entediado. ♣"
+
+		"razor":
+			if tem_marco_historico("derrotou_razor"):
+				return "🏐 Aquela recepção foi histórica. Ging tinha razão em confiar no potencial desta nova geração."
+			return "🏐 Esta quadra não aceita desculpas. Firme os pés e concentre Ryu!"
+
+		"civis", "habitante_vila", "guardiao_zaban", "aldeao":
+			if tem_marco_historico("derrotou_guardiao_zaban"):
+				return "Olhem! Aquele é o Caçador que derrotou o monstro das ruínas e desfez o miasma venenoso!"
+			if tem_marco_historico("derrotou_hisoka"):
+				return "Dizem que aquele viajante enfrentou o temido Mágico da Trupe e sobreviveu!"
+			return "Dizem que feras mágicas têm rondado a floresta depois do entardecer. Tenha muito cuidado!"
+
+	return "Saudações, Caçador. Que os ventos favoreçam sua jornada."
+
+
 func _on_enemy_defeated(enemy_id: String, _xp: int, _nen_xp: int) -> void:
-	match enemy_id.to_lower():
+	var e_lower = enemy_id.to_lower()
+	registrar_vitoria_boss(e_lower, enemy_id)
+
+	match e_lower:
 		"guardiao_zaban", "guardiao_ancestral":
-			# Consequência 1: Derrota do Boss das Ruínas
 			adicionar_flag_regional("ruinas_zaban", "guardiao_derrotado")
 			adicionar_flag_regional("vale_padokia", "posto_hunter_ativo")
 			alterar_seguranca_regional("vale_padokia", +25)
@@ -314,19 +394,39 @@ func _on_enemy_defeated(enemy_id: String, _xp: int, _nen_xp: int) -> void:
 			adicionar_efeito_temporario("miasma_dissipado_zaban", 48.0)
 			consequencia_processada.emit("BOSS_DEFEATED", "Guardião de Zaban derrotado: Miasma dissipado por 48h e Posto Hunter liberado.", 48.0)
 
+		"hisoka", "boss_hisoka":
+			alterar_notoriedade_nen(+75)
+			adicionar_efeito_temporario("reconhecimento_torre_celestial", 72.0)
+			consequencia_processada.emit("BOSS_DEFEATED", "Hisoka derrotado na Torre Celestial: Mestre do Andar liberado.", 72.0)
+
+		"razor", "boss_razor":
+			alterar_notoriedade_nen(+80)
+			adicionar_flag_regional("arena_celestial", "saque_de_razor_superado")
+			consequencia_processada.emit("BOSS_DEFEATED", "Razor derrotado em Greed Island: Provação dos 14 Demônios concluída.", 72.0)
+
+		"meruem", "boss_meruem":
+			alterar_notoriedade_nen(+150)
+			adicionar_flag_regional("ruinas_zaban", "ameaca_quimera_aniquilada")
+			consequencia_processada.emit("BOSS_DEFEATED", "Rei das Formigas Quimera Meruem superado: A humanidade respira aliviada.", 120.0)
+
 		"bandido", "ladrao_padokia":
-			# Consequência 4: Limpeza de Bandidos
 			alterar_seguranca_regional("vale_padokia", +2)
 			alterar_prosperidade_regional("vale_padokia", +1)
 			adicionar_efeito_temporario("patrulha_bandidos_suprimida", 24.0)
 
 
 func _on_quest_completed(quest_id: String, _xp: int, _jenny: int) -> void:
-	if "wing" in quest_id.to_lower() or "treino" in quest_id.to_lower():
-		# Consequência 3: Treino com Mestre Wing
+	var q_lower = quest_id.to_lower()
+	if "wing" in q_lower or "treino" in q_lower:
+		registrar_treinamento_mestre("wing", "gyo")
 		alterar_notoriedade_nen(+40)
 		adicionar_efeito_temporario("bônus_maestria_wing", 24.0, {"bonus_xp_pct": 50})
 		consequencia_processada.emit("QUEST_WING", "Treino de Wing Concluído: Bônus de +50% Nen XP ativado por 24h.", 24.0)
+	elif "biscuit" in q_lower:
+		registrar_treinamento_mestre("biscuit", "ko")
+		alterar_notoriedade_nen(+45)
+		adicionar_efeito_temporario("bônus_maestria_biscuit", 24.0, {"bonus_xp_pct": 60})
+		consequencia_processada.emit("QUEST_BISCUIT", "Treino de Biscuit Concluído: Polimento de Aura ativado por 24h.", 24.0)
 
 
 func _on_nen_technique_activated(tech_name: String) -> void:

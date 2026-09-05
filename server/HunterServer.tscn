@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://d1kservermain777"]
+
+[ext_resource type="Script" path="res://server/HunterServerMain.gd" id="1_server"]
+
+[node name="HunterServer" type="Node"]
+script = ExtResource("1_server")

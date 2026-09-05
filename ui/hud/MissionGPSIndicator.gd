@@ -191,6 +191,13 @@ func _atualizar_alvo_ativo() -> void:
 	if quest == null or quest.objectives.is_empty():
 		return
 
+	if "is_secret" in quest and quest.is_secret:
+		if lbl_target_info:
+			lbl_target_info.text = "🔍 [SEGREDO ORGÂNICO] %s — Pistas ocultas no ambiente (Sem GPS)" % quest.quest_name
+			lbl_target_info.add_theme_color_override("font_color", Color(0.9, 0.7, 1.0, 1.0))
+		target_found = false
+		return
+
 	var obj_pendente: QuestObjective = null
 	var pendente_idx: int = 0
 	var total_objetivos: int = quest.objectives.size()

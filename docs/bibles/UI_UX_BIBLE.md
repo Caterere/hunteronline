@@ -48,3 +48,22 @@ O jogador nunca deve ficar perdido sem saber para onde ir:
 - **Zetsu Ativo:** Bordas da tela recebem uma vinheta acinzentada suave; o sprite do jogador fica levemente translúcido (alpha 0.70). O ícone [Z] acende em verde esmeralda.
 - **En Ativo:** Cúpula de aura translúcida pulsante ao redor do jogador; monstros no raio exibem o ícone de intimidação sobre a cabeça. O ícone [X] acende em ciano radiante.
 - **Gyo Ativo:** Olhos do caçador emitem brilho focado; elementos do grupo `gyo_inspectable` compatíveis tornam-se nítidos e reluzentes com partículas. O ícone [G] acende em âmbar dourado.
+
+---
+
+## 5. MATRIZ DE STATUS DE IMPLEMENTAÇÃO (FASE J)
+
+| Elemento de UI / UX | Status | Detalhes & Componentes |
+| :--- | :--- | :--- |
+| **HUD 640x360 Não-Poluída** | `[IMPLEMENTED]` | Margens e escala pixel art limpas em `PlayerHUD.gd` |
+| **TargetHUD com Ghost Bar** | `[IMPLEMENTED]` | Barra de atraso gradual (`hp_ghost_bar`) para leitura de dano |
+| **ConditionTrackerUI** | `[IMPLEMENTED]` | Rastreador modular recolhível com contador de requisitos |
+| **Prompt Dinâmico de Interação [E]** | `[IMPLEMENTED]` | `InteractionComponent.gd` com balão flutuante animado |
+| **Boss Cinematic Banner** | `[IMPLEMENTED]` | `BossIntroBanner.gd` com tipografia ouro e introdução |
+| **Feedback de Falha de Hatsu** | `[IMPLEMENTED]` | Tremor vermelho do slot e aviso sonoro `ui_error` |
+| **Indicadores de Estado dos Slots** | `[IMPLEMENTED]` | Tags limpas: `PRONTO`, `⚡ATIVO`, contagem de condições |
+| **GPS & Bússola Contextual** | `[IMPLEMENTED]` | Seta direcional e distância até o alvo de missão |
+| **Customização de Layout HUD** | `[IN PROGRESS]` | Arrastar e redimensionar módulos de interface |
+| **Radial Menu de Itens Rápidos**| `[PLANNED]` | Roda seletora para poções e talismãs no controle |
+| **Temas Dinâmicos por Saga** | `[FUTURE]` | Skins completas de interface (Exame, Yorknew, Greed Island) |
+

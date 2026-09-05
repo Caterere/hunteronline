@@ -80,6 +80,10 @@ func spawn_entity() -> CharacterBody2D:
 		es.spawn_position_origin = spawn_pos
 		if enemy_data != null:
 			es.enemy_data = enemy_data
+		elif not enemy_id_override.is_empty() and DataManager != null:
+			var d_res = DataManager.get_enemy(enemy_id_override) as EnemyData
+			if d_res != null:
+				es.enemy_data = d_res
 		if not enemy_id_override.is_empty():
 			es.enemy_id = enemy_id_override
 		if not enemy_custom_name.is_empty():

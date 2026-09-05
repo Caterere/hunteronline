@@ -141,6 +141,10 @@ func _construir_ui() -> void:
 	vbox.add_child(lbl_banner_subtitulo)
 
 
+func trocar_cena(caminho_cena: String, nome_mapa: String = "", subtitulo: String = "", duracao: float = 0.35, spawn_id: StringName = &"default", spawn_pos: Vector2 = Vector2.ZERO) -> void:
+	mudar_cena(caminho_cena, nome_mapa, subtitulo, duracao, spawn_id, spawn_pos)
+
+
 func mudar_cena(caminho_cena: String, nome_mapa: String = "", subtitulo: String = "", duracao: float = 0.35, spawn_id: StringName = &"default", spawn_pos: Vector2 = Vector2.ZERO) -> void:
 	if em_transicao:
 		return

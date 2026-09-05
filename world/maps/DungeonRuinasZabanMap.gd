@@ -126,12 +126,10 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool) -> void:
 			if is_boss:
 				boss_node = enemy
 				es.is_boss = true
-				es.max_health = 600
-				es.health = 600
-				es.defense = 15
-				es.strength = 32
-				es.xp_reward = 800
-				es.nen_xp_reward = 600
+				if DataManager != null:
+					var boss_data = DataManager.get_enemy(&"guardiao_ancestral")
+					if boss_data != null:
+						es.setup_from_data(boss_data)
 				es.enemy_id = &"guardiao_ancestral"
 				es.enemy_name = nome
 				
@@ -218,6 +216,7 @@ func _criar_portal_saida(pos: Vector2) -> void:
 	portal.position = pos
 	portal.target_scene_path = "res://world/maps/regiao_vale_padokia.tscn"
 	portal.portal_name = "Retornar ao Vale de Padokia"
+	portal.target_spawn_id = &"saida_ruinas"
 	portal.requires_e_key = true
 	
 	var col = CollisionShape2D.new()

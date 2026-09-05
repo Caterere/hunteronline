@@ -23,14 +23,76 @@ var _zonas_notificadas: Dictionary = {
 }
 
 
+var canvas_modulate: CanvasModulate = null
+
+
 func _ready() -> void:
 	super._ready()
 	_garantir_dialogue_ui()
 	_configurar_audio_ambiente()
+	_configurar_iluminacao_e_clima()
 	_inicializar_quests_padokia()
 	_notificar_entrada_regiao()
+	_checar_cutscene_chegada()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+
+
+func _configurar_iluminacao_e_clima() -> void:
+	if canvas_modulate == null:
+		canvas_modulate = CanvasModulate.new()
+		canvas_modulate.name = "AmbientLightModulate"
+		add_child(canvas_modulate)
+
+	_atualizar_luz_ambiente()
+
+	if EventBus != null:
+		if not EventBus.time_phase_changed.is_connected(_on_time_phase_changed):
+			EventBus.time_phase_changed.connect(_on_time_phase_changed)
+	if WorldStateManager != null:
+		if not WorldStateManager.clima_alterado.is_connected(_on_clima_alterado):
+			WorldStateManager.clima_alterado.connect(_on_clima_alterado)
+
+
+func _on_time_phase_changed(_phase_name: String) -> void:
+	_atualizar_luz_ambiente()
+
+
+func _on_clima_alterado(_novo_clima: int, _nome: String) -> void:
+	_atualizar_luz_ambiente()
+
+
+func _atualizar_luz_ambiente() -> void:
+	if canvas_modulate == null or not is_inside_tree():
+		return
+	var cor_luz: Color = Color.WHITE
+	if TimeManager != null and TimeManager.has_method("get_ambient_light_color"):
+		cor_luz = TimeManager.get_ambient_light_color()
+	
+	if WorldStateManager != null:
+		match WorldStateManager.clima_atual:
+			WorldStateManager.Clima.CHUVA:
+				cor_luz = cor_luz.lerp(Color(0.65, 0.75, 0.85, 1.0), 0.4)
+			WorldStateManager.Clima.NEBLINA:
+				cor_luz = cor_luz.lerp(Color(0.80, 0.82, 0.85, 1.0), 0.3)
+			WorldStateManager.Clima.TEMPESTADE_AURA:
+				cor_luz = cor_luz.lerp(Color(0.9, 0.7, 1.2, 1.0), 0.35)
+
+	var tween = create_tween()
+	if tween != null:
+		tween.tween_property(canvas_modulate, "color", cor_luz, 2.5)
+
+
+func _checar_cutscene_chegada() -> void:
+	if PlayerData == null:
+		return
+	if not PlayerData.quest_states.get("chegada_padokia_vista", false):
+		PlayerData.quest_states["chegada_padokia_vista"] = true
+		get_tree().create_timer(1.0).timeout.connect(func():
+			var wing_node = find_child("Mestre_Wing", true, false)
+			if wing_node != null and wing_node.has_method("falar_balao"):
+				wing_node.falar_balao("Bem-vindo ao Vale de Padokia! Sinta o fluxo de aura que percorre esta terra ancestral...", 4.5)
+		)
 
 
 func _inicializar_quests_padokia() -> void:

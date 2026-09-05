@@ -57,8 +57,19 @@ func _ready() -> void:
 		_camera.position_smoothing_speed = 8.0
 		add_child(_camera)
 
-	if EventBus != null and not EventBus.camera_shake_requested.is_connected(_on_camera_shake_requested):
-		EventBus.camera_shake_requested.connect(_on_camera_shake_requested)
+	if EventBus != null:
+		if not EventBus.camera_shake_requested.is_connected(_on_camera_shake_requested):
+			EventBus.camera_shake_requested.connect(_on_camera_shake_requested)
+		if not EventBus.camera_shake_directional_requested.is_connected(_on_camera_shake_directional_requested):
+			EventBus.camera_shake_directional_requested.connect(_on_camera_shake_directional_requested)
+		if not EventBus.nen_technique_activated.is_connected(_on_nen_technique_activated):
+			EventBus.nen_technique_activated.connect(_on_nen_technique_activated)
+		if not EventBus.nen_technique_deactivated.is_connected(_on_nen_technique_deactivated):
+			EventBus.nen_technique_deactivated.connect(_on_nen_technique_deactivated)
+
+	_aura_glow = AuraGlowEffect.new()
+	_aura_glow.name = "AuraGlowEffect"
+	add_child(_aura_glow)
 
 	# Attack speed escalado pelo atributo Velocidade (GDD Vol 5)
 	_atualizar_attack_cooldown()
@@ -70,6 +81,8 @@ func _ready() -> void:
 		PlayerData.nivel_alterado.connect(_on_nivel_alterado)
 
 	add_to_group("player")
+	if GameManager != null:
+		GameManager.active_player = self
 	_aplicar_customizacao_visual()
 
 	# Restaurar posição salva se estiver carregando save ou posicionar no SpawnPoint
@@ -82,8 +95,27 @@ func _ready() -> void:
 			wpm.call_deferred("posicionar_player_no_spawn", self)
 
 
+var _directional_shake_vector: Vector2 = Vector2.ZERO
+var _aura_glow: AuraGlowEffect = null
+
 func _on_camera_shake_requested(intensity: float, _duration: float) -> void:
 	_trauma = clampf(_trauma + intensity, 0.0, 1.0)
+
+
+func _on_camera_shake_directional_requested(intensity: float, _duration: float, direction: Vector2) -> void:
+	_trauma = clampf(_trauma + intensity, 0.0, 1.0)
+	if direction != Vector2.ZERO:
+		_directional_shake_vector = direction.normalized() * (intensity * _max_shake_offset * 1.5)
+
+
+func _on_nen_technique_activated(tech_name: String) -> void:
+	if _aura_glow != null:
+		_aura_glow.aplicar_modo_tecnica(tech_name)
+
+
+func _on_nen_technique_deactivated(_tech_name: String) -> void:
+	if _aura_glow != null:
+		_aura_glow.aplicar_modo_tecnica("")
 
 
 
@@ -157,16 +189,18 @@ func _physics_process(delta: float) -> void:
 		if _attack_anim_timer <= 0.0:
 			_is_attacking = false
 
-	# Atualizar Screen Shake (Trauma Decay)
+	# Atualizar Screen Shake (Trauma Decay + Directional Bias)
 	if _trauma > 0.0 and _camera != null:
 		_trauma = max(0.0, _trauma - _shake_decay * delta)
 		var shake = pow(_trauma, _trauma_power)
-		_camera.offset = Vector2(
+		var rand_offset = Vector2(
 			randf_range(-1.0, 1.0) * _max_shake_offset * shake,
 			randf_range(-1.0, 1.0) * _max_shake_offset * shake
 		)
+		_camera.offset = rand_offset + (_directional_shake_vector * shake)
 	elif _camera != null and _camera.offset != Vector2.ZERO:
 		_camera.offset = Vector2.ZERO
+		_directional_shake_vector = Vector2.ZERO
 
 
 	_dash()
@@ -174,11 +208,44 @@ func _physics_process(delta: float) -> void:
 	_attack(delta)
 	_animate()
 
+	# Processar Afterimages de Esquiva
+	if _dodge_afterimage_count > 0:
+		_dodge_afterimage_timer -= delta
+		if _dodge_afterimage_timer <= 0.0:
+			_dodge_afterimage_timer = 0.05
+			_dodge_afterimage_count -= 1
+			_spawn_afterimage()
+
+	# Processar Poeira de Corrida
+	if em_sprint and velocity.length() > 30.0:
+		_sprint_dust_timer -= delta
+		if _sprint_dust_timer <= 0.0:
+			_sprint_dust_timer = 0.18
+			CombatImpactEffect.spawn_dust_kickup(self, global_position + Vector2(0, 4), velocity)
+	else:
+		_sprint_dust_timer = 0.0
+
+	# Processar Passos Sonoros Cadenciados
+	if velocity.length() > 20.0 and not (combat_system != null and combat_system.esquivando):
+		_footstep_timer -= delta
+		if _footstep_timer <= 0.0:
+			_footstep_timer = 0.22 if em_sprint else 0.36
+			if AudioManager != null:
+				AudioManager.tocar_passo(_obter_tipo_chao())
+	else:
+		_footstep_timer = 0.08
+
 	move_and_slide()
 
 	if TutorialManager != null and TutorialManager.em_tutorial and velocity.length() > 5.0:
 		TutorialManager.notificar_movimento(velocity.length() * delta)
 
+
+
+var _footstep_timer: float = 0.0
+var _sprint_dust_timer: float = 0.0
+var _dodge_afterimage_count: int = 0
+var _dodge_afterimage_timer: float = 0.0
 
 
 func _dash() -> void:
@@ -194,8 +261,62 @@ func _dash() -> void:
 				_is_attacking = false
 				_attack_anim_timer = 0.0
 				velocity = dir * 220.0
+				_spawn_afterimage()
+				_dodge_afterimage_count = 2
+				_dodge_afterimage_timer = 0.05
 				if TutorialManager != null and TutorialManager.em_tutorial:
 					TutorialManager.notificar_esquiva_executada()
+
+
+func _spawn_afterimage() -> void:
+	var spr := get_node_or_null("Sprite2D") as Sprite2D
+	if spr == null or not is_instance_valid(spr) or spr.texture == null:
+		return
+	var root := get_tree().current_scene if get_tree() != null and get_tree().current_scene != null else get_parent()
+	if root == null:
+		return
+
+	var ghost := Sprite2D.new()
+	ghost.texture = spr.texture
+	ghost.hframes = spr.hframes
+	ghost.vframes = spr.vframes
+	ghost.frame = spr.frame
+	ghost.flip_h = spr.flip_h
+	ghost.global_position = spr.global_position
+	ghost.scale = spr.global_scale
+	ghost.modulate = Color(0.35, 0.85, 1.0, 0.60)
+	root.add_child(ghost)
+
+	var tween := ghost.create_tween()
+	tween.tween_property(ghost, "modulate:a", 0.0, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_callback(ghost.queue_free)
+
+
+func _obter_tipo_chao() -> String:
+	var cur_map = get_tree().current_scene if get_tree() != null else null
+	if cur_map != null:
+		var n: String = cur_map.name.to_lower()
+		if "ruina" in n or "arena" in n or "dungeon" in n or "torre" in n or "pedra" in n:
+			return "stone"
+	return "grass"
+
+
+func configurar_limites_camera(rect: Rect2) -> void:
+	if _camera == null:
+		return
+	_camera.limit_left = int(rect.position.x)
+	_camera.limit_top = int(rect.position.y)
+	_camera.limit_right = int(rect.position.x + rect.size.x)
+	_camera.limit_bottom = int(rect.position.y + rect.size.y)
+
+
+func definir_zoom_camera(alvo_zoom: Vector2, duracao: float = 0.5) -> void:
+	if _camera == null:
+		return
+	var tw = create_tween()
+	if tw != null:
+		tw.tween_property(_camera, "zoom", alvo_zoom, duracao).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+
 
 
 
@@ -277,7 +398,7 @@ var _attack_charge_timer: float = 0.0
 
 
 func _attack(delta: float = 0.016) -> void:
-	if not combat_system.pode_atacar or combat_system.esquivando:
+	if combat_system == null or not combat_system.pode_atacar or combat_system.esquivando:
 		_attack_charge_timer = 0.0
 		return
 
@@ -315,6 +436,11 @@ func _executar_golpe_normal() -> void:
 	combat_system.tentar_atacar(direcao_ataque)
 	_state_machine.travel("attack")
 
+	var nm = get_node_or_null("/root/NetworkManager")
+	if nm != null and not nm.is_offline_singleplayer():
+		var step: int = combat_system.combo_step if combat_system != null else 0
+		nm.rpc("rpc_requisitar_ataque", global_position, direcao_ataque, step, false)
+
 
 func _executar_golpe_pesado() -> void:
 	if TutorialManager != null and TutorialManager.em_tutorial:
@@ -331,6 +457,10 @@ func _executar_golpe_pesado() -> void:
 	_animation_tree["parameters/attack/blend_position"] = direcao_ataque
 	combat_system.tentar_ataque_pesado(direcao_ataque)
 	_state_machine.travel("attack")
+
+	var nm = get_node_or_null("/root/NetworkManager")
+	if nm != null and not nm.is_offline_singleplayer():
+		nm.rpc("rpc_requisitar_ataque", global_position, direcao_ataque, 2, true)
 
 
 # Escalona o cooldown do ataque básico baseado no atributo Velocidade

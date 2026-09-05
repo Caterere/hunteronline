@@ -475,6 +475,10 @@ func consumir_aura(quantidade: float) -> bool:
 		return true
 	return false
 
+func obter_stat_base(stat_name: String) -> float:
+	var nivel: int = int(attributes.get("nivel", 1))
+	return ProgressionConfig.calcular_stat_base(stat_name, nivel)
+
 func obter_stat_calculado(stat_name: String) -> float:
 	var nivel: int = int(attributes.get("nivel", 1))
 	var nivel_nen: int = int(attributes.get("nivel_nen", 0))

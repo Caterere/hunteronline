@@ -54,8 +54,34 @@ static func obter_sfx(tipo: String, variante: int = 0) -> AudioStreamWAV:
 			stream = _gerar_click_ui(800.0, 0.04)
 		"ui_confirm":
 			stream = _gerar_click_ui(1200.0, 0.06)
+		"ui_error":
+			stream = _gerar_ui_error(0.18)
 		"item_pickup":
 			stream = _gerar_shimmer_item([659.25, 987.77, 1318.51], 0.20)
+		"footstep_grass":
+			stream = _gerar_passo(75.0, 0.06, 0.45)
+		"footstep_stone":
+			stream = _gerar_passo(160.0, 0.04, 0.20)
+		"hurt":
+			stream = _gerar_hurt(130.0, 55.0, 0.16)
+		"block":
+			stream = _gerar_bloqueio(310.0, 0.16)
+		"boss_intro":
+			stream = _gerar_boss_intro()
+		"boss_phase":
+			stream = _gerar_boss_phase()
+		"hatsu_enhancer":
+			stream = _gerar_explosao_enhancer()
+		"hatsu_transmuter":
+			stream = _gerar_crackle_transmuter()
+		"hatsu_emitter":
+			stream = _gerar_whoosh_emitter()
+		"hatsu_manipulator":
+			stream = _gerar_whistle_manipulator()
+		"hatsu_conjurer":
+			stream = _gerar_chain_conjurer()
+		"hatsu_specialist":
+			stream = _gerar_chord_specialist()
 		_:
 			stream = _gerar_hit_fisico(120.0, 50.0, 0.08, 0.3)
 
@@ -368,3 +394,158 @@ static func _gerar_shimmer_item(freqs: Array, duracao: float) -> AudioStreamWAV:
 		buffer.encode_s16(i * 2, int(sample_val * 32767.0))
 
 	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_passo(freq: float, duracao: float, noise_amt: float) -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var phase: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		phase += (freq * (1.0 - t * 0.5) * TAU) / float(sample_rate)
+		var env: float = pow(1.0 - t, 4.0)
+		var s: float = (sin(phase) * (1.0 - noise_amt) + (randf() * 2.0 - 1.0) * noise_amt) * env * 0.35
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_hurt(freq_start: float, freq_end: float, duracao: float) -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var phase: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		var freq: float = lerp(freq_start, freq_end, t * t)
+		phase += (freq * TAU) / float(sample_rate)
+		var env: float = sin(t * PI) * pow(1.0 - t, 1.2)
+		var n: float = (randf() * 2.0 - 1.0) * 0.25
+		var s: float = (sin(phase) * 0.75 + n) * env * 0.65
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_bloqueio(freq: float, duracao: float) -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var phase1: float = 0.0
+	var phase2: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		phase1 += (freq * TAU) / float(sample_rate)
+		phase2 += ((freq * 2.41) * TAU) / float(sample_rate)
+		var env: float = pow(1.0 - t, 2.8)
+		var s: float = (sin(phase1) * 0.6 + sin(phase2) * 0.4) * env * 0.75
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_ui_error(duracao: float) -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var phase: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		var freq: float = 160.0 if t < 0.5 else 130.0
+		phase += (freq * TAU) / float(sample_rate)
+		var env: float = (1.0 - (t if t < 0.5 else (t - 0.5) * 2.0))
+		var sq: float = 1.0 if sin(phase) > 0.0 else -1.0
+		var s: float = sq * env * 0.45
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_boss_intro() -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var duracao: float = 0.85
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var freqs: Array[float] = [130.81, 164.81, 196.00, 261.63]
+	var phase: Array[float] = [0.0, 0.0, 0.0, 0.0]
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		var s: float = 0.0
+		for j in range(freqs.size()):
+			phase[j] += (freqs[j] * TAU) / float(sample_rate)
+			var harmonic: float = sin(phase[j]) + sin(phase[j] * 2.0) * 0.3
+			s += harmonic * 0.25
+		var env: float = sin(minf(t * 3.0, 1.0) * PI * 0.5) * pow(1.0 - t, 0.9)
+		buffer.encode_s16(i * 2, int(clampf(s * env * 0.85, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_boss_phase() -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var duracao: float = 0.55
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var phase: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		var freq: float = lerp(220.0, 50.0, t * t)
+		phase += (freq * TAU) / float(sample_rate)
+		var env: float = pow(1.0 - t, 1.4)
+		var noise: float = (randf() * 2.0 - 1.0) * 0.35 * env
+		var s: float = (sin(phase) + noise) * env * 0.80
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_explosao_enhancer() -> AudioStreamWAV:
+	return _gerar_hit_fisico(240.0, 50.0, 0.28, 0.6)
+
+
+static func _gerar_crackle_transmuter() -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var duracao: float = 0.24
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var phase: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		var freq: float = 550.0 + sin(t * 80.0) * 200.0
+		phase += (freq * TAU) / float(sample_rate)
+		var spark: float = (randf() * 2.0 - 1.0) * 0.45 if randf() < 0.3 else 0.0
+		var env: float = pow(1.0 - t, 1.8)
+		var s: float = (sin(phase) * 0.55 + spark) * env * 0.70
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_whoosh_emitter() -> AudioStreamWAV:
+	return _gerar_whoosh(600.0, 180.0, 0.22)
+
+
+static func _gerar_whistle_manipulator() -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var duracao: float = 0.30
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var phase: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		var freq: float = 880.0 + sin(t * 30.0) * 60.0
+		phase += (freq * TAU) / float(sample_rate)
+		var env: float = sin(t * PI)
+		var s: float = sin(phase) * env * 0.50
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+static func _gerar_chain_conjurer() -> AudioStreamWAV:
+	return _gerar_sino_cristalino([700.0, 1050.0, 1400.0, 2100.0], 0.32)
+
+
+static func _gerar_chord_specialist() -> AudioStreamWAV:
+	return _gerar_shimmer_item([220.0, 261.63, 311.13, 392.00], 0.45)

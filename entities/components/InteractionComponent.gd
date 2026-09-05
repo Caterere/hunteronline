@@ -60,11 +60,38 @@ func _process(_delta: float) -> void:
 		interacted.emit(player_inside)
 
 
+var _hint_label: Label = null
+
+
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group("player") or body.name == "Player":
 		player_inside = body as CharacterBody2D
+		_mostrar_hint()
 
 
 func _on_body_exited(body: Node) -> void:
 	if body == player_inside or body.is_in_group("player") or body.name == "Player":
 		player_inside = null
+		_esconder_hint()
+
+
+func _mostrar_hint() -> void:
+	if _hint_label == null:
+		_hint_label = Label.new()
+		_hint_label.text = interaction_text
+		_hint_label.add_theme_font_size_override("font_size", 9)
+		_hint_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.4, 1.0))
+		_hint_label.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
+		_hint_label.add_theme_constant_override("shadow_offset_x", 1)
+		_hint_label.add_theme_constant_override("shadow_offset_y", 1)
+		_hint_label.position = Vector2(-50, -42)
+		_hint_label.custom_minimum_size = Vector2(100, 14)
+		_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		add_child(_hint_label)
+	_hint_label.visible = true
+
+
+func _esconder_hint() -> void:
+	if _hint_label != null and is_instance_valid(_hint_label):
+		_hint_label.visible = false
+

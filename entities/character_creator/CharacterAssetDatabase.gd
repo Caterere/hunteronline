@@ -128,43 +128,204 @@ static func obter_preset(preset_name: String) -> Resource:
 			app.shoes_id = "shoes_boots_01"
 			app.shoes_color = Color(0.1, 0.1, 0.1, 1.0)
 			app.accessory_id = "acc_sunglasses_01"
-			
+
+		"HISOKA":
+			app.character_id = "preset_hisoka"
+			app.name = "Hisoka Morow"
+			app.body_id = "body_male_01"
+			app.skin_tone = Color(0.97, 0.90, 0.86, 1.0)
+			app.hair_id = "hair_killua_01"
+			app.hair_color = Color(0.85, 0.2, 0.5, 1.0) # Magenta vivo
+			app.eyes_color = Color(0.9, 0.75, 0.1, 1.0) # Olhar dourado
+			app.shirt_id = "shirt_tank_01"
+			app.shirt_color = Color(0.85, 0.28, 0.6, 1.0)
+			app.jacket_id = "jacket_none"
+			app.jacket_color = Color(0.15, 0.75, 0.75, 1.0)
+			app.pants_id = "pants_shorts_01"
+			app.pants_color = Color(0.95, 0.95, 0.98, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.2, 0.2, 0.25, 1.0)
+			app.accessory_id = "acc_bandage_face"
+			app.accessory_color = Color(0.9, 0.2, 0.5, 1.0)
+			app.effect_id = "bungee_gum_aura"
+			app.effect_color = Color(0.92, 0.2, 0.65, 0.8)
+
+		"BISCUIT":
+			app.character_id = "preset_biscuit"
+			app.name = "Biscuit Krueger"
+			app.body_id = "body_male_01"
+			app.skin_tone = Color(0.98, 0.86, 0.78, 1.0)
+			app.hair_id = "hair_ponytail_01"
+			app.hair_color = Color(0.98, 0.85, 0.35, 1.0) # Loiro ouro
+			app.eyes_color = Color(0.2, 0.55, 0.9, 1.0) # Azul safira
+			app.shirt_id = "shirt_hoodie_01"
+			app.shirt_color = Color(0.9, 0.35, 0.5, 1.0)
+			app.pants_id = "pants_white_01"
+			app.pants_color = Color(0.95, 0.85, 0.9, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.5, 0.2, 0.3, 1.0)
+			app.accessory_id = "none"
+			app.effect_id = "shingen_aura"
+			app.effect_color = Color(0.3, 0.65, 1.0, 0.8)
+
+		"WING":
+			app.character_id = "preset_wing"
+			app.name = "Wing"
+			app.body_id = "body_male_01"
+			app.skin_tone = Color(0.95, 0.82, 0.7, 1.0)
+			app.hair_id = "hair_leorio_01"
+			app.hair_color = Color(0.12, 0.12, 0.12, 1.0)
+			app.eyes_color = Color(0.2, 0.15, 0.1, 1.0)
+			app.shirt_id = "shirt_suit_01"
+			app.shirt_color = Color(0.95, 0.95, 0.95, 1.0)
+			app.pants_id = "pants_suit_01"
+			app.pants_color = Color(0.25, 0.3, 0.35, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.15, 0.15, 0.15, 1.0)
+			app.accessory_id = "acc_sunglasses_01"
+			app.effect_id = "pure_ten_aura"
+			app.effect_color = Color(0.7, 0.85, 1.0, 0.7)
+
+		"RAZOR":
+			app.character_id = "preset_razor"
+			app.name = "Razor"
+			app.body_id = "body_male_01"
+			app.skin_tone = Color(0.86, 0.68, 0.52, 1.0) # Bronzeado atleta
+			app.hair_id = "hair_bald_01"
+			app.hair_color = Color(0.1, 0.08, 0.08, 1.0)
+			app.eyes_color = Color(0.18, 0.12, 0.1, 1.0)
+			app.shirt_id = "shirt_tank_01"
+			app.shirt_color = Color(0.65, 0.12, 0.12, 1.0) # Vinho carmesim
+			app.pants_id = "pants_shorts_01"
+			app.pants_color = Color(0.85, 0.85, 0.85, 1.0) # Shorts esportivo
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.2, 0.2, 0.2, 1.0)
+			app.accessory_id = "none"
+			app.effect_id = "cannon_emission_aura"
+			app.effect_color = Color(0.9, 0.18, 0.15, 0.8)
+
+		"CHROLLO":
+			app.character_id = "preset_chrollo"
+			app.name = "Chrollo Lucilfer"
+			app.body_id = "body_male_01"
+			app.skin_tone = Color(0.95, 0.85, 0.78, 1.0)
+			app.hair_id = "hair_leorio_01"
+			app.hair_color = Color(0.08, 0.08, 0.1, 1.0)
+			app.eyes_color = Color(0.12, 0.12, 0.16, 1.0)
+			app.shirt_id = "shirt_dark_01"
+			app.shirt_color = Color(0.1, 0.1, 0.14, 1.0)
+			app.jacket_id = "jacket_none"
+			app.jacket_color = Color(0.85, 0.85, 0.9, 1.0)
+			app.pants_id = "pants_suit_01"
+			app.pants_color = Color(0.12, 0.12, 0.15, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.08, 0.08, 0.1, 1.0)
+			app.accessory_id = "acc_earring_kurta"
+			app.accessory_color = Color(0.2, 0.4, 0.8, 1.0)
+			app.effect_id = "specialist_shadow_aura"
+			app.effect_color = Color(0.4, 0.15, 0.6, 0.8)
+
+		"MERUEM":
+			app.character_id = "preset_meruem"
+			app.name = "Rei Meruem"
+			app.body_id = "body_male_01"
+			app.skin_tone = Color(0.55, 0.85, 0.65, 1.0) # Verde quimera
+			app.hair_id = "hair_bald_01"
+			app.hair_color = Color(0.18, 0.45, 0.3, 1.0)
+			app.eyes_color = Color(0.65, 0.15, 0.85, 1.0) # Olhos imperiais púrpuras
+			app.shirt_id = "shirt_dark_01"
+			app.shirt_color = Color(0.25, 0.65, 0.4, 1.0)
+			app.pants_id = "pants_white_01"
+			app.pants_color = Color(0.4, 0.18, 0.55, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.2, 0.5, 0.3, 1.0)
+			app.accessory_id = "none"
+			app.effect_id = "transcendent_radiance"
+			app.effect_color = Color(0.3, 0.95, 0.45, 0.85)
+
 		_:
 			# Default Hunter Custom
 			app = obter_preset("GON")
 			app.character_id = "player_custom"
 			app.name = "Novo Hunter"
-			
+
 	return app
 
 
 # ============================================================
-# GERADOR DE APARÊNCIA ALEATÓRIA
+# GERADOR DE APARÊNCIA ALEATÓRIA E POR ARQUÉTIPO
 # ============================================================
 
 static func gerar_aparencia_aleatoria() -> Resource:
+	return gerar_aparencia_arquetipo("civil")
+
+
+static func gerar_aparencia_arquetipo(arquetipo: String = "civil") -> Resource:
 	var script_res = load("res://entities/character_creator/CharacterAppearance.gd")
 	var app = script_res.new()
-	app.character_id = "npc_%d" % randi()
+	app.character_id = "npc_%s_%d" % [arquetipo.to_lower(), randi() % 10000]
 	app.skin_tone = SKIN_TONES[randi() % SKIN_TONES.size()]
-	
-	var hair = HAIR_STYLES[randi() % HAIR_STYLES.size()]
-	app.hair_id = hair["id"]
-	app.hair_color = hair.get("color", Color(0.2, 0.15, 0.1, 1.0))
-	
-	var shirt = SHIRT_STYLES[randi() % SHIRT_STYLES.size()]
-	app.shirt_id = shirt["id"]
-	app.shirt_color = shirt.get("color", Color.WHITE)
-	
-	var pants = PANTS_STYLES[randi() % PANTS_STYLES.size()]
-	app.pants_id = pants["id"]
-	app.pants_color = pants.get("color", Color.WHITE)
-	
-	var acc = ACCESSORY_STYLES[randi() % ACCESSORY_STYLES.size()]
-	app.accessory_id = acc["id"]
-	app.accessory_color = acc.get("color", Color.WHITE)
-	
-	app.shoes_id = "shoes_boots_01"
-	app.shoes_color = Color(0.15, 0.15, 0.15, 1.0)
-	
+
+	match arquetipo.to_lower():
+		"guardia", "guarda":
+			app.hair_id = "hair_leorio_01"
+			app.hair_color = Color(0.15, 0.12, 0.1, 1.0)
+			app.shirt_id = "shirt_suit_01"
+			app.shirt_color = Color(0.2, 0.25, 0.35, 1.0)
+			app.pants_id = "pants_combat_01"
+			app.pants_color = Color(0.18, 0.2, 0.25, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.1, 0.1, 0.1, 1.0)
+			app.accessory_id = "acc_hunter_license"
+		"hunter", "cacador":
+			var hair = HAIR_STYLES[randi() % (HAIR_STYLES.size() - 1)]
+			app.hair_id = hair["id"]
+			app.hair_color = hair.get("color", Color(0.2, 0.15, 0.1, 1.0))
+			app.shirt_id = "shirt_hunter_01"
+			app.shirt_color = Color(0.18, 0.55, 0.25, 1.0) if randf() > 0.5 else Color(0.2, 0.35, 0.65, 1.0)
+			app.pants_id = "pants_hunter_01"
+			app.pants_color = Color(0.2, 0.3, 0.2, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.3, 0.2, 0.15, 1.0)
+			app.accessory_id = "acc_hunter_license"
+			app.effect_id = "pure_ten_aura"
+			app.effect_color = Color(0.3, 0.7, 1.0, 0.6)
+		"comerciante", "mercador":
+			app.hair_id = "hair_afro_01" if randf() > 0.5 else "hair_bald_01"
+			app.hair_color = Color(0.35, 0.25, 0.15, 1.0)
+			app.shirt_id = "shirt_hoodie_01"
+			app.shirt_color = Color(0.65, 0.45, 0.2, 1.0)
+			app.pants_id = "pants_shorts_01"
+			app.pants_color = Color(0.4, 0.3, 0.2, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.25, 0.2, 0.15, 1.0)
+			app.accessory_id = "acc_sunglasses_01"
+		"treinador", "mestre":
+			app.hair_id = "hair_ponytail_01"
+			app.hair_color = Color(0.85, 0.85, 0.88, 1.0)
+			app.shirt_id = "shirt_tabard_01"
+			app.shirt_color = Color(0.85, 0.85, 0.9, 1.0)
+			app.pants_id = "pants_white_01"
+			app.pants_color = Color(0.9, 0.9, 0.95, 1.0)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.2, 0.2, 0.25, 1.0)
+			app.accessory_id = "none"
+			app.effect_id = "pure_ten_aura"
+			app.effect_color = Color(0.8, 0.9, 1.0, 0.75)
+		_: # Civil genérico
+			var h = HAIR_STYLES[randi() % HAIR_STYLES.size()]
+			app.hair_id = h["id"]
+			app.hair_color = h.get("color", Color(0.2, 0.15, 0.1, 1.0))
+			var s = SHIRT_STYLES[randi() % SHIRT_STYLES.size()]
+			app.shirt_id = s["id"]
+			app.shirt_color = s.get("color", Color.WHITE)
+			var p = PANTS_STYLES[randi() % PANTS_STYLES.size()]
+			app.pants_id = p["id"]
+			app.pants_color = p.get("color", Color.WHITE)
+			var a = ACCESSORY_STYLES[randi() % ACCESSORY_STYLES.size()]
+			app.accessory_id = a["id"]
+			app.accessory_color = a.get("color", Color.WHITE)
+			app.shoes_id = "shoes_boots_01"
+			app.shoes_color = Color(0.15, 0.15, 0.15, 1.0)
+
 	return app

@@ -365,7 +365,7 @@ func trocar_regiao(regiao_destino_id: StringName, spawn_id: StringName = &"defau
 	definir_regiao_atual(regiao_destino_id)
 	
 	if SceneTransition != null:
-		SceneTransition.trocar_cena(def.scene_path)
+		SceneTransition.mudar_cena(def.scene_path, def.display_name, def.subtitle, 0.35, spawn_id, pos_exata)
 	else:
 		get_tree().change_scene_to_file(def.scene_path)
 	return true

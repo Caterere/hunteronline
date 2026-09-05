@@ -9,12 +9,12 @@
   "discoveries_found": 0,
   "distance_traveled_px": 2929.81372070313,
   "distance_traveled_tiles": 183,
-  "duration_seconds": 1.893,
+  "duration_seconds": 1.567,
   "encountered_events_list": [
     "Grande Ponte de Pedra",
     "Árvore Milenar dos Espíritos"
   ],
-  "end_time_iso": "2026-08-27T13:22:12",
+  "end_time_iso": "2026-09-05T18:52:48",
   "enemies_killed": 3,
   "enemy_kills_by_type": {
     "boss_guardiao_zaban": 1,
@@ -33,15 +33,18 @@
   ],
   "max_single_hit": 400,
   "nen_techniques_used": {
+    "GYO": 1,
     "GYO_time_sec": 2.5,
-    "KO_time_sec": 1.0,
-    "REN_time_sec": 1.5,
+    "KO": 3,
+    "REN": 1,
+    "TEN": 1,
     "TEN_time_sec": 2.0,
+    "ZETSU": 1,
     "ZETSU_time_sec": 2.0
   },
   "npcs_interacted": 1,
   "quests_completed": 1,
-  "session_id": "playtest_20260827T132210",
-  "start_time_iso": "2026-08-27T13:22:10",
+  "session_id": "playtest_20260905T185246",
+  "start_time_iso": "2026-09-05T18:52:46",
   "total_combat_duration_sec": 0.0
 }

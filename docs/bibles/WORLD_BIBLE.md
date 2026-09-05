@@ -62,3 +62,45 @@ O `WorldState` rastreia:
 - Chefes mundiais derrotados.
 - Lojas e NPCs resgatados.
 Essas flags são organizadas por região e não poluem as variáveis globais da história principal.
+
+---
+
+## 5. STREAMING HIERÁRQUICO & OTIMIZAÇÃO (64 CHUNKS)
+- Mapas de mundo aberto contínuos (como o Vale de Padokia de 512x512 tiles / 8192x8192 px) são subdivididos em 64 chunks (8x8 de 64x64 tiles).
+- Entidades distantes (> 480px do jogador) entram em estado dormente (física e IA suspensas) via distance culling no `LivingNPCBehavior` e `EnemyAI`.
+- Spawners utilizam `WorldSpawner` para garantir recarga determinística sem memory leaks ou duplicação.
+
+---
+
+## 6. ECOLOGIA DE COMBATE & ARQUÉTIPOS VIVOS
+- O bestiário canônico é dividido em famílias vivas (`BEAST`, `HUMANOID/BANDIT`, `ANCIENT CONSTRUCTS`, `NEN USERS`).
+- Inimigos adotam 6 arquétipos de combate declarativos (`bruiser`, `fast`, `tank`, `ranged`, `tactician`, `ambusher`, `nen_user`).
+- Chefes e Minibosses possuem 3 fases mecânicas orientadas a dados com telegrafia no chão, summons de suporte, sobrecarga de aura e falas de `BattlePersonality`.
+
+---
+
+## 7. ILUMINAÇÃO AMBIENTE & WEATHER ENGINE
+- `TimeManager` governa as 4 fases solares (`DAWN`, `DAY`, `DUSK`, `NIGHT`).
+- Mapas abertos aplicam modulação suave de luz através de `CanvasModulate`.
+- `WorldStateManager` modula o clima (`LIMPO`, `CHUVA`, `NEBLINA`, `TEMPESTADE_AURA`), influenciando a velocidade de caminhada dos NPCs, rotinas de abrigo e visibilidade de Gyo.
+- Horários e climas são integralmente persistidos no `SaveManager` (Schema 2.3).
+
+---
+
+## 8. MATRIZ DE STATUS DE IMPLEMENTAÇÃO (FASE J)
+
+| Subsistema de Mundo | Status | Detalhes & Componentes |
+| :--- | :--- | :--- |
+| **Hunter Plaza Hub World** | `[IMPLEMENTED]` | `world/Lobby.tscn`, câmera clamped, folhas flutuantes |
+| **Limites de Câmera Dinâmicos** | `[IMPLEMENTED]` | `Player.configurar_limites_camera()` por zona/mapa |
+| **Partículas e Clima Ambiente** | `[IMPLEMENTED]` | Folhas no Lobby, chuva, neblina via `WorldStateManager` |
+| **Passos Cadenciados por Piso** | `[IMPLEMENTED]` | Detecção de piso (grama, pedra, terra) com áudio |
+| **Streaming de 64 Chunks** | `[IMPLEMENTED]` | Distance culling em `LivingNPCBehavior` e `EnemyAI` |
+| **Ciclo Dia/Noite & Persistência**| `[IMPLEMENTED]` | `TimeManager`, persistido no Schema 2.3 |
+| **Ruínas de Zaban (Dungeon)** | `[IMPLEMENTED]` | Conexão com Guardião Ancestral e setup_from_data |
+| **Transição Suave de Cenas** | `[IMPLEMENTED]` | `SceneTransition.gd` com overlay e fade |
+| **Interiores em Camadas (Dóris)**| `[IN PROGRESS]` | Transição de telhados transparentes sem trocar de cena |
+| **Sistema de Trens & Rotas** | `[PLANNED]` | Viagem rápida com cutscenes curtas de viagem |
+| **Continente Negro Procedural** | `[FUTURE]` | Biomas hostis infinitos com geração determinística de sementes |
+
+

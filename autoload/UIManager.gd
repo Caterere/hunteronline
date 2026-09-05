@@ -29,11 +29,16 @@ var nome_menu_atual: String = ""
 
 var hunter_menu_instance: CanvasLayer = null
 var journal_menu_instance: CanvasLayer = null
+var hatsu_callout_instance: CanvasLayer = null
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_registrar_acoes_input_padrao()
+	var callout_script = load("res://ui/hud/HatsuCalloutUI.gd")
+	if callout_script != null:
+		hatsu_callout_instance = callout_script.new()
+		add_child(hatsu_callout_instance)
 	print("=================================")
 	print("[UIManager] GERENCIADOR DE INTERFACES & INPUT ATIVO")
 	print("=================================")

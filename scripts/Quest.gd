@@ -31,6 +31,9 @@ enum RequiresMode {
 ## forem concluídos.
 @export var auto_complete: bool = false
 
+## Se true, a quest é um segredo orgânico e o GPS não exibe waypoints automáticos
+@export var is_secret: bool = false
+
 
 # =========================================================
 # REQUISITOS

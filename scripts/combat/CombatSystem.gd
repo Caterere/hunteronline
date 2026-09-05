@@ -50,6 +50,7 @@ const COMBO_WINDOW_MAX: float = 0.45
 # Contra-Ataque de Perfect Dodge
 var contra_ataque_ativo: bool = false
 var contra_ataque_timer: float = 0.0
+var ultimo_agressor: Node = null
 
 
 # ============================================================
@@ -214,6 +215,8 @@ func tentar_ataque_pesado(direcao: Vector2) -> bool:
 	if AudioManager != null:
 		AudioManager.tocar_punch()
 
+	CombatImpactEffect.spawn_swing_arc(owner_body, owner_body.global_position, ultima_direcao, 42.0, Color(1.0, 0.85, 0.25), true)
+
 	_disparar_hitbox_ataque(ultima_direcao)
 	ataque_timer = ataque_cooldown * 2.2 # Recuperação mais lenta
 	return true
@@ -272,6 +275,8 @@ func tentar_atacar(direcao: Vector2) -> void:
 
 	if AudioManager != null:
 		AudioManager.tocar_slash()
+
+	CombatImpactEffect.spawn_swing_arc(owner_body, owner_body.global_position, ultima_direcao, 32.0, Color.WHITE, false)
 
 	_disparar_hitbox_ataque(ultima_direcao)
 	ataque_timer = cd_ataque
@@ -401,17 +406,22 @@ func _on_attack_hit(
 		contra_ataque_ativo = false
 		_mostrar_texto_flutuante("💥 COUNTER STRIKE! +50%", Color(1.0, 0.8, 0.2))
 
-	# Disparar Hitstop e Camera Shake (Fase 1 & 2: Game Feel & Juice)
+	# Disparar Hitstop e Camera Shake direcional (Game Feel & Juice)
 	if EventBus != null:
+		var target_pos: Vector2 = enemy.global_position if enemy is Node2D else owner_body.global_position
 		if is_heavy_attack:
-			EventBus.emit_hitstop(0.12)
-			EventBus.emit_camera_shake(0.65, 0.35)
+			EventBus.emit_hitstop(0.18)
+			EventBus.emit_directional_shake(0.65, 0.35, ultima_direcao)
+			CombatImpactEffect.spawn_blunt_impact(enemy, target_pos, 1.8, Color(1.0, 0.85, 0.2))
+			CombatImpactEffect.spawn_dust_kickup(enemy, target_pos, ultima_direcao * 90.0)
 		elif is_crit or combo_step == 2:
-			EventBus.emit_hitstop(0.08)
-			EventBus.emit_camera_shake(0.45, 0.25)
+			EventBus.emit_hitstop(0.12)
+			EventBus.emit_directional_shake(0.45, 0.25, ultima_direcao)
+			CombatImpactEffect.spawn_slash(enemy, target_pos, ultima_direcao, Color(1.0, 0.95, 0.5))
 		else:
 			EventBus.emit_hitstop(0.04)
-			EventBus.emit_camera_shake(0.20, 0.15)
+			EventBus.emit_directional_shake(0.20, 0.15, ultima_direcao)
+			CombatImpactEffect.spawn_slash(enemy, target_pos, ultima_direcao, Color.WHITE)
 		EventBus.combat_hit_landed.emit(owner_body, enemy, dano, is_crit)
 		EventBus.target_changed.emit(enemy)
 
@@ -423,6 +433,14 @@ func _on_attack_hit(
 		alvo.receber_dano(dano, ultima_direcao, knockback_val, owner_body)
 	elif enemy.has_method("receber_dano"):
 		enemy.receber_dano(dano, ultima_direcao, knockback_val, owner_body)
+
+
+func cancelar_ataque_para_hatsu() -> void:
+	if estado == Estado.ATACANDO:
+		estado = Estado.NORMAL
+		pode_atacar = true
+		ataque_timer = 0.0
+		_desativar_hitbox_ataque()
 
 
 
@@ -475,6 +493,10 @@ func receber_dano(
 	# ESQUIVA & PERFECT DODGE (BULLET TIME + AURA RECOVERY)
 	# ========================================================
 	if invulneravel:
+		if DamageNumberSystem != null and owner_body != null:
+			DamageNumberSystem.spawn_esquiva(owner_body.global_position)
+		if AudioManager != null:
+			AudioManager.tocar_dodge()
 		if esquivando and esquiva_duracao_timer > (esquiva_duracao - 0.22):
 			_executar_perfect_dodge(atacante)
 		return
@@ -504,6 +526,16 @@ func receber_dano(
 
 	PlayerData.attributes["vida"] = hp
 
+	_executar_hit_flash()
+
+	if AudioManager != null:
+		if dano_final <= 2 and dano >= 10:
+			AudioManager.tocar_bloqueio()
+			if DamageNumberSystem != null and owner_body != null:
+				DamageNumberSystem.spawn_bloqueio(owner_body.global_position)
+		else:
+			AudioManager.tocar_hurt()
+
 	if EventBus != null:
 		EventBus.emit_camera_shake(0.35, 0.20)
 		EventBus.player_damaged.emit(hp, obter_hp_max(), dano_final)
@@ -517,12 +549,30 @@ func receber_dano(
 		obter_hp_max()
 	)
 
+	if atacante != null:
+		ultimo_agressor = atacante
+
 	# ========================================================
 	# MORTE
 	# ========================================================
 
 	if hp <= 0:
-		morrer()
+		morrer(ultimo_agressor)
+
+
+func _executar_hit_flash() -> void:
+	if owner_body == null:
+		return
+	var sprite: Node2D = owner_body.get_node_or_null("Sprite2D") as Node2D
+	if sprite == null:
+		sprite = owner_body.get_node_or_null("CharacterRenderer") as Node2D
+	if sprite != null:
+		var orig_mod: Color = sprite.modulate
+		sprite.modulate = Color(2.5, 2.5, 2.5, 1.0)
+		var tween = owner_body.create_tween()
+		if tween != null:
+			tween.tween_property(sprite, "modulate", orig_mod, 0.08)
+
 
 
 
@@ -569,6 +619,9 @@ func tentar_esquivar(
 
 	if AudioManager != null:
 		AudioManager.tocar_dodge()
+
+	if owner_body != null:
+		CombatImpactEffect.spawn_dust_kickup(owner_body, owner_body.global_position, direcao_esquiva * 120.0)
 
 	if hatsu_system != null and hatsu_system.has_method("registrar_esquiva_perfeita"):
 		hatsu_system.registrar_esquiva_perfeita()
@@ -670,7 +723,7 @@ func _finalizar_esquiva() -> void:
 # MORTE
 # ============================================================
 
-func morrer() -> void:
+func morrer(agressor: Node = null) -> void:
 
 	if estado == Estado.MORTO:
 		return
@@ -704,11 +757,12 @@ func morrer() -> void:
 		"PERSONAGEM MORREU!"
 	)
 	player_morreu.emit()
-	_exibir_tela_morte()
+	var alvo_agressor = agressor if agressor != null else ultimo_agressor
+	_exibir_tela_morte(alvo_agressor)
 
 
 
-func _exibir_tela_morte() -> void:
+func _exibir_tela_morte(agressor: Node = null) -> void:
 	var death_ui = get_tree().root.get_node_or_null("DeathScreenUI")
 	if death_ui == null:
 		var scn_death = load("res://ui/DeathScreen/DeathScreenUI.gd")
@@ -717,7 +771,7 @@ func _exibir_tela_morte() -> void:
 			death_ui.name = "DeathScreenUI"
 			get_tree().root.call_deferred("add_child", death_ui)
 	if death_ui != null and death_ui.has_method("exibir"):
-		death_ui.exibir()
+		death_ui.exibir(agressor)
 
 
 func reviver() -> void:

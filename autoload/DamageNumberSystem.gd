@@ -58,8 +58,8 @@ func _on_combat_engine_hit(_atacante: Node, defensor: Node, dano: int, is_crit: 
 	spawn_dano(defensor, dano, is_crit)
 
 
-## Spawna um número de dano estilizado sobre o alvo
-func spawn_dano(alvo_ou_pos: Variant, dano: int, is_crit: bool = false, is_weakness: bool = false, is_resisted: bool = false, _tag: String = "") -> void:
+## Spawna um número de dano estilizado sobre o alvo com tipografia HxH
+func spawn_dano(alvo_ou_pos: Variant, dano: int, is_crit: bool = false, is_weakness: bool = false, is_resisted: bool = false, _tag: String = "", is_hatsu: bool = false) -> void:
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	if pos == Vector2.ZERO and not (alvo_ou_pos is Vector2 and alvo_ou_pos == Vector2.ZERO):
 		return
@@ -68,7 +68,15 @@ func spawn_dano(alvo_ou_pos: Variant, dano: int, is_crit: bool = false, is_weakn
 	var cor: Color = HunterUIStyle.COLOR_TEXT_PRIMARY
 	var escala: float = 1.0
 
-	if is_crit:
+	if is_crit and is_hatsu:
+		texto = "⚡ CRIT HATSU -%d" % dano
+		cor = Color(1.0, 0.4, 0.95)
+		escala = 1.35
+	elif is_hatsu:
+		texto = "✦ HATSU -%d" % dano
+		cor = Color(0.85, 0.35, 1.0)
+		escala = 1.15
+	elif is_crit:
 		texto = "💥 CRIT -%d" % dano
 		cor = HunterUIStyle.COLOR_CRIT_GOLD
 		escala = 1.25
@@ -134,6 +142,8 @@ func spawn_texto(alvo_ou_pos: Variant, texto: String, cor: Color, escala: float 
 	lbl.add_theme_color_override("font_shadow_color", Color(0.0, 0.0, 0.0, 0.95))
 	lbl.add_theme_constant_override("shadow_offset_x", 1)
 	lbl.add_theme_constant_override("shadow_offset_y", 1)
+	lbl.add_theme_color_override("font_outline_color", Color(0.05, 0.05, 0.08, 1.0))
+	lbl.add_theme_constant_override("outline_size", 2)
 	lbl.position = Vector2(-30, -8)
 	lbl.custom_minimum_size = Vector2(60, 16)
 	container.add_child(lbl)

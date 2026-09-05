@@ -672,16 +672,61 @@ func conceder_mastery_xp(hatsu_id: String, dano_causado: int, inimigo_context: D
 
 func _exibir_notificacao_mastery(h: HatsuData, mastered: bool) -> void:
 	var msg: String = ""
-	if mastered:
-		msg = "━━━━━━━━━━━━━━━━━━━━\n★ HATSU MASTERED! ★\n━━━━━━━━━━━━━━━━━━━━\n'%s' atingiu Mastery Máxima (100)!\nPotencial Pleno e Eficiência Absoluta liberados." % h.nome
+	var rank: int = h.obter_rank_maestria()
+	var rank_nome: String = h.obter_nome_rank_maestria()
+	var mods: Dictionary = h.obter_modificadores_maestria()
+	if mastered or rank >= 6:
+		msg = "━━━━━━━━━━━━━━━━━━━━\n★ HATSU MASTERED! (RANK 6 — MESTRE) ★\n━━━━━━━━━━━━━━━━━━━━\n'%s' atingiu a maestria suprema!\nConjuração Instantânea | Custo de Aura -30%% | Alcance +20%%" % h.nome
 	else:
-		msg = "⭐ MASTERY DE HATSU: '%s' evoluiu para Nível %d/100!\nPoder: %d%% | Eficiência: +%d%%" % [
-			h.nome, int(h.mastery), int(h.obter_multiplicador_mastery() * 100), int((1.0 - h.obter_reducao_custo_mastery()) * 100)
+		msg = "⭐ MASTERY DE HATSU: '%s' [Rank %d - %s] (Lv. %d/100)\nEficiência Aura: +%d%% | Redução Conjuração: -%d%%" % [
+			h.nome, rank, rank_nome, int(h.mastery),
+			int(mods.get("reducao_custo_pct", 0.0)),
+			int(mods.get("reducao_tempo_pct", 0.0))
 		]
 
 	if EventBus != null and EventBus.has_signal("toast_enviado"):
 		EventBus.emit_toast(msg, Color(1.0, 0.85, 0.2) if not mastered else Color(1.0, 0.95, 0.3))
 	print("[HatsuProgressionManager] ", msg)
+
+
+func obter_nivel_maestria(hatsu_id: String) -> int:
+	var h := obter_hatsu_archive_por_id(hatsu_id)
+	if h != null:
+		return h.obter_rank_maestria()
+	return 1
+
+
+func obter_modificadores_maestria(hatsu_id: String) -> Dictionary:
+	var h := obter_hatsu_archive_por_id(hatsu_id)
+	if h != null:
+		return h.obter_modificadores_maestria()
+	return {
+		"rank": 1,
+		"rank_nome": "Iniciante (Cru)",
+		"fator_custo_aura": 1.0,
+		"reducao_custo_pct": 0.0,
+		"fator_tempo_conjuracao": 1.0,
+		"reducao_tempo_pct": 0.0,
+		"tempo_conjuracao_segundos": 0.6,
+		"execucao_instantanea": false,
+		"multiplicador_alcance": 1.0,
+		"bonus_alcance_pct": 0.0,
+		"multiplicador_poder": 0.3
+	}
+
+
+func registrar_uso_hatsu(slot_ou_id: Variant, contexto: Dictionary = {}) -> Dictionary:
+	var hid: String = ""
+	if slot_ou_id is int:
+		hid = active_slots_map.get(slot_ou_id, "")
+	elif slot_ou_id is String:
+		hid = slot_ou_id
+
+	if hid.is_empty():
+		return {"success": false, "reason": "INVALID_IDENTIFIER"}
+
+	var dano: int = int(contexto.get("dano", 15))
+	return conceder_mastery_xp(hid, dano, contexto)
 
 
 # ============================================================

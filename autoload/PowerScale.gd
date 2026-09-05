@@ -34,67 +34,67 @@ enum MissionRank {
 
 const TIER_DATA: Dictionary = {
 	Tier.HUMANO: {
-		"nome": "Humano Comum",
+		"nome": "Humano Comum / Aspirante",
 		"power_scale": 1.0,
 		"hp_ref": 100.0,
 		"forca_ref": 10.0,
-		"defesa_ref": 5.0,
+		"defesa_ref": 10.0,
 		"aura_max_ref": 100.0,
-		"dps_esperado": 15.0
+		"dps_esperado": 20.0
 	},
 	Tier.HUNTER_INICIANTE: {
 		"nome": "Hunter Iniciante",
 		"power_scale": 5.0,
-		"hp_ref": 500.0,
-		"forca_ref": 40.0,
-		"defesa_ref": 25.0,
-		"aura_max_ref": 500.0,
-		"dps_esperado": 60.0
+		"hp_ref": 9500.0,
+		"forca_ref": 880.0,
+		"defesa_ref": 800.0,
+		"aura_max_ref": 13000.0,
+		"dps_esperado": 250.0
 	},
 	Tier.HUNTER_EXPERIENTE: {
 		"nome": "Hunter Experiente",
-		"power_scale": 50.0,
-		"hp_ref": 5000.0,
-		"forca_ref": 250.0,
-		"defesa_ref": 150.0,
-		"aura_max_ref": 5000.0,
-		"dps_esperado": 400.0
+		"power_scale": 15.0,
+		"hp_ref": 17000.0,
+		"forca_ref": 1800.0,
+		"defesa_ref": 1600.0,
+		"aura_max_ref": 25000.0,
+		"dps_esperado": 800.0
 	},
 	Tier.USUARIO_NEN: {
 		"nome": "Usuário de Nen",
-		"power_scale": 500.0,
-		"hp_ref": 50000.0,
-		"forca_ref": 2500.0,
-		"defesa_ref": 1500.0,
-		"aura_max_ref": 100000.0,
-		"dps_esperado": 3500.0
+		"power_scale": 35.0,
+		"hp_ref": 26800.0,
+		"forca_ref": 2850.0,
+		"defesa_ref": 2590.0,
+		"aura_max_ref": 39600.0,
+		"dps_esperado": 1800.0
 	},
 	Tier.HUNTER_ELITE: {
-		"nome": "Hunter de Elite",
-		"power_scale": 5000.0,
-		"hp_ref": 500000.0,
-		"forca_ref": 25000.0,
-		"defesa_ref": 15000.0,
-		"aura_max_ref": 2000000.0,
-		"dps_esperado": 35000.0
+		"nome": "Hunter de Elite / Mestre",
+		"power_scale": 70.0,
+		"hp_ref": 36500.0,
+		"forca_ref": 3900.0,
+		"defesa_ref": 3550.0,
+		"aura_max_ref": 54000.0,
+		"dps_esperado": 3200.0
 	},
 	Tier.MONSTRO: {
-		"nome": "Monstro / Mestre",
-		"power_scale": 50000.0,
-		"hp_ref": 5000000.0,
-		"forca_ref": 250000.0,
-		"defesa_ref": 150000.0,
-		"aura_max_ref": 30000000.0,
-		"dps_esperado": 350000.0
+		"nome": "Monstro / Guarda Real",
+		"power_scale": 120.0,
+		"hp_ref": 43500.0,
+		"forca_ref": 4700.0,
+		"defesa_ref": 4300.0,
+		"aura_max_ref": 65000.0,
+		"dps_esperado": 4500.0
 	},
 	Tier.ENDGAME: {
-		"nome": "Endgame Supremo",
-		"power_scale": 500000.0,
-		"hp_ref": 50000000.0,
-		"forca_ref": 2500000.0,
-		"defesa_ref": 1500000.0,
-		"aura_max_ref": 500000000.0,
-		"dps_esperado": 3500000.0
+		"nome": "Endgame Supremo (Ápice)",
+		"power_scale": 200.0,
+		"hp_ref": 50000.0,
+		"forca_ref": 5000.0,
+		"defesa_ref": 5000.0,
+		"aura_max_ref": 1500000.0,
+		"dps_esperado": 6500.0
 	}
 }
 
@@ -121,9 +121,9 @@ func obter_tier_por_nivel(nivel: int) -> Tier:
 		return Tier.HUNTER_EXPERIENTE
 	elif nivel <= 600:
 		return Tier.USUARIO_NEN
-	elif nivel <= 800:
+	elif nivel <= 750:
 		return Tier.HUNTER_ELITE
-	elif nivel <= 950:
+	elif nivel <= 900:
 		return Tier.MONSTRO
 	else:
 		return Tier.ENDGAME
@@ -144,15 +144,22 @@ func obter_dados_tier(tier: Tier) -> Dictionary:
 # - Defesa = K -> 50% de redução (Fator 0.50)
 # - Defesa = 2K -> 66.6% de redução (Fator 0.33)
 # - Nunca atinge 0 absoluto
-# - Mantém coerência perfeita de 5 de Defesa a 1.500.000 de Defesa
+# - Mantém coerência perfeita de 10 de Defesa a 5.000 de Defesa
 #
 # ============================================================
 
 func calcular_fator_defensivo(defesa: float, tier: Tier = Tier.HUMANO) -> float:
 	var dados = obter_dados_tier(tier)
-	var k: float = dados.get("defesa_ref", 5.0)
+	var k: float = dados.get("defesa_ref", 10.0)
 	var def_val: float = max(0.0, defesa)
-	return k / (k + def_val)
+	# Garante no mínimo 15% de passagem de dano (teto de 85% de redução) para evitar invulnerabilidade espúria
+	var fator: float = k / (k + def_val)
+	return maxf(0.15, fator)
+
+
+func calcular_fator_defensivo_por_nivel(defesa: float, nivel: int) -> float:
+	var t: Tier = obter_tier_por_nivel(nivel)
+	return calcular_fator_defensivo(defesa, t)
 
 
 # ============================================================

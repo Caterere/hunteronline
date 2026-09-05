@@ -939,7 +939,7 @@ func tecnica_ativa(
 
 	match tecnica:
 		Tecnica.TEN:
-			return true # Ten protege permanentemente o Hunter após o despertar
+			return bool(tecnicas.get(Tecnica.TEN, {}).get("ativo", false))
 		Tecnica.REN:
 			return bool(tecnicas.get(Tecnica.REN, {}).get("desbloqueada", true))
 		Tecnica.SHU:

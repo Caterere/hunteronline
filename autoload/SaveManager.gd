@@ -18,9 +18,11 @@ extends Node
 signal jogo_salvo(slot: int)
 signal jogo_carregado(slot: int)
 
+const ContentVersionConfigScript = preload("res://scripts/core/ContentVersionConfig.gd")
+
 var current_slot: int = 1
 
-const SAVE_VERSION: String = "2.2"
+const SAVE_VERSION: String = "2.4"
 const MAPA_PADRAO_FALLBACK: String = "res://world/lobby.tscn"
 
 
@@ -219,7 +221,21 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"relationship_data": RelationshipSystem.salvar_dados() if RelationshipSystem != null else {},
 		"rumor_data": RumorSystem.salvar_dados() if RumorSystem != null else {},
 		"world_events_data": WorldEventManager.salvar_dados() if WorldEventManager != null else {},
-		"bounty_data": BountySystem.salvar_dados() if BountySystem != null else {}
+		"bounty_data": BountySystem.salvar_dados() if BountySystem != null else {},
+		"secret_bosses_data": SecretBossManager.salvar_dados() if SecretBossManager != null else {},
+		"time_data": {
+			"hour": TimeManager.current_hour,
+			"minute": TimeManager.current_minute,
+			"day": TimeManager.current_day,
+			"phase": TimeManager.current_phase
+		} if TimeManager != null else {},
+		"weather_data": {
+			"clima": int(WorldStateManager.clima_atual)
+		} if WorldStateManager != null else {},
+		"collections": CollectionManager.serializar() if CollectionManager != null else {},
+		"npc_memories": NPCMemorySystem.serializar() if NPCMemorySystem != null else {},
+		"live_events": LiveEventManager.serializar() if LiveEventManager != null else {},
+		"unlocked_routes": TravelSystem.serializar().get("unlocked_routes", []) if TravelSystem != null else []
 	}
 
 	var json_string := JSON.stringify(save_data, "\t")
@@ -332,7 +348,8 @@ func carregar_jogo(slot: int = -1) -> bool:
 		push_error("[ERROR] Character load failed: Estrutura JSON corrompida no slot %d" % slot)
 		return false
 
-	var data: Dictionary = json.data
+	var raw_data: Dictionary = json.data
+	var data: Dictionary = ContentVersionConfigScript.migrate_save_data(raw_data)
 
 	# --- RESTAURAÇÃO COMPLETA DE DADOS ---
 	PlayerData.slot_ativo = slot
@@ -592,6 +609,34 @@ func carregar_jogo(slot: int = -1) -> bool:
 		WorldEventManager.carregar_dados(data.get("world_events_data", {}))
 	if BountySystem != null:
 		BountySystem.carregar_dados(data.get("bounty_data", {}))
+	if SecretBossManager != null and data.has("secret_bosses_data"):
+		SecretBossManager.carregar_dados(data.get("secret_bosses_data", {}))
+
+	# Coleções, Memória de NPCs, Eventos Vivos e Rotas (Fase L)
+	if CollectionManager != null and data.has("collections"):
+		CollectionManager.deserializar(data.get("collections", {}))
+	if NPCMemorySystem != null and data.has("npc_memories"):
+		NPCMemorySystem.deserializar(data.get("npc_memories", {}))
+	if LiveEventManager != null and data.has("live_events"):
+		LiveEventManager.deserializar(data.get("live_events", {}))
+	if TravelSystem != null and data.has("unlocked_routes"):
+		TravelSystem.deserializar({"unlocked_routes": data.get("unlocked_routes", [])})
+
+	# Restaurar Ciclo de Tempo e Clima
+	if TimeManager != null and data.has("time_data"):
+		var td: Dictionary = data.get("time_data", {})
+		if not td.is_empty():
+			TimeManager.current_hour = int(td.get("hour", 8))
+			TimeManager.current_minute = int(td.get("minute", 0))
+			TimeManager.current_day = int(td.get("day", 1))
+			TimeManager.current_phase = int(td.get("phase", TimeManager.TimePhase.DAY))
+			TimeManager._atualizar_fase(true)
+
+	if WorldStateManager != null and data.has("weather_data"):
+		var wd: Dictionary = data.get("weather_data", {})
+		if not wd.is_empty():
+			var saved_clima = int(wd.get("clima", WorldStateManager.Clima.LIMPO))
+			WorldStateManager.definir_clima(saved_clima as WorldStateManager.Clima)
 
 	if PlayerData != null:
 		PlayerData.is_character_ready = true

@@ -22,6 +22,9 @@ extends Node2D
 
 const RegionConfig = preload("res://resource/world/RegionConfig.gd")
 const PadokiaInteriors = preload("res://world/maps/interiors/PadokiaInteriors.gd")
+const WorldSpawner = preload("res://world/components/WorldSpawner.gd")
+const SpawnPoint = preload("res://entities/world/SpawnPoint.gd")
+const LivingNPCBehavior = preload("res://entities/npc/LivingNPCBehavior.gd")
 
 @export var config: Resource = null
 
@@ -582,34 +585,40 @@ func _posicionar_pois_e_segredos() -> void:
 # 10. NPCS & INIMIGOS TERRITORIAIS
 # ------------------------------------------------------------
 func _instanciar_npcs_e_inimigos() -> void:
-	# 1. NPCs na Vila de Padokia (Zona Segura)
-	_instanciar_npc_vila("Mestre Wing", Vector2(105 * 16, 260 * 16), "res://entities/npc/wing/Wing.tscn")
-	_instanciar_npc_vila("Vendedor", Vector2(68 * 16, 260 * 16), "res://entities/npc/vendedor/Vendedor.tscn")
-	_instanciar_npc_vila("Guarda da Vila", Vector2(130 * 16, 250 * 16), "res://entities/npc/NPC.tscn")
-	_instanciar_npc_vila("Cidadão Nicol", Vector2(75 * 16, 248 * 16), "res://entities/npc/nicol/Nicol.tscn")
+	# 1. NPCs na Vila de Padokia (Zona Segura - 6 categorias de NPCs com rotinas)
+	_instanciar_npc_vila("Mestre Wing", Vector2(105 * 16, 260 * 16), "res://entities/npc/wing/Wing.tscn", "Mestre de Nen", "trainer", LivingNPCBehavior.NPCHierarchy.IMPORTANT)
+	_instanciar_npc_vila("Vendedor", Vector2(68 * 16, 260 * 16), "res://entities/npc/vendedor/Vendedor.tscn", "Comerciante do Empório", "merchant", LivingNPCBehavior.NPCHierarchy.FUNCTIONAL)
+	_instanciar_npc_vila("Ferreiro Duran", Vector2(85 * 16, 260 * 16), "res://entities/npc/NPC.tscn", "Mestre Forjador", "blacksmith", LivingNPCBehavior.NPCHierarchy.FUNCTIONAL)
+	_instanciar_npc_vila("Guarda da Vila", Vector2(130 * 16, 250 * 16), "res://entities/npc/NPC.tscn", "Guarda Patrulheiro", "", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Cidadão Nicol", Vector2(75 * 16, 248 * 16), "res://entities/npc/nicol/Nicol.tscn", "Candidato Hunter", "recurring", LivingNPCBehavior.NPCHierarchy.RECURRING)
 	
 	# 2. NPCs no Mundo (Estrada, Floresta e Entrada de Dungeon)
-	_instanciar_npc_vila("Explorador da Estrada", Vector2(180 * 16, 260 * 16), "res://entities/npc/NPC.tscn")
-	_instanciar_npc_vila("Guardião da Floresta", Vector2(250 * 16, 240 * 16), "res://entities/npc/NPC.tscn")
-	_instanciar_npc_vila("Caçador de Zaban", Vector2(415 * 16, 95 * 16), "res://entities/npc/NPC.tscn")
+	_instanciar_npc_vila("Explorador da Estrada", Vector2(180 * 16, 260 * 16), "res://entities/npc/NPC.tscn", "Viajante Aventureiro", "quest", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Guardião da Floresta", Vector2(250 * 16, 240 * 16), "res://entities/npc/NPC.tscn", "Guardião Espiritual", "important", LivingNPCBehavior.NPCHierarchy.IMPORTANT)
+	_instanciar_npc_vila("Caçador de Zaban", Vector2(415 * 16, 95 * 16), "res://entities/npc/NPC.tscn", "Caçador Veterano", "quest", LivingNPCBehavior.NPCHierarchy.IMPORTANT)
 
-	# 3. Inimigos na Estrada (Baixa Densidade)
-	_instanciar_inimigo(Vector2(200 * 16, 255 * 16), "Slime da Estrada")
-	_instanciar_inimigo(Vector2(300 * 16, 235 * 16), "Slime da Estrada")
+	# 3. Inimigos na Estrada (Baixa Densidade - Slimes e Ladrões)
+	_instanciar_inimigo(Vector2(200 * 16, 255 * 16), "Slime da Estrada", &"slime", 20.0)
+	_instanciar_inimigo(Vector2(300 * 16, 235 * 16), "Ladrão de Estrada", &"ladrao_estrada", 25.0)
 	
-	# 4. Inimigos na Floresta (Média Densidade)
-	_instanciar_inimigo(Vector2(230 * 16, 180 * 16), "Fera da Floresta")
-	_instanciar_inimigo(Vector2(270 * 16, 200 * 16), "Fera da Floresta")
-	_instanciar_inimigo(Vector2(310 * 16, 280 * 16), "Fera da Floresta")
+	# 4. Inimigos nas Planícies e Rio (Lobos e Javalis)
+	_instanciar_inimigo(Vector2(160 * 16, 180 * 16), "Lobo das Planícies", &"lobo_padokia", 25.0)
+	_instanciar_inimigo(Vector2(190 * 16, 320 * 16), "Javali Espinhoso", &"javali_espinhoso", 30.0)
+
+	# 5. Inimigos na Floresta (Média Densidade - Feras, Arqueiros e Miniboss Quimera)
+	_instanciar_inimigo(Vector2(230 * 16, 180 * 16), "Fera da Floresta", &"fera_floresta", 25.0)
+	_instanciar_inimigo(Vector2(270 * 16, 200 * 16), "Fera da Floresta", &"fera_floresta", 25.0)
+	_instanciar_inimigo(Vector2(310 * 16, 280 * 16), "Arqueiro Renegado", &"arqueiro_renegado", 25.0)
+	_instanciar_inimigo(Vector2(290 * 16, 310 * 16), "Líder da Matilha Quimera", &"lider_matilha_quimera", 90.0)
 	
-	# 5. Inimigos na Ravina de Perigo (Alta Densidade / Elites)
-	_instanciar_inimigo(Vector2(380 * 16, 400 * 16), "Criatura Predadora da Névoa")
-	_instanciar_inimigo(Vector2(420 * 16, 440 * 16), "Criatura Predadora da Névoa")
-	_instanciar_inimigo(Vector2(450 * 16, 420 * 16), "Guardião de Elite da Ravina")
+	# 6. Inimigos na Ravina de Perigo (Alta Densidade / Elites - Predadores de Miasma e Guardião de Elite)
+	_instanciar_inimigo(Vector2(380 * 16, 400 * 16), "Criatura Predadora da Névoa", &"predador_miasma", 30.0)
+	_instanciar_inimigo(Vector2(420 * 16, 440 * 16), "Criatura Predadora da Névoa", &"predador_miasma", 30.0)
+	_instanciar_inimigo(Vector2(450 * 16, 420 * 16), "Guardião de Elite da Ravina", &"guardiao_elite", 45.0)
 	
-	# 6. Inimigos nas Ruínas da Dungeon (Extrema Densidade / Guardiões)
-	_instanciar_inimigo(Vector2(420 * 16, 100 * 16), "Sentinela de Pedra das Ruínas")
-	_instanciar_inimigo(Vector2(450 * 16, 80 * 16), "Guardião Ancestral de Zaban")
+	# 7. Inimigos nas Ruínas da Dungeon (Extrema Densidade - Sentinelas e Iniciados de Nen)
+	_instanciar_inimigo(Vector2(420 * 16, 100 * 16), "Sentinela de Pedra das Ruínas", &"sentinela_pedra", 35.0)
+	_instanciar_inimigo(Vector2(450 * 16, 80 * 16), "Iniciado de Nen Sombrio", &"iniciado_nen_sombrio", 35.0)
 	
 	_garantir_spawns_mundo()
 
@@ -636,36 +645,56 @@ func _garantir_spawns_mundo() -> void:
 			WorldProgressionManager.registrar_spawn_point(sp_ruinas)
 
 
-func _instanciar_npc_vila(nome: String, pos: Vector2, scene_path: String) -> void:
+func _instanciar_npc_vila(nome: String, pos: Vector2, scene_path: String, cargo: String = "", marcador: String = "", hierarquia: int = 0) -> void:
 	var tile_pos = Vector2i(int(pos.x / config.tile_size), int(pos.y / config.tile_size))
 	var chunk = _obter_chunk_para_posicao(tile_pos)
 	
+	var npc: Node = null
 	if ResourceLoader.exists(scene_path):
 		var scn = load(scene_path)
 		if scn:
-			var npc = scn.instantiate()
-			npc.name = nome.replace(" ", "_")
-			npc.position = pos - chunk.position
-			chunk.add_child(npc)
-			return
-			
-	# Fallback para NPC genérico
-	var fallback_npc = load("res://entities/npc/NPC.tscn").instantiate()
-	fallback_npc.name = nome.replace(" ", "_")
-	fallback_npc.position = pos - chunk.position
-	chunk.add_child(fallback_npc)
+			npc = scn.instantiate()
+
+	if npc == null:
+		npc = load("res://entities/npc/NPC.tscn").instantiate()
+
+	npc.name = nome.replace(" ", "_")
+	if "npc_name" in npc:
+		npc.npc_name = nome
+	npc.position = pos - chunk.position
+
+	# Anexar e configurar LivingNPCBehavior para dar vida, rotina e diálogos contextuais se não possuir
+	var living = npc.get_node_or_null("LivingNPCBehavior") as LivingNPCBehavior
+	if living == null:
+		living = LivingNPCBehavior.new()
+		living.name = "LivingNPCBehavior"
+		living.npc_nome = nome
+		living.npc_id = nome.to_lower().replace(" ", "_")
+		living.regiao_id = "vale_padokia"
+		living.npc_cargo = cargo
+		living.tipo_marcador = marcador
+		living.hierarchy = hierarquia as LivingNPCBehavior.NPCHierarchy
+		npc.add_child(living)
+	else:
+		if not cargo.is_empty(): living.npc_cargo = cargo
+		if not marcador.is_empty(): living.tipo_marcador = marcador
+		if hierarquia > 0: living.hierarchy = hierarquia as LivingNPCBehavior.NPCHierarchy
+
+	chunk.add_child(npc)
 
 
-func _instanciar_inimigo(pos: Vector2, nome: String) -> void:
+func _instanciar_inimigo(pos: Vector2, nome: String, enemy_id: StringName = &"", respawn_delay: float = 25.0) -> void:
 	var tile_pos = Vector2i(int(pos.x / config.tile_size), int(pos.y / config.tile_size))
 	var chunk = _obter_chunk_para_posicao(tile_pos)
 	
-	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
-	if enemy_scn:
-		var enemy = enemy_scn.instantiate()
-		enemy.name = nome.replace(" ", "_")
-		enemy.position = pos - chunk.position
-		chunk.add_child(enemy)
+	var spawner := WorldSpawner.new()
+	spawner.name = "Spawner_" + nome.replace(" ", "_")
+	spawner.position = pos - chunk.position
+	spawner.enemy_custom_name = nome
+	spawner.enemy_id_override = enemy_id
+	spawner.respawn_delay = respawn_delay
+	spawner.auto_spawn_on_ready = true
+	chunk.add_child(spawner)
 
 
 # ------------------------------------------------------------

@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://dnetdebug777layer"]
+
+[ext_resource type="Script" path="res://ui/multiplayer/NetworkDebugOverlay.gd" id="1_netdbg"]
+
+[node name="NetworkDebugOverlay" type="CanvasLayer"]
+script = ExtResource("1_netdbg")

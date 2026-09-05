@@ -26,3 +26,8 @@ enum TipoItem {
 @export var preco_compra: int = 100
 @export var preco_venda: int = 50
 @export var acumulavel: bool = true
+
+@export_category("Lore & Historical Heritage")
+@export var lore_quote: String = ""
+@export var lore_origin: String = ""
+@export var is_historical_relic: bool = false

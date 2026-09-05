@@ -89,7 +89,7 @@ static func from_dict(data: Dictionary) -> Resource:
 			
 	def.quest_ids.clear()
 	for q in data.get("quest_ids", []):
-		def.quest_ids.append(StringName(q))
+		def.quest_ids.append(str(q))
 		
 	def.story_requirements = data.get("story_requirements", {}).duplicate()
 	return def

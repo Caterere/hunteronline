@@ -1,6 +1,8 @@
 extends Resource
 class_name EnemyData
 
+const EnemyScalingHelper = preload("res://resource/status/EnemyScalingHelper.gd")
+
 
 # =========================================================
 # IDENTIDADE
@@ -38,8 +40,17 @@ class_name EnemyData
 # COMBATE
 # =========================================================
 
+enum NPCTier {
+	TIER_1_COMMON = 1,    # Mob Comum: sem Hatsu, IA direta, drops simples, farm e quests menores
+	TIER_2_SPECIAL = 2,   # NPC Especial: habilidade única/simples, comportamento tático, diálogos de área
+	TIER_3_MINI_BOSS = 3, # Mini Boss: Hatsu próprio, 2-4 ataques telegrafados, falas e fase de fúria
+	TIER_4_QUEST_BOSS = 4 # Boss de Quest: Personalidade completa, leitura de Nen, múltiplas fases e reatividade
+}
+
 @export_category("Combat")
 
+@export var npc_tier: NPCTier = NPCTier.TIER_1_COMMON
+@export var battle_personality: Resource = null
 @export var is_boss: bool = false
 @export var is_elite: bool = false
 @export var knockback_resistance: float = 0.0
@@ -228,3 +239,34 @@ func obter_hatsu_real() -> HatsuData:
 	h.usuario_original = enemy_name
 	modular_hatsu = h
 	return modular_hatsu
+
+
+# =========================================================
+# ESCALONAMENTO DETERMINÍSTICO DE ATRIBUTOS (FASE I)
+# =========================================================
+
+## Recalcula e aplica os atributos deste recurso com base em um novo nível alvo
+func escalonar_para_nivel(novo_nivel: int) -> void:
+	var stats = EnemyScalingHelper.calcular_atributos_inimigo(
+		novo_nivel,
+		role,
+		is_boss,
+		is_elite,
+		int(npc_tier)
+	)
+	level = int(stats["level"])
+	max_health = int(stats["max_health"])
+	defense = int(stats["defense"])
+	strength = int(stats["strength"])
+	xp_reward = int(stats["xp_reward"])
+
+
+## Retorna os atributos escalonados calculados para um nível sem sobrescrever as propriedades atuais
+func obter_status_escalonados(novo_nivel: int) -> Dictionary:
+	return EnemyScalingHelper.calcular_atributos_inimigo(
+		novo_nivel,
+		role,
+		is_boss,
+		is_elite,
+		int(npc_tier)
+	)

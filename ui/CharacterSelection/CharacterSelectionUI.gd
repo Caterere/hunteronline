@@ -239,12 +239,19 @@ func _atualizar_slots() -> void:
 			info_vbox.add_child(lbl_nome)
 			
 			var btn_jogar := Button.new()
-			btn_jogar.text = "JOGAR >"
+			btn_jogar.text = "SOLO >"
 			btn_jogar.add_theme_font_size_override("font_size", 5)
 			HunterUIStyle.aplicar_estilo_botao(btn_jogar, HunterUIStyle.COLOR_BORDER_GREEN)
 			btn_jogar.pressed.connect(func(): _jogar_com_slot(slot_idx))
 			hbox.add_child(btn_jogar)
-			
+
+			var btn_multi := Button.new()
+			btn_multi.text = "LAN / VPN >"
+			btn_multi.add_theme_font_size_override("font_size", 5)
+			HunterUIStyle.aplicar_estilo_botao(btn_multi, HunterUIStyle.COLOR_BORDER_CYAN)
+			btn_multi.pressed.connect(func(): _jogar_multiplayer_com_slot(slot_idx))
+			hbox.add_child(btn_multi)
+
 			var btn_del := Button.new()
 			btn_del.text = "Deletar"
 			btn_del.add_theme_font_size_override("font_size", 5)
@@ -412,6 +419,23 @@ func _jogar_com_slot(slot_idx: int) -> void:
 		trans.mudar_cena(mapa_alvo)
 	else:
 		get_tree().change_scene_to_file(mapa_alvo)
+
+
+func _jogar_multiplayer_com_slot(slot_idx: int) -> void:
+	if _ja_carregando:
+		return
+	_ja_carregando = true
+
+	print("[CHARACTER] Carregando personagem para Multiplayer LAN (Slot %d)..." % slot_idx)
+	var sucesso: bool = SaveManager.carregar_jogo(slot_idx)
+	if not sucesso:
+		_ja_carregando = false
+		if EventBus != null and EventBus.has_signal("toast_requested"):
+			EventBus.emit_toast("Erro ao carregar personagem para o multiplayer.", Color(1.0, 0.4, 0.4))
+		return
+
+	PlayerData.is_character_ready = true
+	get_tree().change_scene_to_file("res://ui/multiplayer/MultiplayerMenuUI.tscn")
 
 
 func _gerar_save_teste_lvl100() -> void:

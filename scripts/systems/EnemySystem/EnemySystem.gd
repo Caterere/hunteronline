@@ -8,9 +8,12 @@ signal health_changed(current_health: int, max_health: int)
 signal postura_alterada(atual: float, maxima: float)
 signal entrou_em_stagger()
 signal saiu_de_stagger()
+signal knockdown_iniciado()
+signal knockdown_finalizado()
 
 const ComicBalloon = preload("res://scripts/ui/ComicBalloon.gd")
 const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd")
+const BattlePersonalityScript = preload("res://resource/personality/BattlePersonality.gd")
 
 
 # =========================================================
@@ -83,6 +86,8 @@ var postura_max: float = 100.0
 var em_stagger: bool = false
 var stagger_timer: float = 0.0
 var stagger_duracao: float = 2.5
+var em_knockdown: bool = false
+var knockdown_timer: float = 0.0
 
 # Informações de Nen e Investigação de Gyo (HxH / CrossCode)
 var categoria_nen_info: String = "Intensificação"
@@ -109,6 +114,10 @@ var enemy_name: String = ""
 var knockback_resistance: float = 0.0
 var hit_invulnerability_time: float = 0.15
 var is_boss: bool = false
+var npc_tier: int = 1
+var battle_personality: Resource = null
+var taunt_timer: float = 8.0
+var _reagiu_hatsu_player: bool = false
 var falou_spawn: bool = false
 var falou_ferido: bool = false
 
@@ -132,6 +141,88 @@ var knockback_timer: float = 0.0
 
 
 # =========================================================
+# INICIALIZAÇÃO DINÂMICA (CONTENT PIPELINE / MAP SPAWNERS)
+# =========================================================
+
+func setup_from_data(data: EnemyData) -> void:
+	if data == null:
+		return
+	enemy_data = data
+	enemy_id = data.enemy_id
+	enemy_name = data.enemy_name
+
+	if PlayerData != null:
+		var mult: Dictionary = PlayerData.obter_multiplicador_dificuldade_inimigo()
+		max_health = int(float(data.max_health) * mult.get("hp", 1.0))
+		strength = int(float(data.strength) * mult.get("dano", 1.0))
+		defense = int(float(data.defense) * mult.get("defesa", 1.0))
+	else:
+		max_health = data.max_health
+		strength = data.strength
+		defense = data.defense
+
+	health = max_health
+	xp_reward = data.xp_reward
+	knockback_resistance = data.knockback_resistance
+	hit_invulnerability_time = data.hit_invulnerability_time
+
+	if "is_boss" in data and data.is_boss:
+		is_boss = true
+	if "npc_tier" in data:
+		npc_tier = int(data.npc_tier)
+	if "battle_personality" in data and data.battle_personality != null:
+		battle_personality = data.battle_personality
+
+	health_changed.emit(health, max_health)
+
+
+func setup_from_boss_definition(boss_def: Resource) -> void:
+	if boss_def == null:
+		return
+	is_boss = true
+	npc_tier = 3 # Tier Boss
+	enemy_id = boss_def.get("boss_id") if boss_def.get("boss_id") != null else &"boss"
+	var b_name = boss_def.get("boss_name")
+	enemy_name = str(b_name) if b_name != null else "Chefe Poderoso"
+
+	var b_stats = boss_def.get("base_stats")
+	var stats: Dictionary = (b_stats as Dictionary) if b_stats != null else {}
+	var base_hp = int(stats.get("max_health", 25000))
+	var base_dmg = int(stats.get("damage", 350))
+	var base_def = int(stats.get("defense", 180))
+
+	if PlayerData != null:
+		var mult: Dictionary = PlayerData.obter_multiplicador_dificuldade_inimigo()
+		max_health = int(float(base_hp) * mult.get("hp", 1.0))
+		strength = int(float(base_dmg) * mult.get("dano", 1.0))
+		defense = int(float(base_def) * mult.get("defesa", 1.0))
+	else:
+		max_health = base_hp
+		strength = base_dmg
+		defense = base_def
+
+	health = max_health
+	knockback_resistance = float(stats.get("knockback_resistance", 0.95))
+	hit_invulnerability_time = float(stats.get("hit_invulnerability_time", 0.15))
+	xp_reward = int(stats.get("xp_reward", 5000))
+
+	# Conectar fases ao EnemyAI se existir
+	var ai = get_node_or_null("../EnemyAI")
+	if ai != null and boss_def.get("phases") is Array:
+		var phases_arr: Array = boss_def.phases
+		for p in phases_arr:
+			if p != null:
+				var p_idx = int(p.get("phase_index", 2))
+				if p_idx == 2 and ai.has_method("_entrar_fase_2_boss"):
+					pass # fases serão acionadas pelo fluxo de combate do EnemyAI
+
+	health_changed.emit(health, max_health)
+	print("[EnemySystem] 👑 Chefe instanciado via BossDefinition: '%s' (%s) | HP: %d | DEF: %d" % [
+		enemy_id, enemy_name, max_health, defense
+	])
+
+
+# =========================================================
 # INICIALIZAÇÃO
 # =========================================================
 
@@ -140,7 +231,17 @@ func _ready() -> void:
 	enemy_body = get_parent() as CharacterBody2D
 	var p_name: String = enemy_body.name.to_lower() if enemy_body != null else ""
 
-	# Auto-resolução inteligente de EnemyData com base no nome do nó caso esteja com InimigoBase padrão
+	# Auto-resolução inteligente de EnemyData com base no DataManager ou nome do nó
+	if DataManager != null:
+		if enemy_id != &"" and enemy_id != &"inimigo" and enemy_id != &"slime":
+			var d_res = DataManager.get_enemy(enemy_id) as EnemyData
+			if d_res != null:
+				enemy_data = d_res
+		if (enemy_data == null or enemy_data.enemy_id == &"slime") and not p_name.is_empty():
+			var d_res2 = DataManager.get_enemy(p_name) as EnemyData
+			if d_res2 != null:
+				enemy_data = d_res2
+
 	if enemy_data == null or enemy_data.enemy_id == &"slime":
 		if "pantanal" in p_name:
 			var res = load("res://resource/status/enemies/criatura_pantanal.tres")
@@ -168,6 +269,15 @@ func _ready() -> void:
 			if res: enemy_data = res
 		elif "formiga" in p_name:
 			var res = load("res://resource/status/enemies/formiga_soldado.tres")
+			if res: enemy_data = res
+		elif "hisoka" in p_name:
+			var res = load("res://resource/status/enemies/boss_hisoka.tres")
+			if res: enemy_data = res
+		elif "razor" in p_name:
+			var res = load("res://resource/status/enemies/boss_razor.tres")
+			if res: enemy_data = res
+		elif "meruem" in p_name or "rei" in p_name:
+			var res = load("res://resource/status/enemies/boss_meruem.tres")
 			if res: enemy_data = res
 		elif "black_whale" in p_name:
 			var res = load("res://resource/status/enemies/guarda_black_whale.tres")
@@ -220,6 +330,30 @@ func _ready() -> void:
 		enemy_data.hit_invulnerability_time
 	)
 
+	if enemy_data != null:
+		npc_tier = int(enemy_data.npc_tier) if "npc_tier" in enemy_data else 1
+		battle_personality = enemy_data.battle_personality if "battle_personality" in enemy_data else null
+
+	# Auto-resolução de personalidade para Mini Boss (Tier 3), Boss (Tier 4) ou figuras icônicas
+	if battle_personality == null and (is_boss or npc_tier >= 3 or enemy_name in ["Hisoka", "Razor", "Meruem"]):
+		var lower_n := enemy_name.to_lower()
+		if "hisoka" in lower_n:
+			battle_personality = BattlePersonalityScript.criar_hisoka()
+			npc_tier = 4
+		elif "razor" in lower_n:
+			battle_personality = BattlePersonalityScript.criar_razor()
+			npc_tier = 4
+		elif "meruem" in lower_n or "rei" in lower_n:
+			battle_personality = BattlePersonalityScript.criar_meruem()
+			npc_tier = 4
+		elif is_boss or npc_tier == 4:
+			battle_personality = BattlePersonalityScript.criar_padrao(enemy_name, "Orgulhoso")
+			npc_tier = 4
+		elif npc_tier == 3:
+			battle_personality = BattlePersonalityScript.criar_padrao(enemy_name, "Desafiador")
+
+	if EventBus != null and not EventBus.hatsu_dramatic_callout_requested.is_connected(_on_player_hatsu_callout):
+		EventBus.hatsu_dramatic_callout_requested.connect(_on_player_hatsu_callout)
 
 	# -----------------------------------------------------
 	# REFERÊNCIA AO CORPO
@@ -431,6 +565,8 @@ func take_damage(
 		return
 
 	if is_invulnerable:
+		if DamageNumberSystem != null and enemy_body != null:
+			DamageNumberSystem.spawn_esquiva(enemy_body.global_position)
 		return
 
 	if damage <= 0:
@@ -442,6 +578,10 @@ func take_damage(
 			return
 
 	if escudo_imune_ativo:
+		if DamageNumberSystem != null and enemy_body != null:
+			DamageNumberSystem.spawn_bloqueio(enemy_body.global_position)
+		if AudioManager != null:
+			AudioManager.tocar_bloqueio()
 		ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "🛡️ ESCUDO DE HATSU IMPENETRÁVEL!", 1.5, -42.0)
 		return
 
@@ -517,10 +657,19 @@ func take_damage(
 		max_health
 	)
 
-	# Balão de fala estilo mangá ao ficar ferido (< 35% HP)
+	# Reação a dano pesado / crítico da BattlePersonality
+	if attacker != null and attacker.is_in_group("player"):
+		disparar_reacao_dano(final_damage >= 30)
+
+	# Balão de fala ao ficar ferido (< 35% HP)
 	if not falou_ferido and float(health) <= float(max_health) * 0.35 and health > 0:
 		falou_ferido = true
-		ComicBalloon.mostrar(enemy_body if enemy_body != null else self, CombatComicQuotes.obter_frase_inimigo_ferido(enemy_name), 2.0, -38.0)
+		if battle_personality != null:
+			var txt_hp = battle_personality.obter_reacao_hp_baixo()
+			if not txt_hp.is_empty():
+				falar_personalidade(txt_hp, 2.4)
+		else:
+			ComicBalloon.mostrar(enemy_body if enemy_body != null else self, CombatComicQuotes.obter_frase_inimigo_ferido(enemy_name), 2.0, -38.0)
 
 	if is_boss or (enemy_data != null and enemy_data.is_boss):
 		var hud = get_tree().get_first_node_in_group("player_hud")
@@ -584,6 +733,55 @@ func take_damage(
 		die()
 
 
+# =========================================================
+# BATTLE PERSONALITY METHODS (FASE G)
+# =========================================================
+
+func falar_personalidade(texto: String, duracao: float = 2.2) -> void:
+	if texto.strip_edges().is_empty():
+		return
+	var node = enemy_body if enemy_body != null else self
+	var bg_col: Color = battle_personality.balloon_color_bg if battle_personality != null else Color(0.08, 0.08, 0.12, 0.95)
+	var border_col: Color = battle_personality.balloon_color_border if battle_personality != null else Color(1.0, 0.85, 0.25, 1.0)
+	ComicBalloon.mostrar(node, texto, duracao, -45.0, bg_col, border_col)
+
+
+func disparar_intro() -> void:
+	if battle_personality != null:
+		var txt = battle_personality.obter_intro()
+		falar_personalidade(txt, 2.8)
+
+
+func disparar_taunt() -> void:
+	if battle_personality != null and not is_dead:
+		var txt = battle_personality.obter_taunt()
+		falar_personalidade(txt, 2.2)
+
+
+func disparar_fala_ataque(skill_nome: String = "") -> void:
+	if battle_personality != null and not is_dead:
+		var txt = battle_personality.obter_fala_ataque(skill_nome)
+		falar_personalidade(txt, 1.8)
+
+
+func disparar_reacao_dano(pesado: bool) -> void:
+	if battle_personality != null and not is_dead and (pesado or randf() < 0.35):
+		var txt = battle_personality.obter_reacao_dano_pesado()
+		falar_personalidade(txt, 1.9)
+
+
+func _on_player_hatsu_callout(user_node: Node, hatsu_nome: String, subtitle: String, _cor: Color) -> void:
+	if is_dead or battle_personality == null or not battle_personality.reads_player_nen:
+		return
+	if enemy_body == null or user_node == null:
+		return
+	if enemy_body.global_position.distance_to((user_node as Node2D).global_position) <= 380.0:
+		if not _reagiu_hatsu_player or randf() < 0.40:
+			_reagiu_hatsu_player = true
+			var txt = battle_personality.obter_reacao_player_hatsu(hatsu_nome, subtitle)
+			falar_personalidade(txt, 2.5)
+
+
 var original_modulate: Color = Color.WHITE
 
 func receber_dano(
@@ -600,29 +798,16 @@ func receber_dano(
 # =========================================================
 
 func _hit_flash() -> void:
-
-	if enemy_sprite == null:
+	if enemy_sprite == null or not is_instance_valid(enemy_sprite):
 		return
 
-	if original_modulate == Color.WHITE and enemy_sprite.modulate != Color(3.0, 3.0, 3.0, 1.0):
+	if original_modulate == Color.WHITE and enemy_sprite.modulate != Color(2.5, 2.5, 2.5, 1.0):
 		original_modulate = enemy_sprite.modulate
 
-	enemy_sprite.modulate = Color(
-		3.0,
-		3.0,
-		3.0,
-		1.0
-	)
-
-
-	await get_tree().create_timer(
-		0.20
-	).timeout
-
-
-	if is_instance_valid(enemy_sprite):
-
-		enemy_sprite.modulate = original_modulate
+	enemy_sprite.modulate = Color(2.5, 2.5, 2.5, 1.0)
+	var tween = create_tween()
+	if tween != null:
+		tween.tween_property(enemy_sprite, "modulate", original_modulate, 0.08)
 
 
 # =========================================================
@@ -637,24 +822,31 @@ func _apply_knockback(
 	if enemy_body == null:
 		return
 
-
 	var resistance: float = clamp(
 		knockback_resistance,
 		0.0,
 		1.0
 	)
 
-
 	var final_force: float = force * (
 		1.0 - resistance
 	)
-
 
 	knockback_velocity = (
 		direction * final_force
 	)
 
-	knockback_timer = 0.12
+	knockback_timer = 0.16
+
+	# Knockdown por impactos severos (force >= 190 em não-chefes)
+	if final_force >= 190.0 and not is_boss:
+		em_knockdown = true
+		knockdown_timer = 0.45
+		knockdown_iniciado.emit()
+		if EventBus != null:
+			EventBus.combat_knockdown_triggered.emit(enemy_body, 0.45)
+		if enemy_sprite != null:
+			enemy_sprite.rotation_degrees = -20.0 if direction.x > 0 else 20.0
 
 
 # =========================================================
@@ -668,15 +860,24 @@ func _process_knockback(
 	if enemy_body == null:
 		return
 
-	if knockback_timer <= 0.0:
+	if knockback_timer > 0.0:
+		knockback_timer -= delta
+		enemy_body.velocity = knockback_velocity
+		enemy_body.move_and_slide()
+		knockback_velocity = knockback_velocity.lerp(
+			Vector2.ZERO,
+			10.0 * delta
+		)
+	else:
 		knockback_velocity = Vector2.ZERO
-		return
 
-	knockback_timer -= delta
-	knockback_velocity = knockback_velocity.lerp(
-		Vector2.ZERO,
-		12.0 * delta
-	)
+	if em_knockdown:
+		knockdown_timer -= delta
+		if knockdown_timer <= 0.0:
+			em_knockdown = false
+			knockdown_finalizado.emit()
+			if enemy_sprite != null:
+				enemy_sprite.rotation_degrees = 0.0
 
 
 # =========================================================
@@ -708,6 +909,11 @@ func die() -> void:
 
 	is_dead = true
 	health = 0
+
+	if battle_personality != null:
+		var txt_derrota = battle_personality.obter_derrota()
+		if not txt_derrota.is_empty():
+			falar_personalidade(txt_derrota, 2.5)
 
 	if enemy_body != null and is_instance_valid(enemy_body):
 		enemy_body.remove_from_group("enemies")
@@ -847,24 +1053,22 @@ func _entregar_xp() -> void:
 		"NenSystem"
 	)
 
-	if nen_system != null and PlayerData != null and PlayerData.despertou_nen and nen_xp_reward > 0:
-		nen_system.adicionar_xp_nen(
-			nen_xp_reward
-		)
-
-		print(
-			"NEN XP ENTREGUE: +",
-			nen_xp_reward,
-			" para ",
-			last_attacker.name
-		)
-
-	else:
-
-		print(
-			"NenSystem não encontrado no atacante: ",
-			last_attacker.name
-		)
+	if nen_xp_reward > 0:
+		if nen_system != null and PlayerData != null and PlayerData.despertou_nen:
+			nen_system.adicionar_xp_nen(
+				nen_xp_reward
+			)
+			print(
+				"NEN XP ENTREGUE: +",
+				nen_xp_reward,
+				" para ",
+				last_attacker.name
+			)
+		elif nen_system == null:
+			print(
+				"NenSystem não encontrado no atacante: ",
+				last_attacker.name
+			)
 
 
 	# =====================================================

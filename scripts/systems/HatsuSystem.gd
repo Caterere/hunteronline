@@ -587,6 +587,16 @@ func usar_hatsu(slot_index: int) -> bool:
 		slot_cooldowns_max[slot_index] = cd
 		_definir_estado_slot(slot_index, SlotState.COOLDOWN)
 
+	# Cancelar recuperação de ataque básico para transição fluida combo -> hatsu
+	if combat_system != null and combat_system.has_method("cancelar_ataque_para_hatsu"):
+		combat_system.cancelar_ataque_para_hatsu()
+
+	# Disparar Sequência de Ativação Dramática de Hatsu (Task 1.4)
+	if EventBus != null and owner_body != null:
+		var cat_name = NenAffinityData.obter_nome_afinidade(hatsu.categoria)
+		var cat_color = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
+		EventBus.emit_hatsu_dramatic_callout(owner_body, hatsu.nome, cat_name, cat_color)
+
 	# Executar habilidade por Objetivo & Categoria
 	_executar_por_objetivo(hatsu, eficiencia)
 

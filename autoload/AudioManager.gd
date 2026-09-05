@@ -556,6 +556,57 @@ func tocar_dodge() -> void:
 func tocar_perfect_dodge() -> void:
 	tocar_sfx_tipo("perfect_dodge", 1.25)
 
+func tocar_bloqueio() -> void:
+	tocar_sfx_tipo("block", 1.0)
+
+func tocar_passo(tipo_piso: String = "grass") -> void:
+	if tipo_piso == "stone":
+		tocar_sfx_tipo("footstep_stone", 0.5)
+	else:
+		tocar_sfx_tipo("footstep_grass", 0.6)
+
+func tocar_hurt() -> void:
+	tocar_sfx_tipo("hurt", 0.9)
+
+func tocar_ui_error() -> void:
+	tocar_sfx_tipo("ui_error", 0.85)
+
+func tocar_boss_intro() -> void:
+	tocar_sfx_tipo("boss_intro", 1.3)
+
+func tocar_boss_phase() -> void:
+	tocar_sfx_tipo("boss_phase", 1.25)
+
+func tocar_hatsu_categoria(categoria: String) -> void:
+	var cat_lower := categoria.to_lower()
+	if "intensif" in cat_lower or "enhancer" in cat_lower:
+		tocar_sfx_tipo("hatsu_enhancer", 1.1)
+	elif "transmut" in cat_lower:
+		tocar_sfx_tipo("hatsu_transmuter", 1.05)
+	elif "emiss" in cat_lower or "emitter" in cat_lower:
+		tocar_sfx_tipo("hatsu_emitter", 1.0)
+	elif "manipul" in cat_lower:
+		tocar_sfx_tipo("hatsu_manipulator", 1.0)
+	elif "conjur" in cat_lower:
+		tocar_sfx_tipo("hatsu_conjurer", 1.0)
+	elif "especial" in cat_lower or "special" in cat_lower:
+		tocar_sfx_tipo("hatsu_specialist", 1.15)
+	else:
+		tocar_sfx_tipo("hatsu_cast", 1.0)
+
+func tocar_musica_boss(boss_nome: String = "") -> void:
+	var b := boss_nome.to_lower()
+	if "chrollo" in b or "kuroro" in b:
+		tocar_musica("lacrimosa", 1.5)
+	elif "meruem" in b or "rei" in b:
+		tocar_musica("in_the_palace_agitato", 1.5)
+	elif "hisoka" in b:
+		tocar_musica("legend_of_the_martial_artist", 1.5)
+	elif "pitou" in b or "youpi" in b or "pouf" in b or "guarda" in b:
+		tocar_musica("kingdom_of_predators", 1.5)
+	else:
+		tocar_musica("riot", 1.5)
+
 func tocar_ui_click(is_confirm: bool = false) -> void:
 	tocar_sfx_tipo("ui_confirm" if is_confirm else "ui_click", 0.8)
 

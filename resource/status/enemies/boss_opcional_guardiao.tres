@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"boss_opcional_guardiao"
+enemy_name = "Guardião Golem Ancestral"
+level = 75
+max_health = 7500
+defense = 85
+strength = 180
+xp_reward = 28000
+npc_tier = 3
+is_boss = true
+knockback_resistance = 0.90
+hit_invulnerability_time = 0.18
+hatsu_name = "Punho de Rocha Ancestral"
+hatsu_cooldown = 5.0
+role = "tank"
+drop_table = [
+	{"item_id": "reliquia_cacador_antigo", "chance": 1.0, "quantidade": 1},
+	{"item_id": "fragmento_lore_tabuleta", "chance": 0.9, "quantidade": 1}
+]
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

@@ -6,11 +6,11 @@
 script = ExtResource("1_bffvt")
 enemy_id = &"guarda_black_whale"
 enemy_name = "Guarda do Black Whale"
-level = 80
-max_health = 3500
-defense = 60
-strength = 120
-xp_reward = 12000
+level = 890
+max_health = 52000
+defense = 4100
+strength = 3300
+xp_reward = 1400000
 knockback_resistance = 0.7
 hit_invulnerability_time = 0.15
 metadata/_custom_type_script = "uid://ue8ne7hptc1d"

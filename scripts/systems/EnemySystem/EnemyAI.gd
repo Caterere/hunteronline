@@ -77,6 +77,7 @@ var current_target: Node2D = null
 var alert_timer: float = 0.0
 var flee_timer: float = 0.0
 var active_boss_phase_indices: Array[int] = []
+var _intro_exibida: bool = false
 
 func adicionar_ameaca(alvo: Node, valor: float) -> void:
 	if alvo == null or not is_instance_valid(alvo):
@@ -86,6 +87,7 @@ func adicionar_ameaca(alvo: Node, valor: float) -> void:
 	if current_state == State.IDLE or current_state == State.RETURN:
 		current_state = State.ALERT
 		alert_timer = 0.6
+		_checar_disparo_intro_boss()
 
 func obter_alvo_principal() -> Node2D:
 	var para_remover: Array = []
@@ -169,6 +171,8 @@ var phinks_windup_count: int = 0
 
 var intimidacao_en_timer: float = 0.0
 var intimidacao_red_defesa: float = 0.0
+var taunt_timer: float = 8.0
+var _intro_disparada: bool = false
 
 
 func aplicar_intimidacao_en(red_def: float, duracao: float = 1.0) -> void:
@@ -228,6 +232,13 @@ func _physics_process(delta: float) -> void:
 		intimidacao_en_timer -= delta
 		if intimidacao_en_timer <= 0.0:
 			intimidacao_red_defesa = 0.0
+
+	if taunt_timer > 0.0:
+		taunt_timer -= delta
+		if taunt_timer <= 0.0:
+			taunt_timer = randf_range(8.0, 14.0)
+			if enemy_system != null and current_state in [State.CHASE, State.PREPARE_ATTACK, State.ATTACK, State.RECOVERY]:
+				enemy_system.disparar_taunt()
 
 	if enemy_body == null:
 		return
@@ -292,6 +303,12 @@ func _entrar_fase_2_boss() -> void:
 	if sprite != null:
 		sprite.modulate = Color(1.8, 0.4, 0.4, 1.0)
 
+	if AudioManager != null:
+		AudioManager.tocar_boss_phase()
+
+	if enemy_body != null:
+		CombatImpactEffect.spawn_aura_burst(enemy_body, enemy_body.global_position, Color(1.8, 0.4, 0.4))
+
 	if EventBus != null:
 		EventBus.boss_phase_changed.emit(boss_nome, 2)
 		EventBus.emit_camera_shake(0.65, 0.40)
@@ -316,6 +333,12 @@ func _entrar_fase_3_boss() -> void:
 	var sprite = enemy_body.get_node_or_null("Sprite2D")
 	if sprite != null:
 		sprite.modulate = Color(2.5, 0.6, 2.5, 1.0) # Aura Púrpura Radiante de Overload
+
+	if AudioManager != null:
+		AudioManager.tocar_boss_phase()
+
+	if enemy_body != null:
+		CombatImpactEffect.spawn_aura_burst(enemy_body, enemy_body.global_position, Color(2.5, 0.6, 2.5))
 
 	if EventBus != null:
 		EventBus.boss_phase_changed.emit(boss_nome, 3)
@@ -348,6 +371,12 @@ func _executar_fase_boss_configurada(b_phase: Resource) -> void:
 	if sprite != null:
 		sprite.modulate = b_phase.color_modulate
 
+	if AudioManager != null:
+		AudioManager.tocar_boss_phase()
+
+	if enemy_body != null:
+		CombatImpactEffect.spawn_aura_burst(enemy_body, enemy_body.global_position, b_phase.color_modulate)
+
 	if EventBus != null:
 		EventBus.boss_phase_changed.emit(boss_nome, b_phase.phase_index)
 		EventBus.emit_camera_shake(b_phase.camera_shake_intensity, b_phase.camera_shake_duration)
@@ -355,6 +384,7 @@ func _executar_fase_boss_configurada(b_phase: Resource) -> void:
 
 	if enemy_system != null and not b_phase.dialogue_quote.is_empty():
 		ComicBalloon.mostrar(enemy_body, b_phase.dialogue_quote, 2.5, -45.0)
+
 
 	match b_phase.mechanic:
 		BossPhaseDataScript.MecanicaFase.INVOCAR_MINIONS:
@@ -368,6 +398,28 @@ func _executar_fase_boss_configurada(b_phase: Resource) -> void:
 					if is_instance_valid(enemy_system):
 						enemy_system.escudo_imune_ativo = false
 				)
+
+func _checar_disparo_intro_boss() -> void:
+	if _intro_exibida:
+		return
+	if enemy_system != null and (enemy_system.is_boss or (enemy_system.enemy_data != null and enemy_system.enemy_data.is_boss)):
+		_intro_exibida = true
+		var b_sub := "INIMIGO PODEROSO"
+		var b_nome := enemy_system.enemy_name
+		var lower := b_nome.to_lower()
+		if "meruem" in lower or "rei" in lower:
+			b_sub = "REI DAS FORMIGAS CHIMERA"
+		elif "hisoka" in lower:
+			b_sub = "O MÁGICO MORTAL"
+		elif "razor" in lower:
+			b_sub = "GAME MASTER DE GREED ISLAND"
+		elif "chrollo" in lower or "kuroro" in lower:
+			b_sub = "LÍDER DA GENEI RYODAN"
+		elif "guardiao" in lower or "ancestral" in lower:
+			b_sub = "GUARDIÃO DAS RUÍNAS DE ZABAN"
+		var banner_script = load("res://ui/boss/BossIntroBanner.gd")
+		if banner_script != null:
+			banner_script.exibir(get_tree(), b_nome, b_sub)
 
 
 func _invocar_minions_boss() -> void:
@@ -487,7 +539,7 @@ func _find_player() -> void:
 
 func _update_state() -> void:
 
-	if enemy_system != null and enemy_system.em_stagger:
+	if enemy_system != null and (enemy_system.em_stagger or enemy_system.em_knockdown):
 		current_state = State.STAGGER
 		return
 
@@ -564,6 +616,7 @@ func _update_state() -> void:
 	# Se estiver em perseguição e ainda fora da distância de parada
 	if chase_player and distance > stop_distance:
 		current_state = State.CHASE
+		_checar_disparo_intro_boss()
 		return
 
 	# Perto e pronto para atacar -> INICIAR WINDUP
@@ -669,6 +722,8 @@ func _iniciar_prepare_attack() -> void:
 	current_state = State.PREPARE_ATTACK
 	windup_timer = _obter_windup() * (0.65 if is_fase_2 else 1.0)
 	_mostrar_telegraph()
+	if enemy_system != null and randf() < 0.35:
+		enemy_system.disparar_fala_ataque("")
 
 
 func _obter_windup() -> float:
@@ -765,9 +820,13 @@ func _chase() -> void:
 		return
 
 	var enemy_sys: EnemySystem = enemy_body.get_node_or_null("EnemySystem") as EnemySystem
-	if enemy_sys != null and not enemy_sys.falou_spawn:
+	if enemy_sys != null and not _intro_disparada:
+		_intro_disparada = true
 		enemy_sys.falou_spawn = true
-		ComicBalloon.mostrar(enemy_body, CombatComicQuotes.obter_frase_inimigo_spawn(enemy_sys.enemy_name), 2.2, -38.0)
+		if enemy_sys.battle_personality != null:
+			enemy_sys.disparar_intro()
+		else:
+			ComicBalloon.mostrar(enemy_body, CombatComicQuotes.obter_frase_inimigo_spawn(enemy_sys.enemy_name), 2.2, -38.0)
 
 	var direction: Vector2 = (
 		player.global_position
@@ -1096,16 +1155,49 @@ func _aplicar_dano_jogador(dano_val: int, dir_val: Vector2, knock_val: float = 0
 # --- ROTINAS INDIVIDUAIS DOS HATSUS DO MANGÁ ---
 
 func _hatsu_hisoka(dir: Vector2) -> void:
-	ComicBalloon.mostrar(enemy_body, "♠️ Bungee Gum tem as propriedades de borracha e goma!", 2.2, -42.0)
+	if enemy_system != null:
+		enemy_system.disparar_fala_ataque("Bungee Gum")
+	else:
+		ComicBalloon.mostrar(enemy_body, "♠️ Bungee Gum tem as propriedades de borracha e goma!", 2.2, -42.0)
+
+	if EventBus != null:
+		EventBus.emit_hatsu_dramatic_callout(enemy_body, "Bungee Gum", "Transformação (Elasticidade & Goma)", Color(1.0, 0.35, 0.75))
+		EventBus.emit_camera_shake(0.35, 0.20)
+
 	var h := HatsuData.new()
 	h.nome = "Bungee Gum"
 	h.estilo_visual = HatsuData.EstiloVisual.PURO_PULSANTE
 	h.cor_aura = Color(1.0, 0.35, 0.75)
 
+	var map_parent = enemy_body.get_parent() if enemy_body.get_parent() != null else enemy_body
+
+	# Projétil elástico
 	var proj := HatsuProjectileNode.new()
-	proj.setup(enemy_body.global_position, dir, 220.0, 240.0, 20, h.cor_aura, enemy_body, h)
-	if enemy_body.get_parent() != null:
-		enemy_body.get_parent().add_child(proj)
+	proj.setup(enemy_body.global_position, dir, 240.0, 260.0, 24, h.cor_aura, enemy_body, h)
+	if map_parent != null:
+		map_parent.add_child(proj)
+
+	# Mecânica de Armadilha / Elastic Tether (Puxão elástico do jogador)
+	var tether := Line2D.new()
+	tether.name = "BungeeGumTether"
+	tether.width = 3.0
+	tether.default_color = Color(1.0, 0.35, 0.75, 0.85)
+	tether.z_index = 8
+	tether.points = PackedVector2Array([enemy_body.global_position, player.global_position])
+	if map_parent != null:
+		map_parent.add_child(tether)
+
+	var tween := tether.create_tween()
+	tween.tween_method(func(_step: float):
+		if is_instance_valid(tether) and is_instance_valid(enemy_body) and is_instance_valid(player):
+			tether.points = PackedVector2Array([enemy_body.global_position, player.global_position])
+	, 0.0, 1.0, 0.8)
+	tween.tween_callback(tether.queue_free)
+
+	# Efeito de puxão elástico (direção de Hisoka)
+	var pull_dir = (enemy_body.global_position - player.global_position).normalized()
+	_aplicar_dano_jogador(15, pull_dir, 200.0)
+	CombatImpactEffect.spawn_aura_burst(enemy_body, player.global_position, Color(1.0, 0.35, 0.75))
 
 
 func _hatsu_uvogin() -> void:
@@ -1270,14 +1362,35 @@ func _hatsu_pitou(dir: Vector2) -> void:
 
 
 func _hatsu_meruem(dir: Vector2) -> void:
-	ComicBalloon.mostrar(enemy_body, "👑 FÓTONS DE EN: SÍNTESE DE AURA!", 2.5, -42.0)
-	var fx := HatsuAreaExplosionNode.new()
-	fx.setup(120.0, Color(1.0, 1.0, 0.8), Color(0.9, 0.7, 0.2))
-	enemy_body.add_child(fx)
+	if enemy_system != null:
+		enemy_system.disparar_fala_ataque("Síntese de Aura")
+	else:
+		ComicBalloon.mostrar(enemy_body, "👑 FÓTONS DE EN: SÍNTESE DE AURA!", 2.5, -42.0)
 
-	var dist: float = enemy_body.global_position.distance_to(player.global_position)
-	if dist <= 120.0:
-		_aplicar_dano_jogador(45, dir, 250.0)
+	if EventBus != null:
+		EventBus.emit_hatsu_dramatic_callout(enemy_body, "Metamorfose & Fótons", "Especialização (Velocidade & Impacto)", Color(1.0, 0.95, 0.4))
+		EventBus.emit_camera_shake(0.75, 0.35)
+		EventBus.emit_hitstop(0.10)
+
+	var map_parent = enemy_body.get_parent() if enemy_body.get_parent() != null else enemy_body
+
+	# Avanço instantâneo (Blink atrás do alvo com pós-imagem)
+	CombatImpactEffect.spawn_dust_kickup(enemy_body, enemy_body.global_position, -dir)
+	CombatImpactEffect.spawn_aura_burst(enemy_body, enemy_body.global_position, Color(1.0, 0.9, 0.3))
+
+	var offset_dest = -dir * 36.0
+	var blink_pos = player.global_position + offset_dest
+	enemy_body.global_position = blink_pos
+
+	CombatImpactEffect.spawn_aura_burst(enemy_body, blink_pos, Color(1.0, 0.95, 0.4))
+	CombatImpactEffect.spawn_blunt_impact(enemy_body, player.global_position, 2.0, Color(1.0, 0.95, 0.4))
+
+	var dano_meruem = int((enemy_system.get_strength() if enemy_system else 30) * 1.8)
+	_aplicar_dano_jogador(dano_meruem, dir, 320.0)
+	if player.has_node("CombatSystem"):
+		var p_cs = player.get_node("CombatSystem")
+		if p_cs.has_method("consumir_postura"):
+			p_cs.consumir_postura(40.0)
 
 
 func _hatsu_pouf() -> void:
@@ -1314,16 +1427,37 @@ func _hatsu_genthru(dir: Vector2) -> void:
 
 
 func _hatsu_razor(dir: Vector2) -> void:
-	ComicBalloon.mostrar(enemy_body, "🏐 ESFERAS DE NEN DOS 14 DEMÔNIOS!", 2.2, -42.0)
-	var h := HatsuData.new()
-	h.nome = "Esfera de Razor"
-	h.estilo_visual = HatsuData.EstiloVisual.SHURIKEN_GIRATORIO
-	h.cor_aura = Color(0.9, 0.2, 0.2)
+	if enemy_system != null:
+		enemy_system.disparar_fala_ataque("14 Demônios")
+	else:
+		ComicBalloon.mostrar(enemy_body, "🏐 ESFERAS DE NEN DOS 14 DEMÔNIOS!", 2.2, -42.0)
 
-	var proj := HatsuProjectileNode.new()
-	proj.setup(enemy_body.global_position, dir, 240.0, 310.0, 30, h.cor_aura, enemy_body, h)
-	if enemy_body.get_parent() != null:
-		enemy_body.get_parent().add_child(proj)
+	if EventBus != null:
+		EventBus.emit_hatsu_dramatic_callout(enemy_body, "14 Demônios: Saque Pesado", "Emissão (Impacto Contínuo de Nen)", Color(0.9, 0.2, 0.2))
+		EventBus.emit_directional_shake(0.60, 0.30, dir)
+
+	var h := HatsuData.new()
+	h.nome = "Esfera Pesada de Razor"
+	h.estilo_visual = HatsuData.EstiloVisual.SHURIKEN_GIRATORIO
+	h.cor_aura = Color(0.95, 0.2, 0.15)
+
+	var map_parent = enemy_body.get_parent() if enemy_body.get_parent() != null else enemy_body
+	if map_parent != null:
+		# Primeiro projétil imediato
+		var proj1 := HatsuProjectileNode.new()
+		proj1.setup(enemy_body.global_position, dir, 280.0, 360.0, 28, h.cor_aura, enemy_body, h)
+		map_parent.add_child(proj1)
+		CombatImpactEffect.spawn_blunt_impact(enemy_body, enemy_body.global_position + dir * 20.0, 1.5, Color(1.0, 0.3, 0.2))
+
+		# Segundo projétil em rápida sucessão (pressão contínua)
+		get_tree().create_timer(0.20).timeout.connect(func():
+			if not is_instance_valid(enemy_body) or not is_instance_valid(player): return
+			var cur_dir = (player.global_position - enemy_body.global_position).normalized()
+			var proj2 := HatsuProjectileNode.new()
+			proj2.setup(enemy_body.global_position, cur_dir, 280.0, 380.0, 28, h.cor_aura, enemy_body, h)
+			map_parent.add_child(proj2)
+			CombatImpactEffect.spawn_blunt_impact(enemy_body, enemy_body.global_position + cur_dir * 20.0, 1.8, Color(1.0, 0.3, 0.2))
+		)
 
 
 func _hatsu_kastro(dir: Vector2) -> void:

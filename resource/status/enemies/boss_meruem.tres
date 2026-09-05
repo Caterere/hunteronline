@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="EnemyData" format=3]
+
+[ext_resource type="Script" path="res://resource/status/EnemyData.gd" id="1_bffvt"]
+
+[resource]
+script = ExtResource("1_bffvt")
+enemy_id = &"boss_meruem"
+enemy_name = "Meruem"
+level = 700
+max_health = 450000
+defense = 4200
+strength = 4800
+xp_reward = 16000000
+npc_tier = 4
+is_boss = true
+knockback_resistance = 0.98
+hit_invulnerability_time = 0.12
+hatsu_name = "Metamorfose & Fótons"
+hatsu_cooldown = 3.5
+role = "boss"
+metadata/_custom_type_script = "uid://ue8ne7hptc1d"

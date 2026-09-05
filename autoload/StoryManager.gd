@@ -115,6 +115,8 @@ var max_saga_unlocked: int = 1
 var completed_sagas: Array[int] = []
 var story_flags: Dictionary = {}
 var sagas_registradas: Dictionary = {}
+var saga_definitions: Dictionary = {}
+var current_custom_saga_id: StringName = &""
 
 var current_story_checkpoint: StringName = &"exame_hunter_inicio"
 var last_safe_checkpoint: StringName = &"hunter_plaza_lobby"
@@ -154,6 +156,54 @@ func registrar_saga(saga_id: int, nome: String, lvl_min: int = 1, lvl_max: int =
 	print("[StoryManager] 📦 NOVA SAGA REGISTRADA: Saga %d — %s (Nível %d–%d | %d caps)" % [saga_id, nome, lvl_min, lvl_max, total_caps])
 
 
+const StoryGatingEvaluatorScript = preload("res://scripts/systems/story/StoryGatingEvaluator.gd")
+
+
+func registrar_saga_definition(def: Resource) -> void:
+	if def == null:
+		return
+	var s_id = def.get("saga_id")
+	var ord_val = def.get("order_index")
+	var ord: int = int(ord_val) if ord_val != null else 10
+	if s_id == null or String(s_id).is_empty():
+		s_id = StringName("saga_%d" % ord)
+	var s_key := StringName(s_id)
+	saga_definitions[s_key] = def
+	var d_name = def.get("display_name")
+	var nome: String = str(d_name) if d_name != null else str(s_key)
+	var lvl_range: Vector2i = def.get("recommended_level") if def.get("recommended_level") is Vector2i else Vector2i(1, 1000)
+	var caps_count: int = int(def.call("get_total_chapters")) if def.has_method("get_total_chapters") else 1
+	registrar_saga(ord, nome, lvl_range.x, lvl_range.y, caps_count)
+	saga_definitions[ord] = def
+	print("[StoryManager] 🌟 SAGA DEFINITION MODULAR REGISTRADA: '%s' (Ordem %d | %d caps)" % [s_key, ord, caps_count])
+
+
+func obter_saga_definition(saga_key: Variant) -> Resource:
+	if saga_key is int:
+		if saga_definitions.has(saga_key):
+			return saga_definitions[saga_key]
+	var k_str := StringName(str(saga_key))
+	if saga_definitions.has(k_str):
+		return saga_definitions[k_str]
+	return null
+
+
+func obter_capitulo_definition(saga_key: Variant, capitulo_idx: int) -> Resource:
+	var def = obter_saga_definition(saga_key)
+	if def != null and def.has_method("get_chapter"):
+		return def.call("get_chapter", capitulo_idx)
+	return null
+
+
+func avaliar_gating_capitulo(saga_key: Variant, capitulo_idx: int) -> Dictionary:
+	var cap = obter_capitulo_definition(saga_key, capitulo_idx)
+	if cap != null:
+		var reqs = cap.get("gating_requirements")
+		if reqs is Array and not reqs.is_empty():
+			return StoryGatingEvaluatorScript.evaluate_all(reqs)
+	return {"passed": true, "unmet": []}
+
+
 func tem_saga(saga_id: int) -> bool:
 	return sagas_registradas.has(saga_id) or SAGAS_CANONICAS.has(saga_id)
 
@@ -187,6 +237,14 @@ func obter_nome_saga(saga_id: int) -> String:
 	if sagas_registradas.has(saga_id):
 		return sagas_registradas[saga_id]["nome"]
 	return SAGAS_CANONICAS.get(saga_id, "Saga %d" % saga_id)
+
+
+func get_current_saga_id() -> int:
+	return current_saga
+
+
+func get_current_chapter_index() -> int:
+	return current_chapter
 
 
 func iniciar_saga(saga_id: int) -> void:
@@ -409,7 +467,8 @@ func serializar() -> Dictionary:
 		"current_story_checkpoint": String(current_story_checkpoint),
 		"last_safe_checkpoint": String(last_safe_checkpoint),
 		"current_pacing_state": int(current_pacing_state),
-		"character_choices": character_choices.duplicate()
+		"character_choices": character_choices.duplicate(),
+		"current_custom_saga_id": String(current_custom_saga_id)
 	}
 
 
@@ -425,6 +484,7 @@ func deserializar(data: Dictionary) -> void:
 	last_safe_checkpoint = StringName(data.get("last_safe_checkpoint", "hunter_plaza_lobby"))
 	current_pacing_state = int(data.get("current_pacing_state", StoryPacingState.EXPLORATION)) as StoryPacingState
 	character_choices = data.get("character_choices", {}).duplicate()
+	current_custom_saga_id = StringName(data.get("current_custom_saga_id", ""))
 
 	# Refletir no PlayerData
 	if PlayerData != null:

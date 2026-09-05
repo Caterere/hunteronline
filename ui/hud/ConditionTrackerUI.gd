@@ -108,6 +108,10 @@ func rastrear_condicoes(titulo: String, lista_condicoes: Array[Dictionary]) -> v
 	_renderizar()
 
 
+func exibir_condicoes(titulo: String, lista_condicoes: Array[Dictionary]) -> void:
+	rastrear_condicoes(titulo, lista_condicoes)
+
+
 ## Avalia e rastreia automaticamente um Hatsu condicional usando GameplayCondition
 func rastrear_hatsu(hatsu_res: Resource, contexto: Dictionary = {}) -> void:
 	if hatsu_res == null:
@@ -159,7 +163,7 @@ func _renderizar() -> void:
 	var total_condicoes: int = _condicoes_armazenadas.size()
 
 	for item in _condicoes_armazenadas:
-		var texto: String = item.get("texto", "")
+		var texto: String = item.get("texto", item.get("descricao", ""))
 		var atendida: bool = item.get("atendida", false)
 		if atendida:
 			total_atendidas += 1

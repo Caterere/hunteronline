@@ -18,6 +18,7 @@ const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 const WorldMinimapUI = preload("res://ui/Minimap/WorldMinimapUI.gd")
 const AchievementsUI = preload("res://ui/Achievements/AchievementsUI.gd")
 const NenQuickActionBarScript = preload("res://ui/hud/NenQuickActionBar.gd")
+const ConditionTrackerUIScript = preload("res://ui/hud/ConditionTrackerUI.gd")
 
 # Referências
 var xp_system: XPSystem = null
@@ -26,6 +27,7 @@ var nen_system: NenSystem = null
 var player: Node = null
 var achievements_ui: AchievementsUI = null
 var nen_action_bar: Control = null
+var condition_tracker: ConditionTrackerUI = null
 
 
 # Painel Principal Topo-Esquerdo
@@ -70,6 +72,8 @@ var lbl_boss_hp: Label
 
 # Target HUD (Fase 10)
 var target_hud: TargetHUD = null
+var party_hud = null
+var chat_hud = null
 
 # Onboarding / Tutorial Prompt (Fase 5)
 var tutorial_panel: PanelContainer = null
@@ -83,6 +87,9 @@ func _ready() -> void:
 	_criar_card_jogador_top_left()
 	_criar_boss_bar()
 	_criar_target_hud()
+	_criar_condition_tracker()
+	_criar_party_hud()
+	_criar_chat_hud()
 	_criar_painel_hatsu_slots()
 	_criar_nen_quick_action_bar()
 	_instanciar_menus_auxiliares()
@@ -91,6 +98,17 @@ func _ready() -> void:
 	if HatsuProgressionManager != null and HatsuProgressionManager.has_signal("hatsu_slots_atualizados"):
 		HatsuProgressionManager.hatsu_slots_atualizados.connect(_atualizar_hatsu_slots)
 	_atualizar_hud()
+
+
+func _criar_condition_tracker() -> void:
+	if condition_tracker == null:
+		condition_tracker = ConditionTrackerUIScript.new()
+		condition_tracker.name = "ConditionTrackerUI"
+		condition_tracker.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		condition_tracker.offset_left = -140.0
+		condition_tracker.offset_top = 42.0
+		condition_tracker.offset_right = -10.0
+		add_child(condition_tracker)
 
 
 func _criar_target_hud() -> void:
@@ -105,6 +123,26 @@ func _criar_nen_quick_action_bar() -> void:
 		nen_action_bar = NenQuickActionBarScript.new()
 		nen_action_bar.name = "NenQuickActionBar"
 		add_child(nen_action_bar)
+
+
+func _criar_party_hud() -> void:
+	if party_hud == null:
+		var party_hud_script = load("res://ui/party/PartyHUD.gd")
+		if party_hud_script != null:
+			party_hud = party_hud_script.new()
+			party_hud.name = "PartyHUD"
+			add_child(party_hud)
+
+
+func _criar_chat_hud() -> void:
+	if chat_hud == null:
+		var chat_hud_script = load("res://ui/chat/MultiplayerChatHUD.gd")
+		if chat_hud_script != null:
+			chat_hud = chat_hud_script.new()
+			chat_hud.name = "MultiplayerChatHUD"
+			add_child(chat_hud)
+
+
 
 
 
@@ -488,6 +526,10 @@ func _conectar_player_e_sistemas() -> void:
 				if not xp_system.skill_points_changed.is_connected(_on_sp_changed):
 					xp_system.skill_points_changed.connect(_on_sp_changed)
 
+			if hatsu_system != null:
+				if not hatsu_system.hatsu_falhou.is_connected(_on_hatsu_falhou):
+					hatsu_system.hatsu_falhou.connect(_on_hatsu_falhou)
+
 	if SaveManager != null and not SaveManager.jogo_carregado.is_connected(_on_save_carregado):
 		SaveManager.jogo_carregado.connect(_on_save_carregado)
 
@@ -610,6 +652,21 @@ func _atualizar_condicoes_combate() -> void:
 		lbl.add_theme_color_override("font_color", c["cor"])
 		pill.add_child(lbl)
 		hbox_conditions.add_child(pill)
+
+	if condition_tracker != null:
+		if condicoes_ativas.is_empty():
+			condition_tracker.visible = false
+		else:
+			condition_tracker.visible = true
+			var tracker_items: Array[Dictionary] = []
+			for c in condicoes_ativas:
+				tracker_items.append({
+					"descricao": c.get("nome", "Condição"),
+					"atendida": true,
+					"detalhe": ""
+				})
+			condition_tracker.exibir_condicoes("CONDIÇÕES DE COMBATE", tracker_items)
+
 
 
 func _atualizar_hp() -> void:
@@ -767,12 +824,17 @@ func _atualizar_hatsu_slots() -> void:
 					slot_cost_labels[i].add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 					slot_cost_labels[i].visible = true
 				elif st == 5: # DISABLED
-					slot_cost_labels[i].text = "🔒BLOQ"
-					slot_cost_labels[i].add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
+					slot_cost_labels[i].text = "0/1 COND"
+					slot_cost_labels[i].add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
 					slot_cost_labels[i].visible = true
 				else:
-					slot_cost_labels[i].text = "%d AP" % int(hatsu.obter_custo_final())
-					slot_cost_labels[i].add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+					var ap_custo: int = int(hatsu.obter_custo_final())
+					if cd_atual <= 0.0:
+						slot_cost_labels[i].text = "PRONTO (%d)" % ap_custo
+						slot_cost_labels[i].add_theme_color_override("font_color", Color(0.4, 1.0, 0.65))
+					else:
+						slot_cost_labels[i].text = "%d AP" % ap_custo
+						slot_cost_labels[i].add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
 					slot_cost_labels[i].visible = (cd_atual <= 0.0)
 		else:
 			slot_name_labels[i].text = "-"
@@ -861,6 +923,26 @@ func _instanciar_menus_auxiliares() -> void:
 			get_tree().root.call_deferred("add_child", pause_menu)
 
 
+
+
+func _on_hatsu_falhou(slot: int, motivo: String) -> void:
+	if AudioManager != null:
+		AudioManager.tocar_ui_error()
+
+	if slot >= 0 and slot < slot_panels.size():
+		var panel = slot_panels[slot]
+		var orig_pos_x: float = panel.position.x
+		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(Color(1.0, 0.2, 0.2, 0.95), 3))
+		var tw = panel.create_tween()
+		tw.tween_property(panel, "position:x", orig_pos_x - 3.0, 0.04)
+		tw.tween_property(panel, "position:x", orig_pos_x + 3.0, 0.04)
+		tw.tween_property(panel, "position:x", orig_pos_x, 0.04)
+		tw.chain().tween_callback(func():
+			if is_instance_valid(panel):
+				_atualizar_selecao_slots()
+		)
+
+	exibir_notificacao("⚠️ %s" % motivo)
 
 
 func _on_level_up(new_level: int) -> void:

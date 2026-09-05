@@ -40,6 +40,9 @@ signal nen_xp_gained(amount: int, current_xp: int)
 signal combat_hit_landed(attacker: Node, target: Node, damage: int, is_crit: bool)
 signal hitstop_requested(duration: float)
 signal camera_shake_requested(trauma_intensity: float, duration: float)
+signal camera_shake_directional_requested(trauma_intensity: float, duration: float, direction: Vector2)
+signal hatsu_dramatic_callout_requested(user_node: Node, hatsu_nome: String, subtitle: String, cor_aura: Color)
+signal combat_knockdown_triggered(target: Node, duration: float)
 signal enemy_spawned(enemy_id: String, position: Vector2)
 signal enemy_damaged(enemy_node: Node, current_hp: int, max_hp: int)
 signal enemy_staggered(enemy_node: Node)
@@ -48,8 +51,7 @@ signal boss_phase_changed(boss_name: String, new_phase: int)
 signal target_changed(new_target: Node)
 signal target_cleared()
 
-
-
+var screen_shake_enabled: bool = true
 var _is_hitstop_active: bool = false
 
 
@@ -72,7 +74,20 @@ func _executar_hitstop(duration: float) -> void:
 
 
 func emit_camera_shake(intensity: float = 0.3, duration: float = 0.2) -> void:
+	if not screen_shake_enabled:
+		return
 	camera_shake_requested.emit(intensity, duration)
+
+
+func emit_directional_shake(intensity: float = 0.3, duration: float = 0.2, direction: Vector2 = Vector2.ZERO) -> void:
+	if not screen_shake_enabled:
+		return
+	camera_shake_requested.emit(intensity, duration)
+	camera_shake_directional_requested.emit(intensity, duration, direction)
+
+
+func emit_hatsu_dramatic_callout(user_node: Node, hatsu_nome: String, subtitle: String = "", cor_aura: Color = Color(0.8, 0.4, 1.0)) -> void:
+	hatsu_dramatic_callout_requested.emit(user_node, hatsu_nome, subtitle, cor_aura)
 
 
 # ------------------------------------------------------------

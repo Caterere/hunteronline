@@ -227,6 +227,7 @@ var alvo_marcado_ref: Node = null
 @export var alcance: float = 120.0
 @export var raio: float = 50.0
 @export var duracao: float = 5.0
+@export var tempo_conjuracao_base: float = 0.6
 @export var cor_aura: Color = Color(0.2, 0.6, 1.0, 1.0)
 @export var cor_aura_secundaria: Color = Color(1.0, 1.0, 1.0, 0.8)
 @export var estilo_visual: EstiloVisual = EstiloVisual.PURO_PULSANTE
@@ -997,6 +998,37 @@ func obter_multiplicador_poder() -> float:
 # SISTEMA DE MASTERY (0 A 100) & PROGRESSÃO DE PODER
 # ============================================================
 
+func obter_rank_maestria() -> int:
+	if mastery >= 100.0:
+		return 6
+	return int(clamp(floor(mastery / 20.0) + 1.0, 1.0, 5.0))
+
+
+func obter_nome_rank_maestria() -> String:
+	match obter_rank_maestria():
+		1: return "Iniciante (Cru)"
+		2: return "Intermediário I"
+		3: return "Intermediário II"
+		4: return "Avançado I"
+		5: return "Avançado II"
+		6: return "Mestre (Instantâneo)"
+		_: return "Mestre Transcendental"
+
+
+func obter_fator_tempo_conjuracao_mastery() -> float:
+	match obter_rank_maestria():
+		1: return 1.00 # Custo base 100%, tempo base 100%
+		2: return 0.85 # -15% tempo de conjuração
+		3: return 0.75 # -25% tempo de conjuração
+		4: return 0.65 # -35% tempo de conjuração
+		5: return 0.55 # -45% tempo de conjuração
+		_: return 0.00 # Rank 6+: Execução instantânea (zero windup extra)
+
+
+func obter_tempo_conjuracao_final() -> float:
+	return tempo_conjuracao_base * obter_fator_tempo_conjuracao_mastery()
+
+
 func obter_multiplicador_mastery() -> float:
 	var max_m: float = HatsuConfig.MAX_MASTERY if ClassDB.class_exists(&"HatsuConfig") or Engine.has_singleton(&"HatsuConfig") or true else 100.0
 	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
@@ -1005,10 +1037,12 @@ func obter_multiplicador_mastery() -> float:
 
 
 func obter_reducao_custo_mastery() -> float:
-	var max_m: float = HatsuConfig.MAX_MASTERY if "MAX_MASTERY" in HatsuConfig else 100.0
-	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
-	var max_bonus: float = HatsuConfig.MAX_AURA_EFFICIENCY_BONUS if "MAX_AURA_EFFICIENCY_BONUS" in HatsuConfig else 0.20
-	return 1.0 - (max_bonus * ratio)
+	var rank: int = obter_rank_maestria()
+	match rank:
+		1: return 1.00 # Custo base 100%
+		2, 3: return 0.90 # -10% consumo de aura
+		4, 5: return 0.80 # -20% consumo de aura
+		_: return 0.70 # -30% consumo de aura (Rank 6+)
 
 
 func obter_reducao_cooldown_mastery() -> float:
@@ -1019,10 +1053,33 @@ func obter_reducao_cooldown_mastery() -> float:
 
 
 func obter_bonus_alcance_mastery() -> float:
-	var max_m: float = HatsuConfig.MAX_MASTERY if "MAX_MASTERY" in HatsuConfig else 100.0
-	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
-	var max_bonus: float = HatsuConfig.MAX_RANGE_BONUS if "MAX_RANGE_BONUS" in HatsuConfig else 0.20
-	return 1.0 + (max_bonus * ratio)
+	var rank: int = obter_rank_maestria()
+	match rank:
+		1: return 1.00 # Base 100%
+		2, 3: return 1.10 # +10% ampliação sutil de alcance/área
+		4, 5: return 1.15 # +15% ampliação de alcance/área
+		_: return 1.20 # +20% ampliação máxima
+
+
+func obter_modificadores_maestria() -> Dictionary:
+	var rank: int = obter_rank_maestria()
+	var rank_nome: String = obter_nome_rank_maestria()
+	var fator_tempo: float = obter_fator_tempo_conjuracao_mastery()
+	var fator_custo: float = obter_reducao_custo_mastery()
+	var bonus_alc: float = obter_bonus_alcance_mastery()
+	return {
+		"rank": rank,
+		"rank_nome": rank_nome,
+		"fator_custo_aura": fator_custo,
+		"reducao_custo_pct": (1.0 - fator_custo) * 100.0,
+		"fator_tempo_conjuracao": fator_tempo,
+		"reducao_tempo_pct": (1.0 - fator_tempo) * 100.0,
+		"tempo_conjuracao_segundos": tempo_conjuracao_base * fator_tempo,
+		"execucao_instantanea": rank >= 6,
+		"multiplicador_alcance": bonus_alc,
+		"bonus_alcance_pct": (bonus_alc - 1.0) * 100.0,
+		"multiplicador_poder": obter_multiplicador_mastery()
+	}
 
 
 func is_mastered() -> bool:

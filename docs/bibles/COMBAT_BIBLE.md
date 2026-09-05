@@ -64,3 +64,25 @@ Hatsu opera como as magias e habilidades táticas de classes de RPGs clássicos,
 > **Zetsu, En e Gyo NÃO ocupam os Slots 1 a 4 de Hatsu.**
 > Elas são técnicas de Nen independentes com seus próprios atalhos (`nen_zetsu`, `nen_en`, `nen_gyo`).
 > Os Slots 1 a 4 pertencem estritamente às habilidades criadas ou equipadas de Hatsu.
+
+---
+
+## 5. MATRIZ DE STATUS DE IMPLEMENTAÇÃO (FASE J)
+
+| Subsistema de Combate | Status | Detalhes & Componentes |
+| :--- | :--- | :--- |
+| **Combo de 3 Golpes Físicos** | `[IMPLEMENTED]` | `CombatEngine.gd`, `CombatSystem.gd` com cadência dinâmica |
+| **Visual Swing Arcs** | `[IMPLEMENTED]` | `CombatImpactEffect.spawn_swing_arc()` procedural angular |
+| **Hit Flash & Stagger** | `[IMPLEMENTED]` | Piscar modulado de 0.08s em jogadores e inimigos |
+| **Esquiva & Feedback "ESQUIVA"** | `[IMPLEMENTED]` | `tentar_esquivar()`, `DamageNumberSystem.spawn_esquiva()` |
+| **Bloqueio & Feedback "BLOQUEIO"**| `[IMPLEMENTED]` | `DamageNumberSystem.spawn_bloqueio()`, som procedural |
+| **Hit Stop & Screen Shake** | `[IMPLEMENTED]` | `EventBus.emit_hitstop()`, `EventBus.emit_camera_shake()` |
+| **4 Slots de Hatsu Ativos** | `[IMPLEMENTED]` | `HatsuProgressionManager.gd`, `PlayerHUD.gd` |
+| **ConditionTrackerUI** | `[IMPLEMENTED]` | Exibição em tempo real de requisitos e votos de Hatsu |
+| **Boss Phase Mechanics** | `[IMPLEMENTED]` | `EnemyAI.gd` (Invocação, AoE Telegrafado, Escudo de Ren) |
+| **Boss Cinematic Banner** | `[IMPLEMENTED]` | `BossIntroBanner.gd` com fanfarra e zoom de câmera |
+| **Técnicas de Nen (Ten, Ren, Zetsu, En, Gyo)** | `[IMPLEMENTED]` | Integrado com `NenSystem.gd` e `PerceptionSystem.gd` |
+| **Hatsu Creator Avançado** | `[IN PROGRESS]` | Editor interativo com restrições e votos procedurais |
+| **PvP Arenas Ranqueadas** | `[PLANNED]` | Modos 1v1 e 3v3 na Arena Celestial com rollback |
+| **Batalhas de Raid de 8 Hunters** | `[FUTURE]` | Encontros de invasão cooperativos contra Calamidades |
+

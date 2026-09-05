@@ -65,7 +65,12 @@ func _ready() -> void:
 		PlayerData.aplicar_nivel_nen(5)
 		PlayerData.attributes["aura"] = PlayerData.attributes["aura_max"]
 		nen_sys.sincronizar_nen_com_player_data()
-
+		PlayerData.attributes["gold"] = 50000
+		if HatsuProgressionManager != null:
+			HatsuProgressionManager.unlocked_slots[1] = true
+			HatsuProgressionManager.unlocked_slots[2] = true
+			PlayerData.hatsu_desbloqueado = true
+			PlayerData.hatsu_creation_unlocked = true
 
 		# Criar e equipar Hatsu de Voto do Retorno
 		var h_retorno = HatsuManager.criar_hatsu(

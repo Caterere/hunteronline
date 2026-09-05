@@ -47,6 +47,7 @@ func _ready() -> void:
 	_popular_distrito_dimensional()
 	_popular_faccoes_e_segredos()
 	_popular_portao_mundo_exterior()
+	_adicionar_detalhes_ambiente_lobby()
 
 	# Fluxo de Início: Tutorial Inicial Guiado -> Conclusão -> Story Intro Tour
 	if not PlayerData.tutorial_concluido and not PlayerData.quest_states.get("tutorial_elena_auto_iniciado", false):
@@ -680,3 +681,30 @@ func _criar_chao_grama() -> void:
 	spr.z_index = -100
 	add_child(spr)
 	move_child(spr, 0)
+
+
+func _adicionar_detalhes_ambiente_lobby() -> void:
+	# 1. Configurar limites da câmera no Jogador
+	var player = get_tree().get_first_node_in_group("player")
+	if player != null and player.has_method("configurar_limites_camera"):
+		player.configurar_limites_camera(Rect2(-2200, -1600, 4400, 3200))
+
+	# 2. Partículas atmosféricas de folhas / brisa na Praça Central
+	if get_node_or_null("AmbientLeavesParticles") == null:
+		var leaves := CPUParticles2D.new()
+		leaves.name = "AmbientLeavesParticles"
+		leaves.position = Vector2(0, -200)
+		leaves.amount = 25
+		leaves.lifetime = 6.0
+		leaves.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+		leaves.emission_rect_extents = Vector2(800, 400)
+		leaves.direction = Vector2(1.0, 0.4).normalized()
+		leaves.spread = 20.0
+		leaves.initial_velocity_min = 25.0
+		leaves.initial_velocity_max = 55.0
+		leaves.scale_amount_min = 1.5
+		leaves.scale_amount_max = 3.0
+		leaves.color = Color(0.3, 0.85, 0.4, 0.5)
+		leaves.z_index = 50
+		add_child(leaves)
+

@@ -63,6 +63,53 @@ func criar_evento_dinamico(id: String, titulo: String, desc: String, regiao: Str
 	print("[WorldEventManager] Evento Ativado [%s] em %s: %s" % [id, regiao, titulo])
 
 
+func iniciar_evento_invasao_feras(regiao: String = "vale_padokia") -> void:
+	criar_evento_dinamico(
+		"evento_invasao_feras_" + regiao,
+		"Invasão de Feras da Floresta",
+		"Feras territoriais romperam o perímetro florestal! O Líder da Matilha Quimera foi visto rondando as trilhas.",
+		regiao,
+		8.0,
+		55
+	)
+	if WorldStateManager != null:
+		WorldStateManager.evento_invasao_ativo = true
+		WorldStateManager.invasao_regiao_id = regiao
+
+
+func iniciar_evento_mercador_apuros(regiao: String = "vale_padokia") -> void:
+	criar_evento_dinamico(
+		"evento_mercador_apuros_" + regiao,
+		"Mercador Ambulante em Apuros",
+		"Salteadores armaram uma emboscada na Estrada Real! Socorra a caravana para garantir suprimentos e descontos na vila.",
+		regiao,
+		6.0,
+		45
+	)
+
+
+func iniciar_evento_calamidade_continente_negro() -> void:
+	criar_evento_dinamico(
+		"evento_calamidade_continente_negro",
+		"Alerta de Calamidade: Ruptura Miasmática",
+		"Uma fenda de esporos radioativos e bestas simbióticas emergiu nas fronteiras do Novo Mundo! Apenas Mestres de Nen podem conter o avanço.",
+		"continente_negro",
+		12.0,
+		88
+	)
+
+
+func iniciar_evento_insurgencia_black_whale() -> void:
+	criar_evento_dinamico(
+		"evento_insurgencia_black_whale",
+		"Insurgência nos Conveses Inferiores",
+		"Facções armadas da Máfia de Kakin iniciaram um motim armado que ameaça os reatores de energia do Black Whale 1!",
+		"black_whale_1",
+		10.0,
+		82
+	)
+
+
 func resolver_evento_jogador(id: String, sucesso: bool) -> void:
 	if not active_world_events.has(id):
 		return
