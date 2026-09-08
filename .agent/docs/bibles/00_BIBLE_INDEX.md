@@ -29,4 +29,5 @@ If code conflicts with the Bibles, do not silently rewrite the project. Analyze 
 - 14_DATA_SCHEMA_BIBLE.md — canonical data structures and persistence concepts
 - NEN_SKILL_TREE_BIBLE.md (raiz do repositório) — responsabilidade atual da Skill Tree de Nen, integração de modificadores e regras de expansão
 - 15_GAMEPLAY_FOUNDATION_BIBLE.md — condições, tags e integração de modificadores reutilizáveis
+- 16_PIXEL_ART_STYLE_BIBLE.md — Single Source of Truth para Pixel Art Style Lock, padrões 48x48, densidade de pixels e PixelLab MCP
 - TASKS_FUTURAS.md (raiz do repositório) — roadmap, dependências, critérios e status de execução

@@ -649,7 +649,7 @@ states/walk/position = Vector2(637, 110)
 size = Vector2(8, 6)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_player_hurtbox"]
-size = Vector2(22, 34)
+size = Vector2(14, 22)
 
 [node name="Player" type="CharacterBody2D" unique_id=1023846740 node_paths=PackedStringArray("_animation_tree")]
 collision_layer = 2
@@ -688,7 +688,7 @@ parameters/idle/blend_position = Vector2(0, 0)
 parameters/walk/blend_position = Vector2(0, 0)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1029329141]
-position = Vector2(0, -3)
+position = Vector2(0, -1)
 shape = SubResource("RectangleShape2D_5u5ly")
 
 [node name="CombatSystem" type="Node" parent="." unique_id=1071649853]
@@ -719,7 +719,7 @@ collision_layer = 16
 collision_mask = 8
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HurtBox" unique_id=184920184]
-position = Vector2(0, -12)
+position = Vector2(0, -9)
 shape = SubResource("RectangleShape2D_player_hurtbox")
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=184920199]

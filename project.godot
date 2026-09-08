@@ -74,6 +74,11 @@ window/size/window_height_override=1080
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 
+[gui]
+
+theme/default_font_antialiasing=0
+theme/custom_font="res://assets/fonts/HunterPixel_Silkscreen.ttf"
+
 [input]
 
 move_left={

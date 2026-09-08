@@ -73,8 +73,7 @@ func _construir_ui() -> void:
 
 	lbl_name = Label.new()
 	lbl_name.text = "Inimigo"
-	lbl_name.add_theme_font_size_override("font_size", 5)
-	lbl_name.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_titulo(lbl_name, 12, HunterUIStyle.COLOR_GOLD_LIGHT)
 	hbox_hdr.add_child(lbl_name)
 
 	var sp := Control.new()
@@ -83,8 +82,7 @@ func _construir_ui() -> void:
 
 	lbl_affinity = Label.new()
 	lbl_affinity.text = "Nen: Desconhecido"
-	lbl_affinity.add_theme_font_size_override("font_size", 4)
-	lbl_affinity.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+	HunterUIStyle.aplicar_fonte_licenca(lbl_affinity, 9, HunterUIStyle.COLOR_AURA_CYAN)
 	hbox_hdr.add_child(lbl_affinity)
 
 	# Linha 1.5: Badges de Boss Phase e Elite
@@ -96,16 +94,14 @@ func _construir_ui() -> void:
 	lbl_boss_phase = Label.new()
 	lbl_boss_phase.visible = false
 	lbl_boss_phase.text = "PHASE I"
-	lbl_boss_phase.add_theme_font_size_override("font_size", 4)
-	lbl_boss_phase.add_theme_color_override("font_color", HunterUIStyle.COLOR_HP_CRIMSON)
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_boss_phase, 8, HunterUIStyle.COLOR_HP_CRIMSON)
 	hbox_phase.add_child(lbl_boss_phase)
 
 	lbl_hp_val = Label.new()
 	lbl_hp_val.text = "100 / 100"
 	lbl_hp_val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl_hp_val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	lbl_hp_val.add_theme_font_size_override("font_size", 4)
-	lbl_hp_val.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_pixel(lbl_hp_val, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
 	hbox_phase.add_child(lbl_hp_val)
 
 	# Linha 2: Barra de HP com Ghost Bar (Damage Catch-Up)

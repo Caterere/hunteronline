@@ -426,7 +426,20 @@ func _on_attack_hit(
 		EventBus.target_changed.emit(enemy)
 
 	if enemy_system != null and enemy_system.has_method("take_damage"):
-		if is_heavy_attack and enemy_system.has_method("aplicar_dano_postura"):
+		if enemy_system.has_method("aplicar_dano_defesa"):
+			var def_max: float = float(enemy_system.get("defesa_barra_max")) if enemy_system.get("defesa_barra_max") != null else 100.0
+			if is_heavy_attack:
+				# Golpe forte causa dano massivo na barra de defesa (50% da barra)
+				enemy_system.aplicar_dano_defesa(def_max * 0.50, true)
+			else:
+				# Sequência de fracos drena progressivamente: 15% -> 20% -> 30%
+				var pct: float = 0.15
+				match combo_step:
+					0: pct = 0.15
+					1: pct = 0.20
+					2: pct = 0.30
+				enemy_system.aplicar_dano_defesa(def_max * pct, false)
+		elif is_heavy_attack and enemy_system.has_method("aplicar_dano_postura"):
 			enemy_system.aplicar_dano_postura(45.0)
 		enemy_system.take_damage(dano, ultima_direcao, knockback_val, owner_body)
 	elif alvo.has_method("receber_dano"):

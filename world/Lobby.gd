@@ -20,9 +20,26 @@ const InteractionComponent = preload("res://entities/components/InteractionCompo
 
 func _ready() -> void:
 	if GameManager != null and not GameManager.can_enter_lobby():
-		push_warning("[GameManager] ⚠️ ACESSO AO LOBBY BLOQUEADO: Nenhum personagem selecionado ou criado. Redirecionando para Seleção de Personagem.")
-		get_tree().change_scene_to_file.call_deferred("res://ui/CharacterSelection/CharacterSelectionUI.tscn")
-		return
+		if OS.is_debug_build():
+			# Modo Debug/Editor: Inicializa caçador padrão automaticamente para permitir F6 direto no Lobby
+			if PlayerData != null:
+				PlayerData.is_character_ready = true
+				if PlayerData.nome_personagem.is_empty():
+					PlayerData.nome_personagem = "Hunter"
+				if not PlayerData.attributes.has("vida"):
+					PlayerData.attributes = {
+						"vida": 100, "vida_max": 100,
+						"forca": 10, "defesa": 10, "velocidade": 10,
+						"aura": 100.0, "aura_max": 100.0,
+						"nivel_nen": 1, "xp_nen": 0, "nivel": 1, "gold": 100
+					}
+			if GameManager != null:
+				GameManager.set_flow_state(GameManager.GameFlowState.LOBBY)
+				GameManager.change_state(GameManager.GameState.IN_GAME)
+		else:
+			push_warning("[GameManager] ⚠️ ACESSO AO LOBBY BLOQUEADO: Nenhum personagem selecionado ou criado. Redirecionando para Seleção de Personagem.")
+			get_tree().change_scene_to_file.call_deferred("res://ui/CharacterSelection/CharacterSelectionUI.tscn")
+			return
 
 	if GameManager != null:
 		GameManager.set_flow_state(GameManager.GameFlowState.LOBBY)
@@ -47,23 +64,25 @@ func _ready() -> void:
 	_popular_distrito_dimensional()
 	_popular_faccoes_e_segredos()
 	_popular_portao_mundo_exterior()
-	_adicionar_detalhes_ambiente_lobby()
+	_configurar_limites_camera()
+	_criar_limites_do_mapa()
 
-	# Fluxo de Início: Tutorial Inicial Guiado -> Conclusão -> Story Intro Tour
-	if not PlayerData.tutorial_concluido and not PlayerData.quest_states.get("tutorial_elena_auto_iniciado", false):
-		PlayerData.quest_states["tutorial_elena_auto_iniciado"] = true
-		await get_tree().create_timer(0.8).timeout
-		var elena = get_node_or_null("RecepcionistaElena") as NPC
-		var ply = get_tree().get_first_node_in_group("player") as CharacterBody2D
-		if elena != null and ply != null and not elena._interacao_em_processamento:
-			elena._on_interacted(ply)
-	elif PlayerData.tutorial_concluido and not PlayerData.tour_lobby_concluido and not PlayerData.quest_states.get("tour_lobby_auto_iniciado", false):
-		PlayerData.quest_states["tour_lobby_auto_iniciado"] = true
-		await get_tree().create_timer(0.8).timeout
-		var elena = get_node_or_null("RecepcionistaElena") as NPC
-		var ply = get_tree().get_first_node_in_group("player") as CharacterBody2D
-		if elena != null and ply != null:
-			StoryCutsceneManager.executar_tour_lobby_cutscene(get_tree(), elena, ply)
+	# Fluxo de Início: apenas quando o Lobby é a cena principal em execução
+	if get_tree().current_scene == self:
+		if not PlayerData.tutorial_concluido and not PlayerData.quest_states.get("tutorial_elena_auto_iniciado", false):
+			PlayerData.quest_states["tutorial_elena_auto_iniciado"] = true
+			await get_tree().create_timer(0.8).timeout
+			var elena = get_node_or_null("RecepcionistaElena") as NPC
+			var ply = get_tree().get_first_node_in_group("player") as CharacterBody2D
+			if elena != null and ply != null and not elena._interacao_em_processamento:
+				elena._on_interacted(ply)
+		elif PlayerData.tutorial_concluido and not PlayerData.tour_lobby_concluido and not PlayerData.quest_states.get("tour_lobby_auto_iniciado", false):
+			PlayerData.quest_states["tour_lobby_auto_iniciado"] = true
+			await get_tree().create_timer(0.8).timeout
+			var elena = get_node_or_null("RecepcionistaElena") as NPC
+			var ply = get_tree().get_first_node_in_group("player") as CharacterBody2D
+			if elena != null and ply != null:
+				StoryCutsceneManager.executar_tour_lobby_cutscene(get_tree(), elena, ply)
 
 
 func _garantir_tutorial_ui() -> void:
@@ -106,16 +125,17 @@ func _popular_praca_central() -> void:
 			var elena = scn_npc.instantiate()
 			elena.name = "RecepcionistaElena"
 			elena.set_script(load("res://entities/npc/recepcionista/RecepcionistaHunter.gd"))
-			elena.position = Vector2(320, 0)
+			elena.position = Vector2(110, -20)
 			
 			var spr = elena.get_node_or_null("Sprite2D") as Sprite2D
 			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 1
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(1.0, 0.85, 0.9, 1.0)
+				spr.texture = load("res://assets/sprites/characters/npc_recepcionista_elena_8dir.png")
+				spr.hframes = 8
+				spr.vframes = 1
+				spr.frame = 0
+				spr.scale = Vector2(1.0, 1.0)
+				spr.position = Vector2(0, -18)
+				spr.modulate = Color.WHITE
 			add_child(elena)
 
 	# Instrutor de Combate & Tutorial
@@ -125,84 +145,85 @@ func _popular_praca_central() -> void:
 			var instrutor = scn_npc.instantiate()
 			instrutor.name = "InstrutorCombate"
 			instrutor.set_script(load("res://entities/npc/tutorial/CombatInstructorNPC.gd"))
-			instrutor.position = Vector2(-320, 0)
+			instrutor.position = Vector2(-110, -20)
 			var spr = instrutor.get_node_or_null("Sprite2D") as Sprite2D
 			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
+				spr.texture = load("res://assets/sprites/characters/npc_instrutor_combate_8dir.png")
+				spr.hframes = 8
+				spr.vframes = 1
 				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(0.4, 0.8, 1.0, 1.0)
+				spr.scale = Vector2(1.0, 1.0)
+				spr.position = Vector2(0, -18)
+				spr.modulate = Color.WHITE
 			add_child(instrutor)
 
-	# Guia da História (Story Gateway NPC)
+	# Guia da História (Story Gateway NPC / Examinador Oficial)
 	if get_node_or_null("StoryGatewayNPC") == null:
 		var scn_npc = load("res://entities/npc/NPC.tscn")
 		if scn_npc:
 			var guia = scn_npc.instantiate()
 			guia.name = "StoryGatewayNPC"
 			guia.set_script(load("res://entities/npc/story_gateway/StoryGatewayNPC.gd"))
-			guia.position = Vector2(120, -100)
+			guia.position = Vector2(0, -90)
 			var spr = guia.get_node_or_null("Sprite2D") as Sprite2D
 			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 2
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(0.2, 0.9, 1.0, 1.0)
+				spr.texture = load("res://assets/sprites/characters/npc_examinador_oficial_8dir.png")
+				spr.hframes = 8
+				spr.vframes = 1
+				spr.frame = 0
+				spr.scale = Vector2(1.0, 1.0)
+				spr.position = Vector2(0, -18)
+				spr.modulate = Color.WHITE
 			add_child(guia)
 
 	# Estátua do 12º Presidente Isaac Netero
 	if get_node_or_null("EstatuaNetero") == null:
-		_criar_estatua_netero(Vector2(0, -280))
+		_criar_estatua_netero(Vector2(0, -260))
 
 	# Quadro de Procurados (Bounties Board)
 	if get_node_or_null("QuadroBounties") == null:
-		_criar_quadro_bounties(Vector2(0, 300))
+		_criar_quadro_bounties(Vector2(-60, 70))
 
 
 func _criar_estatua_netero(pos: Vector2) -> void:
 	var body := StaticBody2D.new()
 	body.name = "EstatuaNetero"
 	body.position = pos
+	body.y_sort_enabled = true
 	body.set_script(load("res://entities/npc/estatua_netero/EstatuaNetero.gd"))
 	
 	var spr := Sprite2D.new()
-	spr.texture = load("res://assets/sprites/characters/player.png")
-	spr.hframes = 6
-	spr.vframes = 10
-	spr.frame = 0
-	spr.position = Vector2(0, -18)
-	spr.scale = Vector2(1.2, 1.2)
-	spr.modulate = Color(0.82, 0.78, 0.72, 1.0)
+	spr.texture = load("res://assets/sprites/objects/estatua_netero_monument.png")
+	spr.hframes = 1
+	spr.vframes = 1
+	spr.position = Vector2(0, -44)
+	spr.modulate = Color.WHITE
 	body.add_child(spr)
 	
 	var col := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(18, 12)
+	rect.size = Vector2(36, 16)
 	col.shape = rect
-	col.position = Vector2(0, -4)
+	col.position = Vector2(0, -8)
 	body.add_child(col)
 
 	var lbl := Label.new()
 	lbl.text = "🏛️ Estátua de Netero"
-	lbl.position = Vector2(-50, -32)
-	lbl.custom_minimum_size = Vector2(100, 10)
+	lbl.position = Vector2(-70, -96)
+	lbl.custom_minimum_size = Vector2(140, 16)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 3)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(1.0, 0.9, 0.5))
 	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
 	body.add_child(lbl)
 	
 	var inter = InteractionComponent.new()
 	inter.name = "InteractionComponent"
 	inter.interaction_text = "[E] Orar na Estátua de Netero"
-	inter.interaction_radius = 18.0
+	inter.interaction_radius = 28.0
 	body.add_child(inter)
 		
 	add_child(body)
+
 
 
 func _criar_quadro_bounties(pos: Vector2) -> void:
@@ -223,23 +244,22 @@ func _criar_quadro_bounties(pos: Vector2) -> void:
 		spr.vframes = 10
 		spr.frame = 0
 		spr.modulate = Color(0.7, 0.5, 0.2, 1.0)
-	spr.position = Vector2(0, -10)
-	spr.scale = Vector2(0.8, 0.8)
+	spr.position = Vector2(0, -12)
 	body.add_child(spr)
 	
 	var col := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(14, 8)
+	rect.size = Vector2(14, 6)
 	col.shape = rect
+	col.position = Vector2(0, -2)
 	body.add_child(col)
 
 	var lbl := Label.new()
 	lbl.text = "📜 Quadro de Procurados"
-	lbl.position = Vector2(-50, -26)
-	lbl.custom_minimum_size = Vector2(100, 10)
+	lbl.position = Vector2(-60, -28)
+	lbl.custom_minimum_size = Vector2(120, 14)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 3)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.7, 0.4))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(1.0, 0.7, 0.4))
 	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
 	body.add_child(lbl)
 	
@@ -263,7 +283,7 @@ func _popular_distrito_mestres() -> void:
 		if scn_wing:
 			var wing = scn_wing.instantiate()
 			wing.name = "Wing"
-			wing.position = Vector2(400, -640)
+			wing.position = Vector2(200, -420)
 			add_child(wing)
 
 	# Discípulo Zushi
@@ -273,16 +293,48 @@ func _popular_distrito_mestres() -> void:
 			var zushi = scn_npc.instantiate()
 			zushi.name = "Zushi"
 			zushi.set_script(load("res://entities/npc/zushi/Zushi.gd"))
-			zushi.position = Vector2(640, -640)
+			zushi.position = Vector2(260, -420)
 			var spr = zushi.get_node_or_null("Sprite2D") as Sprite2D
 			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
+				spr.texture = load("res://assets/sprites/characters/npc_discipulo_zushi_8dir.png")
+				spr.hframes = 8
+				spr.vframes = 1
 				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(1.0, 0.95, 0.7, 1.0)
+				spr.scale = Vector2(1.0, 1.0)
+				spr.position = Vector2(0, -18)
+				spr.modulate = Color.WHITE
 			add_child(zushi)
+
+	# Boneco de Treino de Artes Marciais (Wing Chun Sparring Dummy)
+	if get_node_or_null("BonecoTreinoDojo") == null:
+		var dummy := StaticBody2D.new()
+		dummy.name = "BonecoTreinoDojo"
+		dummy.position = Vector2(230, -450)
+		dummy.y_sort_enabled = true
+		
+		var spr := Sprite2D.new()
+		spr.texture = load("res://assets/sprites/objects/boneco_treino_dummy.png")
+		spr.scale = Vector2(0.52, 0.52)
+		spr.position = Vector2(0, -10)
+		dummy.add_child(spr)
+		
+		var col := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = Vector2(14, 8)
+		col.shape = rect
+		col.position = Vector2(0, -4)
+		dummy.add_child(col)
+		
+		var lbl := Label.new()
+		lbl.text = "🥋 Boneco de Treino"
+		lbl.position = Vector2(-50, -48)
+		lbl.custom_minimum_size = Vector2(100, 14)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(1.0, 0.85, 0.4))
+		lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
+		dummy.add_child(lbl)
+		
+		add_child(dummy)
 
 	# Biscuit Krueger (Hatsu & Vows)
 	if get_node_or_null("Biscuit") == null:
@@ -290,7 +342,7 @@ func _popular_distrito_mestres() -> void:
 		if scn_biscuit:
 			var biscuit = scn_biscuit.instantiate()
 			biscuit.name = "Biscuit"
-			biscuit.position = Vector2(880, -640)
+			biscuit.position = Vector2(340, -420)
 			add_child(biscuit)
 
 	# Mestre Alquimista de Nen (Troca de Afinidade)
@@ -299,23 +351,65 @@ func _popular_distrito_mestres() -> void:
 		if scn_troca:
 			var troca = scn_troca.instantiate()
 			troca.name = "TrocaCategoriaNenNPC"
-			troca.position = Vector2(1120, -640)
+			troca.position = Vector2(420, -420)
 			add_child(troca)
 
 
 # ============================================================
-# 3. DISTRITO COMERCIAL & FORJA (OESTE LONGÍNQUO)
+# 3. DISTRITO COMERCIAL & FORJA (OESTE)
 # ============================================================
 
 func _popular_distrito_comercial() -> void:
+	# 1. Forja & Oficina do Ferreiro (Landmark)
+	if get_node_or_null("ForjaFerreiroWorkshop") == null:
+		var forge := StaticBody2D.new()
+		forge.name = "ForjaFerreiroWorkshop"
+		forge.position = Vector2(-360, -140)
+		forge.y_sort_enabled = true
+		
+		var spr := Sprite2D.new()
+		spr.texture = load("res://assets/sprites/objects/forja_ferreiro_workshop.png")
+		spr.position = Vector2(0, -26)
+		forge.add_child(spr)
+		
+		var col := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = Vector2(40, 24)
+		col.shape = rect
+		col.position = Vector2(0, -12)
+		forge.add_child(col)
+		
+		add_child(forge)
+
 	# Ferreiro de Equipamentos & Acessórios
 	if get_node_or_null("Ferreiro") == null:
 		var scn_ferreiro = load("res://entities/npc/ferreiro/Ferreiro.tscn")
 		if scn_ferreiro:
 			var ferreiro = scn_ferreiro.instantiate()
 			ferreiro.name = "Ferreiro"
-			ferreiro.position = Vector2(-640, -240)
+			ferreiro.position = Vector2(-320, -140)
 			add_child(ferreiro)
+
+	# 2. Tenda do Mercador Hunter (Landmark)
+	if get_node_or_null("TendaMercadorStall") == null:
+		var stall := StaticBody2D.new()
+		stall.name = "TendaMercadorStall"
+		stall.position = Vector2(-240, -140)
+		stall.y_sort_enabled = true
+		
+		var spr := Sprite2D.new()
+		spr.texture = load("res://assets/sprites/objects/tenda_mercador_stall.png")
+		spr.position = Vector2(0, -26)
+		stall.add_child(spr)
+		
+		var col := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = Vector2(42, 22)
+		col.shape = rect
+		col.position = Vector2(0, -10)
+		stall.add_child(col)
+		
+		add_child(stall)
 
 	# Vendedor / Mercador de Suprimentos Hunter
 	if get_node_or_null("Vendedor") == null:
@@ -323,7 +417,7 @@ func _popular_distrito_comercial() -> void:
 		if scn_vendedor:
 			var vendedor = scn_vendedor.instantiate()
 			vendedor.name = "Vendedor"
-			vendedor.position = Vector2(-640, 240)
+			vendedor.position = Vector2(-200, -140)
 			add_child(vendedor)
 
 
@@ -335,12 +429,12 @@ func _popular_distrito_dimensional() -> void:
 	# Portal Hunter (Viagem para os 9 Arcos do Modo História)
 	var portal = get_node_or_null("PortalHunter")
 	if portal != null:
-		portal.position = Vector2(560, 440)
+		portal.position = Vector2(300, 80)
 
 	# Examinador Chrono (Fendas Temporais - 50 Missões Paralelas)
 	var pq_npc = get_node_or_null("ParallelQuestNPC")
 	if pq_npc != null:
-		pq_npc.position = Vector2(840, 440)
+		pq_npc.position = Vector2(360, 80)
 
 	# Curador das Bestas de Nen (Santuário & Catálogo)
 	if get_node_or_null("CuradorBestasNen") == null:
@@ -349,7 +443,7 @@ func _popular_distrito_dimensional() -> void:
 			var curador = scn_npc.instantiate()
 			curador.name = "CuradorBestasNen"
 			curador.set_script(load("res://entities/npc/curador_besta/NenBeastHandlerNPC.gd"))
-			curador.position = Vector2(1120, 440)
+			curador.position = Vector2(440, 80)
 			var spr = curador.get_node_or_null("Sprite2D") as Sprite2D
 			if spr:
 				spr.texture = load("res://assets/sprites/characters/player.png")
@@ -366,7 +460,7 @@ func _popular_distrito_dimensional() -> void:
 
 
 # ============================================================
-# 5. BAIRRO RESIDENCIAL (CASA DO JOGADOR - OESTE LONGÍNQUO)
+# 5. BAIRRO RESIDENCIAL (CASA DO JOGADOR - OESTE)
 # ============================================================
 
 func _popular_bairro_residencial() -> void:
@@ -375,37 +469,37 @@ func _popular_bairro_residencial() -> void:
 
 	var body := StaticBody2D.new()
 	body.name = "PortaCasaJogador"
-	body.position = Vector2(-1040, 0)
+	body.position = Vector2(-480, 0)
+	body.y_sort_enabled = true
 
 	var spr := Sprite2D.new()
-	spr.texture = load("res://assets/sprites/characters/player.png")
-	spr.hframes = 6
-	spr.vframes = 10
-	spr.frame = 0
-	spr.position = Vector2(0, -17)
-	spr.modulate = Color(0.2, 0.8, 0.4, 1.0)
+	spr.texture = load("res://assets/sprites/objects/casa_cacador_facade.png")
+	spr.hframes = 1
+	spr.vframes = 1
+	spr.position = Vector2(0, -26)
+	spr.modulate = Color.WHITE
 	body.add_child(spr)
 
 	var col := CollisionShape2D.new()
 	var box := RectangleShape2D.new()
-	box.size = Vector2(18, 14)
+	box.size = Vector2(44, 20)
 	col.shape = box
+	col.position = Vector2(0, -14)
 	body.add_child(col)
 
 	var lbl := Label.new()
 	lbl.text = "🏠 Casa do Caçador\n[E] Entrar"
-	lbl.position = Vector2(-50, -32)
-	lbl.custom_minimum_size = Vector2(100, 14)
+	lbl.position = Vector2(-60, -66)
+	lbl.custom_minimum_size = Vector2(120, 16)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 3)
-	lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(0.4, 1.0, 0.6))
 	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
 	body.add_child(lbl)
 
 	var inter = InteractionComponent.new()
 	inter.name = "InteractionComponent"
 	inter.interaction_text = "[E] Entrar na Casa"
-	inter.interaction_radius = 20.0
+	inter.interaction_radius = 28.0
 	inter.interacted.connect(func(_player):
 		var trans = get_node_or_null("/root/SceneTransition")
 		if trans != null and trans.has_method("mudar_cena"):
@@ -419,7 +513,7 @@ func _popular_bairro_residencial() -> void:
 
 
 # ============================================================
-# 6. DISTRITO DA TORRE CELESTIAL (LESTE LONGÍNQUO)
+# 6. DISTRITO DA TORRE CELESTIAL (LESTE)
 # ============================================================
 
 func _popular_torre_celestial() -> void:
@@ -428,7 +522,7 @@ func _popular_torre_celestial() -> void:
 
 	var body := StaticBody2D.new()
 	body.name = "PortalTorreCelestial"
-	body.position = Vector2(1400, 0)
+	body.position = Vector2(560, 0)
 
 	var spr := Sprite2D.new()
 	spr.texture = load("res://assets/sprites/characters/player.png")
@@ -447,11 +541,10 @@ func _popular_torre_celestial() -> void:
 
 	var lbl := Label.new()
 	lbl.text = "🏯 Torre Celestial\n[E] Entrar no Elevador"
-	lbl.position = Vector2(-60, -32)
-	lbl.custom_minimum_size = Vector2(120, 14)
+	lbl.position = Vector2(-70, -34)
+	lbl.custom_minimum_size = Vector2(140, 16)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 3)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(1.0, 0.85, 0.3))
 	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
 	body.add_child(lbl)
 
@@ -492,11 +585,14 @@ func _popular_npcs_vivos() -> void:
 		var body := CharacterBody2D.new()
 		body.name = n_name
 		body.position = posicoes[i]
+		body.collision_layer = 8
+		body.collision_mask = 1
 
 		var col := CollisionShape2D.new()
-		var box := RectangleShape2D.new()
-		box.size = Vector2(16, 24)
-		col.shape = box
+		var circ := CircleShape2D.new()
+		circ.radius = 6.0
+		col.shape = circ
+		col.position = Vector2(0, -3)
 		body.add_child(col)
 
 		var spr := Sprite2D.new()
@@ -638,73 +734,105 @@ func _popular_portao_mundo_exterior() -> void:
 	var portao := MapTransitionArea.new()
 	portao.name = "PortaoMundoExterior"
 	portao.position = Vector2(0, 480)
-	portao.portal_name = "Vale de Padokia (Mundo Exterior)"
-	portao.map_subtitle = "Primeira Região Real — Cidade, Estrada, Floresta & Ruínas"
-	portao.target_scene_path = "res://world/maps/regiao_vale_padokia.tscn"
-	portao.target_spawn_id = &"default"
+	portao.portal_name = "Estrada Real de Padokia (Mundo Exterior)"
+	portao.map_subtitle = "Caminho dos Caçadores — Conexão para a Floresta dos Vestígios"
+	portao.target_scene_path = "res://world/maps/estrada_padokia.tscn"
+	portao.target_spawn_id = &"from_lobby"
 	portao.requires_e_key = true
 
 	var col := CollisionShape2D.new()
 	var box := RectangleShape2D.new()
-	box.size = Vector2(60, 24)
+	box.size = Vector2(32, 16)
 	col.shape = box
+	col.position = Vector2(0, 0)
 	portao.add_child(col)
 
 	var spr := Sprite2D.new()
-	spr.texture = load("res://assets/sprites/characters/player.png")
-	spr.hframes = 6
-	spr.vframes = 10
-	spr.frame = 0
-	spr.position = Vector2(0, -14)
-	spr.scale = Vector2(1.5, 1.2)
-	spr.modulate = Color(0.2, 0.9, 0.5, 0.9)
+	spr.texture = load("res://assets/sprites/objects/portao_padokia_arch.png")
+	spr.hframes = 1
+	spr.vframes = 1
+	spr.position = Vector2(0, -28)
+	spr.modulate = Color.WHITE
 	portao.add_child(spr)
 
+	# Pilares de pedra sólidos nas laterais do arco (passagem livre no centro)
+	var pilares := StaticBody2D.new()
+	pilares.name = "PortaoPilaresColisao"
+	pilares.collision_layer = 1
+	pilares.collision_mask = 0
+
+	var col_esq := CollisionShape2D.new()
+	var rect_esq := RectangleShape2D.new()
+	rect_esq.size = Vector2(14, 16)
+	col_esq.shape = rect_esq
+	col_esq.position = Vector2(-24, -8)
+	pilares.add_child(col_esq)
+
+	var col_dir := CollisionShape2D.new()
+	var rect_dir := RectangleShape2D.new()
+	rect_dir.size = Vector2(14, 16)
+	col_dir.shape = rect_dir
+	col_dir.position = Vector2(24, -8)
+	pilares.add_child(col_dir)
+
+	portao.add_child(pilares)
 	add_child(portao)
 
 
 func _criar_chao_grama() -> void:
-	if get_node_or_null("ChaoGramaLobby") != null:
-		return
-
-	var tex = load("res://assets/sprites/tilesets/grass.png") as Texture2D
-	if tex == null:
-		return
-
-	var spr := Sprite2D.new()
-	spr.name = "ChaoGramaLobby"
-	spr.texture = tex
-	spr.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-	spr.region_enabled = true
-	spr.region_rect = Rect2(-4000.0, -4000.0, 14000.0, 10000.0)
-	spr.position = Vector2(1500.0, 400.0)
-	spr.z_index = -100
-	add_child(spr)
-	move_child(spr, 0)
+	# O terreno, estradas e estruturas do Lobby são renderizados pelas camadas
+	# TileMapLayer nativas (Chao, Caminhos, Praca, Estruturas, Decor) configuradas em world/lobby.tscn
+	var old_chao = get_node_or_null("ChaoGramaLobby")
+	if old_chao != null:
+		old_chao.queue_free()
 
 
-func _adicionar_detalhes_ambiente_lobby() -> void:
-	# 1. Configurar limites da câmera no Jogador
+# ============================================================
+# 10. LIMITES DE CÂMERA & BARREIRAS FÍSICAS PERIMETRAIS
+# ============================================================
+
+func _configurar_limites_camera() -> void:
 	var player = get_tree().get_first_node_in_group("player")
-	if player != null and player.has_method("configurar_limites_camera"):
-		player.configurar_limites_camera(Rect2(-2200, -1600, 4400, 3200))
+	if player != null:
+		var cam = player.get_node_or_null("Camera2D") as Camera2D
+		if cam != null:
+			cam.limit_left = -1180
+			cam.limit_top = -880
+			cam.limit_right = 1680
+			cam.limit_bottom = 800
+			cam.position_smoothing_enabled = true
+			cam.position_smoothing_speed = 8.0
 
-	# 2. Partículas atmosféricas de folhas / brisa na Praça Central
-	if get_node_or_null("AmbientLeavesParticles") == null:
-		var leaves := CPUParticles2D.new()
-		leaves.name = "AmbientLeavesParticles"
-		leaves.position = Vector2(0, -200)
-		leaves.amount = 25
-		leaves.lifetime = 6.0
-		leaves.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
-		leaves.emission_rect_extents = Vector2(800, 400)
-		leaves.direction = Vector2(1.0, 0.4).normalized()
-		leaves.spread = 20.0
-		leaves.initial_velocity_min = 25.0
-		leaves.initial_velocity_max = 55.0
-		leaves.scale_amount_min = 1.5
-		leaves.scale_amount_max = 3.0
-		leaves.color = Color(0.3, 0.85, 0.4, 0.5)
-		leaves.z_index = 50
-		add_child(leaves)
 
+func _criar_limites_do_mapa() -> void:
+	if get_node_or_null("LimitesLobbyPerimetro") != null:
+		return
+
+	var parent_limites := StaticBody2D.new()
+	parent_limites.name = "LimitesLobbyPerimetro"
+	parent_limites.collision_layer = 1
+	parent_limites.collision_mask = 0
+
+	# 1. Barreira Norte (Muralha Norte da Capital)
+	_adicionar_segmento_colisao(parent_limites, Vector2(250, -860), Vector2(2860, 48))
+
+	# 2. Barreira Oeste (Colinas e Muros do Distrito Residencial)
+	_adicionar_segmento_colisao(parent_limites, Vector2(-1180, -40), Vector2(48, 1680))
+
+	# 3. Barreira Leste (Abismo e Muralhas da Torre Celestial)
+	_adicionar_segmento_colisao(parent_limites, Vector2(1680, -40), Vector2(48, 1680))
+
+	# 4. Barreira Sul (Muro Sul com vão para o Portão do Mundo Exterior em X=0)
+	_adicionar_segmento_colisao(parent_limites, Vector2(-600, 780), Vector2(1160, 48))
+	_adicionar_segmento_colisao(parent_limites, Vector2(860, 780), Vector2(1640, 48))
+
+	add_child(parent_limites)
+
+
+func _adicionar_segmento_colisao(parent: Node2D, pos: Vector2, tamanho: Vector2) -> void:
+	var col := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = tamanho
+	col.shape = rect
+	col.position = pos
+	parent.add_child(col)

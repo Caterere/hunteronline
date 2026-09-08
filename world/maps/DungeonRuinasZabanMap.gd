@@ -126,10 +126,15 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool) -> void:
 			if is_boss:
 				boss_node = enemy
 				es.is_boss = true
-				if DataManager != null:
-					var boss_data = DataManager.get_enemy(&"guardiao_ancestral")
-					if boss_data != null:
-						es.setup_from_data(boss_data)
+				es.max_health = 600
+				es.health = 600
+				es.defense = 15
+				es.strength = 32
+				es.defesa_barra_max = 280.0
+				es.defesa_barra_atual = 280.0
+				es.tempo_defesa_quebrada = 4.0
+				es.xp_reward = 800
+				es.nen_xp_reward = 600
 				es.enemy_id = &"guardiao_ancestral"
 				es.enemy_name = nome
 				
@@ -149,6 +154,9 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool) -> void:
 				es.health = 140
 				es.defense = 10
 				es.strength = 18
+				es.defesa_barra_max = 120.0
+				es.defesa_barra_atual = 120.0
+				es.tempo_defesa_quebrada = 3.0
 				es.xp_reward = 120
 				es.nen_xp_reward = 80
 				es.enemy_id = &"sentinela_pedra"
@@ -214,9 +222,9 @@ func _criar_portal_saida(pos: Vector2) -> void:
 	var portal = load("res://world/components/MapTransitionArea.gd").new()
 	portal.name = "PortalSaidaDungeon"
 	portal.position = pos
-	portal.target_scene_path = "res://world/maps/regiao_vale_padokia.tscn"
-	portal.portal_name = "Retornar ao Vale de Padokia"
-	portal.target_spawn_id = &"saida_ruinas"
+	portal.target_scene_path = "res://world/maps/floresta_vestigios.tscn"
+	portal.target_spawn_id = &"from_dungeon"
+	portal.portal_name = "Retornar à Floresta dos Vestígios"
 	portal.requires_e_key = true
 	
 	var col = CollisionShape2D.new()

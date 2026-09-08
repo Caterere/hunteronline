@@ -69,6 +69,8 @@ var boss_bar_panel: PanelContainer
 var lbl_boss_name: Label
 var boss_hp_bar: ProgressBar
 var lbl_boss_hp: Label
+var boss_def_bar: ProgressBar
+var lbl_boss_def: Label
 
 # Target HUD (Fase 10)
 var target_hud: TargetHUD = null
@@ -161,14 +163,14 @@ func _criar_card_jogador_top_left() -> void:
 	player_card_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	player_card_panel.offset_left = 6.0
 	player_card_panel.offset_top = 6.0
-	player_card_panel.custom_minimum_size = Vector2(132, 56)
-	player_card_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GREEN, 3))
+	player_card_panel.custom_minimum_size = Vector2(138, 58)
+	player_card_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_licenca_hunter())
 	add_child(player_card_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_left", 5)
 	margin.add_theme_constant_override("margin_top", 3)
-	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_right", 5)
 	margin.add_theme_constant_override("margin_bottom", 3)
 	player_card_panel.add_child(margin)
 
@@ -176,27 +178,24 @@ func _criar_card_jogador_top_left() -> void:
 	vbox.add_theme_constant_override("separation", 1)
 	margin.add_child(vbox)
 
-	# Linha 1: Nome do Jogador, Nível e Jenny
+	# Linha 1: Nome do Jogador, Nível e Jenny (com fontes Hunter License / Silkscreen)
 	var hbox_header := HBoxContainer.new()
 	vbox.add_child(hbox_header)
 
 	lbl_player_header = Label.new()
-	lbl_player_header.text = "🔰 HUNTER"
-	lbl_player_header.add_theme_font_size_override("font_size", 7)
-	lbl_player_header.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_player_header.text = "★ LICENÇA HUNTER"
+	HunterUIStyle.aplicar_fonte_licenca(lbl_player_header, 10, HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_player_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_player_header)
 
 	lbl_player_level_badge = Label.new()
 	lbl_player_level_badge.text = "★ Nv. 1"
-	lbl_player_level_badge.add_theme_font_size_override("font_size", 7)
-	lbl_player_level_badge.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_player_level_badge, 8, HunterUIStyle.COLOR_GOLD_LIGHT)
 	hbox_header.add_child(lbl_player_level_badge)
 
 	lbl_gold = Label.new()
-	lbl_gold.text = "💰 0 J"
-	lbl_gold.add_theme_font_size_override("font_size", 7)
-	lbl_gold.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD)
+	lbl_gold.text = "💰 0 ₳"
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_gold, 8, HunterUIStyle.COLOR_GOLD)
 	hbox_header.add_child(lbl_gold)
 
 	# Linha 1.5: Afinidade de Nen e Badge de SP Disponíveis
@@ -204,16 +203,14 @@ func _criar_card_jogador_top_left() -> void:
 	vbox.add_child(hbox_sub)
 
 	lbl_player_affinity = Label.new()
-	lbl_player_affinity.text = "◈ Aura Adormecida"
-	lbl_player_affinity.add_theme_font_size_override("font_size", 5)
-	lbl_player_affinity.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+	lbl_player_affinity.text = "◈ Nen: Adormecido"
+	HunterUIStyle.aplicar_fonte_licenca(lbl_player_affinity, 9, HunterUIStyle.COLOR_AURA_CYAN)
 	lbl_player_affinity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_sub.add_child(lbl_player_affinity)
 
 	lbl_sp_badge = Label.new()
 	lbl_sp_badge.text = "⚡ 0 SP"
-	lbl_sp_badge.add_theme_font_size_override("font_size", 5)
-	lbl_sp_badge.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_sp_badge, 7, HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_sp_badge.visible = false
 	hbox_sub.add_child(lbl_sp_badge)
 
@@ -254,15 +251,13 @@ func _criar_card_jogador_top_left() -> void:
 
 	lbl_nen_status = Label.new()
 	lbl_nen_status.text = "🥋 Nen: Inativo [N]"
-	lbl_nen_status.add_theme_font_size_override("font_size", 6)
-	lbl_nen_status.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+	HunterUIStyle.aplicar_fonte_pixel(lbl_nen_status, 7, HunterUIStyle.COLOR_AURA_CYAN)
 	lbl_nen_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_status.add_child(lbl_nen_status)
 
 	lbl_beast_status = Label.new()
 	lbl_beast_status.text = ""
-	lbl_beast_status.add_theme_font_size_override("font_size", 6)
-	lbl_beast_status.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_PURPLE)
+	HunterUIStyle.aplicar_fonte_pixel(lbl_beast_status, 7, HunterUIStyle.COLOR_AURA_PURPLE)
 	hbox_status.add_child(lbl_beast_status)
 
 	# Linha 6: Micro-pills de Condições Ativas de Combate
@@ -273,10 +268,10 @@ func _criar_card_jogador_top_left() -> void:
 
 func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: String) -> Dictionary:
 	var container := Control.new()
-	container.custom_minimum_size = Vector2(122, 8)
+	container.custom_minimum_size = Vector2(126, 8)
 
 	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(122, 8)
+	bar.custom_minimum_size = Vector2(126, 8)
 	bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bar.show_percentage = false
 	bar.min_value = 0
@@ -310,9 +305,8 @@ func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: Strin
 	lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 6)
-	lbl.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
-	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	HunterUIStyle.aplicar_fonte_pixel(lbl, 7, Color.WHITE)
+	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
 	lbl.add_theme_constant_override("shadow_offset_x", 1)
 	lbl.add_theme_constant_override("shadow_offset_y", 1)
 	container.add_child(lbl)
@@ -326,20 +320,20 @@ func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: Strin
 
 func _criar_boss_bar() -> void:
 	boss_bar_panel = PanelContainer.new()
-	boss_bar_panel.custom_minimum_size = Vector2(195, 18)
+	boss_bar_panel.custom_minimum_size = Vector2(210, 22)
 	boss_bar_panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	boss_bar_panel.offset_left = -98.0
-	boss_bar_panel.offset_right = 98.0
+	boss_bar_panel.offset_left = -105.0
+	boss_bar_panel.offset_right = 105.0
 	boss_bar_panel.offset_top = 6.0
 	boss_bar_panel.visible = false
-	boss_bar_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_HP_CRIMSON, 3))
+	boss_bar_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_boss_banner())
 	add_child(boss_bar_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 4)
-	margin.add_theme_constant_override("margin_right", 4)
-	margin.add_theme_constant_override("margin_top", 1)
-	margin.add_theme_constant_override("margin_bottom", 1)
+	margin.add_theme_constant_override("margin_left", 6)
+	margin.add_theme_constant_override("margin_right", 6)
+	margin.add_theme_constant_override("margin_top", 2)
+	margin.add_theme_constant_override("margin_bottom", 2)
 	boss_bar_panel.add_child(margin)
 
 	var vbox := VBoxContainer.new()
@@ -348,13 +342,12 @@ func _criar_boss_bar() -> void:
 
 	lbl_boss_name = Label.new()
 	lbl_boss_name.text = "👑 CHEFE"
-	lbl_boss_name.add_theme_font_size_override("font_size", 7)
-	lbl_boss_name.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	HunterUIStyle.aplicar_fonte_titulo(lbl_boss_name, 13, HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_boss_name)
 
 	var bar_box := Control.new()
-	bar_box.custom_minimum_size = Vector2(183, 7)
+	bar_box.custom_minimum_size = Vector2(196, 8)
 	vbox.add_child(bar_box)
 
 	boss_hp_bar = ProgressBar.new()
@@ -369,13 +362,33 @@ func _criar_boss_bar() -> void:
 	lbl_boss_hp.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	lbl_boss_hp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_boss_hp.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl_boss_hp.add_theme_font_size_override("font_size", 6)
-	lbl_boss_hp.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_boss_hp, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_boss_hp.add_theme_color_override("font_shadow_color", Color.BLACK)
 	bar_box.add_child(lbl_boss_hp)
 
+	# Barra de Defesa / Guarda do Chefe
+	var def_box := Control.new()
+	def_box.custom_minimum_size = Vector2(196, 6)
+	vbox.add_child(def_box)
 
-func notificar_boss_status(nome: String, hp: int, max_hp: int) -> void:
+	boss_def_bar = ProgressBar.new()
+	boss_def_bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	boss_def_bar.show_percentage = false
+	boss_def_bar.add_theme_stylebox_override("background", HunterUIStyle.criar_style_progress_bg())
+	boss_def_bar.add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(HunterUIStyle.COLOR_AURA_CYAN))
+	def_box.add_child(boss_def_bar)
+
+	lbl_boss_def = Label.new()
+	lbl_boss_def.text = "DEFESA"
+	lbl_boss_def.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	lbl_boss_def.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_boss_def.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_boss_def, 6, HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_boss_def.add_theme_color_override("font_shadow_color", Color.BLACK)
+	def_box.add_child(lbl_boss_def)
+
+
+func notificar_boss_status(nome: String, hp: int, max_hp: int, def_val: float = -1.0, max_def: float = -1.0, quebrada: bool = false) -> void:
 	if boss_bar_panel == null: return
 	boss_bar_panel.visible = true
 	lbl_boss_name.text = "👑 " + nome.to_upper()
@@ -383,8 +396,66 @@ func notificar_boss_status(nome: String, hp: int, max_hp: int) -> void:
 	boss_hp_bar.value = clamp(hp, 0, max_hp)
 	var pct: int = int((float(hp) / float(max(1, max_hp))) * 100.0)
 	lbl_boss_hp.text = "%s / %s (%d%%)" % [_formatar_numero(hp), _formatar_numero(max_hp), pct]
+
+	if boss_def_bar != null and def_val >= 0.0 and max_def > 0.0:
+		boss_def_bar.max_value = max_def
+		boss_def_bar.value = clamp(def_val, 0.0, max_def)
+		if quebrada or def_val <= 0.0:
+			lbl_boss_def.text = "💥 DEFESA QUEBRADA! (VULNERÁVEL)"
+			lbl_boss_def.modulate = Color(1.0, 0.35, 0.35, 1.0)
+			boss_def_bar.add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(Color(1.0, 0.25, 0.25, 0.85)))
+		else:
+			var pct_def: int = int((def_val / max_def) * 100.0)
+			lbl_boss_def.text = "🛡️ DEFESA: %d%%" % pct_def
+			lbl_boss_def.modulate = Color.WHITE
+			boss_def_bar.add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(HunterUIStyle.COLOR_AURA_CYAN))
+
 	if hp <= 0:
 		esconder_boss_bar()
+
+
+func registrar_boss(es: Node) -> void:
+	if es == null: return
+	var e_name = es.get("enemy_name") if es.get("enemy_name") != null else "CHEFE"
+	var cur_hp = es.get("health") if es.get("health") != null else 100
+	var m_hp = es.get("max_health") if es.get("max_health") != null else 100
+	var cur_def = float(es.get("defesa_barra_atual")) if es.get("defesa_barra_atual") != null else -1.0
+	var m_def = float(es.get("defesa_barra_max")) if es.get("defesa_barra_max") != null else -1.0
+	var is_brk = bool(es.get("em_defesa_quebrada")) if es.get("em_defesa_quebrada") != null else false
+	notificar_boss_status(str(e_name), int(cur_hp), int(m_hp), cur_def, m_def, is_brk)
+
+	if es.has_signal("health_changed"):
+		es.health_changed.connect(func(c_hp, max_h):
+			var b_cur_def = float(es.get("defesa_barra_atual")) if es.get("defesa_barra_atual") != null else -1.0
+			var b_m_def = float(es.get("defesa_barra_max")) if es.get("defesa_barra_max") != null else -1.0
+			var b_is_brk = bool(es.get("em_defesa_quebrada")) if es.get("em_defesa_quebrada") != null else false
+			notificar_boss_status(str(e_name), int(c_hp), int(max_h), b_cur_def, b_m_def, b_is_brk)
+		)
+	if es.has_signal("defesa_alterada"):
+		es.defesa_alterada.connect(func(c_def, m_def_val):
+			var b_cur_hp = int(es.get("health")) if es.get("health") != null else 0
+			var b_m_hp = int(es.get("max_health")) if es.get("max_health") != null else 100
+			var b_is_brk = bool(es.get("em_defesa_quebrada")) if es.get("em_defesa_quebrada") != null else false
+			notificar_boss_status(str(e_name), b_cur_hp, b_m_hp, float(c_def), float(m_def_val), b_is_brk)
+		)
+	if es.has_signal("defesa_quebrada"):
+		es.defesa_quebrada.connect(func():
+			var b_cur_hp = int(es.get("health")) if es.get("health") != null else 0
+			var b_m_hp = int(es.get("max_health")) if es.get("max_health") != null else 100
+			var b_m_def = float(es.get("defesa_barra_max")) if es.get("defesa_barra_max") != null else 100.0
+			notificar_boss_status(str(e_name), b_cur_hp, b_m_hp, 0.0, b_m_def, true)
+		)
+	if es.has_signal("defesa_restaurada"):
+		es.defesa_restaurada.connect(func():
+			var b_cur_hp = int(es.get("health")) if es.get("health") != null else 0
+			var b_m_hp = int(es.get("max_health")) if es.get("max_health") != null else 100
+			var b_m_def = float(es.get("defesa_barra_max")) if es.get("defesa_barra_max") != null else 100.0
+			notificar_boss_status(str(e_name), b_cur_hp, b_m_hp, b_m_def, b_m_def, false)
+		)
+	if es.has_signal("died"):
+		es.died.connect(func(_t):
+			esconder_boss_bar()
+		)
 
 
 func esconder_boss_bar() -> void:
@@ -402,16 +473,16 @@ func _criar_painel_hatsu_slots() -> void:
 
 	var margin_bottom := MarginContainer.new()
 	margin_bottom.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	margin_bottom.offset_left = -58.0
-	margin_bottom.offset_right = 58.0
-	margin_bottom.offset_top = -32.0
+	margin_bottom.offset_left = -62.0
+	margin_bottom.offset_right = 62.0
+	margin_bottom.offset_top = -34.0
 	margin_bottom.offset_bottom = -6.0
-	margin_bottom.custom_minimum_size = Vector2(116, 26)
+	margin_bottom.custom_minimum_size = Vector2(124, 28)
 	margin_bottom.add_theme_constant_override("margin_bottom", 0)
 	add_child(margin_bottom)
 
 	hatsu_slots_container = HBoxContainer.new()
-	hatsu_slots_container.add_theme_constant_override("separation", 2)
+	hatsu_slots_container.add_theme_constant_override("separation", 3)
 	margin_bottom.add_child(hatsu_slots_container)
 
 	slot_panels.clear()
@@ -423,16 +494,16 @@ func _criar_painel_hatsu_slots() -> void:
 
 	for i in range(4):
 		var panel := PanelContainer.new()
-		panel.custom_minimum_size = Vector2(27, 25)
-		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 3))
+		panel.custom_minimum_size = Vector2(28, 26)
+		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD, 3))
 
 		var slot_box := Control.new()
-		slot_box.custom_minimum_size = Vector2(25, 23)
+		slot_box.custom_minimum_size = Vector2(26, 24)
 		panel.add_child(slot_box)
 
 		# Overlay de Cooldown
 		var cd_overlay := ColorRect.new()
-		cd_overlay.color = Color(0.0, 0.0, 0.0, 0.7)
+		cd_overlay.color = Color(0.0, 0.0, 0.0, 0.72)
 		cd_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		cd_overlay.visible = false
 		slot_box.add_child(cd_overlay)
@@ -447,16 +518,14 @@ func _criar_painel_hatsu_slots() -> void:
 		# Número do slot (1, 2, 3, 4)
 		var lbl_num := Label.new()
 		lbl_num.text = "[%d]" % (i + 1)
-		lbl_num.add_theme_font_size_override("font_size", 6)
-		lbl_num.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+		HunterUIStyle.aplicar_fonte_pixel_bold(lbl_num, 7, HunterUIStyle.COLOR_GOLD_LIGHT)
 		lbl_num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_num)
 
 		# Nome do Hatsu
 		var lbl_name := Label.new()
 		lbl_name.text = "-"
-		lbl_name.add_theme_font_size_override("font_size", 6)
-		lbl_name.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
+		HunterUIStyle.aplicar_fonte_licenca(lbl_name, 8, HunterUIStyle.COLOR_TEXT_PRIMARY)
 		lbl_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_name)
 		slot_name_labels.append(lbl_name)
@@ -464,8 +533,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Custo de Aura (ex: 45 AP)
 		var lbl_cost := Label.new()
 		lbl_cost.text = ""
-		lbl_cost.add_theme_font_size_override("font_size", 5)
-		lbl_cost.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+		HunterUIStyle.aplicar_fonte_pixel(lbl_cost, 6, HunterUIStyle.COLOR_AURA_CYAN)
 		lbl_cost.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		vbox.add_child(lbl_cost)
 		slot_cost_labels.append(lbl_cost)
@@ -473,8 +541,7 @@ func _criar_painel_hatsu_slots() -> void:
 		# Texto de Cooldown (ex: 3.5s)
 		var lbl_cd := Label.new()
 		lbl_cd.text = ""
-		lbl_cd.add_theme_font_size_override("font_size", 7)
-		lbl_cd.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD)
+		HunterUIStyle.aplicar_fonte_pixel_bold(lbl_cd, 8, HunterUIStyle.COLOR_GOLD)
 		lbl_cd.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_cd.visible = false
 		vbox.add_child(lbl_cd)
@@ -486,7 +553,7 @@ func _criar_painel_hatsu_slots() -> void:
 		bar.max_value = 100
 		bar.value = 0
 		bar.show_percentage = false
-		bar.custom_minimum_size = Vector2(30, 2)
+		bar.custom_minimum_size = Vector2(26, 2)
 		bar.add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(HunterUIStyle.COLOR_GOLD))
 		vbox.add_child(bar)
 		slot_progress_bars.append(bar)

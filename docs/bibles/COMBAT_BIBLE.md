@@ -67,22 +67,17 @@ Hatsu opera como as magias e habilidades táticas de classes de RPGs clássicos,
 
 ---
 
-## 5. MATRIZ DE STATUS DE IMPLEMENTAÇÃO (FASE J)
+## 5. SISTEMA CANÔNICO DE BARRA DE DEFESA & QUEBRA DE GUARDA (GUARD BREAK)
 
-| Subsistema de Combate | Status | Detalhes & Componentes |
-| :--- | :--- | :--- |
-| **Combo de 3 Golpes Físicos** | `[IMPLEMENTED]` | `CombatEngine.gd`, `CombatSystem.gd` com cadência dinâmica |
-| **Visual Swing Arcs** | `[IMPLEMENTED]` | `CombatImpactEffect.spawn_swing_arc()` procedural angular |
-| **Hit Flash & Stagger** | `[IMPLEMENTED]` | Piscar modulado de 0.08s em jogadores e inimigos |
-| **Esquiva & Feedback "ESQUIVA"** | `[IMPLEMENTED]` | `tentar_esquivar()`, `DamageNumberSystem.spawn_esquiva()` |
-| **Bloqueio & Feedback "BLOQUEIO"**| `[IMPLEMENTED]` | `DamageNumberSystem.spawn_bloqueio()`, som procedural |
-| **Hit Stop & Screen Shake** | `[IMPLEMENTED]` | `EventBus.emit_hitstop()`, `EventBus.emit_camera_shake()` |
-| **4 Slots de Hatsu Ativos** | `[IMPLEMENTED]` | `HatsuProgressionManager.gd`, `PlayerHUD.gd` |
-| **ConditionTrackerUI** | `[IMPLEMENTED]` | Exibição em tempo real de requisitos e votos de Hatsu |
-| **Boss Phase Mechanics** | `[IMPLEMENTED]` | `EnemyAI.gd` (Invocação, AoE Telegrafado, Escudo de Ren) |
-| **Boss Cinematic Banner** | `[IMPLEMENTED]` | `BossIntroBanner.gd` com fanfarra e zoom de câmera |
-| **Técnicas de Nen (Ten, Ren, Zetsu, En, Gyo)** | `[IMPLEMENTED]` | Integrado com `NenSystem.gd` e `PerceptionSystem.gd` |
-| **Hatsu Creator Avançado** | `[IN PROGRESS]` | Editor interativo com restrições e votos procedurais |
-| **PvP Arenas Ranqueadas** | `[PLANNED]` | Modos 1v1 e 3v3 na Arena Celestial com rollback |
-| **Batalhas de Raid de 8 Hunters** | `[FUTURE]` | Encontros de invasão cooperativos contra Calamidades |
+O combate corpo-a-corpo e contra chefes utiliza o sistema reativo de **Barra de Defesa (Defense Gauge)**:
+- **Independência de Ativação Manual:** Não há necessidade de o jogador ativar técnicas especiais como Ko para quebrar a postura do inimigo. O sistema é 100% orgânico e integrado ao fluxo de golpes físicos normais e pesados.
+- **Mecânica de Drenagem da Guarda:**
+  - **Golpe Forte (Heavy Attack):** Drena massivamente **50% da barra de defesa** em um único golpe carregado. Dois golpes fortes consecutivos resultam em quebra imediata de guarda.
+  - **Sequência de Golpes Fracos (Combo Cadenciado):** Golpes rápidos drenam progressivamente a defesa ($15\% \rightarrow 20\% \rightarrow 30\%$). Uma sequência agressiva de 4 a 5 acertos esvazia a barra por completo.
+- **Regeneração Fora de Combate:** Se o alvo permanecer sem receber ataques por mais de $2.5\,\text{s}$, sua defesa se regenera gradualmente a uma taxa de $25.0\,\text{pts/s}$, recompensando pressão contínua.
+- **Estado de Defesa Quebrada (Vulnerabilidade):**
+  - Ao atingir 0 de guarda, o inimigo sofre quebra de postura imediata com estilhaço de aura e balão `💥 DEFESA QUEBRADA!`.
+  - **Janela de Vulnerabilidade:** Dura $3.5\,\text{s}$ (ou $4.0\,\text{s}$ para chefes).
+  - **Multiplicador de Dano (+80%):** Todo golpe desferido durante a janela de vulnerabilidade recebe amplificação de dano de $1.80\times$.
+  - Após o término do timer, a guarda é totalmente restaurada e o alvo retoma sua compostura defensiva.
 
