@@ -1,24 +1,34 @@
 [gd_scene load_steps=5 format=3 uid="uid://c_vendedor_npc"]
 
 [ext_resource type="Script" path="res://entities/npc/vendedor/Vendedor.gd" id="1_vendedor"]
-[ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="2_vgkl5"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/npc_vendedor_mercador_8dir.png" id="2_tex"]
+[ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="3_vgkl5"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_dqo36"]
+radius = 5.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_fq5x3"]
+radius = 24.0
 
 [node name="Vendedor" type="CharacterBody2D"]
+collision_layer = 8
+collision_mask = 1
 script = ExtResource("1_vendedor")
 npc_name = "Vendedor"
 fala_padrao = "Bem-vindo à minha loja! Temos equipamentos e cosméticos."
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -18)
+texture = ExtResource("2_tex")
+hframes = 8
+vframes = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -2)
 shape = SubResource("CircleShape2D_dqo36")
 
 [node name="InteractionComponent" type="Area2D" parent="."]
-script = ExtResource("2_vgkl5")
+script = ExtResource("3_vgkl5")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionComponent"]
 shape = SubResource("CircleShape2D_fq5x3")

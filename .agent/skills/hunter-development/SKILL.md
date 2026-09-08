@@ -33,6 +33,7 @@ Antes de alterar código ou cenas:
 - `QuestSystem`/`QuestManager`: objetivos, transições, conclusão e recompensas.
 - `SaveManager`: ciclo de persistência e compatibilidade.
 - UI: apenas apresentação do estado canônico, nunca dona da lógica de gameplay.
+- Arte 2D e Sprites: governados estritamente pela `16_PIXEL_ART_STYLE_BIBLE.md`. Todo sprite deve seguir o Style Anchor `player(3).png` (48x48, baixa densidade de pixels, 20-22px de altura, pés em Y=42, sem microdetalhes).
 - NPCs, diálogos, Hatsu, transições, spawns e eventos: reutilize os sistemas existentes quando a responsabilidade já existir.
 
 Não renomeie casualmente campos persistentes, autoloads, scripts, cenas ou recursos. Mudanças de schema exigem compatibilidade com saves antigos.
@@ -46,6 +47,7 @@ Não renomeie casualmente campos persistentes, autoloads, scripts, cenas ou recu
 - Condições usam `GameplayCondition` e tags usam `GameplayTags`; não consulte IDs de Hatsu ou nós de cena espalhados.
 - Passivas usam `StatModifier` no `PlayerData`; não crie classes privadas de modificador.
 - Portais, GPS, diálogo e quests consultam o estado canônico de progressão.
+- Geração ou importação de sprites de personagens exige frame 48x48, escala ~20-22px de altura, pés em Y=42 e validação prévia com `tools/validate_sprite_style.gd`.
 - Não esconda defeitos com guards arbitrários, chamadas duplicadas, delays sem explicação ou funcionalidades desativadas.
 
 ## Validação e entrega

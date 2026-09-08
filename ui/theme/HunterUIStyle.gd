@@ -43,20 +43,94 @@ const COLOR_TEXT_GOLD           := Color(1.00, 0.85, 0.25, 1.0) # Destaque Doura
 const COLOR_TEXT_CYAN           := Color(0.35, 0.90, 1.00, 1.0) # Destaque Aura
 const COLOR_TEXT_MUTED          := Color(0.50, 0.58, 0.55, 1.0) # Texto Apagado
 
-# 1.1 HIERARQUIA TIPOGRÁFICA (VIEWPORT 640x480)
-const FONT_SIZE_TITLE           := 11 # Cabeçalhos principais e nomes de chefes
-const FONT_SIZE_SUBTITLE        := 9  # Subtítulos, abas e nomes de regiões
-const FONT_SIZE_HEADING         := 9  # Cabeçalhos de seção e títulos de cards
-const FONT_SIZE_BODY            := 8  # Diálogos, objetivos e descrições
-const FONT_SIZE_SMALL           := 7  # Números de HP/AP/XP e tooltips
+# 1.1 HIERARQUIA TIPOGRÁFICA (VIEWPORT 640x360)
+const FONT_SIZE_TITLE           := 13 # Cabeçalhos principais e nomes de chefes (Teko)
+const FONT_SIZE_SUBTITLE        := 10 # Subtítulos, abas e nomes de regiões (Rajdhani)
+const FONT_SIZE_HEADING         := 10 # Cabeçalhos de seção e títulos de cards (Rajdhani)
+const FONT_SIZE_BODY            := 8  # Diálogos, objetivos e descrições (Silkscreen/Pixel)
+const FONT_SIZE_SMALL           := 7  # Números de HP/AP/XP e tooltips (Silkscreen)
 const FONT_SIZE_MICRO           := 6  # Badges e hotkeys de atalho ([E], [1-4])
-const FONT_SIZE_NUMERIC         := 10 # Números destacados de atributos e níveis
-const FONT_SIZE_DAMAGE          := 9  # Números de dano flutuante em combate
+const FONT_SIZE_NUMERIC         := 11 # Números destacados de atributos e níveis (Rajdhani)
+const FONT_SIZE_DAMAGE          := 10 # Números de dano flutuante em combate
 
 const COLOR_HP_CRIMSON          := Color(0.92, 0.22, 0.25, 1.0) # Barra de HP
 const COLOR_AURA_BAR            := Color(0.18, 0.75, 1.00, 1.0) # Barra de Aura
 const COLOR_XP_BAR              := Color(0.15, 0.82, 0.42, 1.0) # Barra de XP Normal
 const COLOR_NEN_XP_BAR          := Color(0.70, 0.40, 1.00, 1.0) # Barra de XP Nen
+
+# 1.2 CORES CANÔNICAS DAS TÉCNICAS DE NEN
+const COLOR_TEN                 := Color(0.20, 0.85, 0.45, 1.0) # Ten (Verde Proteção / Defesa)
+const COLOR_REN                 := Color(0.95, 0.35, 0.20, 1.0) # Ren (Laranja/Vermelho Força Explosiva)
+const COLOR_ZETSU               := Color(0.40, 0.80, 0.95, 1.0) # Zetsu (Ciano Suave / Furtividade)
+const COLOR_GYO                 := Color(1.00, 0.85, 0.20, 1.0) # Gyo (Amarelo Foco Ocular)
+const COLOR_KO                  := Color(1.00, 0.40, 0.10, 1.0) # Ko (Âmbar/Laranja Ataque Total)
+const COLOR_EN                  := Color(0.30, 0.90, 1.00, 1.0) # En (Ciano Expansão de Esfera)
+const COLOR_KEN                 := Color(0.80, 0.70, 0.25, 1.0) # Ken (Ouro Defesa Geral)
+const COLOR_RYU                 := Color(0.90, 0.50, 0.80, 1.0) # Ryu (Magenta Distribuição)
+const COLOR_SHU                 := Color(0.60, 0.40, 0.90, 1.0) # Shu (Violeta Revestimento)
+
+
+# 1.1.1 FONTES OFICIAIS HUNTER X HUNTER & PIXEL RPG
+static var _font_title: Font = null
+static var _font_license: Font = null
+static var _font_pixel: Font = null
+static var _font_pixel_bold: Font = null
+
+static func get_font_title() -> Font:
+	if _font_title == null:
+		if ResourceLoader.exists("res://assets/fonts/HunterTitle_Teko.ttf"):
+			_font_title = load("res://assets/fonts/HunterTitle_Teko.ttf")
+	return _font_title
+
+static func get_font_license() -> Font:
+	if _font_license == null:
+		if ResourceLoader.exists("res://assets/fonts/HunterLicense_Rajdhani.ttf"):
+			_font_license = load("res://assets/fonts/HunterLicense_Rajdhani.ttf")
+	return _font_license
+
+static func get_font_pixel() -> Font:
+	if _font_pixel == null:
+		if ResourceLoader.exists("res://assets/fonts/HunterPixel_Silkscreen.ttf"):
+			_font_pixel = load("res://assets/fonts/HunterPixel_Silkscreen.ttf")
+	return _font_pixel
+
+static func get_font_pixel_bold() -> Font:
+	if _font_pixel_bold == null:
+		if ResourceLoader.exists("res://assets/fonts/HunterPixel_Silkscreen_Bold.ttf"):
+			_font_pixel_bold = load("res://assets/fonts/HunterPixel_Silkscreen_Bold.ttf")
+	return _font_pixel_bold
+
+static func aplicar_fonte_titulo(node: Control, tamanho: int = FONT_SIZE_TITLE, cor: Color = COLOR_GOLD_LIGHT) -> void:
+	if node == null: return
+	var f = get_font_title()
+	if f != null:
+		node.add_theme_font_override("font", f)
+	node.add_theme_font_size_override("font_size", tamanho)
+	node.add_theme_color_override("font_color", cor)
+
+static func aplicar_fonte_licenca(node: Control, tamanho: int = FONT_SIZE_HEADING, cor: Color = COLOR_TEXT_PRIMARY) -> void:
+	if node == null: return
+	var f = get_font_license()
+	if f != null:
+		node.add_theme_font_override("font", f)
+	node.add_theme_font_size_override("font_size", tamanho)
+	node.add_theme_color_override("font_color", cor)
+
+static func aplicar_fonte_pixel(node: Control, tamanho: int = FONT_SIZE_BODY, cor: Color = COLOR_TEXT_PRIMARY) -> void:
+	if node == null: return
+	var f = get_font_pixel()
+	if f != null:
+		node.add_theme_font_override("font", f)
+	node.add_theme_font_size_override("font_size", tamanho)
+	node.add_theme_color_override("font_color", cor)
+
+static func aplicar_fonte_pixel_bold(node: Control, tamanho: int = FONT_SIZE_BODY, cor: Color = COLOR_GOLD_LIGHT) -> void:
+	if node == null: return
+	var f = get_font_pixel_bold()
+	if f != null:
+		node.add_theme_font_override("font", f)
+	node.add_theme_font_size_override("font_size", tamanho)
+	node.add_theme_color_override("font_color", cor)
 
 # 1.2 CORES DE COMBATE & FEEDBACK DINÂMICO
 const COLOR_CRIT_GOLD           := Color(1.00, 0.88, 0.25, 1.0) # Acerto Crítico
@@ -232,17 +306,48 @@ static func criar_style_card_personagem(cor_borda: Color = COLOR_BORDER_GOLD, ra
 
 static func criar_style_licenca_hunter() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.08, 0.11, 0.17, 0.98)
+	style.bg_color = Color(0.05, 0.08, 0.13, 0.98)
 	style.border_width_left = 2
 	style.border_width_top = 2
 	style.border_width_right = 2
 	style.border_width_bottom = 2
-	style.border_color = COLOR_GOLD_LIGHT
+	style.border_color = COLOR_GOLD
 	style.corner_radius_top_left = 4
 	style.corner_radius_top_right = 4
 	style.corner_radius_bottom_right = 4
 	style.corner_radius_bottom_left = 4
-	style.shadow_color = Color(0.85, 0.70, 0.20, 0.25)
+	style.shadow_color = Color(0, 0, 0, 0.7)
+	style.shadow_size = 4
+	style.shadow_offset = Vector2(0, 2)
+	return style
+
+
+static func criar_style_hunter_badge(cor_borda: Color = COLOR_GOLD_LIGHT, cor_fundo: Color = Color(0.08, 0.12, 0.18, 0.95)) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = cor_fundo
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = cor_borda
+	style.corner_radius_top_left = 2
+	style.corner_radius_top_right = 2
+	style.corner_radius_bottom_right = 2
+	style.corner_radius_bottom_left = 2
+	return style
+
+
+static func criar_style_boss_banner() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.12, 0.03, 0.05, 0.95)
+	style.border_width_left = 2
+	style.border_width_top = 1
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = COLOR_HP_CRIMSON
+	style.corner_radius_bottom_left = 6
+	style.corner_radius_bottom_right = 6
+	style.shadow_color = Color(0.8, 0.1, 0.1, 0.35)
 	style.shadow_size = 4
 	return style
 

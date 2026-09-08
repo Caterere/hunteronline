@@ -62,3 +62,44 @@ O `WorldState` rastreia:
 - Chefes mundiais derrotados.
 - Lojas e NPCs resgatados.
 Essas flags são organizadas por região e não poluem as variáveis globais da história principal.
+
+---
+
+## 5. PADRÃO CANÔNICO DE COLISÃO FOOTPRINT (BASE FÍSICA VS PADDING)
+
+Para garantir que o jogador possa caminhar rente a portas e paredes sem barreiras invisíveis:
+- **Proibição de Colisão em Padding:** Sprites e tilesets com transparência inferior/superior não devem conter polígonos de colisão física nas faixas vazias.
+- **Fundação Real (Footprint):** A física de edificações é aplicada exclusivamente na última linha sólida de fundação (altura de $8$ a $12\,\text{px}$, base de $Y=-2$ a $Y=+8$).
+- **Y-Sorting Canônico:** A base do pé do jogador e a base da parede determinam a profundidade z-index, permitindo passar atrás e na frente das estruturas naturalmente.
+- **Eliminação de Duplicatas:** Corpos estáticos duplicados e deslocados em código (`ColisoesEstruturasLobby`) são terminantemente banidos em favor do `TileMapLayer` com camada física nativa.
+
+---
+
+## 6. MAPAS CONECTADOS PERMANENTES (EXPANSÃO DE PADOKIA)
+
+1. **Estrada Real de Padokia (`estrada_padokia.tscn`):**
+   - Rota comercial imperial entre a Capital e a região selvagem.
+   - Ponto Norte: Portão Sul do Lobby (`from_world`).
+   - Ponto Sul: Entrada da Floresta dos Vestígios (`from_estrada`).
+   - POIs: Fogueira de Descanso de Caçador (cura de HP/Aura), Marco de Pedra da Associação, Posto de Patrulha Hunter (NPC de alerta).
+2. **Floresta dos Vestígios (`floresta_vestigios.tscn`):**
+   - Zona selvagem ancestral densa e contígua à estrada.
+   - Ponto Norte: Estrada Real de Padokia (`from_floresta`).
+   - Ponto Sul: Dungeon das Ruínas Ancestrais de Zaban (`entrada`).
+   - POIs: Árvore Milenar Sagrada (meditação e recarga de Nen), Rocha Fraturada KoObstacle (requer Ko para liberar atalho), Bestas de Sombra.
+
+---
+
+## 7. MATRIZ DE PORTAIS BIDIRECIONAIS
+
+```text
+[LOBBY / CAPITAL] (world/lobby.tscn)
+        ↕ Portão Sul [E] / Spawn: from_world
+[ESTRADA REAL DE PADOKIA] (world/maps/estrada_padokia.tscn)
+        ↕ Portão Sul [E] / Spawn: from_estrada
+[FLORESTA DOS VESTÍGIOS] (world/maps/floresta_vestigios.tscn)
+        ↕ Entrada da Cripta [E] / Spawn: default
+[RUÍNAS ANCESTRAIS DE ZABAN] (world/maps/dungeon_ruinas_zaban.tscn)
+```
+- Cada mapa conectado é permanente, funcional e possui spawn points dedicados, impedindo loops ou perdas de posicionamento.
+

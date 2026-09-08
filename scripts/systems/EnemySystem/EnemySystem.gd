@@ -8,6 +8,9 @@ signal health_changed(current_health: int, max_health: int)
 signal postura_alterada(atual: float, maxima: float)
 signal entrou_em_stagger()
 signal saiu_de_stagger()
+signal defesa_alterada(atual: float, maxima: float)
+signal defesa_quebrada()
+signal defesa_restaurada()
 
 const ComicBalloon = preload("res://scripts/ui/ComicBalloon.gd")
 const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd")
@@ -71,23 +74,32 @@ var spawner_ref: Node = null
 
 
 # =========================================================
-# ESTADO & POSTURA (STAGGER)
+# ESTADO & BARRA DE DEFESA (DEFENSE GAUGE / GUARD BREAK)
 # =========================================================
 
 var health: int = 0
 var is_dead: bool = false
 var is_invulnerable: bool = false
 
+var defesa_barra_max: float = 100.0
+var defesa_barra_atual: float = 100.0
+var em_defesa_quebrada: bool = false
+var tempo_defesa_quebrada: float = 3.5
+var tempo_timer_quebrada: float = 0.0
+var tempo_sem_receber_dano: float = 0.0
+var taxa_regeneracao_defesa: float = 25.0
+
+# Compatibilidade com sistemas legados de postura/stagger
 var postura: float = 100.0
 var postura_max: float = 100.0
 var em_stagger: bool = false
 var stagger_timer: float = 0.0
-var stagger_duracao: float = 2.5
+var stagger_duracao: float = 3.5
 
 # Informações de Nen e Investigação de Gyo (HxH / CrossCode)
 var categoria_nen_info: String = "Intensificação"
 var concentracao_aura_info: String = "Equilibrada"
-var fraqueza_info: String = "Vulnerável a ataques furtivos e quebra de postura"
+var fraqueza_info: String = "Vulnerável a sequências de ataques e quebra de defesa"
 var escudo_imune_ativo: bool = false
 
 # Último personagem que acertou o inimigo.
@@ -333,19 +345,29 @@ func _physics_process(delta: float) -> void:
 		if invulnerability_timer <= 0.0:
 			is_invulnerable = false
 
-	# Processamento de Stagger e Recuperação de Postura
-	if em_stagger:
-		stagger_timer -= delta
-		if stagger_timer <= 0.0:
+	# Processamento da Barra de Defesa & Estado Quebrado
+	if em_defesa_quebrada:
+		tempo_timer_quebrada -= delta
+		stagger_timer = tempo_timer_quebrada
+		if tempo_timer_quebrada <= 0.0:
+			em_defesa_quebrada = false
 			em_stagger = false
+			defesa_barra_atual = defesa_barra_max
 			postura = postura_max
+			defesa_alterada.emit(defesa_barra_atual, defesa_barra_max)
 			postura_alterada.emit(postura, postura_max)
+			defesa_restaurada.emit()
 			saiu_de_stagger.emit()
 			if enemy_sprite != null:
 				enemy_sprite.modulate = Color.WHITE
+			ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "🛡️ DEFESA RESTAURADA!", 1.5, -42.0)
 	else:
-		if postura < postura_max:
-			postura = min(postura + delta * 12.0, postura_max)
+		tempo_sem_receber_dano += delta
+		# Se ficar 2.5s sem tomar golpes, a barra de defesa regenera gradualmente
+		if tempo_sem_receber_dano >= 2.5 and defesa_barra_atual < defesa_barra_max:
+			defesa_barra_atual = min(defesa_barra_atual + delta * taxa_regeneracao_defesa, defesa_barra_max)
+			postura = (defesa_barra_atual / defesa_barra_max) * postura_max
+			defesa_alterada.emit(defesa_barra_atual, defesa_barra_max)
 			postura_alterada.emit(postura, postura_max)
 
 	_process_knockback(delta)
@@ -413,6 +435,40 @@ func obter_dados_inspecao_gyo() -> Dictionary:
 
 
 # =========================================================
+# BARRA DE DEFESA & QUEBRA DE GUARDA
+# =========================================================
+
+func aplicar_dano_defesa(quantidade: float, is_heavy: bool = false) -> void:
+	if is_dead or em_defesa_quebrada:
+		return
+
+	tempo_sem_receber_dano = 0.0
+	defesa_barra_atual = max(0.0, defesa_barra_atual - quantidade)
+	postura = (defesa_barra_atual / max(1.0, defesa_barra_max)) * postura_max
+	defesa_alterada.emit(defesa_barra_atual, defesa_barra_max)
+	postura_alterada.emit(postura, postura_max)
+
+	if defesa_barra_atual <= 0.0:
+		em_defesa_quebrada = true
+		em_stagger = true
+		tempo_timer_quebrada = tempo_defesa_quebrada
+		stagger_timer = tempo_defesa_quebrada
+		defesa_quebrada.emit()
+		entrou_em_stagger.emit()
+		if EventBus != null:
+			EventBus.enemy_staggered.emit(enemy_body if enemy_body != null else self)
+			EventBus.emit_hitstop(0.12 if is_heavy else 0.08)
+			EventBus.emit_camera_shake(0.55 if is_heavy else 0.35, 0.25)
+		ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "💥 DEFESA QUEBRADA! (VULNERÁVEL)", 2.4, -46.0)
+		if enemy_sprite != null:
+			enemy_sprite.modulate = Color(0.6, 1.2, 2.5, 1.0)
+
+
+func aplicar_dano_postura(quantidade: float) -> void:
+	aplicar_dano_defesa(quantidade, false)
+
+
+# =========================================================
 # RECEBER DANO
 # =========================================================
 
@@ -457,23 +513,10 @@ func take_damage(
 				ai.adicionar_ameaca(attacker, float(damage) * 1.5)
 
 	# -----------------------------------------------------
-	# REDUÇÃO DE POSTURA & STAGGER
+	# REDUÇÃO DE DEFESA / GUARDA
 	# -----------------------------------------------------
 
-	var dano_postura: float = float(damage) * 0.9
-	if not em_stagger:
-		postura -= dano_postura
-		if postura <= 0.0:
-			postura = 0.0
-			em_stagger = true
-			stagger_timer = stagger_duracao
-			entrou_em_stagger.emit()
-			if EventBus != null:
-				EventBus.enemy_staggered.emit(enemy_body if enemy_body != null else self)
-			ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "⚡ STAGGER! (VULNERÁVEL)", 2.2, -45.0)
-			if enemy_sprite != null:
-				enemy_sprite.modulate = Color(0.6, 0.9, 2.0, 1.0)
-		postura_alterada.emit(postura, postura_max)
+	tempo_sem_receber_dano = 0.0
 
 	# -----------------------------------------------------
 	# CALCULAR DANO FINAL (Curva Defensiva Balanceada)
@@ -485,9 +528,9 @@ func take_damage(
 		1
 	)
 
-	# Bônus de Dano Crítico se estiver em Stagger (+50%)
-	if em_stagger:
-		final_damage = int(round(float(final_damage) * 1.5))
+	# Bônus de Dano Crítico se a Defesa estiver Quebrada (+80%)
+	if em_defesa_quebrada or em_stagger:
+		final_damage = int(round(float(final_damage) * 1.80))
 
 	# -----------------------------------------------------
 	# APLICAR DANO
