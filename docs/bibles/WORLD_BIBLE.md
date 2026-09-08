@@ -65,42 +65,41 @@ Essas flags são organizadas por região e não poluem as variáveis globais da 
 
 ---
 
-## 5. STREAMING HIERÁRQUICO & OTIMIZAÇÃO (64 CHUNKS)
-- Mapas de mundo aberto contínuos (como o Vale de Padokia de 512x512 tiles / 8192x8192 px) são subdivididos em 64 chunks (8x8 de 64x64 tiles).
-- Entidades distantes (> 480px do jogador) entram em estado dormente (física e IA suspensas) via distance culling no `LivingNPCBehavior` e `EnemyAI`.
-- Spawners utilizam `WorldSpawner` para garantir recarga determinística sem memory leaks ou duplicação.
+## 5. PADRÃO CANÔNICO DE COLISÃO FOOTPRINT (BASE FÍSICA VS PADDING)
+
+Para garantir que o jogador possa caminhar rente a portas e paredes sem barreiras invisíveis:
+- **Proibição de Colisão em Padding:** Sprites e tilesets com transparência inferior/superior não devem conter polígonos de colisão física nas faixas vazias.
+- **Fundação Real (Footprint):** A física de edificações é aplicada exclusivamente na última linha sólida de fundação (altura de $8$ a $12\,\text{px}$, base de $Y=-2$ a $Y=+8$).
+- **Y-Sorting Canônico:** A base do pé do jogador e a base da parede determinam a profundidade z-index, permitindo passar atrás e na frente das estruturas naturalmente.
+- **Eliminação de Duplicatas:** Corpos estáticos duplicados e deslocados em código (`ColisoesEstruturasLobby`) são terminantemente banidos em favor do `TileMapLayer` com camada física nativa.
 
 ---
 
-## 6. ECOLOGIA DE COMBATE & ARQUÉTIPOS VIVOS
-- O bestiário canônico é dividido em famílias vivas (`BEAST`, `HUMANOID/BANDIT`, `ANCIENT CONSTRUCTS`, `NEN USERS`).
-- Inimigos adotam 6 arquétipos de combate declarativos (`bruiser`, `fast`, `tank`, `ranged`, `tactician`, `ambusher`, `nen_user`).
-- Chefes e Minibosses possuem 3 fases mecânicas orientadas a dados com telegrafia no chão, summons de suporte, sobrecarga de aura e falas de `BattlePersonality`.
+## 6. MAPAS CONECTADOS PERMANENTES (EXPANSÃO DE PADOKIA)
+
+1. **Estrada Real de Padokia (`estrada_padokia.tscn`):**
+   - Rota comercial imperial entre a Capital e a região selvagem.
+   - Ponto Norte: Portão Sul do Lobby (`from_world`).
+   - Ponto Sul: Entrada da Floresta dos Vestígios (`from_estrada`).
+   - POIs: Fogueira de Descanso de Caçador (cura de HP/Aura), Marco de Pedra da Associação, Posto de Patrulha Hunter (NPC de alerta).
+2. **Floresta dos Vestígios (`floresta_vestigios.tscn`):**
+   - Zona selvagem ancestral densa e contígua à estrada.
+   - Ponto Norte: Estrada Real de Padokia (`from_floresta`).
+   - Ponto Sul: Dungeon das Ruínas Ancestrais de Zaban (`entrada`).
+   - POIs: Árvore Milenar Sagrada (meditação e recarga de Nen), Rocha Fraturada KoObstacle (requer Ko para liberar atalho), Bestas de Sombra.
 
 ---
 
-## 7. ILUMINAÇÃO AMBIENTE & WEATHER ENGINE
-- `TimeManager` governa as 4 fases solares (`DAWN`, `DAY`, `DUSK`, `NIGHT`).
-- Mapas abertos aplicam modulação suave de luz através de `CanvasModulate`.
-- `WorldStateManager` modula o clima (`LIMPO`, `CHUVA`, `NEBLINA`, `TEMPESTADE_AURA`), influenciando a velocidade de caminhada dos NPCs, rotinas de abrigo e visibilidade de Gyo.
-- Horários e climas são integralmente persistidos no `SaveManager` (Schema 2.3).
+## 7. MATRIZ DE PORTAIS BIDIRECIONAIS
 
----
-
-## 8. MATRIZ DE STATUS DE IMPLEMENTAÇÃO (FASE J)
-
-| Subsistema de Mundo | Status | Detalhes & Componentes |
-| :--- | :--- | :--- |
-| **Hunter Plaza Hub World** | `[IMPLEMENTED]` | `world/Lobby.tscn`, câmera clamped, folhas flutuantes |
-| **Limites de Câmera Dinâmicos** | `[IMPLEMENTED]` | `Player.configurar_limites_camera()` por zona/mapa |
-| **Partículas e Clima Ambiente** | `[IMPLEMENTED]` | Folhas no Lobby, chuva, neblina via `WorldStateManager` |
-| **Passos Cadenciados por Piso** | `[IMPLEMENTED]` | Detecção de piso (grama, pedra, terra) com áudio |
-| **Streaming de 64 Chunks** | `[IMPLEMENTED]` | Distance culling em `LivingNPCBehavior` e `EnemyAI` |
-| **Ciclo Dia/Noite & Persistência**| `[IMPLEMENTED]` | `TimeManager`, persistido no Schema 2.3 |
-| **Ruínas de Zaban (Dungeon)** | `[IMPLEMENTED]` | Conexão com Guardião Ancestral e setup_from_data |
-| **Transição Suave de Cenas** | `[IMPLEMENTED]` | `SceneTransition.gd` com overlay e fade |
-| **Interiores em Camadas (Dóris)**| `[IN PROGRESS]` | Transição de telhados transparentes sem trocar de cena |
-| **Sistema de Trens & Rotas** | `[PLANNED]` | Viagem rápida com cutscenes curtas de viagem |
-| **Continente Negro Procedural** | `[FUTURE]` | Biomas hostis infinitos com geração determinística de sementes |
-
+```text
+[LOBBY / CAPITAL] (world/lobby.tscn)
+        ↕ Portão Sul [E] / Spawn: from_world
+[ESTRADA REAL DE PADOKIA] (world/maps/estrada_padokia.tscn)
+        ↕ Portão Sul [E] / Spawn: from_estrada
+[FLORESTA DOS VESTÍGIOS] (world/maps/floresta_vestigios.tscn)
+        ↕ Entrada da Cripta [E] / Spawn: default
+[RUÍNAS ANCESTRAIS DE ZABAN] (world/maps/dungeon_ruinas_zaban.tscn)
+```
+- Cada mapa conectado é permanente, funcional e possui spawn points dedicados, impedindo loops ou perdas de posicionamento.
 

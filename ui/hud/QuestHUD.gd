@@ -5,14 +5,16 @@ extends PanelContainer
 # ============================================================
 #
 # Interface de Quest no HUD (canto superior direito em 320x180):
-# - Ativa automaticamente a Missão CanÃ´nica exclusiva do Arco Atual.
+# - Ativa automaticamente a Missão Canônica exclusiva do Arco Atual.
 # - Exibe o Arco atual, título da missão e objetivos com marcadores (✅ / ⬜).
-# - BÚSSOLA / DIRECIONADOR DINÃ‚MICO EM TEMPO REAL:
+# - BÚSSOLA / DIRECIONADOR DINÂMICO EM TEMPO REAL:
 #   Rastreia a posição dos NPCs de missão (Satotz, Gon, Hisoka, Wing, etc.)
 #   ou monstros no mapa e calcula o ângulo cardinal com setas e distância em metros.
-# - Botão minimizar [âˆ’] / [+] para recolher sem atrapalhar a visão do combate.
+# - Botão minimizar [−] / [+] para recolher sem atrapalhar a visão do combate.
 #
 # ============================================================
+
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 
 var lbl_arco: Label
 var lbl_quest_nome: Label
@@ -51,31 +53,20 @@ func _ready() -> void:
 
 
 func _construir_ui() -> void:
-	custom_minimum_size = Vector2(132, 20)
+	custom_minimum_size = Vector2(138, 22)
 	set_anchors_preset(Control.PRESET_TOP_RIGHT)
 	grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	grow_vertical = Control.GROW_DIRECTION_END
-	offset_left = -138.0
+	offset_left = -144.0
 	offset_top = 6.0
 	offset_right = -6.0
 
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.08, 0.12, 0.92)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.border_color = Color(0.9, 0.75, 0.2, 0.95)
-	style.corner_radius_top_left = 3
-	style.corner_radius_top_right = 3
-	style.corner_radius_bottom_right = 3
-	style.corner_radius_bottom_left = 3
-	add_theme_stylebox_override("panel", style)
+	add_theme_stylebox_override("panel", HunterUIStyle.criar_style_quest_tracker())
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 4)
+	margin.add_theme_constant_override("margin_left", 5)
 	margin.add_theme_constant_override("margin_top", 3)
-	margin.add_theme_constant_override("margin_right", 4)
+	margin.add_theme_constant_override("margin_right", 5)
 	margin.add_theme_constant_override("margin_bottom", 3)
 	add_child(margin)
 
@@ -89,23 +80,24 @@ func _construir_ui() -> void:
 
 	lbl_arco = Label.new()
 	lbl_arco.text = "🏛️ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
-	lbl_arco.add_theme_font_size_override("font_size", 7)
-	lbl_arco.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+	HunterUIStyle.aplicar_fonte_licenca(lbl_arco, 9, HunterUIStyle.COLOR_GOLD_LIGHT)
 	lbl_arco.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_arco)
 
 	var btn_jornal := Button.new()
 	btn_jornal.text = "📜"
 	btn_jornal.tooltip_text = "Abrir Jornal de Missões [J]"
-	btn_jornal.add_theme_font_size_override("font_size", 7)
-	btn_jornal.custom_minimum_size = Vector2(13, 12)
+	HunterUIStyle.aplicar_fonte_pixel(btn_jornal, 7, HunterUIStyle.COLOR_GOLD_LIGHT)
+	btn_jornal.custom_minimum_size = Vector2(14, 13)
+	HunterUIStyle.aplicar_estilo_botao(btn_jornal, HunterUIStyle.COLOR_BORDER_GOLD)
 	btn_jornal.pressed.connect(_abrir_jornal)
 	hbox_header.add_child(btn_jornal)
 
 	btn_toggle = Button.new()
 	btn_toggle.text = "−"
-	btn_toggle.add_theme_font_size_override("font_size", 7)
-	btn_toggle.custom_minimum_size = Vector2(12, 12)
+	HunterUIStyle.aplicar_fonte_pixel(btn_toggle, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
+	btn_toggle.custom_minimum_size = Vector2(13, 13)
+	HunterUIStyle.aplicar_estilo_botao(btn_toggle, HunterUIStyle.COLOR_BORDER_SUBTLE)
 	btn_toggle.pressed.connect(_toggle_expandir)
 	hbox_header.add_child(btn_toggle)
 
@@ -116,23 +108,20 @@ func _construir_ui() -> void:
 
 	lbl_quest_nome = Label.new()
 	lbl_quest_nome.text = "📜 Missão Ativa"
-	lbl_quest_nome.add_theme_font_size_override("font_size", 6)
-	lbl_quest_nome.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
+	HunterUIStyle.aplicar_fonte_licenca(lbl_quest_nome, 9, HunterUIStyle.COLOR_AURA_CYAN)
 	lbl_quest_nome.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_quest_nome)
 
 	lbl_objetivo = Label.new()
 	lbl_objetivo.text = "- Carregando objetivo..."
-	lbl_objetivo.add_theme_font_size_override("font_size", 6)
-	lbl_objetivo.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
+	HunterUIStyle.aplicar_fonte_pixel(lbl_objetivo, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_objetivo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_objetivo)
 
 	# Bússola & Direcionador de Rota
 	lbl_bussola = Label.new()
 	lbl_bussola.text = "🧭 Direção: Buscando..."
-	lbl_bussola.add_theme_font_size_override("font_size", 6)
-	lbl_bussola.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1.0))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_bussola, 7, HunterUIStyle.COLOR_HUNTER_GREEN_LIGHT)
 	lbl_bussola.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_bussola)
 

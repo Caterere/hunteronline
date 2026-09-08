@@ -16,6 +16,7 @@ collision_mask = 1
 script = ExtResource("1_pqnpc")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=411289399]
+position = Vector2(-0.5, -17)
 modulate = Color(0.25, 0.85, 1.0, 1.0)
 texture = ExtResource("3_sprite")
 hframes = 6
