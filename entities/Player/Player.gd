@@ -6,16 +6,25 @@ var _attack_anim_timer: float = 0.0
 var _direcao_olhar: Vector2 = Vector2.DOWN
 
 @onready var combat_system: HunterCombatSystem = $CombatSystem
+@onready var nen_system: NenSystem = get_node_or_null("NenSystem") as NenSystem
 @onready var hatsu_system: HatsuSystem = get_node_or_null("HatsuSystem") as HatsuSystem
 @onready var nen_beast_system: NenBeastSystem = get_node_or_null("NenBeastSystem") as NenBeastSystem
 
-
-
 @export_category("Variables")
 @export var _move_speed: float = 160.0
+@export var _friction: float = 0.35 # Resposta ágil e parada limpa sem patinar
+@export var _acceleration: float = 0.30 # Aceleração 8-direcional precisa e imediata
 
-@export var _friction: float = 0.2
-@export var _acceleration: float = 0.2
+@export_group("Attack Lunge / Game Feel")
+@export var attack_lunge_enabled: bool = true
+@export var attack_dash_distance: float = 24.0
+@export var attack_dash_duration: float = 0.14
+@export var attack_dash_speed: float = 260.0
+
+var _attack_lunge_timer: float = 0.0
+var _attack_lunge_total: float = 0.14
+var _attack_lunge_dir: Vector2 = Vector2.ZERO
+var _attack_lunge_current_speed: float = 0.0
 
 @export_category("Objects")
 @export var _animation_tree: AnimationTree = null
@@ -31,12 +40,12 @@ var _shake_decay: float = 2.8
 
 func _enter_tree() -> void:
 	collision_layer = 2 # Layer 2 (Player)
-	collision_mask = 1  # Mask 1 (Paredes/Cenário apenas)
+	collision_mask = 1 | 8  # Layer 1 (Cenário / Paredes) + Layer 4/Bit 3 (NPCs sólidos na base)
 
 
 func _ready() -> void:
 	collision_layer = 2 # Layer 2 (Player)
-	collision_mask = 1  # Mask 1 (Paredes/Cenário apenas)
+	collision_mask = 1 | 8  # Layer 1 (Cenário / Paredes) + Layer 4/Bit 3 (NPCs sólidos na base)
 
 	_state_machine = _animation_tree["parameters/playback"]
 
@@ -157,6 +166,16 @@ func _physics_process(delta: float) -> void:
 		if _attack_anim_timer <= 0.0:
 			_is_attacking = false
 
+	# Atualizar avanço físico de ataque (Attack Lunge / Dash de Golpe)
+	if _attack_lunge_timer > 0.0:
+		_attack_lunge_timer -= delta
+		var progresso: float = clampf(1.0 - (_attack_lunge_timer / _attack_lunge_total), 0.0, 1.0)
+		var fator_velocidade: float = 1.0 - (progresso * 0.75) # Ímpeto marcial rápido com desaceleração
+		velocity = _attack_lunge_dir * (_attack_lunge_current_speed * fator_velocidade)
+	elif _is_attacking:
+		# Pós-avanço: pés firmes no chão para impacto e recuperação do golpe
+		velocity = velocity.move_toward(Vector2.ZERO, 900.0 * delta)
+
 	# Atualizar Screen Shake (Trauma Decay)
 	if _trauma > 0.0 and _camera != null:
 		_trauma = max(0.0, _trauma - _shake_decay * delta)
@@ -193,7 +212,9 @@ func _dash() -> void:
 			if combat_system.tentar_esquivar(dir):
 				_is_attacking = false
 				_attack_anim_timer = 0.0
+				_attack_lunge_timer = 0.0
 				velocity = dir * 220.0
+				_gerar_efeito_poeira_passos(dir)
 				if TutorialManager != null and TutorialManager.em_tutorial:
 					TutorialManager.notificar_esquiva_executada()
 
@@ -228,6 +249,15 @@ func _move() -> void:
 
 	if StoryCutsceneManager.em_cutscene or (hatsu_system != null and hatsu_system.esta_imobilizado()):
 		velocity = Vector2.ZERO
+		return
+
+	# Se estiver executando o avanço de golpe (attack lunge) ou esquiva, não sobrescrever com o movimento padrão
+	if _attack_lunge_timer > 0.0 or (combat_system != null and combat_system.esquivando):
+		return
+
+	if _is_attacking:
+		# Pés firmes no chão para impacto e recuperação do golpe
+		velocity = velocity.move_toward(Vector2.ZERO, 900.0 * get_physics_process_delta_time())
 		return
 
 	var _direction: Vector2 = Vector2(
@@ -307,13 +337,40 @@ func _executar_golpe_normal() -> void:
 	_attack_anim_timer = min(combat_system.ataque_cooldown, 0.4)
 
 	var direcao_ataque: Vector2 = _direcao_olhar
-	if velocity != Vector2.ZERO:
+	var input_dir: Vector2 = Vector2(
+		Input.get_axis("move_left", "move_right"),
+		Input.get_axis("move_up", "move_down")
+	)
+	if input_dir != Vector2.ZERO:
+		direcao_ataque = input_dir.normalized()
+		_direcao_olhar = direcao_ataque
+	elif velocity != Vector2.ZERO:
 		direcao_ataque = velocity.normalized()
 		_direcao_olhar = direcao_ataque
 
 	_animation_tree["parameters/attack/blend_position"] = direcao_ataque
+
+	# 1. Iniciar avanço físico de ataque (Attack Lunge)
+	if attack_lunge_enabled:
+		_attack_lunge_total = attack_dash_duration
+		_attack_lunge_timer = attack_dash_duration
+		_attack_lunge_dir = direcao_ataque
+		_attack_lunge_current_speed = attack_dash_speed
+		velocity = _attack_lunge_dir * _attack_lunge_current_speed
+		_gerar_efeito_poeira_passos(_attack_lunge_dir)
+
+	# 2. Gerar onda de pressão de ar direcional (Wind Slash)
+	_gerar_efeito_corte_ar(direcao_ataque, false)
+
+	# 3. Disparar lógica de combate
 	combat_system.tentar_atacar(direcao_ataque)
 	_state_machine.travel("attack")
+
+	# 4. Micro-shake de feedback de impacto
+	if EventBus != null:
+		var shake_trauma: float = 0.28 if combat_system != null and combat_system.combo_step == 2 else 0.12
+		var shake_dur: float = 0.15 if combat_system != null and combat_system.combo_step == 2 else 0.08
+		EventBus.camera_shake_requested.emit(shake_trauma, shake_dur)
 
 
 func _executar_golpe_pesado() -> void:
@@ -324,13 +381,70 @@ func _executar_golpe_pesado() -> void:
 	_attack_anim_timer = 0.60
 
 	var direcao_ataque: Vector2 = _direcao_olhar
-	if velocity != Vector2.ZERO:
+	var input_dir: Vector2 = Vector2(
+		Input.get_axis("move_left", "move_right"),
+		Input.get_axis("move_up", "move_down")
+	)
+	if input_dir != Vector2.ZERO:
+		direcao_ataque = input_dir.normalized()
+		_direcao_olhar = direcao_ataque
+	elif velocity != Vector2.ZERO:
 		direcao_ataque = velocity.normalized()
 		_direcao_olhar = direcao_ataque
 
 	_animation_tree["parameters/attack/blend_position"] = direcao_ataque
+
+	# 1. Iniciar avanço físico potente para o golpe pesado
+	if attack_lunge_enabled:
+		_attack_lunge_total = attack_dash_duration * 1.2
+		_attack_lunge_timer = _attack_lunge_total
+		_attack_lunge_dir = direcao_ataque
+		_attack_lunge_current_speed = attack_dash_speed * 1.35
+		velocity = _attack_lunge_dir * _attack_lunge_current_speed
+		_gerar_efeito_poeira_passos(_attack_lunge_dir)
+
+	# 2. Gerar onda de choque pesada de pressão do ar
+	_gerar_efeito_corte_ar(direcao_ataque, true)
+
+	# 3. Disparar lógica de combate pesado
 	combat_system.tentar_ataque_pesado(direcao_ataque)
 	_state_machine.travel("attack")
+
+	# 4. Feedback de impacto reforçado
+	if EventBus != null:
+		EventBus.camera_shake_requested.emit(0.45, 0.22)
+
+
+func _gerar_efeito_poeira_passos(dir: Vector2) -> void:
+	var dust_cls = load("res://entities/effects/DashDustPuff.gd")
+	if dust_cls != null:
+		var dust = dust_cls.new()
+		dust.setup(global_position, dir)
+		if get_parent() != null:
+			get_parent().add_child(dust)
+		else:
+			add_child(dust)
+
+
+func _gerar_efeito_corte_ar(dir: Vector2, is_heavy: bool = false) -> void:
+	var wave_cls = load("res://entities/effects/AirPressureWave.gd")
+	if wave_cls != null:
+		var wave = wave_cls.new()
+		var cor_nen: Color = Color.TRANSPARENT
+		if nen_system != null and nen_system.has_method("tecnica_ativa"):
+			if nen_system.tecnica_ativa(NenSystem.Tecnica.KO):
+				cor_nen = Color(1.0, 0.85, 0.2, 0.8) # Ko dourado
+			elif nen_system.tecnica_ativa(NenSystem.Tecnica.REN):
+				cor_nen = Color(0.3, 0.8, 1.0, 0.7) # Ren azul ciano
+		if hatsu_system != null and hatsu_system.has_method("esta_godspeed") and hatsu_system.esta_godspeed():
+			cor_nen = Color(0.4, 0.9, 1.0, 0.9) # Kanmuru elétrico
+
+		var spawn_pos: Vector2 = global_position + (dir.normalized() * 16.0) + Vector2(0, -6)
+		wave.setup(spawn_pos, dir, is_heavy, cor_nen)
+		if get_parent() != null:
+			get_parent().add_child(wave)
+		else:
+			add_child(wave)
 
 
 # Escalona o cooldown do ataque básico baseado no atributo Velocidade

@@ -64,3 +64,20 @@ Hatsu opera como as magias e habilidades táticas de classes de RPGs clássicos,
 > **Zetsu, En e Gyo NÃO ocupam os Slots 1 a 4 de Hatsu.**
 > Elas são técnicas de Nen independentes com seus próprios atalhos (`nen_zetsu`, `nen_en`, `nen_gyo`).
 > Os Slots 1 a 4 pertencem estritamente às habilidades criadas ou equipadas de Hatsu.
+
+---
+
+## 5. SISTEMA CANÔNICO DE BARRA DE DEFESA & QUEBRA DE GUARDA (GUARD BREAK)
+
+O combate corpo-a-corpo e contra chefes utiliza o sistema reativo de **Barra de Defesa (Defense Gauge)**:
+- **Independência de Ativação Manual:** Não há necessidade de o jogador ativar técnicas especiais como Ko para quebrar a postura do inimigo. O sistema é 100% orgânico e integrado ao fluxo de golpes físicos normais e pesados.
+- **Mecânica de Drenagem da Guarda:**
+  - **Golpe Forte (Heavy Attack):** Drena massivamente **50% da barra de defesa** em um único golpe carregado. Dois golpes fortes consecutivos resultam em quebra imediata de guarda.
+  - **Sequência de Golpes Fracos (Combo Cadenciado):** Golpes rápidos drenam progressivamente a defesa ($15\% \rightarrow 20\% \rightarrow 30\%$). Uma sequência agressiva de 4 a 5 acertos esvazia a barra por completo.
+- **Regeneração Fora de Combate:** Se o alvo permanecer sem receber ataques por mais de $2.5\,\text{s}$, sua defesa se regenera gradualmente a uma taxa de $25.0\,\text{pts/s}$, recompensando pressão contínua.
+- **Estado de Defesa Quebrada (Vulnerabilidade):**
+  - Ao atingir 0 de guarda, o inimigo sofre quebra de postura imediata com estilhaço de aura e balão `💥 DEFESA QUEBRADA!`.
+  - **Janela de Vulnerabilidade:** Dura $3.5\,\text{s}$ (ou $4.0\,\text{s}$ para chefes).
+  - **Multiplicador de Dano (+80%):** Todo golpe desferido durante a janela de vulnerabilidade recebe amplificação de dano de $1.80\times$.
+  - Após o término do timer, a guarda é totalmente restaurada e o alvo retoma sua compostura defensiva.
+

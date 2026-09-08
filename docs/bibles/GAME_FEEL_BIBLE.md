@@ -70,3 +70,34 @@ Hunter Online utiliza o modelo moderno de **Trauma Não-Linear**:
 - **Knockback Direcional:** O finalizador do combo arremessa o inimigo 24px na direção oposta ao golpe.
 - **Knockdown (Queda):** Golpes com Ko derrubam monstros normais, exigindo 0.8s para recuperação de postura.
 - **Morte:** Dissipação com partículas de aura que se extinguem no ar, deixando o loot no chão de forma clara.
+
+---
+
+## 7. ATTACK LUNGE & DESLOCAMENTO FÍSICO DE GOLPE
+
+O combate físico não deve parecer fixo no lugar nem patinar no gelo:
+- **Avanço Físico (Lunge):** Ao iniciar o golpe, o corpo do Hunter projeta-se à frente na direção do ataque com velocidade inicial de $260\,\text{px/s}$ ao longo de $0.14\,\text{s}$ (deslocamento útil de $\approx 24\,\text{px}$).
+- **Curva Cinética:** Desaceleração não-linear ($1.0 - \text{progresso} \times 0.75$), entregando ímpeto no impacto e firmeza de pés na recuperação.
+- **Colisão com Paredes:** Desliza organicamente contra cantos e obstáculos sem atravessar ou travar a animação.
+
+---
+
+## 8. ONDA DE PRESSÃO DE AR (AIR PRESSURE WAVE / CORTE DE VENTO)
+
+- **Natureza:** Arco cortante de ar comprimido translúcido com núcleo de brilho nítido e linhas de velocidade.
+- **Alinhamento 8-Direcional:** Disparado rigorosamente no vetor de ataque (`dir.angle()`), ajustando escala de $0.85\times$ a $1.30\times$ em $0.16\,\text{s}$.
+- **Reação a Técnicas de Nen:**
+  - Padrão: Translúcido ciano/branco com brilho puro.
+  - Ko Ativo: Ampliação do arco para $36\,\text{px}$ com cor dourada radiante.
+  - Ren Ativo: Halo de aura concentrado ciano.
+  - Kanmuru (Godspeed): Arco elétrico de alta voltagem.
+- **Ciclo de Vida:** Limpeza estrita com `queue_free()` em $0.16\,\text{s}$ (zero vazamento de memória).
+
+---
+
+## 9. TRAÇÃO DOS PÉS & DUST PUFF (IMPACTO COM O SOLO)
+
+- **DashDustPuff:** Partículas de poeira são geradas no solo ($Y=+3\,\text{px}$) opostas ao vetor de deslocamento.
+- **Animação:** 4 frames procedurais de dispersão de poeira ao longo de $0.20\,\text{s}$.
+- **Baseline Alinhado:** Garante a sensação tátil de atrito com a terra e pedra do cenário.
+
