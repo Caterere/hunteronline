@@ -12,12 +12,12 @@ extends NPC
 # - Desacopla a exploração da cidade das missões de combate.
 # ============================================================
 
-@export var prompt_interaction: String = "[E] Falar com o Guia da História (Story Gateway)"
+@export var prompt_interaction: String = "[E] Portal da Missão Atual (Guia da História)"
 
 
 func _ready() -> void:
 	npc_name = "Guia da História"
-	fala_padrao = "Sou o Guia Oficial de Missões da Associação Hunter. Interaja comigo para continuar sua jornada canônica!"
+	fala_padrao = "Sou o portal oficial da Associação Hunter. Fale comigo para ir automaticamente à área da sua missão atual — sem escolher saga ou dificuldade."
 	super()
 
 
@@ -35,10 +35,10 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
 		visual_dialogue.exibir_sequencia_falas([
-			{"falante": "Guia da História", "texto": "Saudações, Caçador! Eu coordeno as expedições oficiais da história pelo continente."},
+			{"falante": "Guia da História", "texto": "Saudações, Caçador! Eu sou o portal da missão atual — sem seletor de saga ou dificuldade."},
 			{"falante": "Guia da História", "texto": "Seu Progresso Atual é no Arco %d: %s | Capítulo %d." % [saga_id, nome_saga, cap_id]},
 			{"falante": "Guia da História", "texto": "🚩 Checkpoint Ativo: %s (Ponto Seguro: %s)." % [nome_cp, safe_name]},
-			{"falante": "Guia da História", "texto": "Pressione [E] para ser despachado imediatamente até o seu Checkpoint!"}
+			{"falante": "Guia da História", "texto": "Pressione [E] para ir automaticamente à área da sua missão atual!"}
 		])
 		visual_dialogue.dialogo_concluido.connect(func():
 			if StoryManager != null:
@@ -46,7 +46,9 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		, CONNECT_ONE_SHOT)
 	else:
 		# Fallback direto se UI de diálogo estiver indisponível
-		if EventBus != null and EventBus.has_signal("toast_requested"):
-			EventBus.emit_toast("🚩 Despachando para Checkpoint: %s" % nome_cp, Color(0.2, 0.9, 1.0))
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("🚩 Despachando para a missão atual: %s" % nome_cp, Color(0.2, 0.9, 1.0))
+		elif EventBus != null and EventBus.has_signal("toast_requested"):
+			EventBus.emit_toast("🚩 Despachando para a missão atual: %s" % nome_cp, Color(0.2, 0.9, 1.0))
 		if StoryManager != null:
 			StoryManager.continuar_do_checkpoint(get_tree())

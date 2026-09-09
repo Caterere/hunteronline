@@ -340,7 +340,7 @@ func _obter_pontos_interesse() -> Array[Dictionary]:
 		{"nome": "Mercador Hunter", "pos": Vector2(-640, 240), "icone": "💰", "cor": Color(1.0, 0.85, 0.2)},
 		{"nome": "Casa Pessoal do Caçador", "pos": Vector2(-1040, 0), "icone": "🏠", "cor": Color(0.4, 1.0, 0.5)},
 
-		{"nome": "Portal Hunter (9 Sagas)", "pos": Vector2(560, 440), "icone": "🌌", "cor": Color(0.5, 0.5, 1.0)},
+		{"nome": "Guia da História (missão atual)", "pos": Vector2(0, -90), "icone": "📜", "cor": Color(0.35, 0.85, 1.0)},
 		{"nome": "Examinador Chrono (PQs)", "pos": Vector2(840, 440), "icone": "⏳", "cor": Color(0.4, 0.9, 1.0)},
 		{"nome": "Curador de Bestas de Nen", "pos": Vector2(1120, 440), "icone": "🐉", "cor": Color(0.85, 0.4, 1.0)},
 		{"nome": "Torre Celestial (Arena)", "pos": Vector2(1400, 0), "icone": "🏯", "cor": Color(1.0, 0.8, 0.2)}

@@ -407,34 +407,31 @@ func _atualizar_detalhe_canonico() -> void:
 
 
 func _on_iniciar_missao_clicado() -> void:
-	var quest = CanonQuestCatalog.obter_quest_da_etapa(selected_arc, selected_etapa)
+	# Sem seletor de saga/dificuldade: só acompanha a missão atual.
+	# O teleporte fica no Guia da História (StoryGatewayNPC) / StoryManager.
+	var quest = CanonQuestCatalog.obter_quest_da_etapa(
+		PlayerData.arco_atual if PlayerData else selected_arc,
+		PlayerData.etapa_quest_arco if PlayerData else selected_etapa
+	)
+	if quest == null:
+		quest = CanonQuestCatalog.obter_quest_da_etapa(selected_arc, selected_etapa)
 	if quest == null:
 		return
 
-	PlayerData.arco_atual = selected_arc
-	PlayerData.etapa_quest_arco = selected_etapa
-	
 	if QuestSystem != null:
-		QuestSystem.active_quests.clear()
-		QuestSystem.start_quest(quest)
+		if QuestSystem.has_method("start_quest"):
+			QuestSystem.start_quest(quest)
+		elif QuestSystem.has_method("iniciar_quest"):
+			QuestSystem.iniciar_quest(quest)
 
 	fechar()
 
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("📜 Missão Ativa: %s" % quest.quest_name)
+		hud.exibir_notificacao("📜 Missão marcada: %s — fale com o Guia da História na praça." % quest.quest_name)
 
-	var info_arco = ARCO_INFOS.get(selected_arc)
-	if info_arco != null and "cena" in info_arco:
-		var cena_mapa = info_arco["cena"]
-		var cena_atual = get_tree().current_scene.scene_file_path if get_tree().current_scene else ""
-		if cena_atual != cena_mapa:
-			print("[QuestJournalUI] Viajando para o mapa do capítulo: ", cena_mapa)
-			var trans = get_node_or_null("/root/SceneTransition")
-			if trans != null and trans.has_method("mudar_cena"):
-				trans.mudar_cena(cena_mapa)
-			else:
-				get_tree().change_scene_to_file(cena_mapa)
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("📜 Vá ao Guia da História na praça para viajar à área da missão.", Color(0.35, 0.85, 1.0))
 
 
 # ============================================================

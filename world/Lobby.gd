@@ -9,7 +9,8 @@ extends Node2D
 # - Praça Central (Spawn): Estátua de Netero, Elena, Instrutor, Quadro de Procurados.
 # - Distrito dos Mestres (Norte Longínquo): Mestre Wing, Zushi, Biscuit, Mestre Alquimista.
 # - Distrito Comercial & Bairro Residencial (Oeste Longínquo): Ferreiro, Mercador, Casa do Caçador.
-# - Distrito Dimensional & Santuário Espiritual (Leste Longínquo): Portal Hunter, Chrono (PQs), Curador de Bestas de Nen, Torre Celestial.
+# - Distrito Dimensional & Santuário Espiritual (Leste Longínquo): Chrono (PQs), Curador de Bestas de Nen, Torre Celestial.
+# - Continuidade da história: Guia da História (StoryGatewayNPC) na praça — teleporta ao checkpoint da missão atual.
 # - NPCs Vivos com rotinas e nomes visíveis flutuando pelas grandes avenidas.
 #
 # ============================================================
@@ -454,19 +455,11 @@ func _anexar_rotina_comercial(npc: Node, nome: String, work: Vector2, tavern: Ve
 # ============================================================
 
 func _popular_distrito_dimensional() -> void:
-	# Portal Hunter (landmark visual + seletor de sagas) — Distrito Leste, longe da praça
-	var portal = get_node_or_null("PortalHunter")
-	if portal == null:
-		var scn_portal = load("res://entities/npc/portal_hunter/PortalHunter.tscn")
-		if scn_portal:
-			portal = scn_portal.instantiate()
-			portal.name = "PortalHunter"
-			add_child(portal)
-	if portal != null:
-		portal.position = Vector2(1180, -40)
-		portal.z_index = 3
-		if portal.has_method("_aplicar_visual_portal"):
-			portal._aplicar_visual_portal()
+	# Sistema legado PortalHunter (seletor de saga/dificuldade) removido.
+	# Continuidade da história: StoryGatewayNPC na praça central.
+	var portal_legado = get_node_or_null("PortalHunter")
+	if portal_legado != null:
+		portal_legado.queue_free()
 
 	# Examinador Chrono (Fendas Temporais - 50 Missões Paralelas)
 	var pq_npc = get_node_or_null("ParallelQuestNPC")

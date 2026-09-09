@@ -44,7 +44,7 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		var falas: Array[Dictionary] = [
 			{"falante": "Recepcionista Elena", "texto": "Olá novamente, %s! Como vão seus preparativos de Caçador?" % PlayerData.nome_personagem},
 			{"falante": "Recepcionista Elena", "texto": "Lembre-se: você pode consultar o Guia Hunter na aba de Conhecimentos do menu [TAB] a qualquer momento!"},
-			{"falante": "Recepcionista Elena", "texto": "Para avançar na história principal, dirija-se ao Portal Hunter no Distrito Dimensional a Leste."}
+			{"falante": "Recepcionista Elena", "texto": "Para avançar na história principal, fale com o Guia da História na praça central — ele te leva à área da sua missão atual."}
 		]
 		visual_dialogue.exibir_sequencia_falas(falas)
 		visual_dialogue.dialogo_concluido.connect(func():

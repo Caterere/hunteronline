@@ -400,9 +400,9 @@ static func executar_tour_lobby_cutscene(tree: SceneTree, elena: NPC, _player: C
 		{"falante": "Recepcionista Elena", "texto": "🥋 AO NORTE (Distrito dos Mestres): Vá falar com Mestre Wing AGORA. Ele abre seus nós de aura e ensina Ten. Sem isso, o resto fica incompleto."},
 		{"falante": "Recepcionista Elena", "texto": "🏛️ PRAÇA CENTRAL: Estátua do Presidente Netero (bênçãos) e o Quadro de Procurados."},
 		{"falante": "Recepcionista Elena", "texto": "⚒️ A OESTE (Distrito Comercial): Ferreiro, Comerciante e sua Casa Pessoal."},
-		{"falante": "Recepcionista Elena", "texto": "🏯 A LESTE: Torre Celestial, Examinador Chrono e o Portal Hunter do Modo História."},
+		{"falante": "Recepcionista Elena", "texto": "🏯 A LESTE: Torre Celestial e Examinador Chrono. A história continua com o Guia da História na praça."},
 		{"falante": "Recepcionista Elena", "texto": "🍪 Biscuit Krueger (Hatsu/Juramentos) só libera forja de Hatsu mais adiante na saga — não no início."},
-		{"falante": "Recepcionista Elena", "texto": "👉 GPS: primeiro Mestre Wing (norte). Depois do despertar, siga ao Portal Hunter a leste. Boa sorte!"}
+		{"falante": "Recepcionista Elena", "texto": "👉 GPS: primeiro Mestre Wing (norte). Depois do despertar, fale com o Guia da História na praça. Boa sorte!"}
 	]
 
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
@@ -415,7 +415,7 @@ static func executar_tour_lobby_cutscene(tree: SceneTree, elena: NPC, _player: C
 				if PlayerData != null and not PlayerData.despertou_nen:
 					hud.exibir_notificacao("👉 Novo Objetivo: Fale com Mestre Wing ao norte!")
 				else:
-					hud.exibir_notificacao("👉 Novo Objetivo: Siga até o Portal Hunter a Leste!")
+					hud.exibir_notificacao("👉 Novo Objetivo: Fale com o Guia da História na praça!")
 		, CONNECT_ONE_SHOT)
 	else:
 		if elena != null and is_instance_valid(elena):

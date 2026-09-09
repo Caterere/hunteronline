@@ -6,7 +6,6 @@
 [ext_resource type="PackedScene" path="res://ui/dialogue/DialogueBox.tscn" id="5_dt2ce"]
 [ext_resource type="Script" path="res://entities/npc/parallel_quest/ParallelQuestNPC.gd" id="6_44rah"]
 [ext_resource type="PackedScene" path="res://ui/hud/HUD.tscn" id="7_3xmcv"]
-[ext_resource type="PackedScene" path="res://entities/npc/portal_hunter/PortalHunter.tscn" id="8_portal"]
 [ext_resource type="PackedScene" path="res://entities/npc/parallel_quest/ParallelQuestNPC.tscn" id="9_pqnpc"]
 [ext_resource type="TileSet" path="res://world/tilesets/lobby_tileset.tres" id="9_wn6op"]
 [ext_resource type="PackedScene" path="res://ui/ParallelQuest/ParallelQuestUI.tscn" id="10_pqui"]
@@ -23,10 +22,6 @@ collision_layer = 2
 [node name="DialogueBox" type="CanvasLayer" parent="." unique_id=1390847238 groups=["dialogue_box"] instance=ExtResource("5_dt2ce")]
 layer = 20
 script = ExtResource("3_p31uc")
-
-[node name="PortalHunter" type="CharacterBody2D" parent="." unique_id=676438593 instance=ExtResource("8_portal")]
-position = Vector2(100, 30)
-collision_layer = 8
 
 [node name="ParallelQuestNPC" type="CharacterBody2D" parent="." unique_id=918273645 instance=ExtResource("9_pqnpc")]
 position = Vector2(145, 30)
