@@ -133,6 +133,8 @@ var falou_ferido: bool = false
 
 var enemy_sprite: Sprite2D
 var enemy_body: CharacterBody2D
+var tex_idle_8dir: Texture2D = null
+var tex_walk_8x8: Texture2D = null
 
 
 # =========================================================
@@ -268,6 +270,8 @@ func _ready() -> void:
 		push_warning(
 			"EnemySystem: Sprite2D não encontrado."
 		)
+	else:
+		_vincular_textura_inimigo()
 
 
 	# -----------------------------------------------------
@@ -1070,3 +1074,126 @@ func obter_hatsu_real() -> HatsuData:
 	if enemy_data != null:
 		return enemy_data.obter_hatsu_real()
 	return null
+
+
+func _vincular_textura_inimigo() -> void:
+	if enemy_sprite == null:
+		return
+
+	var e_id: String = String(enemy_id).to_lower()
+	var e_name: String = enemy_name.to_lower()
+	var b_name: String = enemy_body.name.to_lower() if enemy_body != null else ""
+	var alvo_id: String = ""
+
+	const MAPA_INIMIGOS = {
+		"meruem": "enemy_boss_meruem",
+		"rei_formiga": "enemy_boss_meruem",
+		"razor": "enemy_boss_razor",
+		"laser": "enemy_boss_razor",
+		"pitou": "enemy_guarda_real",
+		"guarda_real": "enemy_guarda_real",
+		"youpi": "enemy_guarda_real",
+		"pouf": "enemy_guarda_real",
+		"formiga_lider": "enemy_formiga_lider",
+		"lider": "enemy_formiga_lider",
+		"formiga": "enemy_formiga_soldado",
+		"soldado": "enemy_formiga_soldado",
+		"bomber": "enemy_bomber_greed",
+		"genthru": "enemy_bomber_greed",
+		"greed": "enemy_bomber_greed",
+		"monstro_greed": "enemy_bomber_greed",
+		"mafioso": "enemy_mafioso_yorknew",
+		"yorknew": "enemy_mafioso_yorknew",
+		"mafia": "enemy_mafioso_yorknew",
+		"lutador": "enemy_lutador_arena",
+		"arena": "enemy_lutador_arena",
+		"torre": "enemy_lutador_arena",
+		"mordomo": "enemy_mordomo_zoldyck",
+		"zoldyck": "enemy_mordomo_zoldyck",
+		"canario": "enemy_mordomo_zoldyck",
+		"gotoh": "enemy_mordomo_zoldyck",
+		"mike": "enemy_mordomo_zoldyck",
+		"pantanal": "enemy_criatura_pantanal",
+		"criatura": "enemy_criatura_pantanal",
+		"candidato": "enemy_candidato_exame",
+		"exame": "enemy_candidato_exame",
+		"maratona": "enemy_candidato_exame",
+		"ladrao": "enemy_mafioso_yorknew",
+		"ladrao_estrada": "enemy_mafioso_yorknew",
+		"salteador": "enemy_mafioso_yorknew",
+		"bandido": "enemy_mafioso_yorknew",
+		"lobo": "enemy_lobo_sombras",
+		"lobo_sombras": "enemy_lobo_sombras",
+		"fera_sombra": "enemy_lobo_sombras",
+		"fera_alada": "enemy_fera_alada",
+		"alada": "enemy_fera_alada",
+		"emboscadora": "enemy_fera_alada",
+		"ambusher": "enemy_fera_alada",
+		"sentinela": "enemy_sentinela_pedra",
+		"sentinela_pedra": "enemy_sentinela_pedra",
+		"pedra": "enemy_sentinela_pedra"
+	}
+
+	for k in MAPA_INIMIGOS.keys():
+		if k in e_id or k in e_name or k in b_name:
+			alvo_id = MAPA_INIMIGOS[k]
+			break
+
+	# Fallback para candidato_exame se for inimigo padrão
+	if alvo_id.is_empty():
+		alvo_id = "enemy_candidato_exame"
+
+	var tex_path = "res://assets/sprites/characters/" + alvo_id + "_8dir.png"
+	var walk_path = "res://assets/sprites/characters/" + alvo_id + "_walk_8x8.png"
+	tex_walk_8x8 = null
+	tex_idle_8dir = null
+
+	# Já tem folha 8dir custom (não player) — só alinha e tenta walk
+	if enemy_sprite.hframes == 8 and enemy_sprite.vframes == 1 \
+			and enemy_sprite.texture != null \
+			and not enemy_sprite.texture.resource_path.ends_with("player.png"):
+		tex_idle_8dir = enemy_sprite.texture
+		var rp: String = enemy_sprite.texture.resource_path
+		if rp.ends_with("_8dir.png"):
+			var base_id: String = rp.get_file().replace("_8dir.png", "")
+			walk_path = "res://assets/sprites/characters/" + base_id + "_walk_8x8.png"
+		if ResourceLoader.exists(walk_path):
+			tex_walk_8x8 = load(walk_path)
+		enemy_sprite.position = Vector2(0, -17)
+		_ajustar_arvore_animacao_para_8dir()
+		return
+
+	if ResourceLoader.exists(tex_path):
+		var tex = load(tex_path)
+		tex_idle_8dir = tex
+		enemy_sprite.texture = tex
+		enemy_sprite.hframes = 8
+		enemy_sprite.vframes = 1
+		enemy_sprite.position = Vector2(0, -17)
+		if ResourceLoader.exists(walk_path):
+			tex_walk_8x8 = load(walk_path)
+		_ajustar_arvore_animacao_para_8dir()
+
+
+func aplicar_folha_movimento(andando: bool) -> void:
+	if enemy_sprite == null:
+		return
+	if andando and tex_walk_8x8 != null:
+		if enemy_sprite.texture != tex_walk_8x8:
+			enemy_sprite.texture = tex_walk_8x8
+			enemy_sprite.hframes = 8
+			enemy_sprite.vframes = 8
+		return
+	if tex_idle_8dir != null and enemy_sprite.texture != tex_idle_8dir:
+		enemy_sprite.texture = tex_idle_8dir
+		enemy_sprite.hframes = 8
+		enemy_sprite.vframes = 1
+
+
+func _ajustar_arvore_animacao_para_8dir() -> void:
+	if enemy_body == null:
+		return
+	var anim_tree = enemy_body.get_node_or_null("AnimationTree") as AnimationTree
+	if anim_tree != null:
+		anim_tree.active = false
+

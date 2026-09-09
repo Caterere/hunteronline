@@ -1,0 +1,53 @@
+class_name NpcSpriteBinder
+extends RefCounted
+
+# ============================================================
+# Aplica folha 8dir PixelLab sem forçar player.png / tintas.
+# ============================================================
+
+static func aplicar(node: Node, preferred_ids: Array = []) -> void:
+	if node == null:
+		return
+	var spr := node.get_node_or_null("Sprite2D") as Sprite2D
+	if spr == null:
+		return
+
+	var ids: Array = preferred_ids.duplicate()
+	var n_low := ""
+	if node.get("npc_name") != null:
+		n_low = str(node.get("npc_name")).to_lower()
+	n_low += " " + str(node.name).to_lower()
+
+	const ALIASES := {
+		"gon": "npc_gon",
+		"killua": "npc_killua",
+		"kurapika": "npc_kurapika",
+		"leorio": "npc_leorio",
+		"hisoka": "npc_hisoka",
+		"chrollo": "npc_chrollo",
+		"melody": "npc_melody",
+		"battera": "npc_battera",
+		"tsezguerra": "npc_tsezguerra",
+		"zebro": "npc_guarda_fronteira",
+		"canary": "npc_mordoma_canary",
+		"gotoh": "npc_mordomo_gotoh",
+		"silva": "npc_silva_zoldyck",
+		"guia": "npc_viajante_scout",
+		"ferreiro": "npc_ferreiro_mestre",
+		"vendedor": "npc_vendedor_mercador",
+		"wing": "npc_instrutor_combate"
+	}
+	for k in ALIASES.keys():
+		if k in n_low:
+			ids.append(ALIASES[k])
+
+	for asset_id in ids:
+		var path := "res://assets/sprites/characters/%s_8dir.png" % str(asset_id)
+		if ResourceLoader.exists(path):
+			spr.texture = load(path)
+			spr.hframes = 8
+			spr.vframes = 1
+			spr.frame = 0
+			spr.position = Vector2(0, -17)
+			spr.modulate = Color.WHITE
+			return

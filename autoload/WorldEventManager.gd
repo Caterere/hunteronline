@@ -88,6 +88,17 @@ func iniciar_evento_mercador_apuros(regiao: String = "vale_padokia") -> void:
 	)
 
 
+func iniciar_evento_disputa_ponte(regiao: String = "estrada_padokia") -> void:
+	criar_evento_dinamico(
+		"evento_disputa_ponte_" + regiao,
+		"Disputa Territorial na Grande Ponte",
+		"A Associação Hunter e salteadores duelam pelo controle da rota comercial da Grande Ponte.",
+		regiao,
+		5.0,
+		40
+	)
+
+
 func iniciar_evento_calamidade_continente_negro() -> void:
 	criar_evento_dinamico(
 		"evento_calamidade_continente_negro",

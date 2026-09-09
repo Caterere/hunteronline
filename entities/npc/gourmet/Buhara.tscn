@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://cx82m71kbuhara1"]
 
 [ext_resource type="Script" path="res://entities/npc/gourmet/Buhara.gd" id="1_buhara"]
-[ext_resource type="Texture2D" path="res://assets/sprites/characters/player.png" id="2_tex"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/npc_buhara_8dir.png" id="2_tex"]
 [ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="3_interact"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_body"]
@@ -17,11 +17,10 @@ collision_mask = 1
 script = ExtResource("1_buhara")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.9, 0.5, 0.2, 1.0)
-position = Vector2(-0.5, -17)
+position = Vector2(0, -17)
 texture = ExtResource("2_tex")
-hframes = 6
-vframes = 10
+hframes = 8
+vframes = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(0, -3)

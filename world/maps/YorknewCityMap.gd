@@ -22,6 +22,7 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.YORKNEW)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco4()
 	_configurar_inimigos()
@@ -85,16 +86,9 @@ func _popular_npcs_arco4() -> void:
 		var leorio = scn_npc.instantiate()
 		leorio.name = "Leorio"
 		leorio.position = Vector2(100, -30)
-		var spr = leorio.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.2, 0.3, 0.7, 1.0)
 		leorio.npc_name = "Leorio"
 		leorio.fala_padrao = "E aí! Cheguei a Yorknew para o grande leilão! Vamos levantar uma fortuna para comprar o Greed Island!"
+		NpcSpriteBinder.aplicar(leorio, ["npc_leorio"])
 		add_child(leorio)
 
 	# 2. Kurapika
@@ -105,15 +99,8 @@ func _popular_npcs_arco4() -> void:
 			kurapika = scn_kurapika.instantiate()
 		else:
 			kurapika = scn_npc.instantiate()
-			var spr = kurapika.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(1.0, 0.3, 0.3, 1.0)
-		
+			kurapika.npc_name = "Kurapika"
+			NpcSpriteBinder.aplicar(kurapika, ["npc_kurapika"])
 		kurapika.name = "Kurapika"
 		kurapika.position = Vector2(300, -50)
 		kurapika.npc_name = "Kurapika"
@@ -125,16 +112,9 @@ func _popular_npcs_arco4() -> void:
 		var melody = scn_npc.instantiate()
 		melody.name = "Melody"
 		melody.position = Vector2(450, -30)
-		var spr = melody.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.8, 0.7, 1.0, 1.0)
 		melody.npc_name = "Melody"
 		melody.fala_padrao = "Ouço os batimentos do seu coração... você está calmo. Meu objetivo é encontrar e destruir a partitura da Sonata das Trevas."
+		NpcSpriteBinder.aplicar(melody, ["npc_melody"])
 		add_child(melody)
 
 	# 4. Gon
@@ -145,15 +125,7 @@ func _popular_npcs_arco4() -> void:
 			gon = scn_gon.instantiate()
 		else:
 			gon = scn_npc.instantiate()
-			var spr = gon.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(0.2, 0.8, 0.2, 1.0)
-		
+			NpcSpriteBinder.aplicar(gon, ["npc_gon"])
 		gon.name = "Gon"
 		gon.position = Vector2(700, 50)
 		gon.npc_name = "Gon Freecss"
@@ -165,16 +137,9 @@ func _popular_npcs_arco4() -> void:
 		var battera = scn_npc.instantiate()
 		battera.name = "Battera"
 		battera.position = Vector2(2800, -100)
-		var spr = battera.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.9, 0.7, 0.2, 1.0)
 		battera.npc_name = "Bilionário Battera"
 		battera.fala_padrao = "Pago 50 bilhões de Jenny para quem zerar o Greed Island e me trouxer a carta de cura 'Sopro do Arcanjo'!"
+		NpcSpriteBinder.aplicar(battera, ["npc_battera"])
 		add_child(battera)
 
 	# 6. Tsezguerra
@@ -182,16 +147,9 @@ func _popular_npcs_arco4() -> void:
 		var tsezguerra = scn_npc.instantiate()
 		tsezguerra.name = "Tsezguerra"
 		tsezguerra.position = Vector2(2900, -80)
-		var spr = tsezguerra.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.6, 0.6, 0.6, 1.0)
 		tsezguerra.npc_name = "Tsezguerra"
 		tsezguerra.fala_padrao = "Sou um Hunter de 1 Estrela contratado por Battera. Mostre-me o seu Ren para saber se você tem qualificações para entrar no jogo."
+		NpcSpriteBinder.aplicar(tsezguerra, ["npc_tsezguerra"])
 		add_child(tsezguerra)
 
 	# 7. Chrollo
@@ -202,15 +160,7 @@ func _popular_npcs_arco4() -> void:
 			chrollo = scn_chrollo.instantiate()
 		else:
 			chrollo = scn_npc.instantiate()
-			var spr = chrollo.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(0.1, 0.1, 0.1, 1.0)
-		
+			NpcSpriteBinder.aplicar(chrollo, ["npc_chrollo"])
 		chrollo.name = "Chrollo"
 		chrollo.position = Vector2(3300, -300)
 		chrollo.npc_name = "Chrollo Lucilfer"

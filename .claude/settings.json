@@ -1,0 +1,1 @@
+mcp add pixellab https://api.pixellab.ai/mcp -t http -H "Authorization: Bearer ***REMOVED***"

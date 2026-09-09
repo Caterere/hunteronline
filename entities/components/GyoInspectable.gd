@@ -81,8 +81,11 @@ func atualizar_estado_gyo_com_nivel(ativo: bool, nivel_percepcao: int) -> void:
 	
 	if label_dica != null:
 		label_dica.visible = visivel and (jogador_proximo != null)
-	
+
+	var estava_oculto: bool = modulate.a < 0.5
 	modulate = Color.WHITE if visivel else Color(1.0, 1.0, 1.0, 0.15 if requer_gyo else 1.0)
+	if visivel and estava_oculto and AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):
+		AudioManager.tocar_sfx_tipo("gyo_detect", 0.85)
 	visibilidade_aura_alterada.emit(visivel)
 
 func _on_body_entered(body: Node2D) -> void:
@@ -141,7 +144,10 @@ func inspecionar(player: Node2D) -> Dictionary:
 	
 	if EventBus != null:
 		EventBus.emit_toast("🔍 Vestígio Decifrado com Gyo: " + titulo_pista, Color(0.3, 0.9, 1.0, 1.0))
-	
+
+	if AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):
+		AudioManager.tocar_sfx_tipo("nen_gyo", 1.05)
+
 	inspecionado.emit(dados)
 	
 	if consumir_ao_inspecionar:

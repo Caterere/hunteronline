@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://d8ydlcvxqm8jk"]
 
 [ext_resource type="PackedScene" path="res://entities/npc/NPC.tscn" id="1_8rpi0"]
-[ext_resource type="Texture2D" path="res://assets/sprites/characters/player.png" id="2_3awom"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/npc_biscuit_8dir.png" id="2_3awom"]
 [ext_resource type="Script" path="res://entities/npc/biscuit/Biscuit.gd" id="2_mrwii"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_mrwii"]
@@ -16,10 +16,10 @@ collision_mask = 1
 script = ExtResource("2_mrwii")
 
 [node name="Sprite2D" parent="." index="0"]
-position = Vector2(-0.5, -17)
+position = Vector2(0, -17)
 texture = ExtResource("2_3awom")
-hframes = 6
-vframes = 10
+hframes = 8
+vframes = 1
 
 [node name="CollisionShape2D" parent="." index="1"]
 position = Vector2(0, -2)

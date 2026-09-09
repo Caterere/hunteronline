@@ -172,8 +172,8 @@ func ingressar_faccao(id_faccao: String) -> bool:
 	# Ajustar reputação
 	_ajustar_reputacao_faccao(id_faccao)
 	
-	if GameState:
-		GameState.salvar_jogo()
+	if SaveManager:
+		SaveManager.salvar_jogo()
 		
 	return true
 
@@ -204,8 +204,8 @@ func adicionar_faccao_xp(qtd: int) -> void:
 			if hud and hud.has_method("exibir_notificacao"):
 				hud.exibir_notificacao("🎖️ PROMOÇÃO DE FACÇÃO!\nNovo Rank: %s\nTítulo Desbloqueado: %s" % [novo_rank_info["nome"], novo_titulo])
 				
-			if GameState:
-				GameState.salvar_jogo()
+			if SaveManager:
+				SaveManager.salvar_jogo()
 
 
 func _ajustar_reputacao_faccao(id_faccao: String) -> void:

@@ -16,7 +16,7 @@ func _ready() -> void:
 	# TESTE 1: NOVO JOGO COMEÇA CORRETAMENTE
 	# ------------------------------------------------------------
 	print("\n[TESTE 1/24] Verificando inicialização limpa de Novo Jogo...")
-	GameState.novo_jogo(1)
+	SaveManager.novo_jogo(1)
 	assert(PlayerData.slot_ativo == 1, "Slot ativo deve ser 1")
 	assert(not PlayerData.is_character_ready, "is_character_ready deve ser false")
 	assert(not PlayerData.tutorial_concluido, "tutorial_concluido deve ser false")
@@ -129,8 +129,8 @@ func _ready() -> void:
 	# TESTE 9: TUTORIAL CONCLUÍDO NÃO REAPARECE APÓS LOAD
 	# ------------------------------------------------------------
 	print("\n[TESTE 9/24] Verificando que tutorial não reaparece após carregar save...")
-	GameState.salvar_jogo(1)
-	GameState.carregar_jogo(1)
+	SaveManager.salvar_jogo(1)
+	SaveManager.carregar_jogo(1)
 	assert(PlayerData.tutorial_concluido == true, "tutorial_concluido preservado como true")
 	assert(TutorialManager.em_tutorial == false, "TutorialManager inativo após reload")
 	print("  ✅ [PASS] Tutorial concluído não reaparece após Load.")
@@ -140,7 +140,7 @@ func _ready() -> void:
 	# TESTE 10: SKIP FUNCIONA CORRETAMENTE
 	# ------------------------------------------------------------
 	print("\n[TESTE 10/24] Testando funcionalidade Pular Tutorial (Skip)...")
-	GameState.novo_jogo(2)
+	SaveManager.novo_jogo(2)
 	TutorialManager.iniciar_tutorial_inicial()
 	assert(TutorialManager.em_tutorial == true, "Tutorial iniciado no slot 2")
 	TutorialManager.pular_tutorial()
@@ -163,7 +163,7 @@ func _ready() -> void:
 	# TESTE 12: NOVO PERSONAGEM COMEÇA SEM HATSU
 	# ------------------------------------------------------------
 	print("\n[TESTE 12/24] Verificando que qualquer novo personagem começa rigorosamente com 0 Hatsus...")
-	GameState.novo_jogo(3)
+	SaveManager.novo_jogo(3)
 	assert(PlayerData.hatsu_criados.is_empty(), "0 Hatsus no slot 3")
 	assert(PlayerData.obter_todos_hatsus_disponiveis().is_empty(), "Lista de Hatsus disponíveis vazia")
 	print("  ✅ [PASS] Novo personagem começa sem Hatsu (Regra de Ouro atendida).")
@@ -185,11 +185,11 @@ func _ready() -> void:
 	# ------------------------------------------------------------
 	print("\n[TESTE 14/24] Testando persistência do Hunter Guide no SaveManager...")
 	PlayerData.desbloquear_conhecimento("nen_tecnica_ten", "Aura & Nen")
-	GameState.salvar_jogo(3)
+	SaveManager.salvar_jogo(3)
 	PlayerData.conhecimentos_desbloqueados.clear()
-	GameState.carregar_jogo(3)
+	SaveManager.carregar_jogo(3)
 	assert(PlayerData.tem_conhecimento("nen_tecnica_ten"), "Conhecimento persistido e restaurado")
-	GameState.deletar_save(3)
+	SaveManager.deletar_save(3)
 	print("  ✅ [PASS] Conhecimentos persistidos e restaurados do disco.")
 	passed_tests += 1
 
@@ -197,7 +197,7 @@ func _ready() -> void:
 	# TESTE 15: NOVO SAVE COMEÇA SEM CONHECIMENTOS ANTERIORES
 	# ------------------------------------------------------------
 	print("\n[TESTE 15/24] Testando isolamento de conhecimentos em Novo Save...")
-	GameState.novo_jogo(1)
+	SaveManager.novo_jogo(1)
 	assert(not PlayerData.tem_conhecimento("nen_tecnica_ten"), "Novo save não herda técnicas avançadas")
 	print("  ✅ [PASS] Isolamento de conhecimentos garantido entre saves.")
 	passed_tests += 1
@@ -254,11 +254,11 @@ func _ready() -> void:
 	# ------------------------------------------------------------
 	print("\n[TESTE 20/24] Testando integridade do tutorial_data após Load...")
 	PlayerData.tutorial_data["inventario"] = true
-	GameState.salvar_jogo(1)
-	GameState.carregar_jogo(1)
+	SaveManager.salvar_jogo(1)
+	SaveManager.carregar_jogo(1)
 	assert(PlayerData.tutorial_data.get("inventario", false) == true, "Etapa de inventário preservada")
-	GameState.deletar_save(1)
-	GameState.deletar_save(2)
+	SaveManager.deletar_save(1)
+	SaveManager.deletar_save(2)
 	print("  ✅ [PASS] Estado estruturado do tutorial preservado.")
 	passed_tests += 1
 
@@ -268,10 +268,10 @@ func _ready() -> void:
 	print("\n[TESTE 21/24] Testando isolamento do WorldState...")
 	WorldState.alterar_infamia(50)
 	assert(WorldState.obter_infamia() == 50, "Infâmia definida no slot 1")
-	GameState.salvar_jogo(1)
-	GameState.novo_jogo(2)
+	SaveManager.salvar_jogo(1)
+	SaveManager.novo_jogo(2)
 	assert(WorldState.obter_infamia() == 0, "WorldState limpo no novo slot 2")
-	GameState.deletar_save(1)
+	SaveManager.deletar_save(1)
 	print("  ✅ [PASS] WorldState sem vazamentos entre saves.")
 	passed_tests += 1
 

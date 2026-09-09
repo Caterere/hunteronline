@@ -241,6 +241,7 @@ func _on_rotina_atualizada(fase_tempo: int, clima: int) -> void:
 func _on_time_phase_changed(nova_fase: String) -> void:
 	var eh_guarda: bool = "guarda" in npc_nome.to_lower() or "sentinela" in npc_nome.to_lower() or "guarda" in npc_cargo.to_lower()
 	var eh_mercador: bool = "mercador" in npc_nome.to_lower() or tipo_marcador == "merchant"
+	var eh_ferreiro: bool = "ferreiro" in npc_nome.to_lower() or tipo_marcador == "blacksmith"
 
 	if schedule_data != null:
 		match nova_fase:
@@ -250,13 +251,21 @@ func _on_time_phase_changed(nova_fase: String) -> void:
 					pos_alvo = schedule_data.workplace_pos
 				velocidade_andar = schedule_data.move_speed
 			"DAY":
-				schedule_data.current_state = "walking"
-				if not schedule_data.patrol_route.is_empty():
+				schedule_data.current_state = "working"
+				if schedule_data.workplace_pos != Vector2.ZERO:
+					pos_alvo = schedule_data.workplace_pos
+				elif not schedule_data.patrol_route.is_empty():
 					pos_alvo = schedule_data.patrol_route[randi() % schedule_data.patrol_route.size()]
 				velocidade_andar = schedule_data.move_speed
 			"EVENING", "DUSK":
-				schedule_data.current_state = "training"
-				velocidade_andar = schedule_data.move_speed * 0.8
+				schedule_data.current_state = "walking"
+				if eh_ferreiro or eh_mercador:
+					# Encerram o expediente e seguem para a praça/taverna
+					if schedule_data.home_pos != Vector2.ZERO:
+						pos_alvo = schedule_data.home_pos
+					if npc_body != null and randf() < 0.45:
+						ComicBalloon.mostrar(npc_body, "🌆 Hora de fechar a loja... Vamos até a praça!", 2.2, -38.0)
+				velocidade_andar = schedule_data.move_speed * 0.85
 			"NIGHT":
 				if eh_guarda:
 					schedule_data.current_state = "guarding"
@@ -267,7 +276,9 @@ func _on_time_phase_changed(nova_fase: String) -> void:
 					schedule_data.current_state = "resting"
 					if schedule_data.home_pos != Vector2.ZERO:
 						pos_alvo = schedule_data.home_pos
-					velocidade_andar = schedule_data.move_speed * 0.6
+					velocidade_andar = schedule_data.move_speed * 0.55
+					if (eh_ferreiro or eh_mercador) and npc_body != null and randf() < 0.35:
+						ComicBalloon.mostrar(npc_body, "🌙 Um trago na praça depois do turno...", 2.0, -38.0)
 	else:
 		match nova_fase:
 			"NIGHT":
@@ -276,8 +287,8 @@ func _on_time_phase_changed(nova_fase: String) -> void:
 					velocidade_andar = 28.0
 					if randf() < 0.35 and npc_body != null:
 						ComicBalloon.mostrar(npc_body, "🌙 Posto Noturno ativado. Vigília contra bestas!", 2.0, -38.0)
-				elif eh_mercador:
-					raio_patrulha = 10.0 # Mercador fecha barraca
+				elif eh_mercador or eh_ferreiro:
+					raio_patrulha = 10.0 # Fecha barraca / forja
 					velocidade_andar = 14.0
 					pos_alvo = pos_inicial
 				else:

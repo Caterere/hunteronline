@@ -7,7 +7,7 @@
 
 O arquivo canônico do projeto é:
 ```
-res://assets/sprites/characters/player.png (também referenciado como player(3).png)
+res://assets/sprites/characters/player.png (style lock também em `assets/reference/player(3).png`)
 ```
 Toda e qualquer geração de sprite, seja via **PixelLab MCP**, **Gemini**, ferramentas procedurais ou trabalho manual, **DEVE** replicar rigorosamente a **linguagem de pixels** desta referência.
 

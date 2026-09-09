@@ -16,7 +16,7 @@ func _ready() -> void:
 	# TESTE 1: NOVO PERSONAGEM POSSUI 0 HATSUS
 	# ------------------------------------------------------------
 	print("\n[TESTE 1/10] Verificando que Novo Personagem começa com 0 Hatsus...")
-	GameState.novo_jogo(1)
+	SaveManager.novo_jogo(1)
 	assert(PlayerData.hatsu_criados.is_empty(), "hatsu_criados deve estar vazio no início")
 	assert(PlayerData.obter_todos_hatsus_disponiveis().is_empty(), "obter_todos_hatsus_disponiveis deve retornar lista vazia")
 	print("  ✅ [PASS] 0 Hatsus desbloqueados inicialmente.")
@@ -90,7 +90,7 @@ func _ready() -> void:
 	# ------------------------------------------------------------
 	print("\n[TESTE 7/10] Testando persistência de Hatsu no SaveManager...")
 	PlayerData.slot_ativo = 1
-	var salvo_ok = GameState.salvar_jogo(1)
+	var salvo_ok = SaveManager.salvar_jogo(1)
 	assert(salvo_ok, "Jogo com Hatsu deve ser salvo com sucesso")
 	print("  ✅ [PASS] Hatsu serializado e salvo no disco.")
 	passed_tests += 1
@@ -101,12 +101,12 @@ func _ready() -> void:
 	print("\n[TESTE 8/10] Testando carregamento e restauração de Hatsu...")
 	PlayerData.hatsu_criados.clear()
 	PlayerData.hatsu_slots = [-1, -1, -1, -1]
-	var load_ok = GameState.carregar_jogo(1)
+	var load_ok = SaveManager.carregar_jogo(1)
 	assert(load_ok, "Carregamento bem-sucedido")
 	assert(PlayerData.hatsu_criados.size() == 1, "1 Hatsu restaurado")
 	assert(PlayerData.obter_hatsu_slot(0) != null, "Slot 0 preservado")
 	assert(PlayerData.obter_hatsu_slot(0).nome.contains("Jajanken"), "Nome do Hatsu preservado após reload")
-	GameState.deletar_save(1)
+	SaveManager.deletar_save(1)
 	print("  ✅ [PASS] Save/Load preserva os Hatsus legítimos conquistados pelo jogador.")
 	passed_tests += 1
 
@@ -114,11 +114,11 @@ func _ready() -> void:
 	# TESTE 9: CRIAR NOVO PERSONAGEM CONTINUA COMEÇANDO COM 0 HATSUS
 	# ------------------------------------------------------------
 	print("\n[TESTE 9/10] Testando criação de segundo personagem após save/load...")
-	GameState.novo_jogo(2)
+	SaveManager.novo_jogo(2)
 	assert(PlayerData.hatsu_criados.is_empty(), "Novo personagem deve sempre começar com 0 Hatsus")
 	assert(PlayerData.hatsu_slots == [-1, -1, -1, -1], "Todos os slots devem estar vazios (-1)")
 	assert(not PlayerData.hatsu_desbloqueado, "hatsu_desbloqueado deve ser false")
-	GameState.deletar_save(2)
+	SaveManager.deletar_save(2)
 	print("  ✅ [PASS] Novo personagem permanece estritamente com 0 Hatsus.")
 	passed_tests += 1
 

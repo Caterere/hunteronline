@@ -10,11 +10,13 @@ Use esta skill para alterações e revisões do projeto Godot. Desenvolva em inc
 ## Fonte de verdade
 
 1. Pedido atual do usuário.
-2. Bible relevante em `.agent/docs/bibles/`, começando pelo `00_BIBLE_INDEX.md`, e `NEN_SKILL_TREE_BIBLE.md` na raiz.
+2. Bibles em `docs/bibles/` (canônicas) e `.agent/docs/bibles/` (agent), começando por `00_BIBLE_INDEX.md`.
 3. Implementação, cenas e recursos existentes.
 4. Decisões razoáveis de implementação.
 
 Quando uma Bible divergir do código, investigue e comunique o conflito antes de uma reescrita ampla.
+
+Índice do repositório: `docs/README.md` · `README.md` na raiz.
 
 ## Investigação obrigatória
 
@@ -33,7 +35,8 @@ Antes de alterar código ou cenas:
 - `QuestSystem`/`QuestManager`: objetivos, transições, conclusão e recompensas.
 - `SaveManager`: ciclo de persistência e compatibilidade.
 - UI: apenas apresentação do estado canônico, nunca dona da lógica de gameplay.
-- Arte 2D e Sprites: governados estritamente pela `16_PIXEL_ART_STYLE_BIBLE.md`. Todo sprite deve seguir o Style Anchor `player(3).png` (48x48, baixa densidade de pixels, 20-22px de altura, pés em Y=42, sem microdetalhes).
+- Arte 2D e Sprites: governados estritamente pela `16_PIXEL_ART_STYLE_BIBLE.md`. Runtime: `assets/sprites/characters/player.png`. Style lock: `assets/reference/player(3).png` (48x48, baixa densidade, 20-22px altura, pés em Y=42).
+- Persistência: use **`SaveManager`** (o autoload `GameState` foi removido).
 - NPCs, diálogos, Hatsu, transições, spawns e eventos: reutilize os sistemas existentes quando a responsabilidade já existir.
 
 Não renomeie casualmente campos persistentes, autoloads, scripts, cenas ou recursos. Mudanças de schema exigem compatibilidade com saves antigos.

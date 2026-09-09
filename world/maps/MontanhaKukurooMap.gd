@@ -25,6 +25,7 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.KUKUROO)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco2()
 	_configurar_inimigos()
@@ -92,16 +93,9 @@ func _popular_npcs_arco2() -> void:
 		var guia = scn_npc.instantiate()
 		guia.name = "GuiaTurismo"
 		guia.position = Vector2(50, -50)
-		var spr = guia.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.9, 0.8, 0.3, 1.0)
 		guia.npc_name = "Guia de Turismo de Padokia"
 		guia.fala_padrao = "Bem-vindo a Padokia! A montanha adiante pertence à temível família de assassinos Zoldyck. Poucos entram e quase ninguém retorna!"
+		NpcSpriteBinder.aplicar(guia, ["npc_viajante_scout"])
 		add_child(guia)
 
 	# 1. Guarda Zebro (Portão da Testagem)
@@ -109,16 +103,9 @@ func _popular_npcs_arco2() -> void:
 		var zebro = scn_npc.instantiate()
 		zebro.name = "Zebro"
 		zebro.position = Vector2(200, -100)
-		var spr = zebro.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.6, 0.5, 0.3, 1.0)
 		zebro.npc_name = "Guarda Zebro"
 		zebro.fala_padrao = "Sou Zebro, guarda do Portão da Testagem da família Zoldyck. Se quiser entrar, precisa abrir o portão com sua própria força!"
+		NpcSpriteBinder.aplicar(zebro, ["npc_guarda_fronteira"])
 		add_child(zebro)
 
 	# 2. Portão da Testagem (Objeto de Interação)
@@ -134,13 +121,20 @@ func _popular_npcs_arco2() -> void:
 		portao.add_child(col)
 
 		var spr := Sprite2D.new()
-		spr.texture = load("res://assets/sprites/characters/player.png")
-		spr.hframes = 6
-		spr.vframes = 10
-		spr.frame = 0
-		spr.position = Vector2(0, -17)
-		spr.scale = Vector2(1.3, 1.3)
-		spr.modulate = Color(0.45, 0.45, 0.5, 1.0)
+		if ResourceLoader.exists("res://assets/sprites/objects/portao_padokia_arch.png"):
+			spr.texture = load("res://assets/sprites/objects/portao_padokia_arch.png")
+			spr.position = Vector2(0, -24)
+		elif ResourceLoader.exists("res://assets/sprites/objects/nen_stone_monolith.png"):
+			spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
+			spr.position = Vector2(0, -20)
+			spr.modulate = Color(0.7, 0.72, 0.78, 1.0)
+		else:
+			spr.texture = load("res://assets/sprites/characters/player.png")
+			spr.hframes = 6
+			spr.vframes = 10
+			spr.frame = 0
+			spr.position = Vector2(0, -17)
+			spr.modulate = Color(0.45, 0.45, 0.5, 1.0)
 		portao.add_child(spr)
 
 		var lbl := Label.new()
@@ -175,16 +169,9 @@ func _popular_npcs_arco2() -> void:
 		var canary = scn_npc.instantiate()
 		canary.name = "Canary"
 		canary.position = Vector2(1200, 100)
-		var spr = canary.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.4, 0.3, 0.6, 1.0)
 		canary.npc_name = "Mordoma Canary"
 		canary.fala_padrao = "Eu sou Canary, mordoma aprendiz. Não posso permitir que visitantes passem desta alameda... Mas se seus sentimentos por Killua forem reais, talvez eu feche os olhos."
+		NpcSpriteBinder.aplicar(canary, ["npc_mordoma_canary", "npc_discipulo_zushi"])
 		add_child(canary)
 
 	# 4. Mordomo-Chefe Gotoh (Mansão dos Mordomos)
@@ -192,16 +179,9 @@ func _popular_npcs_arco2() -> void:
 		var gotoh = scn_npc.instantiate()
 		gotoh.name = "Gotoh"
 		gotoh.position = Vector2(2400, -150)
-		var spr = gotoh.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.2, 0.2, 0.2, 1.0)
 		gotoh.npc_name = "Mordomo-Chefe Gotoh"
 		gotoh.fala_padrao = "Bem-vindo à Mansão Zoldyck. Sou Gotoh, o mordomo-chefe. Antes de ver o jovem mestre Killua, você precisa passar no meu teste de moedas."
+		NpcSpriteBinder.aplicar(gotoh, ["npc_mordomo_gotoh", "enemy_mordomo_zoldyck"])
 		add_child(gotoh)
 
 	# 5. Silva Zoldyck (Sala do Trono dos Assassinos)
@@ -209,17 +189,9 @@ func _popular_npcs_arco2() -> void:
 		var silva = scn_npc.instantiate()
 		silva.name = "Silva"
 		silva.position = Vector2(3400, -200)
-		var spr = silva.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.scale = Vector2(1.15, 1.15)
-			spr.modulate = Color(0.7, 0.7, 0.8, 1.0)
 		silva.npc_name = "Silva Zoldyck"
 		silva.fala_padrao = "Eu sou Silva Zoldyck, chefe da família de assassinos. Killua pode sair, mas sob uma condição: jamais traia seus amigos."
+		NpcSpriteBinder.aplicar(silva, ["npc_silva_zoldyck", "npc_netero"])
 		add_child(silva)
 
 	# 6. Killua Zoldyck (Ao lado de Silva para resgate)
@@ -230,14 +202,7 @@ func _popular_npcs_arco2() -> void:
 			killua = scn_killua.instantiate()
 		else:
 			killua = scn_npc.instantiate()
-			var spr = killua.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(0.4, 0.8, 1.0, 1.0)
+			NpcSpriteBinder.aplicar(killua, ["npc_killua"])
 		killua.name = "Killua"
 		killua.position = Vector2(3500, -180)
 		killua.npc_name = "Killua Zoldyck"

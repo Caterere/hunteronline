@@ -143,18 +143,57 @@ func _init():
 		"res://assets/sprites/characters/npc_vendedor_mercador_8dir.png",
 		"res://assets/sprites/characters/npc_guarda_fronteira_8dir.png",
 		"res://assets/sprites/characters/npc_recepcionista_elena_8dir.png",
-		"res://assets/sprites/characters/npc_viajante_scout_8dir.png"
+		"res://assets/sprites/characters/npc_viajante_scout_8dir.png",
+		"res://assets/sprites/characters/npc_gon_8dir.png",
+		"res://assets/sprites/characters/npc_killua_8dir.png",
+		"res://assets/sprites/characters/npc_kurapika_8dir.png",
+		"res://assets/sprites/characters/npc_leorio_8dir.png",
+		"res://assets/sprites/characters/npc_hisoka_8dir.png",
+		"res://assets/sprites/characters/npc_chrollo_8dir.png",
+		"res://assets/sprites/characters/npc_netero_8dir.png",
+		"res://assets/sprites/characters/npc_biscuit_8dir.png",
+		"res://assets/sprites/characters/npc_tonpa_8dir.png",
+		"res://assets/sprites/characters/npc_ging_8dir.png",
+		"res://assets/sprites/characters/npc_hanzo_8dir.png",
+		"res://assets/sprites/characters/npc_pokkle_8dir.png",
+		"res://assets/sprites/characters/npc_ponzu_8dir.png",
+		"res://assets/sprites/characters/npc_buhara_8dir.png",
+		"res://assets/sprites/characters/npc_menchi_8dir.png",
+		"res://assets/sprites/characters/npc_gittarackur_8dir.png",
+		"res://assets/sprites/characters/npc_bodoro_8dir.png",
+		"res://assets/sprites/characters/npc_nicol_8dir.png",
+		"res://assets/sprites/characters/enemy_candidato_exame_8dir.png",
+		"res://assets/sprites/characters/enemy_criatura_pantanal_8dir.png",
+		"res://assets/sprites/characters/enemy_mordomo_zoldyck_8dir.png",
+		"res://assets/sprites/characters/enemy_lutador_arena_8dir.png",
+		"res://assets/sprites/characters/enemy_mafioso_yorknew_8dir.png",
+		"res://assets/sprites/characters/enemy_bomber_greed_8dir.png",
+		"res://assets/sprites/characters/enemy_formiga_soldado_8dir.png",
+		"res://assets/sprites/characters/enemy_formiga_lider_8dir.png",
+		"res://assets/sprites/characters/enemy_guarda_real_8dir.png",
+		"res://assets/sprites/characters/enemy_boss_razor_8dir.png",
+		"res://assets/sprites/characters/enemy_boss_meruem_8dir.png",
+		"res://assets/sprites/characters/npc_melody_8dir.png",
+		"res://assets/sprites/characters/npc_battera_8dir.png",
+		"res://assets/sprites/characters/npc_tsezguerra_8dir.png",
+		"res://assets/sprites/characters/enemy_sentinela_pedra_8dir.png",
+		"res://assets/sprites/characters/npc_mordoma_canary_8dir.png",
+		"res://assets/sprites/characters/npc_mordomo_gotoh_8dir.png",
+		"res://assets/sprites/characters/npc_silva_zoldyck_8dir.png",
 	]
 
 	var all_passed = true
+	var pass_count = 0
 	for p in npcs:
-		if not validate_sprite(p):
+		if validate_sprite(p):
+			pass_count += 1
+		else:
 			all_passed = false
 
 	print("\n" + "=".repeat(70))
 	if all_passed:
-		print(" RESULTADO FINAL: TODOS OS 8 NPCS FORAM 100% APROVADOS NO STYLE LOCK!")
+		print(" RESULTADO FINAL: TODOS OS %d ASSETS (NPCS + INIMIGOS) FORAM 100%% APROVADOS NO STYLE LOCK!" % npcs.size())
 	else:
-		print(" RESULTADO FINAL: FALHAS DETECTADAS NOS NPCS.")
+		print(" RESULTADO FINAL: FALHAS DETECTADAS (%d/%d APROVADOS)." % [pass_count, npcs.size()])
 	print("=".repeat(70))
 	quit(0 if all_passed else 1)

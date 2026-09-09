@@ -21,6 +21,7 @@ desktop.ini
 # IDEs
 .vscode/
 .idea/
+.cursor/mcp.json
 
 # Saves locais / dados de usuário
 save/

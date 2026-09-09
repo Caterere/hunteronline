@@ -253,8 +253,8 @@ func _on_confirmar_viagem() -> void:
 		QuestSystem.active_quests.clear()
 		QuestSystem.garantir_quest_do_arco(selected_arc)
 
-	if GameState != null:
-		GameState.salvar_jogo()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
 
 	if AudioManager != null:
 		AudioManager.tocar_musica_arco(selected_arc)

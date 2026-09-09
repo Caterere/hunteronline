@@ -40,6 +40,7 @@ func _ready() -> void:
 	_configurar_audio_e_hud()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.DUNGEON)
 
 
 func _garantir_spawn_points() -> void:
@@ -111,6 +112,32 @@ func _instanciar_boss_e_sentinelas() -> void:
 	
 	# 3. Portal de Saída (X: 320, Y: 440)
 	_criar_portal_saida(Vector2(320, 440))
+
+	_instanciar_sensores_nen_ruinas()
+
+
+func _instanciar_sensores_nen_ruinas() -> void:
+	NenSensorFactory.criar_gyo(
+		self, "GyoClueAntecâmara", Vector2(320, 300),
+		&"zaban_selo_antecamara", "Selo de Pedra Resonante",
+		"A antecâmara guarda um selo de Nen. O Guardião Ancestral está vinculado a esta marca.",
+		"Especialização", 1, Color(0.85, 0.75, 0.35, 0.9)
+	)
+	NenSensorFactory.criar_gyo(
+		self, "GyoClueCamaraBoss", Vector2(200, 140),
+		&"zaban_fissura_aura", "Fissura de Aura Ancestral",
+		"Uma rachadura no piso emana aura densa. KO concentrado poderia abrir um atalho lateral.",
+		"Intensificação", 2, Color(1.0, 0.45, 0.3, 0.9)
+	)
+	NenSensorFactory.criar_ko(
+		self, "KoObstacleCamaraLateral", Vector2(480, 160),
+		"Pilar Rachado da Câmara", &"pedra_aura"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCorredorSentinelas", Vector2(320, 360),
+		&"zaban_corredor_sentinelas", "Corredor das Sentinelas",
+		Vector2(200, 80)
+	)
 
 
 func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool) -> void:

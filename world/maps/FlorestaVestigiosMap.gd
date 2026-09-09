@@ -29,6 +29,7 @@ func _ready() -> void:
 	_posicionar_player()
 	_criar_elementos_floresta()
 	_instanciar_feras_selvagens()
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.FLORESTA)
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)
@@ -245,6 +246,144 @@ func _criar_elementos_floresta() -> void:
 		p_sul.add_child(col)
 		add_child(p_sul)
 
+	_instanciar_sensores_nen_floresta()
+	_instanciar_baus_clareira()
+
+
+func _instanciar_baus_clareira() -> void:
+	# Clareiras periféricas (Quality Gap B): consumíveis Poção / Pedra de Aura
+	_spawna_bau_clareira(
+		"BauClareiraOeste",
+		Vector2(100, 260),
+		"Baú da Clareira Oeste",
+		[
+			{"id": &"pocao_vida", "qtd": 2},
+			{"id": &"elixir_aura", "qtd": 1}
+		]
+	)
+	_spawna_bau_clareira(
+		"BauClareiraLeste",
+		Vector2(680, 300),
+		"Baú da Clareira Leste",
+		[
+			{"id": &"pocao_vida", "qtd": 1},
+			{"id": &"elixir_aura", "qtd": 2}
+		]
+	)
+	_spawna_bau_clareira(
+		"BauClareiraSul",
+		Vector2(320, 560),
+		"Baú da Clareira Sul",
+		[
+			{"id": &"elixir_aura", "qtd": 1},
+			{"id": &"pocao_vida", "qtd": 1}
+		]
+	)
+
+
+func _spawna_bau_clareira(nome: String, pos: Vector2, titulo: String, loot: Array) -> void:
+	if get_node_or_null(nome) != null:
+		return
+	var bau := Area2D.new()
+	bau.name = nome
+	bau.position = pos
+	bau.collision_layer = 0
+	bau.collision_mask = 0
+
+	var col := CollisionShape2D.new()
+	var box := RectangleShape2D.new()
+	box.size = Vector2(28, 28)
+	col.shape = box
+	bau.add_child(col)
+
+	var spr := Sprite2D.new()
+	spr.name = "Sprite2D"
+	if ResourceLoader.exists("res://assets/sprites/objects/nen_stone_monolith.png"):
+		spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
+		spr.scale = Vector2(0.35, 0.28)
+		spr.modulate = Color(0.95, 0.8, 0.35, 1.0)
+		spr.position = Vector2(0, -8)
+	bau.add_child(spr)
+
+	var lbl := Label.new()
+	lbl.text = "📦 %s" % titulo
+	lbl.position = Vector2(-55, -36)
+	lbl.custom_minimum_size = Vector2(110, 12)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 6, Color(0.95, 0.88, 0.55))
+	bau.add_child(lbl)
+
+	var inter = InteractionComponent.new()
+	inter.name = "InteractionComponent"
+	inter.interaction_text = "[E] Abrir %s" % titulo
+	inter.interaction_radius = 28.0
+	inter.interacted.connect(func(_p):
+		_abrir_bau_clareira(bau, titulo, loot)
+	)
+	bau.add_child(inter)
+	add_child(bau)
+
+
+func _abrir_bau_clareira(bau_node: Node, titulo: String, loot: Array) -> void:
+	if bau_node == null or not is_instance_valid(bau_node):
+		return
+	var partes: PackedStringArray = []
+	if PlayerData != null:
+		for entry in loot:
+			var id: StringName = entry.get("id", &"")
+			var qtd: int = int(entry.get("qtd", 1))
+			if id.is_empty() or qtd <= 0:
+				continue
+			PlayerData.adicionar_item(id, qtd)
+			partes.append("%dx %s" % [qtd, str(id)])
+	var resumo := ", ".join(partes) if not partes.is_empty() else "nada"
+	if EventBus != null:
+		EventBus.emit_toast("✨ %s: %s" % [titulo, resumo], Color(0.35, 1.0, 0.55))
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	if hud and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao("📦 Você abriu [%s] e encontrou: %s" % [titulo, resumo])
+	bau_node.queue_free()
+
+
+func _instanciar_sensores_nen_floresta() -> void:
+	# Pistas Gyo investigativas
+	NenSensorFactory.criar_gyo(
+		self, "GyoClueArvoreRaizes", Vector2(360, 280),
+		&"floresta_aura_raizes", "Raízes Pulsantes de Nen",
+		"As raízes da Árvore Milenar vibram com aura antiga. Alguém treinou Intensificação aqui recentemente.",
+		"Intensificação", 1, Color(0.35, 1.0, 0.55, 0.9)
+	)
+	NenSensorFactory.criar_gyo(
+		self, "GyoCluePegadasSul", Vector2(460, 500),
+		&"floresta_pegadas_fera", "Pegadas de Aura Predatória",
+		"Rastros de aura se dirigem às Ruínas de Zaban. A presa — ou o caçador — passou há pouco.",
+		"Emissão", 1, Color(0.95, 0.55, 0.25, 0.9)
+	)
+	NenSensorFactory.criar_gyo(
+		self, "GyoClueMarcaTotem", Vector2(180, 340),
+		&"floresta_marca_totem", "Marca Ritual Esquecida",
+		"Um selo rudimentar de Nen foi gravado na pedra musgosa. Exige foco de Gyo para ler o padrão.",
+		"Conjuração", 2, Color(0.55, 0.7, 1.0, 0.9)
+	)
+
+	# Segunda rocha KO bloqueando baú/atalho oeste
+	NenSensorFactory.criar_ko(
+		self, "KoObstacleAtalhoOeste", Vector2(120, 220),
+		"Rocha Rachada do Atalho Oeste", &"pocao_aura"
+	)
+
+	# Acampamentos de salteadores / predadores com Zetsu
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuAcampamentoNorte", Vector2(280, 140),
+		&"acampamento_salteadores_norte", "Acampamento de Salteadores",
+		Vector2(140, 100)
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuClareiraLeste", Vector2(620, 380),
+		&"clareira_predadores_leste", "Clareira de Predadores Sensíveis",
+		Vector2(150, 110)
+	)
+
 
 func _instanciar_feras_selvagens() -> void:
 	if get_node_or_null("FeraSombra1") != null:
@@ -253,23 +392,48 @@ func _instanciar_feras_selvagens() -> void:
 	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
 	if enemy_scn:
 		var mobs_data = [
-			{"name": "FeraSombra1", "pos": Vector2(240, 200), "id": &"slime", "label": "Besta de Sombra Ágil", "def": 100.0},
-			{"name": "FeraSombra2", "pos": Vector2(560, 420), "id": &"slime", "label": "Besta de Sombra Voraz", "def": 100.0},
-			{"name": "FeraSombra3", "pos": Vector2(200, 480), "id": &"slime", "label": "Besta de Sombra Feroz", "def": 100.0},
-			{"name": "FeraSombra4", "pos": Vector2(600, 180), "id": &"slime", "label": "Besta de Sombra Rastreadora", "def": 100.0},
-			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 520), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0}
+			{"name": "FeraSombra1", "pos": Vector2(240, 200), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0)},
+			{"name": "FeraSombra2", "pos": Vector2(560, 420), "id": &"lobo_sombras", "label": "Besta de Sombra Voraz", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0)},
+			{"name": "FeraSombra3", "pos": Vector2(200, 480), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE},
+			{"name": "FeraSombra4", "pos": Vector2(600, 180), "id": &"fera_alada", "label": "Fera Alada Emboscadora", "def": 95.0, "role": "ambusher", "tint": Color.WHITE},
+			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 520), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0, "role": "tank", "tint": Color(0.7, 0.7, 0.65)}
 		]
 		for m in mobs_data:
 			var mob = enemy_scn.instantiate()
 			mob.name = m["name"]
 			mob.position = m["pos"]
-			add_child(mob)
 			var es = mob.get_node_or_null("EnemySystem")
 			if es:
 				es.enemy_id = m["id"]
 				es.enemy_name = m["label"]
 				es.defesa_barra_max = m["def"]
 				es.defesa_barra_atual = m["def"]
+			add_child(mob)
+			var spr = mob.get_node_or_null("Sprite2D") as Sprite2D
+			if spr != null and m.has("tint"):
+				spr.modulate = m["tint"]
+			if es:
+				if es.enemy_data != null:
+					es.enemy_data = es.enemy_data.duplicate(true)
+					es.enemy_data.role = m.get("role", "bruiser")
+					es.enemy_data.enemy_name = m["label"]
+				# Reaplica sheet caso _ready tenha corrido antes do id (fallback seguro)
+				if es.has_method("_vincular_textura_inimigo"):
+					es._vincular_textura_inimigo()
+				var ai = mob.get_node_or_null("EnemyAI") as EnemyAI
+				if ai != null:
+					match String(m.get("role", "bruiser")):
+						"fast":
+							ai.move_speed = 118.0
+							ai.detection_range = 280.0
+							ai.attack_cooldown = 0.95
+						"ambusher":
+							ai.move_speed = 102.0
+							ai.detection_range = 200.0
+							ai.attack_cooldown = 1.05
+						"tank":
+							ai.move_speed = 62.0
+							ai.detection_range = 220.0
 				if not es.died.is_connected(QuestSystem.register_enemy_kill):
 					es.died.connect(QuestSystem.register_enemy_kill)
 

@@ -8,7 +8,7 @@ extends CanvasLayer
 # Menu centralizado de progressão e gerenciamento do Hunter:
 # - [TAB] / [C]: Abrir / Alternar
 # - [Q] / [E]: Navegação rápida entre abas
-# - Abas: Status | Inventário | Nen Tree | Hatsu | Licença | Facções | Aparência
+# - Abas: Status | Inventário | Nen Tree | Hatsu | Licença | Facções | Guia | Mapa | Aparência
 # ============================================================
 
 var tab_container: TabContainer
@@ -26,6 +26,8 @@ var tab_license: VBoxContainer
 var tab_factions: ScrollContainer
 var tab_guide: ScrollContainer
 var tab_creation: ScrollContainer
+var tab_mapa: Control
+var mapa_host: Control = null
 
 # Sub-containers de listagem
 var inv_list_container: VBoxContainer
@@ -107,7 +109,7 @@ func _construir_ui() -> void:
 	var lbl_title := Label.new()
 	lbl_title.text = "📜 HUNTER MENU"
 	lbl_title.add_theme_font_size_override("font_size", 11)
-	lbl_title.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_title.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	hbox_header.add_child(lbl_title)
 
 	var spacer := Control.new()
@@ -135,6 +137,7 @@ func _construir_ui() -> void:
 	_criar_aba_licenca()
 	_criar_aba_faccoes()
 	_criar_aba_guia()
+	_criar_aba_mapa()
 	_criar_aba_criacao()
 
 
@@ -146,7 +149,7 @@ func _criar_aba_status() -> void:
 
 	lbl_status_header = Label.new()
 	lbl_status_header.add_theme_font_size_override("font_size", 9)
-	lbl_status_header.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_status_header.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	tab_status.add_child(lbl_status_header)
 
 	lbl_status_attrs = Label.new()
@@ -203,6 +206,32 @@ func _on_nen_tree_fullscreen_toggled(is_fs: bool) -> void:
 		margin_main.add_theme_constant_override("margin_right", m)
 		margin_main.add_theme_constant_override("margin_bottom", m)
 
+	var root_control: Control = center_container.get_parent() as Control if center_container != null else null
+	if panel_main != null and root_control != null and center_container != null:
+		if is_fs:
+			if panel_main.get_parent() == center_container:
+				center_container.remove_child(panel_main)
+				root_control.add_child(panel_main)
+			panel_main.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			panel_main.offset_left = 0
+			panel_main.offset_top = 0
+			panel_main.offset_right = 0
+			panel_main.offset_bottom = 0
+			panel_main.custom_minimum_size = Vector2.ZERO
+		else:
+			if panel_main.get_parent() != center_container:
+				panel_main.get_parent().remove_child(panel_main)
+				center_container.add_child(panel_main)
+			panel_main.set_anchors_preset(Control.PRESET_CENTER)
+			panel_main.custom_minimum_size = Vector2(520, 280)
+			panel_main.offset_left = -260
+			panel_main.offset_right = 260
+			panel_main.offset_top = -140
+			panel_main.offset_bottom = 140
+
+	if nen_skill_tree_ui_instance != null and nen_skill_tree_ui_instance.has_method("_atualizar_layout_responsivo"):
+		nen_skill_tree_ui_instance.call_deferred("_atualizar_layout_responsivo")
+
 
 func _criar_aba_hatsu() -> void:
 	tab_hatsu = ScrollContainer.new()
@@ -247,6 +276,23 @@ func _criar_aba_guia() -> void:
 	guide_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	guide_list_container.add_theme_constant_override("separation", 3)
 	tab_guide.add_child(guide_list_container)
+
+
+func _criar_aba_mapa() -> void:
+	tab_mapa = PanelContainer.new()
+	tab_mapa.name = "Mapa"
+	tab_mapa.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tab_mapa.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var st := StyleBoxEmpty.new()
+	tab_mapa.add_theme_stylebox_override("panel", st)
+	tab_container.add_child(tab_mapa)
+
+	mapa_host = Control.new()
+	mapa_host.name = "MapaHost"
+	mapa_host.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	mapa_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mapa_host.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	tab_mapa.add_child(mapa_host)
 
 
 func _criar_aba_criacao() -> void:
@@ -337,7 +383,7 @@ func _criar_aba_criacao() -> void:
 	lbl_potencial = Label.new()
 	lbl_potencial.text = "Potencial: 100%"
 	lbl_potencial.add_theme_font_size_override("font_size", 4)
-	lbl_potencial.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_potencial.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	hbox_pot.add_child(lbl_potencial)
 	var btn_roll := Button.new()
 	btn_roll.text = "🎲 Sortear Potencial"
@@ -392,8 +438,8 @@ func _on_salvar_customizacao_pressed() -> void:
 	if p != null and p.has_method("_aplicar_customizacao_visual"):
 		p._aplicar_customizacao_visual()
 
-	if GameState != null:
-		GameState.salvar_jogo()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
 
 	if EventBus != null:
 		EventBus.emit_toast("✨ Aparência & Dados Salvos com Sucesso!", HunterUIStyle.COLOR_HUNTER_GREEN_LIGHT)
@@ -402,8 +448,8 @@ func _on_salvar_customizacao_pressed() -> void:
 
 
 func _on_abrir_menu_slots_pressed() -> void:
-	if GameState != null:
-		GameState.salvar_jogo()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
 	if UIManager != null:
 		UIManager.fechar_menu_atual()
 	get_tree().change_scene_to_file("res://ui/CharacterSelection/CharacterSelectionUI.tscn")
@@ -439,20 +485,47 @@ func definir_aba_ativa(aba_index: int) -> void:
 
 func _configurar_layout_aba(nome_aba: String) -> void:
 	var is_nen := (nome_aba == "Nen Tree")
+	var root_control: Control = center_container.get_parent() as Control if center_container != null else null
+
 	if is_nen:
-		var vp_size := Vector2(get_viewport().get_visible_rect().size) if get_viewport() != null else Vector2(1280, 720)
+		# Sai do CenterContainer e ocupa a tela inteira
+		if panel_main != null and root_control != null and panel_main.get_parent() == center_container:
+			center_container.remove_child(panel_main)
+			root_control.add_child(panel_main)
+			root_control.move_child(panel_main, root_control.get_child_count() - 1)
 		if panel_main != null:
-			panel_main.custom_minimum_size = vp_size
-			panel_main.size = vp_size
+			panel_main.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			panel_main.offset_left = 0
+			panel_main.offset_top = 0
+			panel_main.offset_right = 0
+			panel_main.offset_bottom = 0
+			panel_main.custom_minimum_size = Vector2.ZERO
+			panel_main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			panel_main.size_flags_vertical = Control.SIZE_EXPAND_FILL
 		if margin_main != null:
 			margin_main.add_theme_constant_override("margin_left", 2)
 			margin_main.add_theme_constant_override("margin_top", 2)
 			margin_main.add_theme_constant_override("margin_right", 2)
 			margin_main.add_theme_constant_override("margin_bottom", 2)
-		if nen_skill_tree_ui_instance != null and nen_skill_tree_ui_instance.has_method("_atualizar_layout_responsivo"):
-			nen_skill_tree_ui_instance._atualizar_layout_responsivo()
+		if hbox_header != null:
+			hbox_header.visible = false
+		if tab_container != null:
+			tab_container.tabs_visible = true # mantém troca de aba
+		if nen_skill_tree_ui_instance != null:
+			if not nen_skill_tree_ui_instance.is_fullscreen:
+				nen_skill_tree_ui_instance.is_fullscreen = true
+				if nen_skill_tree_ui_instance.btn_fullscreen != null:
+					nen_skill_tree_ui_instance.btn_fullscreen.text = "🗗 Reduzir"
+			nen_skill_tree_ui_instance.target_zoom = 0.48
+			if nen_skill_tree_ui_instance.has_method("_atualizar_layout_responsivo"):
+				nen_skill_tree_ui_instance.call_deferred("_atualizar_layout_responsivo")
 	else:
+		# Volta ao painel centralizado compacto
+		if panel_main != null and center_container != null and panel_main.get_parent() != center_container:
+			panel_main.get_parent().remove_child(panel_main)
+			center_container.add_child(panel_main)
 		if panel_main != null:
+			panel_main.set_anchors_preset(Control.PRESET_CENTER)
 			panel_main.custom_minimum_size = Vector2(460, 260)
 			panel_main.size = Vector2(460, 260)
 		if margin_main != null:
@@ -464,6 +537,10 @@ func _configurar_layout_aba(nome_aba: String) -> void:
 			hbox_header.visible = true
 		if tab_container != null:
 			tab_container.tabs_visible = true
+		if nen_skill_tree_ui_instance != null and nen_skill_tree_ui_instance.is_fullscreen:
+			nen_skill_tree_ui_instance.is_fullscreen = false
+			if nen_skill_tree_ui_instance.btn_fullscreen != null:
+				nen_skill_tree_ui_instance.btn_fullscreen.text = "⛶ Tela Cheia"
 
 
 func _atualizar_aba_atual() -> void:
@@ -495,8 +572,43 @@ func _atualizar_aba_atual() -> void:
 			_atualizar_conteudo_faccoes()
 		"Guia Hunter":
 			_atualizar_conteudo_guia()
+		"Mapa":
+			_atualizar_conteudo_mapa()
 		"Aparência":
 			_atualizar_conteudo_criacao()
+
+
+func _atualizar_conteudo_mapa() -> void:
+	if mapa_host == null:
+		return
+	var mini = get_tree().root.get_node_or_null("WorldMinimapUI")
+	if mini == null:
+		mini = get_tree().get_first_node_in_group("world_minimap_ui")
+	if mini == null:
+		var WorldMinimapUIScript = load("res://ui/Minimap/WorldMinimapUI.gd")
+		if WorldMinimapUIScript != null:
+			mini = WorldMinimapUIScript.new()
+			mini.name = "WorldMinimapUI"
+			get_tree().root.add_child(mini)
+	if mini == null:
+		return
+	var ply = get_tree().get_first_node_in_group("player") as CharacterBody2D
+	if ply != null and mini.has_method("setup"):
+		mini.setup(ply)
+	if mapa_host.get_child_count() == 0 and mini.has_method("montar_conteudo_mapa"):
+		mini.montar_conteudo_mapa(mapa_host)
+	elif mini.has_method("atualizar_mapa_visivel"):
+		mini.atualizar_mapa_visivel()
+
+
+func obter_indice_aba(nome: String) -> int:
+	if tab_container == null:
+		return 0
+	for i in range(tab_container.get_tab_count()):
+		var ctrl = tab_container.get_tab_control(i)
+		if ctrl != null and ctrl.name == nome:
+			return i
+	return 0
 
 
 func _atualizar_conteudo_criacao() -> void:
@@ -585,7 +697,7 @@ func _atualizar_conteudo_inventario() -> void:
 		var lbl_q := Label.new()
 		lbl_q.text = "x%d" % qtd
 		lbl_q.add_theme_font_size_override("font_size", 4)
-		lbl_q.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+		lbl_q.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 		hbox.add_child(lbl_q)
 
 		inv_list_container.add_child(p_item)
@@ -654,7 +766,7 @@ func _atualizar_conteudo_nen() -> void:
 			var lbl_atv := Label.new()
 			lbl_atv.text = "⚡ ATIVA"
 			lbl_atv.add_theme_font_size_override("font_size", 3)
-			lbl_atv.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+			lbl_atv.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 			hbox.add_child(lbl_atv)
 
 		nen_list_container.add_child(card)
@@ -674,7 +786,7 @@ func _atualizar_conteudo_hatsu() -> void:
 		" (100% de Eficiência em todas as categorias)" if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO else ""
 	]
 	lbl_af.add_theme_font_size_override("font_size", 4)
-	lbl_af.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_af.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	hatsu_list_container.add_child(lbl_af)
 
 	# 2. Seção: 4 Slots de Combate Ativos
@@ -738,7 +850,7 @@ func _atualizar_conteudo_hatsu() -> void:
 		elif h != null:
 			p_slot.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD, 2))
 			lbl_num.text = "✓ [SLOT %d]" % slot_id
-			lbl_num.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+			lbl_num.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 			lbl_nome_h.text = h.nome
 			lbl_nome_h.add_theme_color_override("font_color", Color.WHITE)
 
@@ -789,7 +901,7 @@ func _atualizar_conteudo_hatsu() -> void:
 		lbl_aviso.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl_aviso.add_theme_font_size_override("font_size", 4)
 		lbl_aviso.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
-		lbl_aviso.text = "🔒 Nenhum Hatsu Forjado ainda!\nClique no botão abaixo para forjar seu primeiro Hatsu com o sistema de Juramentos & Restrições."
+		lbl_aviso.text = "🔒 Nenhum Hatsu Forjado ainda!\nFale com Biscuit Krueger no Distrito dos Mestres (saga) para forjar seu primeiro Hatsu com Juramentos & Restrições."
 		p_aviso.add_child(lbl_aviso)
 		hatsu_list_container.add_child(p_aviso)
 	else:
@@ -859,7 +971,7 @@ func _atualizar_conteudo_hatsu() -> void:
 			var lbl_eq_prompt := Label.new()
 			lbl_eq_prompt.text = "Equipar:"
 			lbl_eq_prompt.add_theme_font_size_override("font_size", 3)
-			lbl_eq_prompt.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+			lbl_eq_prompt.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 			hb_btns.add_child(lbl_eq_prompt)
 
 			for s_idx in range(4):
@@ -878,17 +990,17 @@ func _atualizar_conteudo_hatsu() -> void:
 				btn_eq.pressed.connect(func(): _equipar_hatsu_no_slot(h_index, target_slot))
 				hb_btns.add_child(btn_eq)
 
-	# 4. Rodapé: Botão de Forjar Novo Hatsu
+	# 4. Rodapé: forja de Hatsu é exclusiva da Biscuit (saga)
 	var sep_footer := HSeparator.new()
 	hatsu_list_container.add_child(sep_footer)
 
-	var btn_forjar := Button.new()
-	btn_forjar.text = "🔨 Forjar Novo Hatsu (Juramentos & Restrições)"
-	btn_forjar.add_theme_font_size_override("font_size", 4)
-	btn_forjar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	HunterUIStyle.aplicar_estilo_botao(btn_forjar, HunterUIStyle.COLOR_BORDER_GOLD)
-	btn_forjar.pressed.connect(_abrir_criador_hatsu)
-	hatsu_list_container.add_child(btn_forjar)
+	var lbl_forjar_hint := Label.new()
+	lbl_forjar_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_forjar_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_forjar_hint.add_theme_font_size_override("font_size", 4)
+	lbl_forjar_hint.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
+	lbl_forjar_hint.text = "🍪 Forjar Hatsu: exclusivo com Biscuit Krueger (desbloqueio na saga).\nAqui você apenas equipa e revisa Hatsus já criados."
+	hatsu_list_container.add_child(lbl_forjar_hint)
 
 
 func _equipar_hatsu_no_slot(hatsu_index: int, slot: int) -> void:
@@ -904,8 +1016,8 @@ func _equipar_hatsu_no_slot(hatsu_index: int, slot: int) -> void:
 
 	PlayerData.equipar_hatsu(slot, hatsu_index)
 	_atualizar_conteudo_hatsu()
-	if GameState != null:
-		GameState.salvar_jogo()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
 	if EventBus != null:
 		var h_nome = PlayerData.hatsu_criados[hatsu_index].nome if hatsu_index < PlayerData.hatsu_criados.size() else "Hatsu"
 		EventBus.emit_toast("⚡ %s equipado no Slot %d!" % [h_nome, slot + 1], HunterUIStyle.COLOR_AURA_CYAN)
@@ -914,8 +1026,8 @@ func _equipar_hatsu_no_slot(hatsu_index: int, slot: int) -> void:
 func _desequipar_slot_hatsu(slot: int) -> void:
 	PlayerData.desequipar_hatsu(slot)
 	_atualizar_conteudo_hatsu()
-	if GameState != null:
-		GameState.salvar_jogo()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
 	if EventBus != null:
 		EventBus.emit_toast("Desequipado do Slot %d." % (slot + 1), HunterUIStyle.COLOR_TEXT_SECONDARY)
 
@@ -1056,7 +1168,7 @@ func _atualizar_conteudo_licenca() -> void:
 			"Status: Caçador Licenciado de 1 Estrela\n" +
 			"Benefícios: Acesso irrestrito a 95%% dos países e redes de informação confidenciais."
 		) % PlayerData.nome_personagem
-		lbl_license_info.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+		lbl_license_info.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	else:
 		lbl_license_info.text = (
 			"🔒 LICENÇA NÃO OBTIDA\n\n" +
@@ -1085,7 +1197,7 @@ func _atualizar_conteudo_faccoes() -> void:
 	for f in faccoes:
 		var rep = ReputationSystem.obter_reputacao_str(f["id"])
 		var status_str = "Neutro"
-		var cor_status = HunterUIStyle.COLOR_GOLD_LIGHT
+		var cor_status = HunterUIStyle.COLOR_TEXT_PRIMARY
 		if rep >= 500:
 			status_str = "Honrado (+20% Desconto na Loja)"
 			cor_status = HunterUIStyle.COLOR_HUNTER_GREEN_LIGHT
@@ -1154,7 +1266,7 @@ func _atualizar_conteudo_guia() -> void:
 	var lbl_gh := Label.new()
 	lbl_gh.text = "📖 GUIA HUNTER & ENCICLOPÉDIA DE NEN"
 	lbl_gh.add_theme_font_size_override("font_size", 5)
-	lbl_gh.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_gh.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	vb_hdr.add_child(lbl_gh)
 
 	var lbl_sub := Label.new()

@@ -68,3 +68,37 @@ func _acionar_alerta_emboscada() -> void:
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
 		hud.exibir_notificacao("⚠️ ALARME! Sua presença de aura atraiu os predadores!")
+
+	if EventBus != null:
+		EventBus.emit_toast("⚠️ Sensor de aura: emboscada!", Color(1.0, 0.35, 0.25, 1.0))
+		EventBus.emit_camera_shake(0.25, 0.18)
+
+	if AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):
+		AudioManager.tocar_sfx_tipo("boss_intro", 0.7)
+
+	if not spawn_inimigos_ao_falhar:
+		return
+
+	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
+	if enemy_scn == null:
+		return
+
+	var offsets: Array[Vector2] = [Vector2(-48, -24), Vector2(48, -16), Vector2(0, 40)]
+	for i in range(offsets.size()):
+		var mob = enemy_scn.instantiate()
+		mob.name = "Emboscada_%s_%d" % [String(zone_id), i]
+		mob.position = global_position + offsets[i]
+		var parent_map = get_parent()
+		if parent_map != null:
+			parent_map.add_child(mob)
+		else:
+			get_tree().current_scene.add_child(mob)
+		var es = mob.get_node_or_null("EnemySystem")
+		if es != null:
+			es.enemy_id = &"slime"
+			es.enemy_name = "Predador Alertado"
+			if es.enemy_data != null:
+				es.enemy_data = es.enemy_data.duplicate(true)
+				es.enemy_data.role = "ambusher"
+			if QuestSystem != null and not es.died.is_connected(QuestSystem.register_enemy_kill):
+				es.died.connect(QuestSystem.register_enemy_kill)

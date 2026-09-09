@@ -279,7 +279,7 @@ func _on_reviver_pressed() -> void:
 func _on_retornar_lobby_pressed() -> void:
 	ocultar()
 	_restaurar_atributos_player()
-	GameState.salvar_jogo()
+	SaveManager.salvar_jogo()
 
 	var player = get_tree().get_first_node_in_group("player")
 	if player != null and player.has_method("reviver"):
@@ -297,7 +297,7 @@ func _on_retornar_lobby_pressed() -> void:
 func _on_menu_principal_pressed() -> void:
 	ocultar()
 	_restaurar_atributos_player()
-	GameState.salvar_jogo()
+	SaveManager.salvar_jogo()
 
 	var trans = get_node_or_null("/root/SceneTransition")
 	if trans != null and trans.has_method("mudar_cena"):

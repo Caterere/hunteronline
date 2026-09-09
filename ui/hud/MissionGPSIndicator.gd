@@ -133,7 +133,12 @@ func _atualizar_alvo_ativo() -> void:
 	# CONTEXTO 1: HUB CENTRAL / CIDADE DE PADOKIA (LOBBY)
 	# =========================================================
 	if is_lobby:
-		if not PlayerData.tour_lobby_concluido:
+		# Passos do hub: Elena (tutorial) → Wing (Nen) → Portal Hunter (leste)
+		var total_passos_lobby := 3
+		var passo_lobby := 0
+
+		if not PlayerData.tutorial_concluido:
+			passo_lobby = 0
 			current_target_type = "npc"
 			current_target_name = "Recepcionista Elena"
 			var elena = cur_scn.get_node_or_null("RecepcionistaElena")
@@ -141,35 +146,65 @@ func _atualizar_alvo_ativo() -> void:
 				current_target_node = elena
 				current_target_pos = elena.global_position
 				target_found = true
-			if lbl_target_info and not target_found:
-				lbl_target_info.text = "👉 Passo 1/2: Fale com a Recepcionista Elena na Praça Central"
+			if lbl_target_info:
+				lbl_target_info.text = "👉 Passo 1/%d: Fale com a Recepcionista Elena na Praça Central" % total_passos_lobby
 				lbl_target_info.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
+		elif not PlayerData.despertou_nen:
+			passo_lobby = 1
+			current_target_type = "npc"
+			current_target_name = "Mestre Wing"
+			var wing = cur_scn.get_node_or_null("Wing")
+			if wing == null:
+				wing = _buscar_no_recursivo_por_nome(cur_scn, "wing", "mestre wing")
+			if wing != null and wing is Node2D:
+				current_target_node = wing
+				current_target_pos = wing.global_position
+				target_found = true
+			if lbl_target_info:
+				lbl_target_info.text = "👉 Passo 2/%d: Fale com Mestre Wing (Norte) para despertar seu Nen" % total_passos_lobby
+				lbl_target_info.add_theme_color_override("font_color", Color(0.35, 1.0, 0.55, 1.0))
 		else:
-			# No novo mundo aberto contínuo, a saída para o mundo exterior é o Portão Sul
+			passo_lobby = 2
 			current_target_type = "portal"
-			current_target_name = "Portão Sul (Mundo Exterior — 287º Exame Hunter)"
-			var portao_sul = cur_scn.get_node_or_null("PortaoMundoExterior")
-			if portao_sul != null and portao_sul is Node2D:
-				current_target_node = portao_sul
-				current_target_pos = portao_sul.global_position
+			current_target_name = "Portal Hunter (Leste — Exame Hunter)"
+			var portal_hunter = cur_scn.get_node_or_null("PortalHunter")
+			if portal_hunter != null and portal_hunter is Node2D:
+				current_target_node = portal_hunter
+				current_target_pos = portal_hunter.global_position
 				target_found = true
 			else:
-				# Fallback se houver algum MapTransitionArea no mapa
-				var transicoes: Array = []
-				_coletar_areas_transicao(cur_scn, transicoes)
-				if not transicoes.is_empty():
-					var t = transicoes[0] as Node2D
-					current_target_node = t
-					current_target_pos = t.global_position
+				var portao_sul = cur_scn.get_node_or_null("PortaoMundoExterior")
+				if portao_sul != null and portao_sul is Node2D:
+					current_target_node = portao_sul
+					current_target_pos = portao_sul.global_position
 					target_found = true
+					current_target_name = "Portão Sul (Mundo Exterior)"
+				else:
+					var transicoes: Array = []
+					_coletar_areas_transicao(cur_scn, transicoes)
+					# Prefere portal cujo nome/path contém "hunter" ou "exame"
+					for t in transicoes:
+						var tn := str(t.name).to_lower()
+						var tp := ""
+						if "target_scene_path" in t:
+							tp = str(t.target_scene_path).to_lower()
+						if "hunter" in tn or "exame" in tp or "portal" in tn:
+							current_target_node = t as Node2D
+							current_target_pos = (t as Node2D).global_position
+							target_found = true
+							break
+					if not target_found and not transicoes.is_empty():
+						var t0 = transicoes[0] as Node2D
+						current_target_node = t0
+						current_target_pos = t0.global_position
+						target_found = true
 
-			if lbl_target_info and not target_found:
-				lbl_target_info.text = "👉 Passo 2/2: Siga pelo Portão Sul para iniciar a jornada no Mundo Aberto!"
+			if lbl_target_info:
+				lbl_target_info.text = "👉 Passo 3/%d: Siga até o Portal Hunter a Leste para iniciar a jornada!" % total_passos_lobby
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 
 		if target_found and player_ref != null:
-			var passo_lobby: int = 0 if not PlayerData.tour_lobby_concluido else 1
-			_atualizar_render_gps(passo_lobby, 2, 1)
+			_atualizar_render_gps(passo_lobby, total_passos_lobby, 1)
 		return
 
 	# =========================================================
@@ -264,10 +299,11 @@ func _atualizar_alvo_ativo() -> void:
 			var target_name_str = obj_pendente.target_npc_name.to_lower()
 			current_target_name = obj_pendente.target_npc_name if not obj_pendente.target_npc_name.is_empty() else "NPC de Missão"
 
-			# Procurar nós no grupo npc
+			# Procurar nós no grupo npc — prioriza match exato (evita GPS no NPC errado)
 			var npcs = get_tree().get_nodes_in_group("npc")
 			var best_npc: Node2D = null
 			var best_dist: float = 999999.0
+			var best_score: int = -1
 
 			for n in npcs:
 				if n is Node2D and is_instance_valid(n) and not n.is_queued_for_deletion():
@@ -275,18 +311,22 @@ func _atualizar_alvo_ativo() -> void:
 					var custom_name = ""
 					if "npc_name" in n and n.npc_name != null:
 						custom_name = str(n.npc_name).to_lower()
-					
-					var bate: bool = (
-						target_id_str == n_name
-						or target_id_str in n_name
-						or n_name in target_id_str
-						or target_name_str in n_name
-						or (!custom_name.is_empty() and (target_id_str == custom_name or target_id_str in custom_name or custom_name in target_id_str or target_name_str in custom_name))
-					)
-					if bate:
-						var d = player_ref.global_position.distance_to(n.global_position)
-						if d < best_dist:
-							best_dist = d
+
+					var score := -1
+					if (not target_id_str.is_empty() and (target_id_str == n_name or target_id_str == custom_name)) \
+							or (not target_name_str.is_empty() and (target_name_str == n_name or target_name_str == custom_name)):
+						score = 3
+					elif (not target_id_str.is_empty() and target_id_str.length() >= 4 and (n_name.begins_with(target_id_str) or custom_name.begins_with(target_id_str))) \
+							or (not target_name_str.is_empty() and target_name_str.length() >= 4 and (n_name.begins_with(target_name_str) or custom_name.begins_with(target_name_str))):
+						score = 2
+					elif (not target_id_str.is_empty() and target_id_str.length() >= 5 and (target_id_str in n_name or target_id_str in custom_name)) \
+							or (not target_name_str.is_empty() and target_name_str.length() >= 5 and (target_name_str in n_name or target_name_str in custom_name)):
+						score = 1
+
+					if score > best_score or (score == best_score and score >= 0 and player_ref.global_position.distance_to(n.global_position) < best_dist):
+						if score >= 0:
+							best_score = score
+							best_dist = player_ref.global_position.distance_to(n.global_position)
 							best_npc = n
 
 			if best_npc != null:
@@ -627,10 +667,10 @@ func _buscar_no_recursivo_por_nome(parent: Node, target_id: String, target_name:
 func _coletar_areas_transicao(node: Node, out_list: Array) -> void:
 	if node == null or not is_instance_valid(node) or node.is_queued_for_deletion():
 		return
-	var n_name: String = node.name.to_lower() if node.name != null else ""
-	if (node is MapTransitionArea or n_name.begins_with("portal") or n_name.begins_with("portao") or node.is_in_group("portal") or node.is_in_group("transition")) and not (node is MissionGPSIndicator):
-		if node is Node2D:
-			out_list.append(node)
+	# Só portais reais (Area2D / MapTransitionArea) — evita pegar NPC "PortalHunter"
+	var is_real_portal := node is MapTransitionArea or (node is Area2D and (node.is_in_group("portal") or node.is_in_group("transition")))
+	if is_real_portal and not (node is MissionGPSIndicator) and node is Node2D:
+		out_list.append(node)
 	for child in node.get_children():
 		if child != null:
 			_coletar_areas_transicao(child, out_list)

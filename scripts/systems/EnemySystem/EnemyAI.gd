@@ -992,19 +992,31 @@ func _return() -> void:
 # =========================================================
 
 func _update_animation() -> void:
+	var sprite = enemy_body.get_node_or_null("Sprite2D") as Sprite2D
+	var andando := current_state == State.CHASE or current_state == State.RETURN
+	if enemy_system != null and enemy_system.has_method("aplicar_folha_movimento"):
+		enemy_system.aplicar_folha_movimento(andando)
+
+	if sprite != null and sprite.hframes == 8 and sprite.vframes == 8:
+		# Folha walk 8 dirs × 8 frames (linhas = direção)
+		sprite.position.y = -17.0
+		return
+
+	if sprite != null and sprite.hframes == 8:
+		if andando:
+			sprite.position.y = -17.0 + (1.0 if int(Time.get_ticks_msec() / 150) % 2 == 0 else 0.0)
+		else:
+			sprite.position.y = -17.0
+		return
 
 	if _state_machine == null:
 		return
 
-
 	match current_state:
-
 		State.IDLE:
 			_state_machine.travel("idle")
-
 		State.CHASE:
 			_state_machine.travel("walk")
-
 		State.RETURN:
 			_state_machine.travel("walk")
 
@@ -1014,18 +1026,27 @@ func _update_animation() -> void:
 # =========================================================
 
 func _set_animation_direction(direction: Vector2) -> void:
+	if direction == Vector2.ZERO:
+		return
+
+	var sprite = enemy_body.get_node_or_null("Sprite2D") as Sprite2D
+	if sprite != null and sprite.hframes == 8:
+		var angle_deg: float = rad_to_deg(direction.angle())
+		var dir_frame: int = posmod(int(round((90.0 - angle_deg) / 45.0)), 8)
+		if sprite.vframes == 8:
+			var walk_f: int = int(Time.get_ticks_msec() / 90) % 8
+			sprite.frame = dir_frame * 8 + walk_f
+		else:
+			sprite.frame = dir_frame
+		sprite.flip_h = false
+		return
 
 	var animation_tree: AnimationTree = enemy_body.get_node_or_null(
 		"AnimationTree"
 	)
 
-	if animation_tree == null:
+	if animation_tree == null or not animation_tree.active:
 		return
-
-
-	if direction == Vector2.ZERO:
-		return
-
 
 	animation_tree["parameters/idle/blend_position"] = direction
 	animation_tree["parameters/walk/blend_position"] = direction
