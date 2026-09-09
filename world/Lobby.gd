@@ -454,27 +454,23 @@ func _anexar_rotina_comercial(npc: Node, nome: String, work: Vector2, tavern: Ve
 # 4. DISTRITO DIMENSIONAL & SANTUÁRIO ESPIRITUAL (LESTE LONGÍNQUO)
 # ============================================================
 
-func _garantir_portal_missao_atual() -> void:
-	# Substitui qualquer PortalHunter legado pelo portal da missão atual.
-	var existente = get_node_or_null("PortalHunter")
-	if existente != null:
-		existente.name = "PortalHunter_LEGACY_REMOVING"
-		existente.queue_free()
-	var scn_portal = load("res://entities/npc/portal_hunter/PortalHunter.tscn")
-	if scn_portal == null:
-		push_warning("[Lobby] PortalHunter.tscn ausente")
-		return
-	var portal = scn_portal.instantiate()
-	portal.name = "PortalHunter"
-	portal.position = Vector2(1180, -40)
-	portal.z_index = 3
-	add_child(portal)
+
+func _remover_portal_historia_legado() -> void:
+	# Remove de vez o Portal Hunter / Portal da Missão (seletor e landmark).
+	for nome in ["PortalHunter", "PortalHunter_LEGACY_REMOVING", "PortalDaMissao"]:
+		var n = get_node_or_null(nome)
+		if n != null:
+			n.name = nome + "_REMOVING"
+			n.queue_free()
+	# Também remove UI legado se ainda estiver na árvore
+	var ui = get_tree().root.get_node_or_null("PortalHunterUI") if get_tree() != null else null
+	if ui != null:
+		ui.queue_free()
 
 
 func _popular_distrito_dimensional() -> void:
-	# Portal da Missão Atual (mesmo landmark visual do antigo Portal Hunter).
-	# Sem seletor de saga/dificuldade — só StoryManager.continuar_do_checkpoint().
-	_garantir_portal_missao_atual()
+	# Portal Hunter / Portal da Missão removidos — continuidade só via StoryGatewayNPC.
+	_remover_portal_historia_legado()
 
 	# Examinador Chrono (Fendas Temporais - 50 Missões Paralelas)
 	var pq_npc = get_node_or_null("ParallelQuestNPC")
@@ -877,9 +873,8 @@ func _densificar_lobby_pixel_art() -> void:
 		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(1050, -120), "name": "TendaDecorLeste"},
 		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(1000, 20), "name": "BarracaDecorLeste"},
 	]
-	if ResourceLoader.exists("res://assets/sprites/objects/portal_hunter_arch.png"):
-		# Extra landmark visual perto do portal se o NPC não tiver a textura ainda
-		pass
+
+
 	if ResourceLoader.exists("res://assets/sprites/objects/lobby_bush_flowers_decor.png"):
 		placements.append_array([
 			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(-60, 50), "name": "ArbustoFlorA"},

@@ -161,16 +161,16 @@ func _atualizar_hud() -> void:
 		lbl_arco.text = "🏛️ PRAÇA CENTRAL (LOBBY)"
 		lbl_quest_nome.text = "📜 Guia da Cidade dos Caçadores"
 		if not PlayerData.tutorial_concluido:
-			lbl_objetivo.text = "👉 Passo 1/3: Fale com a Recepcionista Elena\n⬜ Passo 2/3: Desperte Nen com Mestre Wing\n⬜ Passo 3/3: Portal da Missão (Leste)"
+			lbl_objetivo.text = "👉 Passo 1/3: Fale com a Recepcionista Elena\n⬜ Passo 2/3: Desperte Nen com Mestre Wing\n⬜ Passo 3/3: Guia da História (praça)"
 			lbl_bussola.text = "💬 [E] Fale com Elena para o treinamento inicial!"
 			lbl_bussola.add_theme_color_override("font_color", Color(0.3, 0.9, 1.0, 1.0))
 		elif not PlayerData.despertou_nen:
-			lbl_objetivo.text = "✅ Passo 1/3: Treinamento com Elena\n👉 Passo 2/3: Fale com Mestre Wing (Norte)\n⬜ Passo 3/3: Portal da Missão (Leste)"
+			lbl_objetivo.text = "✅ Passo 1/3: Treinamento com Elena\n👉 Passo 2/3: Fale com Mestre Wing (Norte)\n⬜ Passo 3/3: Guia da História (praça)"
 			lbl_bussola.text = "🥋 Vá ao Distrito dos Mestres e fale com Wing [E]!"
 			lbl_bussola.add_theme_color_override("font_color", Color(0.35, 1.0, 0.55, 1.0))
 		else:
-			lbl_objetivo.text = "✅ Passo 1/3: Elena\n✅ Passo 2/3: Nen despertado com Wing\n👉 Passo 3/3: Portal da Missão (Leste)"
-			lbl_bussola.text = "📜 Dirija-se ao Portal da Missão (Leste) para continuar a História!"
+			lbl_objetivo.text = "✅ Passo 1/3: Elena\n✅ Passo 2/3: Nen despertado com Wing\n👉 Passo 3/3: Guia da História (praça)"
+			lbl_bussola.text = "📜 Dirija-se ao Guia da História (praça) para continuar a História!"
 			lbl_bussola.add_theme_color_override("font_color", Color(0.3, 1.0, 0.5, 1.0))
 		return
 

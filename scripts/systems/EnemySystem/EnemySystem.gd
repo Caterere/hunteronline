@@ -95,6 +95,10 @@ var postura_max: float = 100.0
 var em_stagger: bool = false
 ## Alias legado — EnemyAI e VFX antigos consultam em_knockdown
 var em_knockdown: bool = false
+
+func esta_em_stagger_ou_knockdown() -> bool:
+	return em_stagger or em_knockdown
+
 var stagger_timer: float = 0.0
 var stagger_duracao: float = 3.5
 

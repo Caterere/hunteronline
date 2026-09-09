@@ -238,7 +238,8 @@ func _physics_process(delta: float) -> void:
 		if taunt_timer <= 0.0:
 			taunt_timer = randf_range(8.0, 14.0)
 			if enemy_system != null and current_state in [State.CHASE, State.PREPARE_ATTACK, State.ATTACK, State.RECOVERY]:
-				enemy_system.disparar_taunt()
+				if enemy_system.has_method("disparar_taunt"):
+					enemy_system.disparar_taunt()
 
 	if enemy_body == null:
 		return
@@ -539,9 +540,12 @@ func _find_player() -> void:
 
 func _update_state() -> void:
 
-	if enemy_system != null and (enemy_system.em_stagger or enemy_system.em_knockdown):
-		current_state = State.STAGGER
-		return
+	if enemy_system != null:
+		var em_stagger := bool(enemy_system.get("em_stagger"))
+		var em_knockdown := bool(enemy_system.get("em_knockdown"))
+		if em_stagger or em_knockdown:
+			current_state = State.STAGGER
+			return
 
 	# Proteção Camada 2: Inimigo de missão inativo permanece estritamente em IDLE
 	if enemy_system != null and enemy_system.is_mission_enemy:
@@ -722,7 +726,7 @@ func _iniciar_prepare_attack() -> void:
 	current_state = State.PREPARE_ATTACK
 	windup_timer = _obter_windup() * (0.65 if is_fase_2 else 1.0)
 	_mostrar_telegraph()
-	if enemy_system != null and randf() < 0.35:
+	if enemy_system != null and randf() < 0.35 and enemy_system.has_method("disparar_fala_ataque"):
 		enemy_system.disparar_fala_ataque("")
 
 
@@ -823,7 +827,7 @@ func _chase() -> void:
 	if enemy_sys != null and not _intro_disparada:
 		_intro_disparada = true
 		enemy_sys.falou_spawn = true
-		if enemy_sys.battle_personality != null:
+		if enemy_sys.get("battle_personality") != null and enemy_sys.has_method("disparar_intro"):
 			enemy_sys.disparar_intro()
 		else:
 			ComicBalloon.mostrar(enemy_body, CombatComicQuotes.obter_frase_inimigo_spawn(enemy_sys.enemy_name), 2.2, -38.0)
@@ -1176,7 +1180,7 @@ func _aplicar_dano_jogador(dano_val: int, dir_val: Vector2, knock_val: float = 0
 # --- ROTINAS INDIVIDUAIS DOS HATSUS DO MANGÁ ---
 
 func _hatsu_hisoka(dir: Vector2) -> void:
-	if enemy_system != null:
+	if enemy_system != null and enemy_system.has_method("disparar_fala_ataque"):
 		enemy_system.disparar_fala_ataque("Bungee Gum")
 	else:
 		ComicBalloon.mostrar(enemy_body, "♠️ Bungee Gum tem as propriedades de borracha e goma!", 2.2, -42.0)
@@ -1383,7 +1387,7 @@ func _hatsu_pitou(dir: Vector2) -> void:
 
 
 func _hatsu_meruem(dir: Vector2) -> void:
-	if enemy_system != null:
+	if enemy_system != null and enemy_system.has_method("disparar_fala_ataque"):
 		enemy_system.disparar_fala_ataque("Síntese de Aura")
 	else:
 		ComicBalloon.mostrar(enemy_body, "👑 FÓTONS DE EN: SÍNTESE DE AURA!", 2.5, -42.0)
@@ -1448,7 +1452,7 @@ func _hatsu_genthru(dir: Vector2) -> void:
 
 
 func _hatsu_razor(dir: Vector2) -> void:
-	if enemy_system != null:
+	if enemy_system != null and enemy_system.has_method("disparar_fala_ataque"):
 		enemy_system.disparar_fala_ataque("14 Demônios")
 	else:
 		ComicBalloon.mostrar(enemy_body, "🏐 ESFERAS DE NEN DOS 14 DEMÔNIOS!", 2.2, -42.0)

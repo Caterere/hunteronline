@@ -4,8 +4,7 @@ extends NPC
 # ============================================================
 # HUNTER ONLINE — STORY GATEWAY (despacho à missão atual)
 # ============================================================
-# Mesmo comportamento do Portal da Missão (Distrito Leste):
-# continua do checkpoint atual, sem seletor de saga/dificuldade.
+# # continua do checkpoint atual, sem seletor de saga/dificuldade.
 # ============================================================
 
 @export var prompt_interaction: String = "[E] Continuar Missão Atual"
@@ -13,7 +12,7 @@ extends NPC
 
 func _ready() -> void:
 	npc_name = "Guia da História"
-	fala_padrao = "Fale comigo ou use o Portal da Missão a Leste para ir à área da sua missão atual."
+	fala_padrao = "Fale comigo para ir automaticamente à área da sua missão atual."
 	super()
 	var inter := get_node_or_null("InteractionComponent") as InteractionComponent
 	if inter != null:
@@ -25,10 +24,6 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 
 
 func _despachar_para_missao_atual() -> void:
-	var existing_ui = get_tree().root.get_node_or_null("PortalHunterUI")
-	if existing_ui != null:
-		existing_ui.queue_free()
-
 	if StoryManager == null:
 		return
 
