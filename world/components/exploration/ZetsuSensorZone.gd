@@ -17,6 +17,9 @@ signal travessia_furtiva_sucesso(player: Node2D)
 @export var zone_id: StringName = &"sensor_patrulha"
 @export var zone_name: String = "Território de Predadores Sensíveis a Aura"
 @export var spawn_inimigos_ao_falhar: bool = true
+@export var enemy_id: StringName = &"lobo_sombras"
+@export var enemy_name: String = "Predador Alertado"
+@export var mostrar_marcador: bool = true
 
 var jogador_dentro: CharacterBody2D = null
 var falhou_stealth: bool = false
@@ -29,6 +32,25 @@ func _ready() -> void:
 	add_to_group("zetsu_sensor_zone")
 	body_entered.connect(_on_body_entered)
 	body_exited.connect(_on_body_exited)
+	if mostrar_marcador:
+		_garantir_marcador_visual()
+
+
+func _garantir_marcador_visual() -> void:
+	if get_node_or_null("ZetsuHintLabel") != null:
+		return
+	var lbl := Label.new()
+	lbl.name = "ZetsuHintLabel"
+	lbl.text = "🥷 ZETSU — %s" % zone_name
+	lbl.position = Vector2(-70, -28)
+	lbl.custom_minimum_size = Vector2(140, 12)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 5)
+	lbl.add_theme_color_override("font_color", Color(0.55, 0.95, 0.65, 0.95))
+	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
+	lbl.add_theme_constant_override("shadow_offset_x", 1)
+	lbl.add_theme_constant_override("shadow_offset_y", 1)
+	add_child(lbl)
 
 func _on_body_entered(body: Node2D) -> void:
 	if body.is_in_group("player") and body is CharacterBody2D:
@@ -56,8 +78,16 @@ func _process(_delta: float) -> void:
 		_checar_presenca_aura()
 
 func _checar_presenca_aura() -> void:
-	var nen_sys = jogador_dentro.get_node_or_null("NenSystem") as NenSystem
-	var em_zetsu: bool = (nen_sys != null and nen_sys.has_method("tecnica_ativa") and nen_sys.tecnica_ativa(NenSystem.Tecnica.ZETSU))
+	# Evitar cast tipado (pode falhar com scripts instanciados via load().new() nos testes)
+	var nen_sys = jogador_dentro.get_node_or_null("NenSystem")
+	var em_zetsu := false
+	if nen_sys != null:
+		if nen_sys.has_method("esta_em_zetsu"):
+			em_zetsu = bool(nen_sys.esta_em_zetsu())
+		elif nen_sys.get("active_controller") != null and bool(nen_sys.active_controller.zetsu_ativo):
+			em_zetsu = true
+		elif nen_sys.has_method("tecnica_ativa"):
+			em_zetsu = bool(nen_sys.tecnica_ativa(NenSystem.Tecnica.ZETSU))
 	
 	if not em_zetsu and not falhou_stealth:
 		falhou_stealth = true
@@ -95,8 +125,8 @@ func _acionar_alerta_emboscada() -> void:
 			get_tree().current_scene.add_child(mob)
 		var es = mob.get_node_or_null("EnemySystem")
 		if es != null:
-			es.enemy_id = &"slime"
-			es.enemy_name = "Predador Alertado"
+			es.enemy_id = enemy_id
+			es.enemy_name = enemy_name
 			if es.enemy_data != null:
 				es.enemy_data = es.enemy_data.duplicate(true)
 				es.enemy_data.role = "ambusher"

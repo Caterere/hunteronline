@@ -27,10 +27,84 @@ func _ready() -> void:
 	_popular_npcs_arco3()
 	_garantir_objeto_teste_agua()
 	_configurar_inimigos()
+	_densificar_corredor_arena()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
+	_garantir_tower_ui()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+
+
+func _process(_delta: float) -> void:
+	_atualizar_marcos_andar()
+
+
+func _atualizar_marcos_andar() -> void:
+	var player = get_tree().get_first_node_in_group("player") as Node2D
+	if player == null:
+		return
+	var x: float = player.global_position.x
+	_tentar_marco("recepcao", x, -50.0, 350.0, "🏛️ Recepção da Arena Celestial — registre-se antes de subir.")
+	_tentar_marco("ringues_inferiores", x, 500.0, 1300.0, "⚔️ Ringues Inferiores — andares de aquecimento.")
+	_tentar_marco("ringues_superiores", x, 1500.0, 2800.0, "🔥 Ringues Superiores — oposição com Nen real.")
+	_tentar_marco("topo", x, 3200.0, 4600.0, "👑 Topo / 200º Andar — apenas mestres sobrevivem aqui.")
+
+
+func _tentar_marco(id: String, x: float, x_min: float, x_max: float, msg: String) -> void:
+	if bool(_marcos_notificados.get(id, false)):
+		return
+	if x < x_min or x > x_max:
+		return
+	_marcos_notificados[id] = true
+	if EventBus != null:
+		EventBus.emit_toast(msg, Color(0.75, 0.9, 1.0))
+
+
+func _garantir_tower_ui() -> void:
+	if get_tree().get_first_node_in_group("heavens_arena_tower_ui") != null:
+		return
+	var ui_script = load("res://ui/Arena/HeavensArenaTowerUI.gd")
+	if ui_script == null:
+		return
+	var ui = ui_script.new()
+	ui.name = "HeavensArenaTowerUI"
+	ui.add_to_group("heavens_arena_tower_ui")
+	add_child(ui)
+
+	var recep = get_node_or_null("Recepcionista")
+	if recep == null:
+		return
+	# Área de interação dedicada ao torneio de andares
+	if get_node_or_null("TorneioAndaresTrigger") != null:
+		return
+	var area := Area2D.new()
+	area.name = "TorneioAndaresTrigger"
+	area.position = Vector2(80, 0)
+	area.collision_layer = 0
+	area.collision_mask = 2
+	var col := CollisionShape2D.new()
+	var circ := CircleShape2D.new()
+	circ.radius = 28.0
+	col.shape = circ
+	area.add_child(col)
+	var inter := InteractionComponent.new()
+	inter.name = "InteractionComponent"
+	inter.interaction_text = "[E] Abrir Torneio de Andares (200 Floors)"
+	inter.interaction_radius = 30.0
+	inter.interacted.connect(func(_p):
+		var tower = get_tree().get_first_node_in_group("heavens_arena_tower_ui")
+		if tower != null and tower.has_method("abrir_torneio"):
+			tower.abrir_torneio()
+	)
+	area.add_child(inter)
+	var lbl := Label.new()
+	lbl.text = "🏛️ Torneio 200 Andares\n[E] Desafiar"
+	lbl.position = Vector2(-50, -36)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 5)
+	lbl.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0))
+	area.add_child(lbl)
+	add_child(area)
 
 
 func _garantir_dialogue_ui() -> void:
@@ -87,7 +161,7 @@ func _popular_npcs_arco3() -> void:
 		zushi.fala_padrao = "Osu! Sou Zushi, discípulo do mestre Wing! Estou aprendendo o estilo Shingen-ryu de Kung Fu. Preciso treinar mais duro! Osu!"
 		add_child(zushi)
 
-	# 3. Mestre Wing (Dojo do 200º Andar)
+	# 3. Mestre Wing (Dojo — alinhado ao Teste da Água)
 	if get_node_or_null("Wing") == null:
 		var scn_wing = load("res://entities/npc/wing/Wing.tscn")
 		var wing
@@ -99,6 +173,11 @@ func _popular_npcs_arco3() -> void:
 		wing.name = "Wing"
 		wing.position = Vector2(1100, -80)
 		add_child(wing)
+	else:
+		# Cena base spawna Wing em (300,-100); realinha ao cluster do dojo
+		var wing_existente = get_node_or_null("Wing")
+		if wing_existente != null and wing_existente.position.x < 900.0:
+			wing_existente.position = Vector2(1100, -80)
 
 	# 4. Hisoka (Barreira do 200º Andar & Ringue Principal)
 	if get_node_or_null("Hisoka") == null:
@@ -233,6 +312,57 @@ func _configurar_inimigos() -> void:
 					es.died.connect(QuestSystem.register_enemy_kill)
 				if QuestSystem != null:
 					QuestSystem.registrar_spawn_posicao_missao(es.enemy_id, node.global_position, 3, es.quest_etapa, -1, null, es.enemy_name)
+
+
+func _densificar_corredor_arena() -> void:
+	# Lutadores ambient (não-missão) entre os ringues da história
+	var scn_enemy = load("res://scripts/systems/EnemySystem/Enemy.tscn")
+	if scn_enemy == null:
+		return
+	var fillers := [
+		{"name": "LutadorAmbient_A", "pos": Vector2(850, -40), "label": "Lutador Amador (20º)"},
+		{"name": "LutadorAmbient_B", "pos": Vector2(1350, 80), "label": "Lutador Veterano (70º)"},
+		{"name": "LutadorAmbient_C", "pos": Vector2(1850, -60), "label": "Lutador Elite (120º)"},
+		{"name": "LutadorAmbient_D", "pos": Vector2(2500, 40), "label": "Lutador do Corredor (160º)"},
+	]
+	for f in fillers:
+		if get_node_or_null(f["name"]) != null:
+			continue
+		var mob = scn_enemy.instantiate()
+		mob.name = f["name"]
+		mob.position = f["pos"]
+		mob.add_to_group("enemy")
+		mob.add_to_group("enemies")
+		var es = mob.get_node_or_null("EnemySystem")
+		if es != null:
+			es.is_mission_enemy = false
+			es.enemy_id = &"lutador_arena"
+			es.enemy_name = f["label"]
+		add_child(mob)
+
+	# Placas de andar — quebram o corredor vazio
+	var placas := [
+		{"name": "PlacaAndar1", "pos": Vector2(200, -60), "text": "📍 1º Andar — Recepção"},
+		{"name": "PlacaAndar50", "pos": Vector2(1000, -140), "text": "📍 50º Andar — Dojo Wing"},
+		{"name": "PlacaAndar100", "pos": Vector2(1600, -160), "text": "📍 100º Andar — Ringues Médios"},
+		{"name": "PlacaAndar190", "pos": Vector2(2100, -140), "text": "📍 190º Andar — Pré-Final"},
+		{"name": "PlacaAndar200", "pos": Vector2(3400, -140), "text": "📍 200º Andar — Topo"},
+	]
+	for p in placas:
+		if get_node_or_null(p["name"]) != null:
+			continue
+		var marker := Node2D.new()
+		marker.name = p["name"]
+		marker.position = p["pos"]
+		var lbl := Label.new()
+		lbl.text = p["text"]
+		lbl.position = Vector2(-55, -10)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 5)
+		lbl.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0, 0.95))
+		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+		marker.add_child(lbl)
+		add_child(marker)
 
 
 func _configurar_portal_conclusao() -> void:

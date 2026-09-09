@@ -42,8 +42,10 @@ func toggle_zetsu() -> bool:
 
 
 func ativar_zetsu() -> bool:
-	if PlayerData == null or not PlayerData.despertou_nen:
+	if PlayerData == null:
 		return false
+	# Zetsu instintivo: permitido antes do despertar formal para zonas de stealth
+	# (treino de supressão de aura / sobrevivência). En/Gyo continuam gated.
 
 	# Resolução de Conflito: Zetsu fecha os poros corporais; En e Gyo são incompatíveis
 	if en_ativo:
