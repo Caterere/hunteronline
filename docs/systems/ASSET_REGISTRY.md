@@ -720,7 +720,7 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **PixelLab ID:** `9f024283-f8da-4717-89c0-aeff7ac77b7c`
 - **Local:** `res://assets/sprites/characters/enemy_sentinela_pedra_8dir.png`
 - **Uso:** `FlorestaVestigiosMap` role `tank` / `enemy_id=sentinela_pedra`
-- **Nota:** canvas gerado 68px, reamostrado para cells 48ù48 (Style Lock)
+- **Nota:** canvas gerado 68px, reamostrado para cells 48ÔøΩ48 (Style Lock)
 
 ### Registro 56: Melody (Yorknew)
 - **Asset:** `npc_melody_8dir.png`
@@ -754,26 +754,26 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **PixelLab ID:** `39f1f90c-a977-41bd-88df-9de7c41b64fe`
 - **Local:** `res://assets/sprites/characters/npc_silva_zoldyck_8dir.png`
 
-### Registro 62ù65: Lobby densificaùùo (decoraùùo)
-- `lobby_tent_decor.png` ù ID `c2d20f31-0cd6-4f12-aa76-97d3a37c8366`
-- `lobby_cottage_decor.png` ù ID `64617698-197e-4d84-9c05-ec714103e88b`
-- `lobby_stall_decor.png` ù ID `a2d23ea7-1295-49c6-a22f-f97be163799a`
-- `lobby_bush_flowers_decor.png` ù ID `7bccf1f9-2096-42ed-bb00-c0052d352d28`
-- **Uso:** `Lobby._densificar_lobby_pixel_art()` (sù decoraùùo, sem entrada)
+### Registro 62ÔøΩ65: Lobby densificaÔøΩÔøΩo (decoraÔøΩÔøΩo)
+- `lobby_tent_decor.png` ÔøΩ ID `c2d20f31-0cd6-4f12-aa76-97d3a37c8366`
+- `lobby_cottage_decor.png` ÔøΩ ID `64617698-197e-4d84-9c05-ec714103e88b`
+- `lobby_stall_decor.png` ÔøΩ ID `a2d23ea7-1295-49c6-a22f-f97be163799a`
+- `lobby_bush_flowers_decor.png` ÔøΩ ID `7bccf1f9-2096-42ed-bb00-c0052d352d28`
+- **Uso:** `Lobby._densificar_lobby_pixel_art()` (sÔøΩ decoraÔøΩÔøΩo, sem entrada)
 
 ### Registro 66: Portal Hunter (landmark)
-- Asset: portal_hunter_arch.png ó PixelLab 874a56f2-ded1-4c3d-b295-bb9c20b55024
+- Asset: portal_hunter_arch.png ÔøΩ PixelLab 874a56f2-ded1-4c3d-b295-bb9c20b55024
 - Uso: PortalHunter.gd + GPS passo 3 (leste)
 
 ### Registro 67-70: HUD + Constelacao Nen
-- hud_wood_panel_kit.png ó bdbd6cac-bb8d-4084-a077-64dce3ca1ab5
-- hud_resource_bars.png ó 8d9c679b-14ed-4031-906b-44d75a4d12f0
-- nen_skill_tree_bg.png ó 3561919c-f9dd-4685-8fa2-1d4bc286a52f
-- nen_category_icons.png ó bfb9da33-cc6d-4caa-a8ca-1aebf8f5abe7
-- nen_skill_node_rings.png ó 0eec61fe-795e-48cc-95e2-039d7bd709fe
+- hud_wood_panel_kit.png ÔøΩ bdbd6cac-bb8d-4084-a077-64dce3ca1ab5
+- hud_resource_bars.png ÔøΩ 8d9c679b-14ed-4031-906b-44d75a4d12f0
+- nen_skill_tree_bg.png ÔøΩ 3561919c-f9dd-4685-8fa2-1d4bc286a52f
+- nen_category_icons.png ÔøΩ bfb9da33-cc6d-4caa-a8ca-1aebf8f5abe7
+- nen_skill_node_rings.png ÔøΩ 0eec61fe-795e-48cc-95e2-039d7bd709fe
 
 ### Registro 71-73: HUD ornamentado + skill small + estradas lobby
-- `nen_small_node_icons.png` ó e3cc9dbf-b684-4ef2-a118-394515c80bf7 (sheet 192◊32, 12 Ìcones)
-- `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` ó 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
-- `assets/tiles/lobby_paths/*` ó path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
-- Uso: NenSkillTreeUI nÛs SMALL; PlayerHUD barras; Lobby._melhorar_estradas_lobby()
+- `nen_small_node_icons.png` ÔøΩ e3cc9dbf-b684-4ef2-a118-394515c80bf7 (sheet 192ÔøΩ32, 12 ÔøΩcones)
+- `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` ÔøΩ 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
+- `assets/tiles/lobby_paths/*` ÔøΩ path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
+- Uso: NenSkillTreeUI nÔøΩs SMALL; PlayerHUD barras; Lobby._melhorar_estradas_lobby()
