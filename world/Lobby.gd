@@ -454,12 +454,27 @@ func _anexar_rotina_comercial(npc: Node, nome: String, work: Vector2, tavern: Ve
 # 4. DISTRITO DIMENSIONAL & SANTUÁRIO ESPIRITUAL (LESTE LONGÍNQUO)
 # ============================================================
 
+func _garantir_portal_missao_atual() -> void:
+	# Substitui qualquer PortalHunter legado pelo portal da missão atual.
+	var existente = get_node_or_null("PortalHunter")
+	if existente != null:
+		existente.name = "PortalHunter_LEGACY_REMOVING"
+		existente.queue_free()
+	var scn_portal = load("res://entities/npc/portal_hunter/PortalHunter.tscn")
+	if scn_portal == null:
+		push_warning("[Lobby] PortalHunter.tscn ausente")
+		return
+	var portal = scn_portal.instantiate()
+	portal.name = "PortalHunter"
+	portal.position = Vector2(1180, -40)
+	portal.z_index = 3
+	add_child(portal)
+
+
 func _popular_distrito_dimensional() -> void:
-	# Sistema legado PortalHunter (seletor de saga/dificuldade) removido.
-	# Continuidade da história: StoryGatewayNPC na praça central.
-	var portal_legado = get_node_or_null("PortalHunter")
-	if portal_legado != null:
-		portal_legado.queue_free()
+	# Portal da Missão Atual (mesmo landmark visual do antigo Portal Hunter).
+	# Sem seletor de saga/dificuldade — só StoryManager.continuar_do_checkpoint().
+	_garantir_portal_missao_atual()
 
 	# Examinador Chrono (Fendas Temporais - 50 Missões Paralelas)
 	var pq_npc = get_node_or_null("ParallelQuestNPC")

@@ -166,11 +166,13 @@ func _atualizar_alvo_ativo() -> void:
 		else:
 			passo_lobby = 2
 			current_target_type = "portal"
-			current_target_name = "Guia da História (Praça — Missão Atual)"
-			var guia = cur_scn.get_node_or_null("StoryGatewayNPC")
-			if guia != null and guia is Node2D:
-				current_target_node = guia
-				current_target_pos = guia.global_position
+			current_target_name = "Portal da Missão (Leste — Missão Atual)"
+			var portal_missao = cur_scn.get_node_or_null("PortalHunter")
+			if portal_missao == null:
+				portal_missao = cur_scn.get_node_or_null("StoryGatewayNPC")
+			if portal_missao != null and portal_missao is Node2D:
+				current_target_node = portal_missao
+				current_target_pos = portal_missao.global_position
 				target_found = true
 			else:
 				var portao_sul = cur_scn.get_node_or_null("PortaoMundoExterior")
@@ -200,7 +202,7 @@ func _atualizar_alvo_ativo() -> void:
 						target_found = true
 
 			if lbl_target_info:
-				lbl_target_info.text = "👉 Passo 3/%d: Fale com o Guia da História na praça para ir à sua missão!" % total_passos_lobby
+				lbl_target_info.text = "👉 Passo 3/%d: Vá ao Portal da Missão a Leste para continuar sua história!" % total_passos_lobby
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 
 		if target_found and player_ref != null:

@@ -33,7 +33,7 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		_processar_interacao_tutorial(visual_dialogue)
 		return
 
-	# --- 2. APRESENTAÇÃO DO LOBBY & MODO HISTÓRIA (PORTAL HUNTER) ---
+	# --- 2. APRESENTAÇÃO DO LOBBY & MODO HISTÓRIA (PORTAL DA MISSÃO) ---
 	if not PlayerData.tour_lobby_concluido:
 		StoryCutsceneManager.executar_tour_lobby_cutscene(get_tree(), self, _player)
 		return
