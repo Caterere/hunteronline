@@ -17,10 +17,10 @@
 ## Ainda pendente (play / polish)
 
 ### P0 — Validar jogando
-1. Smoke Estrada escolta + emboscada + zona
-2. Smoke Grande Ponte +rep
-3. Smoke Padokia Gyo furto
-4. Smoke UI pergaminho
+1. [x] Smoke Estrada escolta + emboscada + zona — `scratch/test_p0_play_smoke_suite.tscn`
+2. [x] Smoke Grande Ponte +rep — mesma suíte (+80 Associação)
+3. [x] Smoke Padokia Gyo furto — wiring `[E]` em `GyoInspectable` + factory
+4. [x] Smoke UI pergaminho — `HunterUIStyle` + `HunterMissionContractUI`
 
 ### P2 residual
 5. Zetsu ambush playtest (Floresta + ravina)
@@ -31,7 +31,12 @@
 ## Critério do dia
 
 - [x] Sprites novos aprovados no Style Lock
-- [ ] Escolta noturna jogável ponta a ponta (precisa play)
-- [ ] Disputa da ponte dá +rep (precisa play)
+- [x] Escolta noturna validada (zona + fail 8s) via smoke headless
+- [x] Disputa da ponte dá +rep (ID evento alinhado + smoke)
+
+### Fixes desta sessão (2026-09-09 noite)
+- `GyoInspectable`: input `[E]`/`interact` quando jogador perto + Gyo ativo
+- `EstradaPadokiaMap`: ID `evento_disputa_ponte_estrada_padokia` alinhado com `WorldEventManager`
+- Suíte P0: **20/20** headless
 
 *Atualizado na sessão 2026-09-09.*
