@@ -722,8 +722,8 @@ func _iniciar_prepare_attack() -> void:
 	current_state = State.PREPARE_ATTACK
 	windup_timer = _obter_windup() * (0.65 if is_fase_2 else 1.0)
 	_mostrar_telegraph()
-	if enemy_system != null and randf() < 0.35:
-		enemy_system.disparar_fala_ataque("")
+	if enemy_system != null and enemy_body != null and randf() < 0.35:
+		ComicBalloon.mostrar(enemy_body, CombatComicQuotes.obter_frase_inimigo_ataque(enemy_system.enemy_name), 1.6, -40.0)
 
 
 func _obter_windup() -> float:

@@ -34,6 +34,7 @@ var _escolta_falhou: bool = false
 
 func _ready() -> void:
 	_garantir_spawn_points()
+	_pintar_piso_estrada()
 	_configurar_limites_camera()
 	_configurar_audio_e_hud()
 	_posicionar_player()
@@ -53,6 +54,15 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_atualizar_vigilancia_escolta(delta)
+
+
+func _pintar_piso_estrada() -> void:
+	# Grama detalhada (PixelLab) + estrada de pedra na faixa vertical central,
+	# conectando o Portão Norte (Lobby) ao Portão Sul (Floresta).
+	var eh_estrada := func(cx: int, _cy: int) -> bool:
+		return cx >= 11 and cx <= 15
+	WangFloorPainter.pintar(self, "res://world/tilesets/estrada_padokia_tileset.tres",
+		"PisoEstradaPixelLab", -8, 0, 0, 25, 20, eh_estrada)
 
 
 func _garantir_spawn_points() -> void:
