@@ -226,6 +226,14 @@ func _tentar_spawn_evento_dinamico(player_pos: Vector2) -> void:
 			ev.title = "⚡ Duelo Tático: Andarilho de Nen"
 			ev.description = "Um mestre errante deseja testar seu domínio de Ten e Ren!"
 
+		elif e_noite and _proximo_de_poi(player_pos, "poi_ponte_rio", 900.0) and rng.randf() < 0.55:
+			# Ponte: disputa de facção (espelha EstradaPadokiaMap / WorldEventManager)
+			ev.type = WorldEventDataScript.EventType.HUNTER_FIGHT
+			ev.title = "⚔️ Disputa Territorial: Grande Ponte"
+			ev.description = "A Associação Hunter e salteadores duelam pelo controle da rota comercial."
+			ev.spawn_pos = _obter_pos_poi("poi_ponte_rio", spawn_pos)
+			if WorldEventManager != null and WorldEventManager.has_method("iniciar_evento_disputa_ponte"):
+				WorldEventManager.iniciar_evento_disputa_ponte("estrada_padokia")
 		elif e_noite and current_risk >= 2:
 			ev.type = WorldEventDataScript.EventType.RARE_MONSTER
 			ev.title = "🌙 Fera Quimera Noturna (+25% XP)"
@@ -291,6 +299,20 @@ func _calcular_posicao_spawn_periferica(center: Vector2) -> Vector2:
 	var angulo = rng.randf_range(0, TAU)
 	var raio = rng.randf_range(config.spawn_radius_min, config.spawn_radius_max)
 	return center + Vector2(cos(angulo), sin(angulo)) * raio
+
+
+func _proximo_de_poi(player_pos: Vector2, poi_id: String, raio: float) -> bool:
+	for poi in registered_pois:
+		if str(poi.get("id", "")) == poi_id:
+			return player_pos.distance_to(poi.get("pos", Vector2.ZERO)) <= raio
+	return false
+
+
+func _obter_pos_poi(poi_id: String, fallback: Vector2) -> Vector2:
+	for poi in registered_pois:
+		if str(poi.get("id", "")) == poi_id:
+			return poi.get("pos", fallback)
+	return fallback
 
 
 # ============================================================

@@ -10,11 +10,12 @@ extends RefCounted
 # 2. Secundária 1: "Ervas Medicinais da Floresta"
 # 3. Secundária 2: "Minérios das Ruínas de Zaban"
 # 4. Secreta: "O Enigma da Rocha Rachada (Nen KO)"
+# 5. Investigativa: "Vestígios do Furto de Aura" (Gyo)
 #
 # ============================================================
 
-const QuestScript = preload("res://scripts/Quest.gd")
-const QuestObjectiveScript = preload("res://scripts/QuestObjective.gd")
+const QuestScript = preload("res://scripts/missions/Quest.gd")
+const QuestObjectiveScript = preload("res://scripts/missions/QuestObjective.gd")
 
 
 # ------------------------------------------------------------
@@ -101,19 +102,24 @@ static func obter_quest_secundaria_2() -> Quest:
 # ------------------------------------------------------------
 static func obter_quest_secundaria_estrada() -> Quest:
 	var q = QuestScript.new()
-	q.quest_name = "Segurança da Caravana Real"
-	q.description = "O Guarda da Vila solicitou patrulha na Estrada Real para expulsar os salteadores que armam emboscadas contra os comerciantes."
+	q.quest_name = "Escolta Noturna da Caravana Real"
+	q.description = "O Guarda da Estrada pediu proteção à carroça de mercadores. Permaneça na Estrada Real após o anoitecer — salteadores emboscam a caravana sob a lua."
 	q.auto_complete = true
-	q.turn_in_npc_key = &"guarda_da_vila"
-	q.reward_xp = 200
-	q.reward_gold = 800
-	
-	var obj = QuestObjectiveScript.new()
-	obj.type = QuestObjectiveScript.Type.KILL
-	obj.enemy_type = &"ladrao_estrada"
-	obj.required_amount = 2
-	
-	var objs: Array[QuestObjective] = [obj]
+	q.turn_in_npc_key = &"guarda_patrulha"
+	q.reward_xp = 220
+	q.reward_gold = 850
+
+	var obj1 = QuestObjectiveScript.new()
+	obj1.type = QuestObjectiveScript.Type.VISIT
+	obj1.target_npc_id = &"guarda_patrulha"
+	obj1.target_npc_name = "Guarda Hunter"
+
+	var obj2 = QuestObjectiveScript.new()
+	obj2.type = QuestObjectiveScript.Type.KILL
+	obj2.enemy_type = &"ladrao_estrada"
+	obj2.required_amount = 2
+
+	var objs: Array[QuestObjective] = [obj1, obj2]
 	q.objectives = objs
 	return q
 
@@ -185,6 +191,43 @@ static func obter_quest_secreta_altar() -> Quest:
 
 
 # ------------------------------------------------------------
+# 8. QUEST INVESTIGATIVA: FURTO DE AURA NA VILA (GYO)
+# ------------------------------------------------------------
+static func obter_quest_investigacao_furto() -> Quest:
+	var q = QuestScript.new()
+	q.quest_name = "Vestígios do Furto de Aura"
+	q.description = "Alguém roubou um fragmento de pedra Nen do Empório. Use GYO para rastrear as pegadas de aura na Vila de Padokia e identificar o culpado."
+	q.auto_complete = false
+	q.turn_in_npc_key = &"vendedor"
+	q.reward_xp = 280
+	q.reward_gold = 900
+
+	var obj1 = QuestObjectiveScript.new()
+	obj1.type = QuestObjectiveScript.Type.VISIT
+	obj1.target_npc_id = &"vendedor"
+	obj1.target_npc_name = "Mercador do Empório"
+
+	var obj2 = QuestObjectiveScript.new()
+	obj2.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj2.target_clue_id = &"pista_furto_janela"
+	obj2.required_amount = 1
+
+	var obj3 = QuestObjectiveScript.new()
+	obj3.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj3.target_clue_id = &"pista_furto_pegada"
+	obj3.required_amount = 1
+
+	var obj4 = QuestObjectiveScript.new()
+	obj4.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj4.target_clue_id = &"pista_furto_esconderijo"
+	obj4.required_amount = 1
+
+	var objs: Array[QuestObjective] = [obj1, obj2, obj3, obj4]
+	q.objectives = objs
+	return q
+
+
+# ------------------------------------------------------------
 # LISTA COMPLETA
 # ------------------------------------------------------------
 static func obter_todas_quests() -> Array[Quest]:
@@ -195,6 +238,7 @@ static func obter_todas_quests() -> Array[Quest]:
 		obter_quest_secundaria_estrada(),
 		obter_quest_desafio_ravina(),
 		obter_quest_secreta(),
-		obter_quest_secreta_altar()
+		obter_quest_secreta_altar(),
+		obter_quest_investigacao_furto()
 	]
 	return lista

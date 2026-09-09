@@ -127,9 +127,9 @@ const ETAPAS_INFO: Dictionary = {
 		"id": "nen_conceito",
 		"titulo": "7. O Conceito de Aura e Nen",
 		"instrutor": "Recepcionista Elena",
-		"objetivo": "Ouvir a explicação sobre Aura e os Mestres de Nen com Elena",
-		"instrucao": "Aura é a energia vital de todos os seres. Caçadores de elite aprendem a controlá-la para despertar o Nen. Avance na história para iniciar o treinamento com Mestre Wing!",
-		"acao": "Fale com Elena [E] sobre Aura e Nen.",
+		"objetivo": "Ouvir a explicação sobre Aura e ir falar com Mestre Wing",
+		"instrucao": "Aura é a energia vital. Após ouvir Elena, vá ao norte e fale com Mestre Wing no Distrito dos Mestres para despertar seu Nen!",
+		"acao": "Fale com Elena [E], depois vá até Mestre Wing ao norte.",
 		"meta": 1.0,
 		"conhecimento": "aura_energia_vital"
 	},
@@ -137,9 +137,9 @@ const ETAPAS_INFO: Dictionary = {
 		"id": "conclusao",
 		"titulo": "Treinamento Concluído!",
 		"instrutor": "Recepcionista Elena",
-		"objetivo": "Dirigir-se ao Portal Hunter a Leste para o 287º Exame Hunter",
-		"instrucao": "Parabéns! Você concluiu todos os fundamentos com excelência. O Portal para o 287º Exame Hunter a Leste está liberado!",
-		"acao": "Siga para o Portal Hunter a Leste.",
+		"objetivo": "Despertar Nen com Wing e depois seguir ao Portal Hunter",
+		"instrucao": "Parabéns! Vá ao norte falar com Mestre Wing para despertar seu Nen. Depois, o Portal Hunter a leste inicia o Exame.",
+		"acao": "Fale com Mestre Wing (Norte).",
 		"meta": 1.0,
 		"conhecimento": "mundo_exame_hunter"
 	}
@@ -422,7 +422,7 @@ func finalizar_tutorial() -> void:
 
 	if PlayerData != null:
 		PlayerData.tutorial_concluido = true
-		PlayerData.tour_lobby_concluido = true
+		# Mantém tour_lobby_concluido = false para o GPS priorizar Wing e o tour apresentar a praça
 		PlayerData.concluir_etapa_tutorial("tutorial_inicial_concluido")
 		PlayerData.desbloquear_conhecimento("mundo_exame_hunter")
 		PlayerData.desbloquear_conhecimento("mundo_capital_hunter")
@@ -440,7 +440,7 @@ func finalizar_tutorial() -> void:
 	tutorial_finalizado.emit()
 	if EventBus != null:
 		EventBus.tutorial_completed.emit("tutorial_inicial")
-		EventBus.emit_toast("🎓 Treinamento Concluído! O Portal Hunter a Leste está aberto!", Color(0.3, 1.0, 0.4))
+		EventBus.emit_toast("🥋 Próximo passo: fale com Mestre Wing ao norte para despertar seu Nen!", Color(0.3, 1.0, 0.55))
 
 	if SaveManager != null and PlayerData != null and PlayerData.slot_ativo > 0:
 		SaveManager.salvar_jogo(PlayerData.slot_ativo)
@@ -454,7 +454,7 @@ func pular_tutorial() -> void:
 
 	if PlayerData != null:
 		PlayerData.tutorial_concluido = true
-		PlayerData.tour_lobby_concluido = true
+		# Não marca tour como concluído: GPS ainda prioriza Wing se Nen não despertou
 		PlayerData.tutorial_data["tutorial_inicial_concluido"] = true
 		PlayerData.tutorial_data["introducao"] = true
 		PlayerData.tutorial_data["movimento"] = true
@@ -618,11 +618,11 @@ func obter_dialogo_elena() -> Array[Dictionary]:
 		Step.NEN_CONCEITO:
 			falas.append({"falante": "Recepcionista Elena", "texto": "🔥 Lição Final: A Teoria de Aura e Nen!"})
 			falas.append({"falante": "Recepcionista Elena", "texto": "Aura é a energia vital emitida por todos os seres vivos. Quem aprende a canalizá-la desperta o temido e supremo NEN!"})
-			falas.append({"falante": "Recepcionista Elena", "texto": "Todo novato inicia sua jornada com 0 Nível de Nen e 0 Hatsus. Suas 9 técnicas de Nen (Ten, Ren, Zetsu, Gyo...) serão aprendidas com Mestre Wing no Dojo!"})
-			falas.append({"falante": "Recepcionista Elena", "texto": "E suas habilidades exclusivas de Hatsu serão desenvolvidas com Biscuit Krueger após você provar seu valor no Exame Hunter!"})
-			falas.append({"falante": "Recepcionista Elena", "texto": "🎓 Parabéns! Você concluiu o Treinamento Básico com louvor! Você recebeu 500 Jenny, Poções de Vida e o Guia Hunter no menu [TAB]!"})
+			falas.append({"falante": "Recepcionista Elena", "texto": "Todo novato inicia com 0 Nível de Nen. Suas técnicas fundamentais (Ten, Ren, Zetsu, Gyo...) começam com Mestre Wing!"})
+			falas.append({"falante": "Recepcionista Elena", "texto": "Hatsus exclusivos só serão forjados com Biscuit Krueger mais adiante na saga — ela não ensina isso no início."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "👉 Agora vá AO NORTE, ao Distrito dos Mestres, e fale com Mestre Wing para despertar seu Nen! O GPS vai guiá-lo."})
 		_:
-			falas.append({"falante": "Recepcionista Elena", "texto": "Parabéns por concluir seu treinamento! Dirija-se ao Portal Hunter no Distrito Dimensional a Leste para iniciar o Exame Hunter!"})
+			falas.append({"falante": "Recepcionista Elena", "texto": "Fale com Mestre Wing ao norte para despertar seu Nen. Depois siga o GPS até o Portal Hunter a leste!"})
 
 	return falas
 

@@ -36,6 +36,7 @@ func _ready() -> void:
 	_checar_cutscene_chegada()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.VALE)
 
 
 func _configurar_iluminacao_e_clima() -> void:
@@ -102,6 +103,51 @@ func _inicializar_quests_padokia() -> void:
 		if not PlayerData.is_quest_active(quest_princ) and not PlayerData.is_quest_completed(quest_princ):
 			QuestSystem.start_quest(quest_princ)
 			print("[RegiaoValePadokiaMap] Quest Principal iniciada: ", quest_princ.quest_name)
+
+		var quest_inv = PadokiaQuestCatalogScript.obter_quest_investigacao_furto()
+		if not PlayerData.is_quest_active(quest_inv) and not PlayerData.is_quest_completed(quest_inv):
+			# Oferecida ao entrar na região — o 1º objetivo é falar com o mercador
+			QuestSystem.start_quest(quest_inv)
+			print("[RegiaoValePadokiaMap] Quest Investigativa iniciada: ", quest_inv.quest_name)
+
+	_popular_pistas_furto_gyo()
+
+
+func _popular_pistas_furto_gyo() -> void:
+	# Trilha Gyo na vila (~tile 100–110 / y 250) — coords mundo 16px
+	NenSensorFactory.criar_gyo(
+		self,
+		"PistaFurtoJanela",
+		Vector2(108 * 16, 252 * 16),
+		&"pista_furto_janela",
+		"Marca na Janela do Empório",
+		"Resíduo de Nen de Intensificação na moldura. Alguém forçou a janela com aura concentrada.",
+		"Intensificação",
+		1,
+		Color(1.0, 0.75, 0.35, 0.9)
+	)
+	NenSensorFactory.criar_gyo(
+		self,
+		"PistaFurtoPegada",
+		Vector2(118 * 16, 258 * 16),
+		&"pista_furto_pegada",
+		"Pegada de Aura na Rua",
+		"Rastro diluído de aura seguindo para o beco norte. O ladrão estava com pressa.",
+		"Especialização",
+		1,
+		Color(0.45, 0.9, 1.0, 0.9)
+	)
+	NenSensorFactory.criar_gyo(
+		self,
+		"PistaFurtoEsconderijo",
+		Vector2(95 * 16, 248 * 16),
+		&"pista_furto_esconderijo",
+		"Esconderijo sob o Barril",
+		"Fragmento de pedra Nen oculto sob um barril. O furto foi amador — a aura ainda vibra.",
+		"Materialização",
+		1,
+		Color(0.7, 1.0, 0.55, 0.9)
+	)
 
 
 func _notificar_entrada_regiao() -> void:

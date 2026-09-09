@@ -1,58 +1,87 @@
 extends NPC
 
 # ============================================================
-# HUNTER ONLINE - NPC: GUIA DE EXPEDIÇÃO & MUNDO (LOBBY)
+# HUNTER ONLINE - PORTAL HUNTER (LANDMARK + SELETOR DE SAGAS)
 # ============================================================
 #
-# NPC da Associação Hunter no Lobby (lobby.tscn):
-# - Orienta o jogador sobre a travessia contínua pelo mundo
-# - Fornece informações sobre o Arco atual e status das rotas
-# - Explica o funcionamento dos Portais de Saga e StoryGates
+# Portal dimensional visível no Distrito Leste do Lobby.
+# Abre PortalHunterUI (seleção de arco) — não é mais um "guia" NPC.
 #
 # ============================================================
 
 
 func _ready() -> void:
+	npc_name = "Portal Hunter"
+	fala_padrao = "O Portal de Nen da Associação. [E] Abrir seletor de sagas."
 	super()
-	npc_name = "Guia de Expedição"
-	fala_padrao = "Saudações, Hunter! O mundo lá fora é vasto e repleto de desafios. Atravesse o Portão Sul para iniciar sua jornada pelo 287º Exame Hunter!"
+	_aplicar_visual_portal()
+	z_index = 3
+	y_sort_enabled = true
+
+
+func _aplicar_visual_portal() -> void:
+	var spr := get_node_or_null("Sprite2D") as Sprite2D
+	if spr == null:
+		return
+	var portal_tex_path := "res://assets/sprites/objects/portal_hunter_arch.png"
+	if ResourceLoader.exists(portal_tex_path):
+		spr.texture = load(portal_tex_path)
+		spr.hframes = 1
+		spr.vframes = 1
+		spr.frame = 0
+		spr.centered = true
+		spr.position = Vector2(0, -28)
+		spr.modulate = Color.WHITE
+		spr.scale = Vector2(1.0, 1.0)
+	elif ResourceLoader.exists("res://assets/sprites/objects/portao_padokia_arch.png"):
+		spr.texture = load("res://assets/sprites/objects/portao_padokia_arch.png")
+		spr.hframes = 1
+		spr.vframes = 1
+		spr.frame = 0
+		spr.position = Vector2(0, -24)
+		spr.modulate = Color(0.55, 0.85, 1.0, 1.0)
+	else:
+		spr.modulate = Color(0.4, 0.85, 1.0, 1.0)
+
+	# Oculta label genérico do NPC se conflitar com o landmark
+	var npc_lbl := get_node_or_null("NPCNameLabel")
+	if npc_lbl != null:
+		npc_lbl.visible = false
+	var old_lbl := get_node_or_null("LabelNomePortal")
+	if old_lbl == null:
+		var lbl := Label.new()
+		lbl.name = "LabelNomePortal"
+		lbl.text = "⛩️ Portal Hunter\n[E] Abrir Sagas"
+		lbl.position = Vector2(-55, -70)
+		lbl.custom_minimum_size = Vector2(110, 20)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 6, Color(0.15, 0.85, 1.0))
+		lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
+		add_child(lbl)
+	else:
+		old_lbl.visible = true
+
+	var inter := get_node_or_null("InteractionComponent") as InteractionComponent
+	if inter != null:
+		inter.interaction_text = "[E] Abrir Portal Hunter (Modo História)"
+		inter.interaction_radius = 40.0
 
 
 func _on_interacted(_player: CharacterBody2D) -> void:
-	QuestSystem.register_npc_visit(&"portal_hunter")
+	if QuestSystem != null and QuestSystem.has_method("register_npc_visit"):
+		QuestSystem.register_npc_visit(&"portal_hunter")
 
-	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
-	if visual_dialogue != null:
-		var arco: int = PlayerData.arco_atual if PlayerData != null else 1
-		var etapa: int = PlayerData.etapa_quest_arco if PlayerData != null else 1
-		var total_etapas: int = CanonQuestCatalog.obter_total_quests_do_arco(arco) if CanonQuestCatalog != null else 24
-		
-		var info_saga: String = ""
-		match arco:
-			1: info_saga = "Você está no [Arco 1: 287º Exame Hunter]. Atravesse o Portão Sul de Hunter Plaza para entrar no Túnel Subterrâneo de Zaban!"
-			2: info_saga = "Você está no [Arco 2: Montanha Kukuroo]. Siga pelo portão ao final do Exame para alcançar a residência dos Zoldyck."
-			3: info_saga = "Você está no [Arco 3: Arena Celestial]. O elevador dimensional do Distrito Leste ou o portal da montanha levam você aos 200 andares."
-			4: info_saga = "Você está no [Arco 4: Yorknew City]. O leilão subterrâneo e a Trupe Fantasma aguardam seu avanço."
-			5: info_saga = "Você está no [Arco 5: Greed Island]. O console mágico do jogo dos caçadores está ativo."
-			6: info_saga = "Você está no [Arco 6: NGL Formigas Chimera]. Território hostil em alerta máximo."
-			7: info_saga = "Você está no [Arco 7: Eleição Hunter]. A Associação está reunida na sede."
-			8: info_saga = "Você está no [Arco 8: Continente Negro]. Expedição das 5 Calamidades."
-			9: info_saga = "Você está no [Arco 9: Black Whale 1]. Guerra de Sucessão de Kakin."
-			_: info_saga = "Explore o mundo e viaje através dos portais de cada região!"
-
-		var falas: Array[Dictionary] = [
-			{
-				"falante": "Guia de Expedição",
-				"texto": "Bem-vindo à Associação Hunter! Não operamos mais por simples teletransporte. Para ser um verdadeiro Caçador, você deve viajar fisicamente pelo mundo!"
-			},
-			{
-				"falante": "Guia de Expedição",
-				"texto": "%s (Progresso atual da Saga: Fase %d/%d)" % [info_saga, etapa, total_etapas]
-			},
-			{
-				"falante": "Guia de Expedição",
-				"texto": "Lembre-se: os Portais entre Sagas possuem selos de Nen (StoryGates). Eles só se abrirão após você concluir as missões e requisitos de cada região. Boa sorte na viagem!"
-			}
-		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		await visual_dialogue.dialogo_concluido
+	var root := get_tree().root
+	var existing = root.get_node_or_null("PortalHunterUI")
+	if existing != null:
+		existing.queue_free()
+	var scn = load("res://ui/PortalHunter/PortalHunterUI.gd")
+	if scn == null:
+		if EventBus != null:
+			EventBus.emit_toast("Portal Hunter indisponível.", Color(1.0, 0.4, 0.4))
+		return
+	var ui = scn.new()
+	ui.name = "PortalHunterUI"
+	root.add_child(ui)
+	if EventBus != null:
+		EventBus.emit_toast("⛩️ Portal Hunter — escolha sua saga!", Color(0.35, 0.9, 1.0))

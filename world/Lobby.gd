@@ -16,6 +16,7 @@ extends Node2D
 
 const LivingNPCBehavior = preload("res://entities/npc/LivingNPCBehavior.gd")
 const InteractionComponent = preload("res://entities/components/InteractionComponent.gd")
+const NPCScheduleDataScript = preload("res://world/content/NPCScheduleData.gd")
 
 
 func _ready() -> void:
@@ -58,6 +59,10 @@ func _ready() -> void:
 	_garantir_tutorial_ui()
 	_garantir_spawn_points()
 	_criar_chao_grama()
+	_aplicar_grama_mais_verde()
+	_suavizar_fachadas_castelo()
+	_densificar_lobby_pixel_art()
+	_melhorar_estradas_lobby()
 	_popular_praca_central()
 	_popular_distrito_mestres()
 	_popular_distrito_comercial()
@@ -389,6 +394,7 @@ func _popular_distrito_comercial() -> void:
 			ferreiro.name = "Ferreiro"
 			ferreiro.position = Vector2(-320, -140)
 			add_child(ferreiro)
+			_anexar_rotina_comercial(ferreiro, "Ferreiro Duran", Vector2(-320, -140), Vector2(60, 80), "blacksmith")
 
 	# 2. Tenda do Mercador Hunter (Landmark)
 	if get_node_or_null("TendaMercadorStall") == null:
@@ -419,6 +425,28 @@ func _popular_distrito_comercial() -> void:
 			vendedor.name = "Vendedor"
 			vendedor.position = Vector2(-200, -140)
 			add_child(vendedor)
+			_anexar_rotina_comercial(vendedor, "Mercador Zael", Vector2(-200, -140), Vector2(100, 90), "merchant")
+
+
+func _anexar_rotina_comercial(npc: Node, nome: String, work: Vector2, tavern: Vector2, marcador: String) -> void:
+	if npc == null:
+		return
+	if npc.get_node_or_null("LivingNPCBehavior") != null:
+		return
+	var living := LivingNPCBehavior.new()
+	living.name = "LivingNPCBehavior"
+	living.npc_nome = nome
+	living.tipo_marcador = marcador
+	living.hierarchy = LivingNPCBehavior.NPCHierarchy.FUNCTIONAL
+	living.raio_patrulha = 36.0
+	var sched = NPCScheduleDataScript.new()
+	sched.npc_name = nome
+	sched.workplace_pos = work
+	sched.home_pos = tavern # Praça / "taverna" improvisada à noite
+	sched.patrol_route = [work + Vector2(40, 0), work + Vector2(-20, 30), tavern]
+	sched.move_speed = 22.0
+	living.schedule_data = sched
+	npc.add_child(living)
 
 
 # ============================================================
@@ -426,15 +454,24 @@ func _popular_distrito_comercial() -> void:
 # ============================================================
 
 func _popular_distrito_dimensional() -> void:
-	# Portal Hunter (Viagem para os 9 Arcos do Modo História)
+	# Portal Hunter (landmark visual + seletor de sagas) — Distrito Leste, longe da praça
 	var portal = get_node_or_null("PortalHunter")
+	if portal == null:
+		var scn_portal = load("res://entities/npc/portal_hunter/PortalHunter.tscn")
+		if scn_portal:
+			portal = scn_portal.instantiate()
+			portal.name = "PortalHunter"
+			add_child(portal)
 	if portal != null:
-		portal.position = Vector2(300, 80)
+		portal.position = Vector2(1180, -40)
+		portal.z_index = 3
+		if portal.has_method("_aplicar_visual_portal"):
+			portal._aplicar_visual_portal()
 
 	# Examinador Chrono (Fendas Temporais - 50 Missões Paralelas)
 	var pq_npc = get_node_or_null("ParallelQuestNPC")
 	if pq_npc != null:
-		pq_npc.position = Vector2(360, 80)
+		pq_npc.position = Vector2(1080, 40)
 
 	# Curador das Bestas de Nen (Santuário & Catálogo)
 	if get_node_or_null("CuradorBestasNen") == null:
@@ -785,6 +822,234 @@ func _criar_chao_grama() -> void:
 	var old_chao = get_node_or_null("ChaoGramaLobby")
 	if old_chao != null:
 		old_chao.queue_free()
+
+
+func _aplicar_grama_mais_verde() -> void:
+	# Referência visual: grama saturada (menos amarelada) como no print de floresta densificada
+	var chao := get_node_or_null("Chao_TileMapLayer") as TileMapLayer
+	if chao != null:
+		chao.modulate = Color(0.72, 1.12, 0.82, 1.0)
+	var decor := get_node_or_null("Decor_TileMapLayer") as TileMapLayer
+	if decor != null:
+		decor.modulate = Color(0.85, 1.08, 0.90, 1.0)
+
+
+func _suavizar_fachadas_castelo() -> void:
+	# Remove fachadas castelo/torre/mosteiro (sources 10/11/14) — só decorações PixelLab
+	var estruturas := get_node_or_null("Estruturas_TileMapLayer") as TileMapLayer
+	if estruturas == null:
+		return
+	var remover := {10: true, 11: true, 14: true}
+	for cell in estruturas.get_used_cells():
+		var sid := estruturas.get_cell_source_id(cell)
+		if remover.has(sid):
+			estruturas.erase_cell(cell)
+	estruturas.modulate = Color(0.95, 1.02, 0.92, 1.0)
+
+func _densificar_lobby_pixel_art() -> void:
+	if get_node_or_null("LobbyPixelDecorRoot") != null:
+		return
+	var root := Node2D.new()
+	root.name = "LobbyPixelDecorRoot"
+	root.y_sort_enabled = true
+	add_child(root)
+
+	var placements: Array = [
+		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(-180, 40), "name": "TendaDecorA"},
+		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(200, 90), "name": "TendaDecorB"},
+		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(-320, -80), "name": "TendaDecorC"},
+		{"tex": "res://assets/sprites/objects/lobby_cottage_decor.png", "pos": Vector2(-420, 120), "name": "CasinhaDecorA"},
+		{"tex": "res://assets/sprites/objects/lobby_cottage_decor.png", "pos": Vector2(480, -40), "name": "CasinhaDecorB"},
+		{"tex": "res://assets/sprites/objects/lobby_cottage_decor.png", "pos": Vector2(-90, 200), "name": "CasinhaDecorC"},
+		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(90, 130), "name": "BarracaDecorA"},
+		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(-250, 160), "name": "BarracaDecorB"},
+		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(280, -160), "name": "BarracaDecorC"},
+		{"tex": "res://assets/sprites/objects/lobby_cottage_decor.png", "pos": Vector2(1100, -80), "name": "CasinhaDecorLesteA"},
+		{"tex": "res://assets/sprites/objects/lobby_cottage_decor.png", "pos": Vector2(1240, 60), "name": "CasinhaDecorLesteB"},
+		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(1050, -120), "name": "TendaDecorLeste"},
+		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(1000, 20), "name": "BarracaDecorLeste"},
+	]
+	if ResourceLoader.exists("res://assets/sprites/objects/portal_hunter_arch.png"):
+		# Extra landmark visual perto do portal se o NPC não tiver a textura ainda
+		pass
+	if ResourceLoader.exists("res://assets/sprites/objects/lobby_bush_flowers_decor.png"):
+		placements.append_array([
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(-60, 50), "name": "ArbustoFlorA"},
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(140, -50), "name": "ArbustoFlorB"},
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(-200, -200), "name": "ArbustoFlorC"},
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(350, 80), "name": "ArbustoFlorD"},
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(1120, 30), "name": "ArbustoFlorLeste"},
+		])
+
+	for p in placements:
+		if not ResourceLoader.exists(p["tex"]):
+			continue
+		var body := StaticBody2D.new()
+		body.name = p["name"]
+		body.position = p["pos"]
+		body.y_sort_enabled = true
+		var spr := Sprite2D.new()
+		spr.texture = load(p["tex"])
+		spr.centered = true
+		spr.position = Vector2(0, -8)
+		body.add_child(spr)
+		# Colisão leve só nos pés (decoração sem entrar)
+		var col := CollisionShape2D.new()
+		var rect := RectangleShape2D.new()
+		rect.size = Vector2(20, 10)
+		col.shape = rect
+		col.position = Vector2(0, 4)
+		body.add_child(col)
+		root.add_child(body)
+
+
+## Estradas com relevo (PixelLab path tiles 32px) sobre a cruz de caminhos existente
+func _melhorar_estradas_lobby() -> void:
+	if get_node_or_null("LobbyPathReliefLayer") != null:
+		return
+
+	var caminhos := get_node_or_null("Caminhos_TileMapLayer") as TileMapLayer
+	if caminhos == null:
+		return
+
+	var tileset := _criar_tileset_caminhos_relevo()
+	if tileset == null:
+		return
+
+	var layer := TileMapLayer.new()
+	layer.name = "LobbyPathReliefLayer"
+	layer.tile_set = tileset
+	layer.z_index = caminhos.z_index + 1
+	layer.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	# Path tiles são 32px; camada de caminhos do lobby costuma ser 16px → escala 0.5 no espaço de célula
+	layer.position = caminhos.position
+	add_child(layer)
+	move_child(layer, caminhos.get_index() + 1)
+
+	# Suaviza pedra plana antiga (ainda serve de máscara de footprint)
+	caminhos.modulate = Color(1, 1, 1, 0.18)
+
+	var used: Array[Vector2i] = caminhos.get_used_cells()
+	if used.is_empty():
+		_pintar_cruz_estradas_padrao(layer)
+		return
+
+	# Autotile 4-edge: agrupa em células 32px (2×2 do mapa 16px)
+	var path_cells: Dictionary = {} # Vector2i (32-space) -> true
+	for c: Vector2i in used:
+		var key := Vector2i(int(floor(float(c.x) / 2.0)), int(floor(float(c.y) / 2.0)))
+		path_cells[key] = true
+
+	for key: Vector2i in path_cells.keys():
+		var mask := 0
+		if path_cells.has(key + Vector2i(0, -1)):
+			mask |= 1 # N
+		if path_cells.has(key + Vector2i(1, 0)):
+			mask |= 2 # E
+		if path_cells.has(key + Vector2i(0, 1)):
+			mask |= 4 # S
+		if path_cells.has(key + Vector2i(-1, 0)):
+			mask |= 8 # W
+		var atlas := _atlas_para_mask_caminho(mask)
+		layer.set_cell(key, atlas.x, Vector2i(0, 0))
+
+	# Extra densificação: flores/arbustos ao longo das bordas da estrada
+	_espalhar_detalhe_beira_estrada(path_cells)
+
+
+func _criar_tileset_caminhos_relevo() -> TileSet:
+	var prefix := "res://assets/tiles/lobby_paths/vibrant_green_grass_with_a_worn_reddish-brown_dirt_"
+	if not ResourceLoader.exists(prefix + "0.png"):
+		return null
+	var ts := TileSet.new()
+	ts.tile_size = Vector2i(32, 32)
+	for i in range(18):
+		var p := prefix + str(i) + ".png"
+		if not ResourceLoader.exists(p):
+			continue
+		var src := TileSetAtlasSource.new()
+		src.texture = load(p)
+		src.texture_region_size = Vector2i(32, 32)
+		src.create_tile(Vector2i(0, 0))
+		ts.add_source(src, i)
+	return ts
+
+
+func _atlas_para_mask_caminho(mask: int) -> Vector2i:
+	# Retorna source_id no tileset (atlas coords sempre 0,0). Mapeamento PixelLab:
+	var by_mask := {
+		0: 1,
+		1: 2,
+		2: 3,
+		4: 4,
+		8: 5,
+		3: 10, # NE
+		5: 7, # NS
+		9: 11, # NW
+		7: 8, # NES
+		11: 6, # NEW
+		13: 9, # NSW
+		15: 12, # ALL
+	}
+	if by_mask.has(mask):
+		return Vector2i(int(by_mask[mask]), 0)
+	# Fallbacks para máscaras sem tile dedicado
+	match mask:
+		6: # ES
+			return Vector2i(8, 0)
+		10: # EW
+			return Vector2i(7, 0)
+		12: # SW
+			return Vector2i(9, 0)
+		14: # ESW
+			return Vector2i(15, 0)
+		_:
+			return Vector2i(12, 0)
+
+
+func _pintar_cruz_estradas_padrao(layer: TileMapLayer) -> void:
+	for x in range(-20, 21):
+		var sid := _atlas_para_mask_caminho(10 if abs(x) > 0 else 15).x
+		layer.set_cell(Vector2i(x, 0), sid, Vector2i(0, 0))
+	for y in range(-16, 17):
+		if y == 0:
+			continue
+		layer.set_cell(Vector2i(0, y), _atlas_para_mask_caminho(5).x, Vector2i(0, 0))
+
+
+func _espalhar_detalhe_beira_estrada(path_cells: Dictionary) -> void:
+	var root := get_node_or_null("LobbyPixelDecorRoot") as Node2D
+	if root == null:
+		return
+	var bush_path := "res://assets/sprites/objects/lobby_bush_flowers_decor.png"
+	if not ResourceLoader.exists(bush_path):
+		return
+	var tex: Texture2D = load(bush_path)
+	var i := 0
+	for key: Vector2i in path_cells.keys():
+		if (key.x + key.y * 3) % 5 != 0:
+			continue
+		# Offset para a beira (fora do centro da estrada)
+		var world := Vector2(key.x * 32 + 16, key.y * 32 - 10)
+		# Só coloca se vizinho N/S/E/W não for path (borda)
+		var is_edge := false
+		for d in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
+			if not path_cells.has(key + d):
+				is_edge = true
+				break
+		if not is_edge:
+			continue
+		var spr := Sprite2D.new()
+		spr.name = "BeiraFlor_%d" % i
+		spr.texture = tex
+		spr.centered = true
+		spr.position = world + Vector2((i % 3) * 6 - 6, (i % 2) * 4)
+		spr.scale = Vector2(0.55, 0.55)
+		spr.z_index = 1
+		root.add_child(spr)
+		i += 1
+		if i > 28:
+			break
 
 
 # ============================================================

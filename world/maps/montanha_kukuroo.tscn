@@ -31,7 +31,7 @@ tile_set = ExtResource("1_tileset")
 
 [node name="MapVisualDecorator" type="Node2D" parent="."]
 script = ExtResource("5_decor")
-estilo = 1
+estilo = 4
 
 [node name="Hud" parent="." instance=ExtResource("2_hud")]
 

@@ -396,13 +396,13 @@ static func executar_tour_lobby_cutscene(tree: SceneTree, elena: NPC, _player: C
 	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
 	var falas: Array[Dictionary] = [
 		{"falante": "Recepcionista Elena", "texto": "Olá, novo Caçador! Seja muito bem-vindo à Capital dos Caçadores (Hunter Plaza)!"},
-		{"falante": "Recepcionista Elena", "texto": "Antes de iniciar suas missões, vou apresentar todos os distritos e mestres desta cidade para você!"},
-		{"falante": "Recepcionista Elena", "texto": "🏛️ PRAÇA CENTRAL: Aqui ao lado fica a Estátua do Presidente Netero para bênçãos diárias e o Quadro de Procurados."},
-		{"falante": "Recepcionista Elena", "texto": "🥋 AO NORTE (Distrito dos Mestres): Mestre Wing (Nen), Zushi, Biscuit Krueger (Hatsu e Juramentos) e o Mestre de Troca de Categoria de Nen!"},
-		{"falante": "Recepcionista Elena", "texto": "⚒️ A OESTE (Distrito Comercial): O Ferreiro de Armaduras, o Comerciante de Suprimentos e a sua Casa Pessoal de Caçador."},
-		{"falante": "Recepcionista Elena", "texto": "🏯 A LESTE (Distrito Dimensional): A famosa Torre Celestial de 200 andares, o Examinador Chrono (50 Missões Paralelas) e o Santuário de Bestas de Nen!"},
-		{"falante": "Recepcionista Elena", "texto": "⛩️ PORTAL HUNTER: E logo a leste fica o Portal Dimensional do Modo História! É lá que você começa sua campanha do 287º Exame Hunter!"},
-		{"falante": "Recepcionista Elena", "texto": "Siga a seta guia do GPS até o Portal Hunter a leste para iniciar sua lenda! Boa sorte, Hunter!"}
+		{"falante": "Recepcionista Elena", "texto": "Antes de iniciar suas missões, vou apresentar os distritos — e o primeiro passo obrigatório: despertar seu Nen!"},
+		{"falante": "Recepcionista Elena", "texto": "🥋 AO NORTE (Distrito dos Mestres): Vá falar com Mestre Wing AGORA. Ele abre seus nós de aura e ensina Ten. Sem isso, o resto fica incompleto."},
+		{"falante": "Recepcionista Elena", "texto": "🏛️ PRAÇA CENTRAL: Estátua do Presidente Netero (bênçãos) e o Quadro de Procurados."},
+		{"falante": "Recepcionista Elena", "texto": "⚒️ A OESTE (Distrito Comercial): Ferreiro, Comerciante e sua Casa Pessoal."},
+		{"falante": "Recepcionista Elena", "texto": "🏯 A LESTE: Torre Celestial, Examinador Chrono e o Portal Hunter do Modo História."},
+		{"falante": "Recepcionista Elena", "texto": "🍪 Biscuit Krueger (Hatsu/Juramentos) só libera forja de Hatsu mais adiante na saga — não no início."},
+		{"falante": "Recepcionista Elena", "texto": "👉 GPS: primeiro Mestre Wing (norte). Depois do despertar, siga ao Portal Hunter a leste. Boa sorte!"}
 	]
 
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
@@ -412,11 +412,14 @@ static func executar_tour_lobby_cutscene(tree: SceneTree, elena: NPC, _player: C
 			em_cutscene = false
 			var hud = tree.get_first_node_in_group("player_hud")
 			if hud != null and hud.has_method("exibir_notificacao"):
-				hud.exibir_notificacao("👉 Novo Objetivo: Siga até o Portal Hunter a Leste!")
+				if PlayerData != null and not PlayerData.despertou_nen:
+					hud.exibir_notificacao("👉 Novo Objetivo: Fale com Mestre Wing ao norte!")
+				else:
+					hud.exibir_notificacao("👉 Novo Objetivo: Siga até o Portal Hunter a Leste!")
 		, CONNECT_ONE_SHOT)
 	else:
 		if elena != null and is_instance_valid(elena):
-			elena.falar_balao("Bem-vindo à Associação Hunter! Siga até o Portal Hunter a leste para iniciar o Exame Hunter!", 4.5, Color(1.0, 0.85, 0.3, 1.0))
+			elena.falar_balao("Vá ao norte: fale com Mestre Wing para despertar seu Nen!", 4.5, Color(0.35, 1.0, 0.55, 1.0))
 			await tree.create_timer(4.5).timeout
 			if is_instance_valid(elena): elena.fechar_balao_atual()
 		PlayerData.tour_lobby_concluido = true

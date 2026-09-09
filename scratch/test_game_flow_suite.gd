@@ -69,10 +69,10 @@ func _ready() -> void:
 	# TESTE 6: LOAD SAVE PERMITE LOBBY
 	# ------------------------------------------------------------
 	print("\n[TESTE 6/15] Testando autorização de Lobby após carregar save existente...")
-	GameState.salvar_jogo(1)
+	SaveManager.salvar_jogo(1)
 	PlayerData.is_character_ready = false
 	GameManager.set_flow_state(GameManager.GameFlowState.LOADING_SAVE)
-	var load_ok = GameState.carregar_jogo(1)
+	var load_ok = SaveManager.carregar_jogo(1)
 	assert(load_ok, "Carregamento do slot 1 bem-sucedido")
 	assert(PlayerData.is_character_ready, "PlayerData marcado como pronto após load")
 	assert(GameManager.flow_state == GameManager.GameFlowState.SAVE_LOADED, "GameFlow em SAVE_LOADED")
@@ -136,12 +136,12 @@ func _ready() -> void:
 	# ------------------------------------------------------------
 	print("\n[TESTE 12/15] Testando isolamento e seleção entre múltiplos slots...")
 	PlayerData.nome_personagem = "Killua_Slot2"
-	GameState.salvar_jogo(2)
-	GameState.carregar_jogo(1)
+	SaveManager.salvar_jogo(2)
+	SaveManager.carregar_jogo(1)
 	assert(PlayerData.nome_personagem == "Gon_Freecss_Test", "Slot 1 preserva seus dados")
-	GameState.carregar_jogo(2)
+	SaveManager.carregar_jogo(2)
 	assert(PlayerData.nome_personagem == "Killua_Slot2", "Slot 2 preserva seus dados")
-	GameState.deletar_save(2)
+	SaveManager.deletar_save(2)
 	print("  ✅ [PASS] Alternância entre slots sem vazamento de dados.")
 	passed_tests += 1
 
@@ -149,7 +149,7 @@ func _ready() -> void:
 	# TESTE 13: NOVO JOGO RESETA ESTADO COMPLETAMENTE
 	# ------------------------------------------------------------
 	print("\n[TESTE 13/15] Testando limpeza de estado no Novo Jogo...")
-	GameState.novo_jogo(1)
+	SaveManager.novo_jogo(1)
 	assert(not PlayerData.is_character_ready, "Novo jogo desmarca is_character_ready até criação")
 	assert(PlayerData.inventory.is_empty(), "Inventário limpo")
 	assert(PlayerData.quest_states.is_empty(), "Quests limpas")
@@ -162,12 +162,12 @@ func _ready() -> void:
 	print("\n[TESTE 14/15] Testando restauração de estado após Load...")
 	PlayerData.nome_personagem = "Kurapika_Slot1"
 	PlayerData.attributes["vida"] = 150
-	GameState.salvar_jogo(1)
-	GameState.novo_jogo(1)
-	GameState.carregar_jogo(1)
+	SaveManager.salvar_jogo(1)
+	SaveManager.novo_jogo(1)
+	SaveManager.carregar_jogo(1)
 	assert(PlayerData.nome_personagem == "Kurapika_Slot1", "Nome restaurado")
 	assert(PlayerData.attributes["vida"] == 150, "Vida restaurada")
-	GameState.deletar_save(1)
+	SaveManager.deletar_save(1)
 	print("  ✅ [PASS] Restauração completa de estado validada.")
 	passed_tests += 1
 

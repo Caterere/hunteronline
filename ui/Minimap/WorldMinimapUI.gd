@@ -39,8 +39,14 @@ const FULL_MAP_SCALE := 0.048 # Zoom reduzido para enxergar o mapa inteiro
 func _ready() -> void:
 	layer = 35
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_construir_minimap_compacto()
+	add_to_group("world_minimap_ui")
+	# Minimapa de canto removido — mapa vive na aba "Mapa" do Hunter Menu
+	# Mantém modal legado desligado; conteúdo é montado sob demanda.
 	_construir_full_map_modal()
+	if full_map_layer != null:
+		full_map_layer.visible = false
+	if minimap_panel != null:
+		minimap_panel.visible = false
 
 
 func setup(player: CharacterBody2D) -> void:
@@ -48,21 +54,85 @@ func setup(player: CharacterBody2D) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	var input_ctx = get_node_or_null("/root/InputContextManager")
-	if input_ctx != null and not input_ctx.is_global_hotkey_allowed():
-		return
-	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_M or event.is_action_pressed("open_map_menu"):
-			toggle_full_map()
-			get_viewport().set_input_as_handled()
+	# [M] / open_map_menu agora abre a aba Mapa no Hunter Menu (UIManager)
+	pass
 
 
 func toggle_full_map() -> void:
+	# Compat: redireciona para o Hunter Menu → aba Mapa
+	var ui_mgr = get_node_or_null("/root/UIManager")
+	if ui_mgr != null and ui_mgr.has_method("alternar_map_menu"):
+		ui_mgr.alternar_map_menu(0)
+		return
 	map_open = not map_open
 	if full_map_layer != null:
 		full_map_layer.visible = map_open
-	get_tree().paused = map_open
-	if map_open and full_map_canvas != null:
+
+
+## Monta canvas + legenda dentro de um container do Hunter Menu (sem overlay HUD)
+func montar_conteudo_mapa(parent: Control) -> void:
+	if parent == null:
+		return
+	for c in parent.get_children():
+		c.queue_free()
+
+	var vbox := VBoxContainer.new()
+	vbox.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	vbox.add_theme_constant_override("separation", 4)
+	parent.add_child(vbox)
+
+	var hbox_hdr := HBoxContainer.new()
+	vbox.add_child(hbox_hdr)
+
+	var lbl_tit := Label.new()
+	lbl_tit.text = "🗺️ MAPA DO LOBBY"
+	lbl_tit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_tit, 9, HunterUIStyle.COLOR_GOLD_LIGHT)
+	hbox_hdr.add_child(lbl_tit)
+
+	lbl_coords = Label.new()
+	lbl_coords.text = "X: 0, Y: 0"
+	HunterUIStyle.aplicar_fonte_pixel(lbl_coords, 7, Color(1.0, 0.9, 0.4))
+	hbox_hdr.add_child(lbl_coords)
+
+	var hbox_body := HBoxContainer.new()
+	hbox_body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hbox_body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox_body.add_theme_constant_override("separation", 6)
+	vbox.add_child(hbox_body)
+
+	full_map_canvas = Control.new()
+	full_map_canvas.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	full_map_canvas.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	full_map_canvas.custom_minimum_size = Vector2(220, 160)
+	full_map_canvas.draw.connect(_desenhar_full_map)
+	hbox_body.add_child(full_map_canvas)
+
+	var scroll := ScrollContainer.new()
+	scroll.custom_minimum_size = Vector2(140, 160)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hbox_body.add_child(scroll)
+
+	lbl_guia_distancias = Label.new()
+	lbl_guia_distancias.text = ""
+	lbl_guia_distancias.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	HunterUIStyle.aplicar_fonte_pixel(lbl_guia_distancias, 6, Color(0.88, 0.90, 0.95))
+	scroll.add_child(lbl_guia_distancias)
+
+	map_open = true
+	call_deferred("_redraw_map_embedded")
+
+
+func _redraw_map_embedded() -> void:
+	if full_map_canvas != null:
+		full_map_canvas.queue_redraw()
+
+
+func atualizar_mapa_visivel() -> void:
+	map_open = true
+	if full_map_canvas != null:
 		full_map_canvas.queue_redraw()
 
 
@@ -71,53 +141,10 @@ func toggle_full_map() -> void:
 # ============================================================
 
 func _construir_minimap_compacto() -> void:
-	minimap_panel = PanelContainer.new()
-	minimap_panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	minimap_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	minimap_panel.offset_left = 6.0
-	minimap_panel.offset_bottom = -6.0
-	minimap_panel.offset_top = -48.0
-	minimap_panel.offset_right = 58.0
-	minimap_panel.custom_minimum_size = Vector2(52, 42)
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.04, 0.06, 0.10, 0.88)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.border_color = Color(0.3, 0.7, 1.0, 0.85)
-	style.corner_radius_top_left = 3
-	style.corner_radius_top_right = 3
-	style.corner_radius_bottom_right = 3
-	style.corner_radius_bottom_left = 3
-	minimap_panel.add_theme_stylebox_override("panel", style)
-	add_child(minimap_panel)
-
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 1)
-	minimap_panel.add_child(vbox)
-
-	var hbox_hdr := HBoxContainer.new()
-	vbox.add_child(hbox_hdr)
-
-	var lbl_tit := Label.new()
-	lbl_tit.text = "🧭 [TAB]"
-	lbl_tit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl_tit.add_theme_font_size_override("font_size", 6)
-	lbl_tit.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0))
-	hbox_hdr.add_child(lbl_tit)
-
-	lbl_coords = Label.new()
-	lbl_coords.text = "0, 0"
-	lbl_coords.add_theme_font_size_override("font_size", 6)
-	lbl_coords.add_theme_color_override("font_color", Color(1.0, 0.9, 0.4))
-	hbox_hdr.add_child(lbl_coords)
-
-	minimap_canvas = Control.new()
-	minimap_canvas.custom_minimum_size = MINIMAP_SIZE
-	minimap_canvas.draw.connect(_desenhar_minimap_compacto)
-	vbox.add_child(minimap_canvas)
+	# Desativado: radar de canto removido do HUD a pedido do design
+	minimap_panel = null
+	minimap_canvas = null
+	return
 
 
 func _desenhar_minimap_compacto() -> void:
@@ -234,10 +261,12 @@ func _construir_full_map_modal() -> void:
 func _desenhar_full_map() -> void:
 	if player_node == null:
 		player_node = get_tree().get_first_node_in_group("player") as CharacterBody2D
-	if player_node == null:
+	if player_node == null or full_map_canvas == null:
 		return
 
-	var canvas_size := Vector2(185, 136)
+	var canvas_size := full_map_canvas.size
+	if canvas_size.x < 8.0 or canvas_size.y < 8.0:
+		canvas_size = full_map_canvas.custom_minimum_size
 	var map_center := canvas_size / 2.0
 	var p_pos := player_node.global_position
 
@@ -250,12 +279,9 @@ func _desenhar_full_map() -> void:
 	for y in range(0, int(canvas_size.y), 15):
 		full_map_canvas.draw_line(Vector2(0, y), Vector2(canvas_size.x, y), Color(0.1, 0.2, 0.35, 0.25), 1.0)
 
-	# Eixos Cardeais (N, S, L, O)
 	full_map_canvas.draw_line(Vector2(map_center.x, 2), Vector2(map_center.x, canvas_size.y - 2), Color(0.2, 0.4, 0.6, 0.4), 1.0)
 	full_map_canvas.draw_line(Vector2(2, map_center.y), Vector2(canvas_size.x - 2, map_center.y), Color(0.2, 0.4, 0.6, 0.4), 1.0)
 
-	# Nomes dos 4 Distritos Cardeais no fundo
-	# Norte: Mestres de Nen | Sul: Bounties | Oeste: Comércio & Casa | Leste: Torre Celestial
 	var pontos = _obter_pontos_interesse()
 	var texto_legenda: String = "📍 PONTOS DE INTERESSE:\n\n"
 
@@ -267,7 +293,6 @@ func _desenhar_full_map() -> void:
 		var direcao_str: String = _obter_direcao_cardeal(p_pos, pt_pos)
 		texto_legenda += "%s %s\n  ➜ %.0fm (%s)\n\n" % [pt["icone"], pt["nome"], dist, direcao_str]
 
-		# Desenhar Ponto no Mapa se estiver dentro dos limites visuais
 		if pt_draw.x >= 4 and pt_draw.x <= canvas_size.x - 4 and pt_draw.y >= 4 and pt_draw.y <= canvas_size.y - 4:
 			full_map_canvas.draw_circle(pt_draw, 3.0, pt["cor"])
 			full_map_canvas.draw_circle(pt_draw, 4.0, Color.BLACK, false, 1.0)
@@ -275,7 +300,6 @@ func _desenhar_full_map() -> void:
 	if lbl_guia_distancias != null:
 		lbl_guia_distancias.text = texto_legenda
 
-	# Desenhar Jogador Atual no Mapa
 	var player_draw: Vector2 = map_center + (p_pos * FULL_MAP_SCALE)
 	if player_draw.x >= 4 and player_draw.x <= canvas_size.x - 4 and player_draw.y >= 4 and player_draw.y <= canvas_size.y - 4:
 		full_map_canvas.draw_circle(player_draw, 3.5, Color(0.2, 1.0, 0.4, 1.0))
@@ -288,11 +312,11 @@ func _process(_delta: float) -> void:
 		player_node = get_tree().get_first_node_in_group("player") as CharacterBody2D
 
 	if player_node != null:
-		if lbl_coords != null:
+		if lbl_coords != null and is_instance_valid(lbl_coords):
 			lbl_coords.text = "X: %d, Y: %d" % [int(player_node.global_position.x), int(player_node.global_position.y)]
-		if minimap_canvas != null and minimap_canvas.is_visible_in_tree():
+		if minimap_canvas != null and is_instance_valid(minimap_canvas) and minimap_canvas.is_visible_in_tree():
 			minimap_canvas.queue_redraw()
-		if map_open and full_map_canvas != null and full_map_canvas.is_visible_in_tree():
+		if map_open and full_map_canvas != null and is_instance_valid(full_map_canvas) and full_map_canvas.is_visible_in_tree():
 			full_map_canvas.queue_redraw()
 
 

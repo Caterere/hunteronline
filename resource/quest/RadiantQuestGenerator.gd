@@ -14,8 +14,8 @@ extends RefCounted
 #
 # ============================================================
 
-const QuestScript = preload("res://scripts/Quest.gd")
-const QuestObjectiveScript = preload("res://scripts/QuestObjective.gd")
+const QuestScript = preload("res://scripts/missions/Quest.gd")
+const QuestObjectiveScript = preload("res://scripts/missions/QuestObjective.gd")
 
 # Catálogo de Modelos de Missões Procedurais por Região
 const REGION_TEMPLATES: Dictionary = {

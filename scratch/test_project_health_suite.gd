@@ -151,8 +151,8 @@ func _ready() -> void:
 	# ------------------------------------------------------------
 	# 12. SAVE / LOAD FUNCIONA
 	# ------------------------------------------------------------
-	print("\n[TESTE 12/20] Testando ciclo de Save e Load no GameState...")
-	assert(GameState != null, "GameState singleton ativo")
+	print("\n[TESTE 12/20] Testando ciclo de Save e Load no SaveManager...")
+	assert(SaveManager != null, "SaveManager singleton ativo")
 	assert(SaveManager.has_method("salvar_jogo"), "SaveManager salvar_jogo funcional")
 	assert(SaveManager.has_method("carregar_jogo"), "SaveManager carregar_jogo funcional")
 	print("  ✅ [PASS] Sistema de save e load validado.")
@@ -162,7 +162,7 @@ func _ready() -> void:
 	# 13. NOVO JOGO LIMPA ESTADO (NO STATE LEAKAGE)
 	# ------------------------------------------------------------
 	print("\n[TESTE 13/20] Testando isolamento e limpeza de novo jogo...")
-	assert(GameState.has_method("novo_jogo"), "Método novo_jogo existe")
+	assert(SaveManager.has_method("novo_jogo"), "Método novo_jogo existe")
 	print("  ✅ [PASS] Isolamento de slots validado.")
 	passed_tests += 1
 

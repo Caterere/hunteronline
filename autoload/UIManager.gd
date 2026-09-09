@@ -15,7 +15,7 @@ extends Node
 # Compatibilidade retroativa garantida para atalhos legados:
 # [I] -> Abre direto na aba Inventário
 # [N] -> Abre direto na aba Nen Tree
-# [H] -> Abre direto na aba Hatsu Forge
+# [H] -> Abre direto na aba Hatsu (equipar/revisar; forja só com Biscuit)
 # [L] -> Abre direto na aba Licença
 # [K] -> Abre direto na aba Conquistas do Jornal
 #
@@ -119,7 +119,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		alternar_hunter_menu(2) # Nen Tree
 		get_viewport().set_input_as_handled()
 	elif event.keycode == KEY_H:
-		alternar_hunter_menu(3) # Hatsu Forge
+		alternar_hunter_menu(3) # Hatsu (equipar; forja via Biscuit)
 		get_viewport().set_input_as_handled()
 	elif event.keycode == KEY_L:
 		alternar_hunter_menu(4) # Licença Hunter
@@ -142,14 +142,15 @@ func alternar_hunter_menu(aba_index: int = 0) -> void:
 		abrir_menu(hm, "HUNTER_MENU", aba_index)
 
 
-func alternar_map_menu(aba_index: int = 0) -> void:
-	var minimap_ui = get_tree().get_first_node_in_group("world_minimap_ui")
-	if minimap_ui != null and minimap_ui.has_method("toggle_full_map"):
-		minimap_ui.toggle_full_map()
-	else:
-		var root_minimap = get_tree().root.get_node_or_null("WorldMinimapUI")
-		if root_minimap != null and root_minimap.has_method("toggle_full_map"):
-			root_minimap.toggle_full_map()
+func alternar_map_menu(_aba_index: int = 0) -> void:
+	# Mapa agora é aba do Hunter Menu (sem radar no canto do HUD)
+	var hm = obter_hunter_menu()
+	if hm == null:
+		return
+	var idx := 0
+	if hm.has_method("obter_indice_aba"):
+		idx = hm.obter_indice_aba("Mapa")
+	alternar_hunter_menu(idx)
 
 
 func alternar_journal_menu(aba_index: int = 0) -> void:

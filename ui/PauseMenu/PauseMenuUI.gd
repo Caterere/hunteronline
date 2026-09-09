@@ -122,7 +122,7 @@ func _construir_ui() -> void:
 	lbl_titulo.text = "⏸️ JOGO PAUSADO"
 	lbl_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_titulo.add_theme_font_size_override("font_size", 11)
-	lbl_titulo.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_titulo.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_titulo.add_theme_color_override("font_shadow_color", Color.BLACK)
 	vbox.add_child(lbl_titulo)
 
@@ -212,8 +212,8 @@ func _on_continuar_pressed() -> void:
 
 
 func _on_salvar_pressed() -> void:
-	if GameState != null:
-		GameState.salvar_jogo(PlayerData.slot_ativo)
+	if SaveManager != null:
+		SaveManager.salvar_jogo(PlayerData.slot_ativo)
 		lbl_status_save.text = "✨ Jogo Salvo com Sucesso!"
 		lbl_status_save.add_theme_color_override("font_color", Color(0.2, 1.0, 0.4, 1.0))
 
@@ -223,8 +223,8 @@ func _on_salvar_pressed() -> void:
 
 
 func _on_lobby_pressed() -> void:
-	if GameState != null:
-		GameState.salvar_jogo(PlayerData.slot_ativo)
+	if SaveManager != null:
+		SaveManager.salvar_jogo(PlayerData.slot_ativo)
 	fechar()
 	var trans = get_node_or_null("/root/SceneTransition")
 	if trans != null and trans.has_method("mudar_cena"):
@@ -241,8 +241,8 @@ func _on_jornal_pressed() -> void:
 
 
 func _on_menu_principal_pressed() -> void:
-	if GameState != null:
-		GameState.salvar_jogo(PlayerData.slot_ativo)
+	if SaveManager != null:
+		SaveManager.salvar_jogo(PlayerData.slot_ativo)
 	fechar()
 	var trans = get_node_or_null("/root/SceneTransition")
 	if trans != null and trans.has_method("mudar_cena"):
@@ -252,6 +252,6 @@ func _on_menu_principal_pressed() -> void:
 
 
 func _on_sair_desktop_pressed() -> void:
-	if GameState != null:
-		GameState.salvar_jogo(PlayerData.slot_ativo)
+	if SaveManager != null:
+		SaveManager.salvar_jogo(PlayerData.slot_ativo)
 	get_tree().quit()

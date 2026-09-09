@@ -117,19 +117,24 @@ var mapa_atual_salvo: String = "res://world/lobby.tscn"
 var posicao_salva: Vector2 = Vector2.ZERO
 
 func avancar_arco() -> void:
-	var tem_prox: bool = false
-	if StoryManager != null and StoryManager.has_method("tem_proxima_saga"):
-		tem_prox = StoryManager.tem_proxima_saga(arco_atual)
-	else:
-		tem_prox = arco_atual < 9
+	# SSOT: StoryManager conclui a saga atual e inicia a próxima (espelha em PlayerData).
+	if StoryManager != null and StoryManager.has_method("concluir_saga"):
+		var saga_id: int = StoryManager.current_saga if StoryManager.current_saga > 0 else arco_atual
+		StoryManager.concluir_saga(saga_id)
+		if is_greed_island_concluida():
+			desbloquear_hatsu_creator()
+		if SaveManager != null and SaveManager.has_method("salvar_jogo"):
+			SaveManager.salvar_jogo()
+		return
 
+	var tem_prox: bool = arco_atual < 9
 	if tem_prox:
 		arco_atual += 1
 		etapa_quest_arco = 1
 	else:
 		modo_historia_concluido = true
 		print("[PlayerData] MODO HISTÓRIA TOTALMENTE CONCLUÍDO!")
-		
+
 	max_arco_desbloqueado = max(max_arco_desbloqueado, arco_atual)
 
 	if is_greed_island_concluida():
@@ -138,14 +143,25 @@ func avancar_arco() -> void:
 	print("=================================")
 	print("[PlayerData] ARCO AVANÇADO PARA: ", arco_atual, " | MAX DESBLOQUEADO: ", max_arco_desbloqueado)
 	print("=================================")
-	
-	if GameState != null and GameState.has_method("salvar_jogo"):
-		GameState.salvar_jogo()
+
+	if SaveManager != null and SaveManager.has_method("salvar_jogo"):
+		SaveManager.salvar_jogo()
 
 
 func completar_etapa_historia(arco: int = -1) -> void:
+	# Nome legado: cutscenes usam isto para concluir a saga (não um capítulo isolado).
 	if arco == 5:
 		desbloquear_hatsu_creator()
+
+	if StoryManager != null and StoryManager.has_method("concluir_saga"):
+		var alvo: int = arco if arco > 0 else (StoryManager.current_saga if StoryManager.current_saga > 0 else arco_atual)
+		if arco > 0 and StoryManager.current_saga != arco and arco_atual != arco:
+			return
+		StoryManager.concluir_saga(alvo)
+		if SaveManager != null and SaveManager.has_method("salvar_jogo"):
+			SaveManager.salvar_jogo()
+		return
+
 	if arco > 0 and arco == arco_atual:
 		avancar_arco()
 	elif arco <= 0:
@@ -169,8 +185,8 @@ func desbloquear_hatsu_creator() -> void:
 		hatsu_creation_unlocked = true
 		hatsu_desbloqueado = true
 		print("[PlayerData] 🥋 HATSU CREATOR DESBLOQUEADO PERMANENTEMENTE!")
-		if GameState != null and GameState.has_method("salvar_jogo"):
-			GameState.salvar_jogo()
+		if SaveManager != null and SaveManager.has_method("salvar_jogo"):
+			SaveManager.salvar_jogo()
 
 
 
@@ -323,8 +339,8 @@ func concluir_missao_paralela(pq_id: int) -> void:
 	if not parallel_quests_concluidas.has(pq_id):
 		parallel_quests_concluidas.append(pq_id)
 		print("[PlayerData] Missão Paralela PQ %d CONCLUÍDA COM SUCESSO!" % pq_id)
-	if GameState != null:
-		GameState.salvar_jogo()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
 
 
 
@@ -859,6 +875,20 @@ func complete_quest(quest: Quest) -> void:
 	)
 
 
+func fail_quest(quest: Quest) -> void:
+	if quest == null:
+		return
+	var quest_id := _get_quest_id(quest)
+	if quest_id.is_empty():
+		return
+	if not quest_states.has(quest_id):
+		return
+	if quest_states[quest_id].get("status", "") != "active":
+		return
+	quest_states[quest_id]["status"] = "failed"
+	print("Quest falhou: ", quest.quest_name)
+
+
 # ============================================================
 # INVENTÁRIO
 # ============================================================
@@ -1218,8 +1248,8 @@ func registrar_segredo(segredo_id: String) -> void:
 	if not segredos_descobertos.has(segredo_id):
 		segredos_descobertos.append(segredo_id)
 		print("[PlayerData] 🔍 SEGREDO REGISTRADO: ", segredo_id)
-		if GameState != null:
-			GameState.salvar_jogo()
+		if SaveManager != null:
+			SaveManager.salvar_jogo()
 
 
 # ============================================================

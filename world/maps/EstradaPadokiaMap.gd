@@ -21,6 +21,16 @@ extends Node2D
 @onready var decor_layer: TileMapLayer = get_node_or_null("Decor_TileMapLayer")
 @onready var player: CharacterBody2D = get_node_or_null("Player")
 
+const PadokiaQuestCatalogScript = preload("res://resource/quest/PadokiaQuestCatalog.gd")
+const ESCOLTA_ZONA_RAIO := 140.0
+const ESCOLTA_FORA_ZONA_MAX_S := 8.0
+
+var _emboscada_escolta_feita: bool = false
+var _disputa_ponte_ativa: bool = false
+var _escolta_jogador_na_zona: bool = true
+var _escolta_tempo_fora_zona: float = 0.0
+var _escolta_falhou: bool = false
+
 
 func _ready() -> void:
 	_garantir_spawn_points()
@@ -28,9 +38,21 @@ func _ready() -> void:
 	_configurar_audio_e_hud()
 	_posicionar_player()
 	_criar_elementos_interativos()
+	_criar_zona_protecao_escolta()
+	_criar_grande_ponte()
+	_conectar_ciclo_noturno()
+	if not tree_exiting.is_connected(_on_estrada_tree_exiting):
+		tree_exiting.connect(_on_estrada_tree_exiting)
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ESTRADA)
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)
+	# Se já for noite ao entrar, tenta emboscada / disputa
+	call_deferred("_avaliar_eventos_temporais")
+
+
+func _process(delta: float) -> void:
+	_atualizar_vigilancia_escolta(delta)
 
 
 func _garantir_spawn_points() -> void:
@@ -253,11 +275,7 @@ func _criar_elementos_interativos() -> void:
 		inter.name = "InteractionComponent"
 		inter.interaction_text = "[E] Falar com Guarda"
 		inter.interaction_radius = 26.0
-		inter.interacted.connect(func(_p):
-			var hud = get_tree().get_first_node_in_group("player_hud")
-			if hud and hud.has_method("exibir_notificacao"):
-				hud.exibir_notificacao("🛡️ Guarda: 'Atenção, Hunter! Feras usam armadura de aura. Quebre a defesa delas com 2 golpes pesados ou um combo rápido de 5 fracos!'")
-		)
+		inter.interacted.connect(_on_guarda_interact)
 		guarda.add_child(inter)
 		add_child(guarda)
 
@@ -338,7 +356,10 @@ func _criar_elementos_interativos() -> void:
 		inter.interacted.connect(func(_p):
 			var hud = get_tree().get_first_node_in_group("player_hud")
 			if hud and hud.has_method("exibir_notificacao"):
-				hud.exibir_notificacao("📦 Carroça de Mercadores: 'Suprimentos da Associação em trânsito para os entrepostos ao sul da província.'")
+				if _escolta_ativa():
+					hud.exibir_notificacao("📦 Caravana sob escolta — Aguarde a noite; salteadores atacam após o crepúsculo.")
+				else:
+					hud.exibir_notificacao("📦 Carroça de Mercadores: 'Suprimentos da Associação em trânsito. Fale com o Guarda para aceitar a escolta noturna.'")
 		)
 		carroca.add_child(inter)
 		add_child(carroca)
@@ -388,3 +409,306 @@ func _criar_elementos_interativos() -> void:
 		add_child(batedor)
 
 
+
+# ============================================================
+# ESCOLTA NOTURNA + DISPUTA DE FACÇÃO (GRANDE PONTE)
+# ============================================================
+
+
+func _criar_zona_protecao_escolta() -> void:
+	if get_node_or_null("ZonaProtecaoEscolta") != null:
+		return
+	var carroca = get_node_or_null("CarrocaMercador")
+	var zona := Area2D.new()
+	zona.name = "ZonaProtecaoEscolta"
+	zona.position = carroca.position if carroca != null else Vector2(240, 360)
+	zona.collision_layer = 0
+	zona.collision_mask = 2
+	zona.monitoring = true
+	var col := CollisionShape2D.new()
+	var circ := CircleShape2D.new()
+	circ.radius = ESCOLTA_ZONA_RAIO
+	col.shape = circ
+	zona.add_child(col)
+	zona.body_entered.connect(_on_zona_escolta_entered)
+	zona.body_exited.connect(_on_zona_escolta_exited)
+	add_child(zona)
+
+
+func _on_zona_escolta_entered(body: Node) -> void:
+	if body != null and (body.is_in_group("player") or body.name == "Player"):
+		_escolta_jogador_na_zona = true
+		_escolta_tempo_fora_zona = 0.0
+
+
+func _on_zona_escolta_exited(body: Node) -> void:
+	if body != null and (body.is_in_group("player") or body.name == "Player"):
+		_escolta_jogador_na_zona = false
+
+
+func _eh_noite_ou_crepusculo() -> bool:
+	if TimeManager == null or not TimeManager.has_method("get_phase_name"):
+		return false
+	var fase_u := str(TimeManager.get_phase_name()).to_upper()
+	return fase_u == "NIGHT" or fase_u == "NOITE" or fase_u == "DUSK" or fase_u == "CREPUSCULO" or fase_u == "EVENING"
+
+
+func _atualizar_vigilancia_escolta(delta: float) -> void:
+	if _escolta_falhou or not _escolta_ativa() or not _emboscada_escolta_feita:
+		return
+	if not _eh_noite_ou_crepusculo():
+		_escolta_tempo_fora_zona = 0.0
+		return
+	if _escolta_jogador_na_zona:
+		_escolta_tempo_fora_zona = 0.0
+		return
+	_escolta_tempo_fora_zona += delta
+	if _escolta_tempo_fora_zona >= ESCOLTA_FORA_ZONA_MAX_S:
+		_falhar_escolta("Você se afastou demais da caravana. A escolta falhou!")
+
+
+func _on_estrada_tree_exiting() -> void:
+	if _escolta_falhou or not _escolta_ativa():
+		return
+	if _eh_noite_ou_crepusculo():
+		_falhar_escolta("Você abandonou a caravana à noite. A escolta falhou!")
+
+
+func _falhar_escolta(mensagem: String) -> void:
+	if _escolta_falhou:
+		return
+	_escolta_falhou = true
+	var q = PadokiaQuestCatalogScript.obter_quest_secundaria_estrada()
+	if QuestSystem != null and QuestSystem.has_method("fail_quest"):
+		QuestSystem.fail_quest(q)
+	elif PlayerData != null and PlayerData.has_method("fail_quest"):
+		PlayerData.fail_quest(q)
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	if hud and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao("💀 %s" % mensagem)
+	if EventBus != null:
+		EventBus.emit_toast("💀 Escolta falhou!", Color(1.0, 0.35, 0.35))
+
+
+func _conectar_ciclo_noturno() -> void:
+	if EventBus != null and EventBus.has_signal("time_phase_changed"):
+		if not EventBus.time_phase_changed.is_connected(_on_time_phase_estrada):
+			EventBus.time_phase_changed.connect(_on_time_phase_estrada)
+
+
+func _on_time_phase_estrada(phase_name: String) -> void:
+	_avaliar_eventos_temporais(phase_name)
+
+
+func _avaliar_eventos_temporais(phase_name: String = "") -> void:
+	var fase := phase_name
+	if fase.is_empty() and TimeManager != null and TimeManager.has_method("get_phase_name"):
+		fase = TimeManager.get_phase_name()
+	var fase_u := fase.to_upper()
+	var eh_noite := fase_u == "NIGHT" or fase_u == "NOITE"
+	var eh_crepusculo := fase_u == "DUSK" or fase_u == "CREPUSCULO" or fase_u == "EVENING"
+
+	if eh_noite or eh_crepusculo:
+		_tentar_emboscada_escolta()
+	if eh_noite:
+		_tentar_disputa_faccao_ponte()
+
+
+func _escolta_ativa() -> bool:
+	if QuestSystem == null or PlayerData == null:
+		return false
+	var q = PadokiaQuestCatalogScript.obter_quest_secundaria_estrada()
+	return PlayerData.is_quest_active(q) and not PlayerData.is_quest_completed(q)
+
+
+func _on_guarda_interact(_p: Node) -> void:
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	var q = PadokiaQuestCatalogScript.obter_quest_secundaria_estrada()
+	if QuestSystem != null and PlayerData != null:
+		if not PlayerData.is_quest_active(q) and not PlayerData.is_quest_completed(q):
+			QuestSystem.start_quest(q)
+			QuestSystem.register_npc_visit(&"guarda_patrulha")
+			if hud and hud.has_method("exibir_notificacao"):
+				hud.exibir_notificacao("🛡️ Guarda: Aceite a escolta! Após o anoitecer, salteadores atacam a carroça. Derrote 2 deles!")
+			return
+		elif PlayerData.is_quest_active(q):
+			QuestSystem.register_npc_visit(&"guarda_patrulha")
+			if hud and hud.has_method("exibir_notificacao"):
+				hud.exibir_notificacao("🛡️ Guarda: A caravana aguarda. Fique perto da carroça quando a noite cair.")
+			return
+	if hud and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao("🛡️ Guarda: Atenção, Hunter! Feras usam armadura de aura. Quebre a defesa com golpes pesados!")
+
+
+func _tentar_emboscada_escolta() -> void:
+	if _emboscada_escolta_feita:
+		return
+	if not _escolta_ativa():
+		return
+	if get_node_or_null("EmboscadaSalteadores") != null:
+		_emboscada_escolta_feita = true
+		return
+
+	_emboscada_escolta_feita = true
+	var root := Node2D.new()
+	root.name = "EmboscadaSalteadores"
+	add_child(root)
+
+	var posicoes := [Vector2(200, 340), Vector2(280, 400)]
+	for i in range(2):
+		_spawn_inimigo_estrada(root, "SalteadorEscolta_%d" % i, posicoes[i], &"ladrao_estrada", "Salteador da Estrada")
+
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	if hud and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao("⚔️ EMBOSCADA NOTURNA! Fique perto da carroça e derrote os salteadores!")
+	if EventBus != null:
+		EventBus.emit_toast("⚔️ Emboscada na Caravana Real — proteja a zona!", Color(1.0, 0.45, 0.25))
+	if WorldEventManager != null and WorldEventManager.has_method("iniciar_evento_mercador_apuros"):
+		WorldEventManager.iniciar_evento_mercador_apuros("estrada_padokia")
+
+
+func _criar_grande_ponte() -> void:
+	if get_node_or_null("GrandePontePedra") != null:
+		return
+	var ponte := StaticBody2D.new()
+	ponte.name = "GrandePontePedra"
+	ponte.position = Vector2(400, 420)
+	ponte.y_sort_enabled = true
+
+	var spr := Sprite2D.new()
+	spr.name = "Sprite2D"
+	if ResourceLoader.exists("res://assets/sprites/objects/nen_stone_monolith.png"):
+		spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
+		spr.modulate = Color(0.75, 0.78, 0.85, 1.0)
+		spr.position = Vector2(0, -16)
+	elif ResourceLoader.exists("res://assets/sprites/objects/marco_pedra_milestone.png"):
+		spr.texture = load("res://assets/sprites/objects/marco_pedra_milestone.png")
+		spr.scale = Vector2(0.7, 0.55)
+		spr.position = Vector2(0, -10)
+	ponte.add_child(spr)
+
+	var col := CollisionShape2D.new()
+	var rect := RectangleShape2D.new()
+	rect.size = Vector2(80, 14)
+	col.shape = rect
+	col.position = Vector2(0, 4)
+	ponte.add_child(col)
+
+	var lbl := Label.new()
+	lbl.text = "🌉 Grande Ponte de Pedra\nAssociação × Salteadores"
+	lbl.position = Vector2(-70, -40)
+	lbl.custom_minimum_size = Vector2(140, 16)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(0.85, 0.9, 1.0))
+	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
+	ponte.add_child(lbl)
+
+	var inter = InteractionComponent.new()
+	inter.name = "InteractionComponent"
+	inter.interaction_text = "[E] Inspecionar Grande Ponte"
+	inter.interaction_radius = 36.0
+	inter.interacted.connect(func(_p):
+		var hud = get_tree().get_first_node_in_group("player_hud")
+		if hud and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🌉 Ponte: Zona de disputa. À noite, a Associação e salteadores se enfrentam pelo controle da rota.")
+		_tentar_disputa_faccao_ponte(true)
+	)
+	ponte.add_child(inter)
+	add_child(ponte)
+
+
+func _tentar_disputa_faccao_ponte(forcar: bool = false) -> void:
+	if get_node_or_null("DisputaFaccaoPonte") != null:
+		return
+	if not forcar:
+		if PlayerData != null and PlayerData.quest_states.get("disputa_ponte_vista_hoje", false):
+			return
+
+	_disputa_ponte_ativa = true
+	if PlayerData != null:
+		PlayerData.quest_states["disputa_ponte_vista_hoje"] = true
+
+	var root := Node2D.new()
+	root.name = "DisputaFaccaoPonte"
+	add_child(root)
+
+	var aliado := StaticBody2D.new()
+	aliado.name = "GuardaAssociacaoPonte"
+	aliado.position = Vector2(360, 400)
+	var spr_a := Sprite2D.new()
+	spr_a.texture = load("res://assets/sprites/characters/npc_guarda_fronteira_8dir.png")
+	spr_a.hframes = 8
+	spr_a.frame = 2
+	spr_a.position = Vector2(0, -17)
+	aliado.add_child(spr_a)
+	var lbl_a := Label.new()
+	lbl_a.text = "🏛️ Guarda Associação"
+	lbl_a.position = Vector2(-50, -34)
+	lbl_a.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_a, 6, Color(0.55, 0.85, 1.0))
+	aliado.add_child(lbl_a)
+	root.add_child(aliado)
+
+	_spawn_inimigo_estrada(root, "SalteadorPonte_0", Vector2(440, 400), &"ladrao_estrada", "Salteador da Ponte")
+	_spawn_inimigo_estrada(root, "SalteadorPonte_1", Vector2(460, 440), &"ladrao_estrada", "Salteador da Ponte")
+
+	if WorldEventManager != null and WorldEventManager.has_method("criar_evento_dinamico"):
+		WorldEventManager.criar_evento_dinamico(
+			"evento_disputa_ponte_padokia",
+			"Disputa Territorial na Grande Ponte",
+			"A Associação Hunter e salteadores duelam pelo controle da rota comercial.",
+			"estrada_padokia",
+			5.0,
+			40
+		)
+
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	if hud and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao("⚔️ DISPUTA NA PONTE! Ajude a Associação a expulsar os salteadores!")
+	if EventBus != null:
+		EventBus.emit_toast("⚔️ Disputa: Associação vs Salteadores", Color(0.95, 0.75, 0.25))
+
+
+func _spawn_inimigo_estrada(parent: Node, nome: String, pos: Vector2, e_id: StringName, e_nome: String) -> void:
+	if parent.get_node_or_null(nome) != null:
+		return
+	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
+	if enemy_scn == null:
+		return
+	var enemy = enemy_scn.instantiate()
+	enemy.name = nome
+	enemy.position = pos
+	var es = enemy.get_node_or_null("EnemySystem")
+	if es != null:
+		es.enemy_id = e_id
+		es.enemy_name = e_nome
+		es.is_mission_enemy = true
+		if QuestSystem != null:
+			if not es.died.is_connected(QuestSystem.register_enemy_kill):
+				es.died.connect(func(killed_id):
+					QuestSystem.register_enemy_kill(killed_id)
+					_on_salteador_morto(killed_id)
+				)
+	parent.add_child(enemy)
+	if es != null and es.has_method("_vincular_textura_inimigo"):
+		es._vincular_textura_inimigo()
+
+
+func _on_salteador_morto(_killed_id) -> void:
+	var root = get_node_or_null("DisputaFaccaoPonte")
+	if root == null:
+		return
+	var vivos := 0
+	for c in root.get_children():
+		if str(c.name).begins_with("SalteadorPonte") and is_instance_valid(c):
+			var es = c.get_node_or_null("EnemySystem")
+			if es != null and not es.is_dead:
+				vivos += 1
+	if vivos == 0:
+		if ReputationSystem != null:
+			ReputationSystem.alterar_reputacao(ReputationSystem.Faccao.ASSOCIACAO_HUNTER, 80, "Disputa da Grande Ponte")
+		if WorldEventManager != null and WorldEventManager.has_method("resolver_evento_jogador"):
+			WorldEventManager.resolver_evento_jogador("evento_disputa_ponte_padokia", true)
+		var hud = get_tree().get_first_node_in_group("player_hud")
+		if hud and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🏛️ Ponte segura! A Associação reconhece sua intervenção (+Rep).")

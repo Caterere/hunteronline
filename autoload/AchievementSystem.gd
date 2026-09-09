@@ -478,8 +478,8 @@ func desbloquear_conquista(ach_id: String) -> void:
 	print("[AchievementSystem] CONQUISTA CONQUISTADA: ", info["nome"])
 	print("=================================")
 
-	if GameState != null:
-		GameState.salvar_jogo()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
 
 
 func resgatar_recompensa(ach_id: String) -> bool:

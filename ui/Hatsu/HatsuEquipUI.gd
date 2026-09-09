@@ -188,9 +188,10 @@ func _construir_ui() -> void:
 	hbox_footer.add_child(lbl_footer_status)
 
 	btn_forjar_footer = Button.new()
-	btn_forjar_footer.text = "🔨 Forjar Novo Hatsu"
+	btn_forjar_footer.text = "🍪 Só com Biscuit (saga)"
 	btn_forjar_footer.add_theme_font_size_override("font_size", 4)
-	btn_forjar_footer.pressed.connect(_abrir_criador_hatsu)
+	btn_forjar_footer.disabled = true
+	btn_forjar_footer.tooltip_text = "Forjar Hatsu é exclusivo de Biscuit Krueger após o desbloqueio na saga."
 	hbox_footer.add_child(btn_forjar_footer)
 
 
@@ -449,36 +450,9 @@ func _desequipar_slot(slot_id: int) -> void:
 func _atualizar_footer_timer() -> void:
 	if lbl_footer_status == null or btn_forjar_footer == null:
 		return
-
-	if HatsuProgressionManager == null:
-		lbl_footer_status.text = "Forja de Hatsu disponível."
-		return
-
-	var check: Dictionary = HatsuProgressionManager.can_create_hatsu()
-	var cur_arch: int = int(check.get("archive_count", 0))
-	var max_arch: int = int(check.get("archive_max", 12))
-	var cost: int = int(check.get("cost_jenny", 5000))
-	var rem_sec: int = int(check.get("remaining_seconds", 0))
-
-	if not check.get("can_create", false):
-		if check.get("reason") == "SLOT_LOCKED":
-			lbl_footer_status.text = "🔒 Requer conclusão de Greed Island e treino com Biscuit."
-			btn_forjar_footer.disabled = true
-		elif check.get("reason") == "COOLDOWN":
-			lbl_footer_status.text = "⏳ Cooldown de Criação: %s | Custo: %d Jenny" % [_formatar_tempo(rem_sec), cost]
-			btn_forjar_footer.disabled = true
-		elif check.get("reason") == "ARCHIVE_FULL":
-			lbl_footer_status.text = "⚠️ Archive Cheio (%d/%d Hatsus). Exclua um antigo." % [cur_arch, max_arch]
-			btn_forjar_footer.disabled = true
-		elif check.get("reason") == "INSUFFICIENT_JENNY":
-			lbl_footer_status.text = "💰 Custo: %d Jenny (Saldo Insuficiente) | Archive: %d/%d" % [cost, cur_arch, max_arch]
-			btn_forjar_footer.disabled = true
-		else:
-			lbl_footer_status.text = "Forja indisponível."
-			btn_forjar_footer.disabled = true
-	else:
-		lbl_footer_status.text = "✅ Pronto para Forjar | Custo: %d Jenny | Archive: %d/%d" % [cost, cur_arch, max_arch]
-		btn_forjar_footer.disabled = false
+	btn_forjar_footer.disabled = true
+	btn_forjar_footer.text = "🍪 Só com Biscuit (saga)"
+	lbl_footer_status.text = "Forjar Hatsu: exclusivo com Biscuit Krueger na saga. Aqui só equipa/revisa."
 
 
 func _formatar_tempo(segundos: int) -> String:

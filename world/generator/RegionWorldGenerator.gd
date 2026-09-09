@@ -458,6 +458,16 @@ func _gerar_ravina_perigo() -> void:
 	zetsu_zone.add_child(zcol)
 	chunk.add_child(zetsu_zone)
 
+	# Segundo sensor furtivo: acampamento de salteadores na ravina oeste
+	NenSensorFactory.criar_zetsu(
+		chunk,
+		"ZetsuAcampamentoSalteadores",
+		Vector2(320 * config.tile_size, 480 * config.tile_size),
+		&"acampamento_salteadores_ravina",
+		"Acampamento dos Salteadores da Ravina",
+		Vector2(220, 160)
+	)
+
 
 # ------------------------------------------------------------
 # 7. DUNGEON: RUÍNAS DO SANTUÁRIO DE ZABAN
@@ -563,7 +573,33 @@ func _gerar_colinas_norte_e_caverna() -> void:
 	gyo_clue.titulo_pista = "Selo de Nen Oculto"
 	gyo_clue.descricao_pista = "Aura concentrada detectada nesta fissura! Utilize KO para romper."
 	gyo_clue.requer_gyo = true
+	var gcol = CollisionShape2D.new()
+	var gcirc = CircleShape2D.new()
+	gcirc.radius = 20.0
+	gcol.shape = gcirc
+	gyo_clue.add_child(gcol)
 	chunk.add_child(gyo_clue)
+
+	# Segundo KO: baú secreto atrás de rocha na trilha leste das colinas
+	NenSensorFactory.criar_ko(
+		chunk,
+		"KoObstacleBauColinas",
+		Vector2(270 * config.tile_size, 95 * config.tile_size),
+		"Rocha do Baú Secreto das Colinas",
+		&"pocao_vida"
+	)
+
+	# Pista Gyo adicional na trilha para a vila
+	NenSensorFactory.criar_gyo(
+		chunk,
+		"GyoClueTrilhaColinas",
+		Vector2(250 * config.tile_size, 140 * config.tile_size),
+		&"padokia_trilha_aura",
+		"Vestígio na Trilha das Colinas",
+		"Alguém passou aqui em Zetsu quase perfeito — só Gyo revela o rastro residual.",
+		"Manipulação",
+		1
+	)
 
 
 # ------------------------------------------------------------

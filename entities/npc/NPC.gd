@@ -63,6 +63,9 @@ func _ready() -> void:
 	# Label de Nome Fixo acima da cabeça do NPC (acompanha movimentação)
 	call_deferred("_criar_label_nome")
 
+	# Vínculo canônico de Sprite 8-direções
+	_vincular_textura_npc()
+
 
 func _criar_label_nome() -> void:
 	if get_node_or_null("NPCNameLabel") != null:
@@ -121,6 +124,89 @@ func _atualizar_animacao(dir: Vector2, andando: bool) -> void:
 			var state_machine = _animation_tree.get("parameters/playback")
 			if state_machine != null:
 				state_machine.travel("idle")
+	else:
+		var spr := get_node_or_null("Sprite2D") as Sprite2D
+		if spr != null and spr.hframes == 8:
+			if dir != Vector2.ZERO:
+				var angle_deg: float = rad_to_deg(dir.angle())
+				var dir_frame: int = posmod(int(round((90.0 - angle_deg) / 45.0)), 8)
+				spr.frame = dir_frame
+			if andando:
+				spr.position.y = -17.0 + (1.0 if int(Time.get_ticks_msec() / 150) % 2 == 0 else 0.0)
+			else:
+				spr.position.y = -17.0
+
+
+func _vincular_textura_npc() -> void:
+	var spr := get_node_or_null("Sprite2D") as Sprite2D
+	if spr == null:
+		return
+
+	# Se já possui hframes == 8 e textura específica diferente do player, garante posição alinhada
+	if spr.hframes == 8 and spr.texture != null and not spr.texture.resource_path.ends_with("player.png"):
+		spr.position = Vector2(0, -17)
+		return
+
+	var n_low: String = npc_name.to_lower()
+	var b_low: String = name.to_lower()
+	var alvo_id: String = ""
+
+	const MAPA_NPCS = {
+		"gon": "npc_gon",
+		"killua": "npc_killua",
+		"kurapika": "npc_kurapika",
+		"leorio": "npc_leorio",
+		"hisoka": "npc_hisoka",
+		"chrollo": "npc_chrollo",
+		"netero": "npc_netero",
+		"biscuit": "npc_biscuit",
+		"bisky": "npc_biscuit",
+		"tonpa": "npc_tonpa",
+		"ging": "npc_ging",
+		"hanzo": "npc_hanzo",
+		"pokkle": "npc_pokkle",
+		"ponzu": "npc_ponzu",
+		"buhara": "npc_buhara",
+		"menchi": "npc_menchi",
+		"gittarackur": "npc_gittarackur",
+		"illumi": "npc_gittarackur",
+		"bodoro": "npc_bodoro",
+		"nicol": "npc_nicol",
+		"wing": "npc_instrutor_combate",
+		"instrutor": "npc_instrutor_combate",
+		"satotz": "npc_examinador_oficial",
+		"examinador": "npc_examinador_oficial",
+		"ferreiro": "npc_ferreiro_mestre",
+		"vendedor": "npc_vendedor_mercador",
+		"mercador": "npc_vendedor_mercador",
+		"zushi": "npc_discipulo_zushi",
+		"recepcionista": "npc_recepcionista_elena",
+		"elena": "npc_recepcionista_elena",
+		"melody": "npc_melody",
+		"battera": "npc_battera",
+		"tsezguerra": "npc_tsezguerra",
+		"zebro": "npc_guarda_fronteira",
+		"canary": "npc_mordoma_canary",
+		"gotoh": "npc_mordomo_gotoh",
+		"silva": "npc_silva_zoldyck",
+		"guia": "npc_viajante_scout",
+		"turismo": "npc_viajante_scout"
+	}
+
+	for k in MAPA_NPCS.keys():
+		if k in n_low or k in b_low:
+			alvo_id = MAPA_NPCS[k]
+			break
+
+	if not alvo_id.is_empty():
+		var tex_path = "res://assets/sprites/characters/" + alvo_id + "_8dir.png"
+		if ResourceLoader.exists(tex_path):
+			spr.texture = load(tex_path)
+			spr.hframes = 8
+			spr.vframes = 1
+			spr.position = Vector2(0, -17)
+			spr.modulate = Color.WHITE
+
 
 
 func falar_balao(texto: String, duracao: float = 3.5, cor_borda: Color = Color(0.3, 0.7, 1.0, 0.95), cor_falante: Color = Color(1.0, 0.85, 0.3, 1.0)) -> SpeechBubbleNode:

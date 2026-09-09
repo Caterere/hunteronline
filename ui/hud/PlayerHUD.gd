@@ -159,159 +159,230 @@ func _criar_card_jogador_top_left() -> void:
 	if old_margin:
 		old_margin.visible = false
 
+	# Raiz: header + 3 frames de barra SEPARADOS (refs Mini Medieval / Fantasy HUD)
+	var root := VBoxContainer.new()
+	root.name = "PlayerHudRoot"
+	root.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	root.offset_left = 6.0
+	root.offset_top = 6.0
+	root.add_theme_constant_override("separation", 5)
+	add_child(root)
+
 	player_card_panel = PanelContainer.new()
-	player_card_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	player_card_panel.offset_left = 6.0
-	player_card_panel.offset_top = 6.0
-	player_card_panel.custom_minimum_size = Vector2(138, 58)
+	player_card_panel.custom_minimum_size = Vector2(148, 28)
 	player_card_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_licenca_hunter())
-	add_child(player_card_panel)
+	root.add_child(player_card_panel)
 
 	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 5)
+	margin.add_theme_constant_override("margin_left", 4)
 	margin.add_theme_constant_override("margin_top", 3)
-	margin.add_theme_constant_override("margin_right", 5)
+	margin.add_theme_constant_override("margin_right", 4)
 	margin.add_theme_constant_override("margin_bottom", 3)
 	player_card_panel.add_child(margin)
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 1)
-	margin.add_child(vbox)
+	var vbox_header := VBoxContainer.new()
+	vbox_header.add_theme_constant_override("separation", 1)
+	margin.add_child(vbox_header)
 
-	# Linha 1: Nome do Jogador, Nível e Jenny (com fontes Hunter License / Silkscreen)
 	var hbox_header := HBoxContainer.new()
-	vbox.add_child(hbox_header)
+	vbox_header.add_child(hbox_header)
 
 	lbl_player_header = Label.new()
 	lbl_player_header.text = "★ LICENÇA HUNTER"
-	HunterUIStyle.aplicar_fonte_licenca(lbl_player_header, 10, HunterUIStyle.COLOR_GOLD_LIGHT)
+	HunterUIStyle.aplicar_fonte_licenca(lbl_player_header, 9, HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_player_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_player_header)
 
 	lbl_player_level_badge = Label.new()
-	lbl_player_level_badge.text = "★ Nv. 1"
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_player_level_badge, 8, HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_player_level_badge.text = "Nv.1"
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_player_level_badge, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
 	hbox_header.add_child(lbl_player_level_badge)
 
 	lbl_gold = Label.new()
-	lbl_gold.text = "💰 0 ₳"
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_gold, 8, HunterUIStyle.COLOR_GOLD)
+	lbl_gold.text = "💰0"
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_gold, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
 	hbox_header.add_child(lbl_gold)
 
-	# Linha 1.5: Afinidade de Nen e Badge de SP Disponíveis
 	var hbox_sub := HBoxContainer.new()
-	vbox.add_child(hbox_sub)
+	vbox_header.add_child(hbox_sub)
 
 	lbl_player_affinity = Label.new()
 	lbl_player_affinity.text = "◈ Nen: Adormecido"
-	HunterUIStyle.aplicar_fonte_licenca(lbl_player_affinity, 9, HunterUIStyle.COLOR_AURA_CYAN)
+	HunterUIStyle.aplicar_fonte_licenca(lbl_player_affinity, 8, HunterUIStyle.COLOR_TEXT_CYAN)
 	lbl_player_affinity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_sub.add_child(lbl_player_affinity)
 
 	lbl_sp_badge = Label.new()
-	lbl_sp_badge.text = "⚡ 0 SP"
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_sp_badge, 7, HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_sp_badge.text = "⚡0 SP"
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_sp_badge, 6, HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_sp_badge.visible = false
 	hbox_sub.add_child(lbl_sp_badge)
 
-	# Linha 2: Barra de Vida (HP) com Números
-	var hp_box := _criar_barra_com_label(
+	# Barras em frames separados (gap visual entre elas)
+	var hp_box := _criar_barra_framed(
+		"❤",
 		HunterUIStyle.COLOR_HP_CRIMSON,
-		Color(0.2, 0.05, 0.05, 0.9),
-		"❤️ HP: 100/100"
+		"100/100"
 	)
-	vbox.add_child(hp_box.container)
+	root.add_child(hp_box.container)
 	bar_hp = hp_box.bar
 	lbl_hp_num = hp_box.label
 
-	# Linha 3: Barra de Aura (AP) com Números
-	var aura_box := _criar_barra_com_label(
+	var aura_box := _criar_barra_framed(
+		"⚡",
 		HunterUIStyle.COLOR_AURA_BAR,
-		Color(0.04, 0.12, 0.22, 0.9),
-		"⚡ AURA: 100/100"
+		"100/100"
 	)
-	vbox.add_child(aura_box.container)
+	root.add_child(aura_box.container)
 	bar_aura = aura_box.bar
 	lbl_aura_num = aura_box.label
 
-	# Linha 4: Barra de XP com Números
-	var xp_box := _criar_barra_com_label(
+	var xp_box := _criar_barra_framed(
+		"✦",
 		HunterUIStyle.COLOR_XP_BAR,
-		Color(0.04, 0.16, 0.08, 0.9),
-		"✨ XP: 0/100 (0%)"
+		"0/100"
 	)
-	vbox.add_child(xp_box.container)
+	root.add_child(xp_box.container)
 	bar_xp = xp_box.bar
 	lbl_xp_num = xp_box.label
 
-	# Linha 5: Indicador de Técnica de Nen e Besta
-	var hbox_status := HBoxContainer.new()
-	hbox_status.add_theme_constant_override("separation", 3)
-	vbox.add_child(hbox_status)
+	# Status Nen / Besta — sem painel "INATIVO [N]" no HUD principal
+	lbl_nen_status = null
+	lbl_beast_status = null
 
-	lbl_nen_status = Label.new()
-	lbl_nen_status.text = "🥋 Nen: Inativo [N]"
-	HunterUIStyle.aplicar_fonte_pixel(lbl_nen_status, 7, HunterUIStyle.COLOR_AURA_CYAN)
-	lbl_nen_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox_status.add_child(lbl_nen_status)
-
-	lbl_beast_status = Label.new()
-	lbl_beast_status.text = ""
-	HunterUIStyle.aplicar_fonte_pixel(lbl_beast_status, 7, HunterUIStyle.COLOR_AURA_PURPLE)
-	hbox_status.add_child(lbl_beast_status)
-
-	# Linha 6: Micro-pills de Condições Ativas de Combate
 	hbox_conditions = HBoxContainer.new()
 	hbox_conditions.add_theme_constant_override("separation", 2)
-	vbox.add_child(hbox_conditions)
+	root.add_child(hbox_conditions)
 
 
-func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: String) -> Dictionary:
-	var container := Control.new()
-	container.custom_minimum_size = Vector2(126, 8)
+func _criar_barra_framed(titulo: String, cor_fill: Color, texto_inicial: String) -> Dictionary:
+	# Frame ornamentado 160×40. Fill + números no slot creme (acima do frame).
+	const BAR_W := 160.0
+	const BAR_H := 40.0
+
+	var root := Control.new()
+	root.custom_minimum_size = Vector2(BAR_W, BAR_H)
+	root.size = Vector2(BAR_W, BAR_H)
+	root.clip_contents = true
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+	var fill_col := Color(0.82, 0.14, 0.22)
+	if cor_fill.b > 0.55 and cor_fill.r < 0.55:
+		fill_col = Color(0.18, 0.48, 0.95)
+	elif cor_fill.g > 0.5 and cor_fill.r < 0.55:
+		fill_col = Color(0.18, 0.72, 0.32)
+	elif cor_fill.r > 0.55:
+		fill_col = Color(0.82, 0.14, 0.22)
+
+	# 1) Frame base
+	var frame_tex: Texture2D = null
+	if ResourceLoader.exists("res://assets/sprites/ui/hud_ornate_bar_compact.png"):
+		frame_tex = load("res://assets/sprites/ui/hud_ornate_bar_compact.png")
+	elif ResourceLoader.exists("res://assets/sprites/ui/hud_ornate_bar_frame_crop.png"):
+		frame_tex = load("res://assets/sprites/ui/hud_ornate_bar_frame_crop.png")
+	elif ResourceLoader.exists("res://assets/sprites/ui/hud_ornate_bar_frame.png"):
+		frame_tex = load("res://assets/sprites/ui/hud_ornate_bar_frame.png")
+
+	if frame_tex != null:
+		var frame_spr := TextureRect.new()
+		frame_spr.name = "OrnateFrame"
+		frame_spr.texture = frame_tex
+		frame_spr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		frame_spr.stretch_mode = TextureRect.STRETCH_SCALE
+		frame_spr.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		frame_spr.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		frame_spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		root.add_child(frame_spr)
+	else:
+		var panel := PanelContainer.new()
+		panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_barra_frame_texturado())
+		root.add_child(panel)
+
+	# 2) Fill no slot creme (acima do frame)
+	var bar_wrap := Control.new()
+	bar_wrap.name = "BarSlot"
+	bar_wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bar_wrap.offset_left = BAR_W * 0.34
+	bar_wrap.offset_top = BAR_H * 0.36
+	bar_wrap.offset_right = -BAR_W * 0.15
+	bar_wrap.offset_bottom = -BAR_H * 0.36
+	bar_wrap.clip_contents = true
+	root.add_child(bar_wrap)
 
 	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(126, 8)
 	bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bar.custom_minimum_size = Vector2(0, 0)
 	bar.show_percentage = false
 	bar.min_value = 0
 	bar.max_value = 100
 	bar.value = 100
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 	var st_bg := StyleBoxFlat.new()
-	st_bg.bg_color = cor_bg
-	st_bg.border_width_left = 1
-	st_bg.border_width_top = 1
-	st_bg.border_width_right = 1
-	st_bg.border_width_bottom = 1
-	st_bg.border_color = Color(0.2, 0.3, 0.4, 0.7)
-	st_bg.corner_radius_top_left = 2
-	st_bg.corner_radius_top_right = 2
-	st_bg.corner_radius_bottom_right = 2
-	st_bg.corner_radius_bottom_left = 2
+	st_bg.bg_color = Color(0.12, 0.09, 0.06, 0.85)
+	st_bg.set_content_margin_all(0)
+	st_bg.set_border_width_all(0)
+	st_bg.set_corner_radius_all(0)
 	bar.add_theme_stylebox_override("background", st_bg)
 
 	var st_fill := StyleBoxFlat.new()
-	st_fill.bg_color = cor_fill
-	st_fill.corner_radius_top_left = 2
-	st_fill.corner_radius_top_right = 2
-	st_fill.corner_radius_bottom_right = 2
-	st_fill.corner_radius_bottom_left = 2
+	st_fill.bg_color = fill_col
+	st_fill.set_content_margin_all(0)
+	st_fill.set_corner_radius_all(0)
+	st_fill.border_width_top = 2
+	st_fill.border_width_bottom = 1
+	st_fill.border_color = Color(
+		clampf(fill_col.r * 1.35, 0.0, 1.0),
+		clampf(fill_col.g * 1.3, 0.0, 1.0),
+		clampf(fill_col.b * 1.2, 0.0, 1.0),
+		1.0
+	)
 	bar.add_theme_stylebox_override("fill", st_fill)
-	container.add_child(bar)
+	bar_wrap.add_child(bar)
 
+	# 3) Números no slot (acima do fill) — formato 120/122
 	var lbl := Label.new()
 	lbl.text = texto_inicial
 	lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	lbl.offset_left = BAR_W * 0.34
+	lbl.offset_top = BAR_H * 0.30
+	lbl.offset_right = -BAR_W * 0.14
+	lbl.offset_bottom = -BAR_H * 0.30
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	HunterUIStyle.aplicar_fonte_pixel(lbl, 7, Color.WHITE)
-	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
-	lbl.add_theme_constant_override("shadow_offset_x", 1)
-	lbl.add_theme_constant_override("shadow_offset_y", 1)
-	container.add_child(lbl)
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lbl.clip_text = true
+	lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(0.06, 0.03, 0.02))
+	lbl.add_theme_color_override("font_outline_color", Color(1, 1, 1, 0.98))
+	lbl.add_theme_constant_override("outline_size", 2)
+	root.add_child(lbl)
 
-	return {"container": container, "bar": bar, "label": lbl}
+	# 4) Ícone no círculo
+	var lbl_icon := Label.new()
+	lbl_icon.text = titulo
+	lbl_icon.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	lbl_icon.offset_left = 2
+	lbl_icon.offset_top = BAR_H * 0.22
+	lbl_icon.offset_right = BAR_W * 0.28
+	lbl_icon.offset_bottom = BAR_H * 0.78
+	lbl_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_icon, 9, Color(0.95, 0.2, 0.25) if fill_col.r > 0.5 else Color(0.95, 0.9, 0.35))
+	lbl_icon.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.0, 1.0))
+	lbl_icon.add_theme_constant_override("outline_size", 1)
+	root.add_child(lbl_icon)
+
+	return {"container": root, "bar": bar, "label": lbl}
+
+
+func _criar_barra_com_label(cor_fill: Color, cor_bg: Color, texto_inicial: String) -> Dictionary:
+	# Compat: redireciona para o novo frame madeira
+	return _criar_barra_framed("BAR", cor_fill, texto_inicial)
 
 
 # ============================================================
@@ -742,8 +813,7 @@ func _atualizar_hp() -> void:
 	var hp_max: int = int(PlayerData.attributes.get("vida_max", 100))
 	bar_hp.max_value = max(1, hp_max)
 	bar_hp.value = clamp(hp, 0, hp_max)
-	var pct: int = int((float(hp) / float(max(1, hp_max))) * 100.0)
-	lbl_hp_num.text = "❤️ HP: %s / %s (%d%%)" % [_formatar_numero(hp), _formatar_numero(hp_max), pct]
+	lbl_hp_num.text = "%s/%s" % [_formatar_numero(hp), _formatar_numero(hp_max)]
 
 	var legacy_hp = get_node_or_null("MarginContainer/VBoxContainer/HPBar") as ProgressBar
 	if legacy_hp != null:
@@ -757,8 +827,7 @@ func _atualizar_aura() -> void:
 	var aura_max: int = int(PlayerData.attributes.get("aura_max", 100))
 	bar_aura.max_value = max(1, aura_max)
 	bar_aura.value = clamp(aura, 0, aura_max)
-	var pct: int = int((float(aura) / float(max(1, aura_max))) * 100.0)
-	lbl_aura_num.text = "⚡ AURA: %s / %s (%d%%)" % [_formatar_numero(aura), _formatar_numero(aura_max), pct]
+	lbl_aura_num.text = "%s/%s" % [_formatar_numero(aura), _formatar_numero(aura_max)]
 
 	var legacy_aura = get_node_or_null("MarginContainer/VBoxContainer/AuraBar") as ProgressBar
 	if legacy_aura != null:
@@ -784,12 +853,11 @@ func _atualizar_xp() -> void:
 	if nivel >= ProgressionConfig.MAX_LEVEL:
 		bar_xp.max_value = xp_nec
 		bar_xp.value = xp_nec
-		lbl_xp_num.text = "✨ XP: MÁXIMO (Cap Nv. %d)" % ProgressionConfig.MAX_LEVEL
+		lbl_xp_num.text = "MAX"
 	else:
 		bar_xp.max_value = xp_nec
 		bar_xp.value = clamp(xp_atual, 0, xp_nec)
-		var pct: int = int((float(xp_atual) / float(xp_nec)) * 100.0)
-		lbl_xp_num.text = "✨ XP: %s / %s (%d%%)" % [_formatar_numero(xp_atual), _formatar_numero(xp_nec), pct]
+		lbl_xp_num.text = "%s/%s" % [_formatar_numero(xp_atual), _formatar_numero(xp_nec)]
 
 	var legacy_xp = get_node_or_null("MarginContainer/VBoxContainer/XPBar") as ProgressBar
 	if legacy_xp != null:
