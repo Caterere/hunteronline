@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://world/generator/test/ModernInteriorsShowcase.gd" id="1_showcase"]
 [ext_resource type="TileSet" path="res://world/tilesets/modern_interiors_tileset.tres" id="2_tileset"]
 [ext_resource type="PackedScene" path="res://entities/Player/Player.tscn" id="3_player"]
-[ext_resource type="PackedScene" path="res://ui/HUD/HUD.tscn" id="4_hud"]
+[ext_resource type="PackedScene" path="res://ui/hud/HUD.tscn" id="4_hud"]
 
 [node name="ModernInteriorsShowcase" type="Node2D"]
 script = ExtResource("1_showcase")

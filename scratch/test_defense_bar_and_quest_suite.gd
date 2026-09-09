@@ -166,7 +166,7 @@ func _teste_4_regeneracao_fora_de_combate() -> void:
 # ------------------------------------------------------------------------------
 func _teste_5_boss_bar_hud_com_defesa() -> void:
 	print("\n[TESTE 5/6] Testando Boss Bar com Barra de Defesa no PlayerHUD...")
-	var hud_scn = load("res://ui/HUD/HUD.tscn") as PackedScene
+	var hud_scn = load("res://ui/hud/HUD.tscn") as PackedScene
 	_assinalar(hud_scn != null, "HUD.tscn carregado", "HUD.tscn ausente")
 	if hud_scn == null: return
 
