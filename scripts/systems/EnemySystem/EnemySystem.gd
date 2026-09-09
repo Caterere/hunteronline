@@ -93,6 +93,8 @@ var taxa_regeneracao_defesa: float = 25.0
 var postura: float = 100.0
 var postura_max: float = 100.0
 var em_stagger: bool = false
+## Alias legado — EnemyAI e VFX antigos consultam em_knockdown
+var em_knockdown: bool = false
 var stagger_timer: float = 0.0
 var stagger_duracao: float = 3.5
 
@@ -123,6 +125,8 @@ var hit_invulnerability_time: float = 0.15
 var is_boss: bool = false
 var falou_spawn: bool = false
 var falou_ferido: bool = false
+## Temperamento de combate (espelha EnemyData.battle_personality)
+var battle_personality: Resource = null
 
 
 
@@ -225,6 +229,8 @@ func _ready() -> void:
 		strength = enemy_data.strength
 
 	xp_reward = enemy_data.xp_reward
+	is_boss = enemy_data.is_boss
+	battle_personality = enemy_data.battle_personality
 
 	knockback_resistance = (
 		enemy_data.knockback_resistance
@@ -356,6 +362,7 @@ func _physics_process(delta: float) -> void:
 		if tempo_timer_quebrada <= 0.0:
 			em_defesa_quebrada = false
 			em_stagger = false
+			em_knockdown = false
 			defesa_barra_atual = defesa_barra_max
 			postura = postura_max
 			defesa_alterada.emit(defesa_barra_atual, defesa_barra_max)
@@ -422,6 +429,49 @@ func ativar_inimigo_missao(ativo: bool) -> void:
 
 
 # =========================================================
+# FALAS DE COMBATE (BattlePersonality + fallbacks)
+# =========================================================
+
+func disparar_intro() -> void:
+	var linha := ""
+	if battle_personality != null and battle_personality.has_method("obter_intro"):
+		linha = str(battle_personality.obter_intro())
+	if linha.is_empty():
+		linha = CombatComicQuotes.obter_frase_inimigo_spawn(enemy_name)
+	_mostrar_fala_combate(linha, 2.2)
+
+
+func disparar_taunt() -> void:
+	var linha := ""
+	if battle_personality != null and battle_personality.has_method("obter_taunt"):
+		linha = str(battle_personality.obter_taunt())
+	if linha.is_empty():
+		return
+	_mostrar_fala_combate(linha, 1.8)
+
+
+func disparar_fala_ataque(skill_name: String = "") -> void:
+	var linha := ""
+	if battle_personality != null and battle_personality.has_method("obter_fala_ataque"):
+		linha = str(battle_personality.obter_fala_ataque(skill_name))
+	if linha.is_empty() and not skill_name.is_empty():
+		if battle_personality != null and battle_personality.has_method("obter_fala_hatsu"):
+			linha = str(battle_personality.obter_fala_hatsu())
+		if linha.is_empty():
+			linha = skill_name
+	if linha.is_empty():
+		linha = CombatComicQuotes.obter_frase_inimigo_ataque(enemy_name)
+	_mostrar_fala_combate(linha, 1.6)
+
+
+func _mostrar_fala_combate(linha: String, duracao: float = 2.0) -> void:
+	if linha.is_empty():
+		return
+	var ancora: Node = enemy_body if enemy_body != null else self
+	ComicBalloon.mostrar(ancora, linha, duracao, -38.0)
+
+
+# =========================================================
 # DADOS DE INSPEÇÃO DE GYO
 # =========================================================
 
@@ -455,6 +505,7 @@ func aplicar_dano_defesa(quantidade: float, is_heavy: bool = false) -> void:
 	if defesa_barra_atual <= 0.0:
 		em_defesa_quebrada = true
 		em_stagger = true
+		em_knockdown = true
 		tempo_timer_quebrada = tempo_defesa_quebrada
 		stagger_timer = tempo_defesa_quebrada
 		defesa_quebrada.emit()
@@ -480,7 +531,8 @@ func take_damage(
 	damage: int,
 	attack_direction: Vector2 = Vector2.ZERO,
 	knockback_force: float = 0.0,
-	attacker: Node = null
+	attacker: Node = null,
+	pressionar_guarda: bool = true
 ) -> void:
 
 	# -----------------------------------------------------
@@ -521,6 +573,11 @@ func take_damage(
 	# -----------------------------------------------------
 
 	tempo_sem_receber_dano = 0.0
+	# Hits diretos (sem CombatSystem) também pressionam a guarda.
+	# CombatSystem passa pressionar_guarda=false porque já chama aplicar_dano_defesa.
+	if pressionar_guarda and not em_defesa_quebrada:
+		var pressao: float = clampf(float(damage) * 0.85, 15.0, defesa_barra_max * 0.55)
+		aplicar_dano_defesa(pressao, damage >= 45)
 
 	# -----------------------------------------------------
 	# CALCULAR DANO FINAL (Curva Defensiva Balanceada)

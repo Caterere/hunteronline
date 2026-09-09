@@ -441,7 +441,7 @@ func _on_attack_hit(
 				enemy_system.aplicar_dano_defesa(def_max * pct, false)
 		elif is_heavy_attack and enemy_system.has_method("aplicar_dano_postura"):
 			enemy_system.aplicar_dano_postura(45.0)
-		enemy_system.take_damage(dano, ultima_direcao, knockback_val, owner_body)
+		enemy_system.take_damage(dano, ultima_direcao, knockback_val, owner_body, false)
 	elif alvo.has_method("receber_dano"):
 		alvo.receber_dano(dano, ultima_direcao, knockback_val, owner_body)
 	elif enemy.has_method("receber_dano"):

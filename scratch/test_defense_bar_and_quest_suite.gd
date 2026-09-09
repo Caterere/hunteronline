@@ -61,6 +61,7 @@ func _teste_1_quebra_por_golpes_fortes() -> void:
 		_assinalar(es.defesa_barra_atual == 0.0, "Segundo golpe forte zera a barra de defesa", "Valor inesperado: %f" % es.defesa_barra_atual)
 		_assinalar(es.em_defesa_quebrada == true, "Estado em_defesa_quebrada ativado com sucesso!", "Nao ativou defesa quebrada")
 		_assinalar(es.em_stagger == true, "Inimigo entra em stagger fisico simultaneo", "Stagger nao ativado")
+		_assinalar(es.em_knockdown == true, "Alias legado em_knockdown sincronizado com stagger", "em_knockdown ausente/falso")
 		_assinalar(es.tempo_timer_quebrada == 3.5, "Timer de vulnerabilidade configurado para 3.5s", "Timer incorreto: %f" % es.tempo_timer_quebrada)
 
 	enemy.queue_free()
