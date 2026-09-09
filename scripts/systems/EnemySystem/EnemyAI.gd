@@ -823,8 +823,10 @@ func _chase() -> void:
 	if enemy_sys != null and not _intro_disparada:
 		_intro_disparada = true
 		enemy_sys.falou_spawn = true
-		if enemy_sys.battle_personality != null:
-			enemy_sys.disparar_intro()
+		# battle_personality vive no EnemyData (resource), não no EnemySystem.
+		var bp = enemy_sys.enemy_data.battle_personality if enemy_sys.enemy_data != null else null
+		if bp != null and bp.has_method("obter_intro"):
+			ComicBalloon.mostrar(enemy_body, bp.obter_intro(), 2.2, -38.0)
 		else:
 			ComicBalloon.mostrar(enemy_body, CombatComicQuotes.obter_frase_inimigo_spawn(enemy_sys.enemy_name), 2.2, -38.0)
 
