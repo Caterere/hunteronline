@@ -165,7 +165,7 @@ func _criar_card_jogador_top_left() -> void:
 	root.set_anchors_preset(Control.PRESET_TOP_LEFT)
 	root.offset_left = 6.0
 	root.offset_top = 6.0
-	root.add_theme_constant_override("separation", 5)
+	root.add_theme_constant_override("separation", 2)
 	add_child(root)
 
 	player_card_panel = PanelContainer.new()
@@ -256,9 +256,13 @@ func _criar_card_jogador_top_left() -> void:
 
 
 func _criar_barra_framed(titulo: String, cor_fill: Color, texto_inicial: String) -> Dictionary:
-	# Frame ornamentado 160×40. Fill + números no slot creme (acima do frame).
-	const BAR_W := 160.0
-	const BAR_H := 40.0
+	# Compacto p/ 640×360 — afine BAR_W/H e SLOT_* se ainda não encaixar
+	const BAR_W := 112.0
+	const BAR_H := 22.0
+	const SLOT_L := 0.36
+	const SLOT_R := 0.16
+	const SLOT_T := 0.38
+	const SLOT_B := 0.38
 
 	var root := Control.new()
 	root.custom_minimum_size = Vector2(BAR_W, BAR_H)
@@ -301,14 +305,14 @@ func _criar_barra_framed(titulo: String, cor_fill: Color, texto_inicial: String)
 		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_barra_frame_texturado())
 		root.add_child(panel)
 
-	# 2) Fill no slot creme (acima do frame)
+	# 2) Fill no slot creme — corner radius 2 p/ acompanhar o frame arredondado
 	var bar_wrap := Control.new()
 	bar_wrap.name = "BarSlot"
 	bar_wrap.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bar_wrap.offset_left = BAR_W * 0.34
-	bar_wrap.offset_top = BAR_H * 0.36
-	bar_wrap.offset_right = -BAR_W * 0.15
-	bar_wrap.offset_bottom = -BAR_H * 0.36
+	bar_wrap.offset_left = BAR_W * SLOT_L
+	bar_wrap.offset_top = BAR_H * SLOT_T
+	bar_wrap.offset_right = -BAR_W * SLOT_R
+	bar_wrap.offset_bottom = -BAR_H * SLOT_B
 	bar_wrap.clip_contents = true
 	root.add_child(bar_wrap)
 
@@ -325,14 +329,14 @@ func _criar_barra_framed(titulo: String, cor_fill: Color, texto_inicial: String)
 	st_bg.bg_color = Color(0.12, 0.09, 0.06, 0.85)
 	st_bg.set_content_margin_all(0)
 	st_bg.set_border_width_all(0)
-	st_bg.set_corner_radius_all(0)
+	st_bg.set_corner_radius_all(2)
 	bar.add_theme_stylebox_override("background", st_bg)
 
 	var st_fill := StyleBoxFlat.new()
 	st_fill.bg_color = fill_col
 	st_fill.set_content_margin_all(0)
-	st_fill.set_corner_radius_all(0)
-	st_fill.border_width_top = 2
+	st_fill.set_corner_radius_all(2)
+	st_fill.border_width_top = 1
 	st_fill.border_width_bottom = 1
 	st_fill.border_color = Color(
 		clampf(fill_col.r * 1.35, 0.0, 1.0),
@@ -343,36 +347,36 @@ func _criar_barra_framed(titulo: String, cor_fill: Color, texto_inicial: String)
 	bar.add_theme_stylebox_override("fill", st_fill)
 	bar_wrap.add_child(bar)
 
-	# 3) Números no slot (acima do fill) — formato 120/122
+	# 3) Números no slot — formato 120/122
 	var lbl := Label.new()
 	lbl.text = texto_inicial
 	lbl.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	lbl.offset_left = BAR_W * 0.34
-	lbl.offset_top = BAR_H * 0.30
-	lbl.offset_right = -BAR_W * 0.14
-	lbl.offset_bottom = -BAR_H * 0.30
+	lbl.offset_left = BAR_W * SLOT_L
+	lbl.offset_top = BAR_H * (SLOT_T - 0.06)
+	lbl.offset_right = -BAR_W * SLOT_R
+	lbl.offset_bottom = -BAR_H * (SLOT_B - 0.06)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lbl.clip_text = true
 	lbl.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(0.06, 0.03, 0.02))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 5, Color(0.06, 0.03, 0.02))
 	lbl.add_theme_color_override("font_outline_color", Color(1, 1, 1, 0.98))
-	lbl.add_theme_constant_override("outline_size", 2)
+	lbl.add_theme_constant_override("outline_size", 1)
 	root.add_child(lbl)
 
 	# 4) Ícone no círculo
 	var lbl_icon := Label.new()
 	lbl_icon.text = titulo
 	lbl_icon.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	lbl_icon.offset_left = 2
-	lbl_icon.offset_top = BAR_H * 0.22
-	lbl_icon.offset_right = BAR_W * 0.28
-	lbl_icon.offset_bottom = BAR_H * 0.78
+	lbl_icon.offset_left = 1
+	lbl_icon.offset_top = BAR_H * 0.18
+	lbl_icon.offset_right = BAR_W * 0.32
+	lbl_icon.offset_bottom = BAR_H * 0.82
 	lbl_icon.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_icon.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lbl_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_icon, 9, Color(0.95, 0.2, 0.25) if fill_col.r > 0.5 else Color(0.95, 0.9, 0.35))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_icon, 7, Color(0.95, 0.2, 0.25) if fill_col.r > 0.5 else Color(0.95, 0.9, 0.35))
 	lbl_icon.add_theme_color_override("font_outline_color", Color(0.05, 0.02, 0.0, 1.0))
 	lbl_icon.add_theme_constant_override("outline_size", 1)
 	root.add_child(lbl_icon)
