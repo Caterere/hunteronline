@@ -24,6 +24,7 @@ var _marcos_notificados: Dictionary = {
 
 func _ready() -> void:
 	_garantir_dialogue_ui()
+	_pintar_piso_arena()
 	_popular_npcs_arco3()
 	_garantir_objeto_teste_agua()
 	_configurar_inimigos()
@@ -31,6 +32,62 @@ func _ready() -> void:
 	_garantir_quest_ativa()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+
+
+func _pintar_piso_arena() -> void:
+	# Pinta a plataforma de duelo (mármore/ouro) com ringue carmesim central,
+	# usando o tileset Wang gerado no PixelLab (autotiling por cantos).
+	if get_node_or_null("PisoArenaCelestial") != null:
+		return
+	var ts_path := "res://world/tilesets/arena_celestial_tileset.tres"
+	if not ResourceLoader.exists(ts_path):
+		return
+	var ts: TileSet = load(ts_path)
+	var layer := TileMapLayer.new()
+	layer.name = "PisoArenaCelestial"
+	layer.tile_set = ts
+	layer.z_index = -50 # acima do fundo do MapVisualDecorator (-100), abaixo das entidades
+	add_child(layer)
+
+	var src_id := ts.get_source_id(0)
+	var src := ts.get_source(src_id) as TileSetAtlasSource
+
+	# Lookup determinístico canto->tile lido do próprio TileSet (Wang por cantos).
+	# Chave: [NW, NE, SW, SE] com 0=mármore, 1=carmesim.
+	var corner_neigh := [
+		TileSet.CELL_NEIGHBOR_TOP_LEFT_CORNER,
+		TileSet.CELL_NEIGHBOR_TOP_RIGHT_CORNER,
+		TileSet.CELL_NEIGHBOR_BOTTOM_LEFT_CORNER,
+		TileSet.CELL_NEIGHBOR_BOTTOM_RIGHT_CORNER,
+	]
+	var lut := {}
+	for i in range(src.get_tiles_count()):
+		var coords := src.get_tile_id(i)
+		var td := src.get_tile_data(coords, 0)
+		var key := "%d%d%d%d" % [
+			td.get_terrain_peering_bit(corner_neigh[0]),
+			td.get_terrain_peering_bit(corner_neigh[1]),
+			td.get_terrain_peering_bit(corner_neigh[2]),
+			td.get_terrain_peering_bit(corner_neigh[3]),
+		]
+		lut[key] = coords
+
+	var x0 := -10; var x1 := 60; var y0 := -10; var y1 := 10
+	var cxc := 12.0; var cyc := 0.0; var rx := 14.0; var ry := 7.0
+	var eh_carmesim := func(px: int, py: int) -> int:
+		var nx := (float(px) - cxc) / rx
+		var ny := (float(py) - cyc) / ry
+		return 1 if (nx * nx + ny * ny <= 1.0) else 0
+	for ty in range(y0, y1 + 1):
+		for tx in range(x0, x1 + 1):
+			var key := "%d%d%d%d" % [
+				eh_carmesim.call(tx, ty),
+				eh_carmesim.call(tx + 1, ty),
+				eh_carmesim.call(tx, ty + 1),
+				eh_carmesim.call(tx + 1, ty + 1),
+			]
+			if lut.has(key):
+				layer.set_cell(Vector2i(tx, ty), src_id, lut[key])
 
 
 func _garantir_dialogue_ui() -> void:

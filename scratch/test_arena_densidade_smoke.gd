@@ -118,6 +118,13 @@ func _cenario_densidade() -> void:
 			combatentes += 1
 	assert_test(combatentes >= 8, "Densidade: pelo menos 8 combatentes presentes na arena (obtido: %d)" % combatentes)
 
+	# 7. Piso da arena pintado com o tileset Wang do PixelLab
+	var piso = mapa.get_node_or_null("PisoArenaCelestial")
+	assert_test(piso != null, "TileMapLayer PisoArenaCelestial presente")
+	if piso != null:
+		var celulas: int = piso.get_used_cells().size()
+		assert_test(celulas > 0, "Piso da arena pintado com o tileset (células: %d)" % celulas)
+
 	remove_child(mapa)
 	mapa.queue_free()
 	await get_tree().process_frame

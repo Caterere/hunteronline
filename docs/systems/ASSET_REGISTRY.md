@@ -794,3 +794,14 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **PixelLab ID:** `56596d8b-a7ac-45ec-8ecd-4f9376665938`
 - **TileSet Godot:** `world/tilesets/arena_celestial_tileset.tres` (terrain set corner-match, 2 terrenos) — gerado por `scratch/build_arena_tileset.gd`.
 - **Uso:** pintar o piso da arena (TileMapLayer + aba Terrains → Rect Tool). Demo de autotiling validado.
+
+### Registro 76-78: Tilesets de Cenário Detalhados (PixelLab Wang 32px)
+Gerados com `detail: highly detailed`, `shading: detailed`, view high top-down, tiles 32px.
+Convertidos para TileSet Godot (corner-match, 2 terrenos) por `scratch/build_topdown_tileset.gd`.
+- **Estrada Real de Padokia** — `56...`→ id `1016224d-b2ac-48a0-a8f9-0793895c5e12` — grama ↔ estrada de pedra.
+  - PNG: `assets/sprites/tilesets/pixellab/estrada/estrada_tileset.png` (128×128) · TileSet: `world/tilesets/estrada_padokia_tileset.tres`
+- **Floresta dos Vestígios** — id `be2236a2-c15e-41b1-a424-e9dacb0d6aec` — grama ↔ solo de floresta (raízes/musgo).
+  - PNG: `assets/sprites/tilesets/pixellab/floresta/floresta_tileset.png` · TileSet: `world/tilesets/floresta_vestigios_tileset.tres`
+- **Ruínas de Zaban** — id `76e7b45f-3a38-4832-9095-9e5c89bfcb81` — grama ↔ pedra ancestral com runas.
+  - PNG: `assets/sprites/tilesets/pixellab/zaban_ruinas/zaban_ruinas_tileset.png` · TileSet: `world/tilesets/zaban_ruinas_tileset.tres`
+- Piso da Arena Celestial (Registro 75) agora é PINTADO em jogo por `ArenaCelestialMap._pintar_piso_arena()` (TileMapLayer z=-50).
