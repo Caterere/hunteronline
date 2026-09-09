@@ -2,7 +2,11 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const TOKEN = '***REMOVED***';
+const TOKEN = process.env.PIXELLAB_API_TOKEN;
+if (!TOKEN) {
+  console.error('Defina a variável de ambiente PIXELLAB_API_TOKEN (veja .env.example / .env).');
+  process.exit(1);
+}
 
 function request(pathUrl, method = 'GET', body = null) {
   return new Promise((resolve, reject) => {

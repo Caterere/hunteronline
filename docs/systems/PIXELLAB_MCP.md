@@ -51,6 +51,27 @@ Se o MCP estiver offline (sem token em `.cursor/mcp.json`), use o fallback REST 
 | Clients REST | `scripts/tools/pixellab_*.{py,js}` | Fallback se MCP offline |
 | Assets | `assets/sprites/tilesets/pixellab/` | Ver `ASSET_REGISTRY.md` |
 
-## Segurança
+## Segurança & token (.env)
 
-Não commitar `.cursor/mcp.json` com Bearer token. Use o example + token local. Se o token vazou em chat/repo, rotacione em https://api.pixellab.ai/mcp
+**Nenhum token deve entrar no git.** Os arquivos de config do MCP são gerados
+localmente a partir de um único segredo e todos estão no `.gitignore`:
+
+- `.cursor/mcp.json`, `.gemini/settings.json`, `.claude/settings.json` — gerados, gitignored.
+- Templates versionados (sem segredo): `*.example` + `.env.example`.
+
+Fluxo local:
+
+```bash
+cp .env.example .env          # e edite PIXELLAB_API_TOKEN
+bash scripts/tools/setup_mcp_local.sh
+# Cursor: Settings -> Tools & MCP -> refresh/enable 'pixellab'
+```
+
+Os scripts JS (`scripts/tools/pixellab_*.js`, `scratch/pixellab_client.js`) leem o
+token de `process.env.PIXELLAB_API_TOKEN` (carregue o `.env` antes de rodar).
+
+> [!WARNING]
+> Um token já foi commitado no passado (histórico do git nos commits
+> `d432ecf`/`becef2b`). Deixar de rastrear **não apaga o histórico**. Antes de
+> tornar o repositório público, **rotacione o token** ou **reescreva o histórico**
+> (git filter-repo / BFG) para removê-lo dos commits antigos.
