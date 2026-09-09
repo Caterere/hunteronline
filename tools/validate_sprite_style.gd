@@ -135,6 +135,21 @@ func validate_sprite(path: String) -> bool:
 	return pass_all
 
 func _init():
+	# Se caminhos forem passados via CLI (após `--`), valida apenas eles.
+	var cli_args := OS.get_cmdline_user_args()
+	if cli_args.size() > 0:
+		var ok := true
+		var passed := 0
+		for p in cli_args:
+			if validate_sprite(p):
+				passed += 1
+			else:
+				ok = false
+		print("\n" + "=".repeat(70))
+		print(" RESULTADO (CLI): %d/%d aprovados." % [passed, cli_args.size()])
+		print("=".repeat(70))
+		quit(0 if ok else 1)
+		return
 	var npcs = [
 		"res://assets/sprites/characters/npc_discipulo_zushi_8dir.png",
 		"res://assets/sprites/characters/npc_instrutor_combate_8dir.png",

@@ -777,3 +777,20 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` � 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
 - `assets/tiles/lobby_paths/*` � path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
 - Uso: NenSkillTreeUI n�s SMALL; PlayerHUD barras; Lobby._melhorar_estradas_lobby()
+
+### Registro 74: Recepcionista da Arena Celestial (NPC 8dir)
+- **Asset:** `npc_recepcionista_arena_8dir.png` (folha 384×48, 8 frames de 48×48)
+- **Tipo:** Character / NPC (Style Lock 48px — APROVADO no validador)
+- **PixelLab ID:** `e8a33d99-da2e-4ee4-96ee-413143037b3a`
+- **Modo:** create_character standard, 8 direções, view low top-down, chibi
+- **Descrição:** female arena receptionist, navy blue vest over white shirt with tie.
+- **Mapa:** `world/maps/arena_celestial.tscn` (NPC "Recepcionista" — antes usava placeholder `player.png`).
+- **Bind:** `NpcSpriteBinder.aplicar(node, ["npc_recepcionista_arena"])` em `ArenaCelestialMap._popular_npcs_arco3()`.
+- **Pipeline:** montado por `scripts/tools/pixellab_assemble_8dir.py` (autocrop + reescala + pés Y=42 + quantização ≤13 cores).
+
+### Registro 75: Tileset do Piso da Arena Celestial (Wang top-down)
+- **Asset:** `assets/sprites/tilesets/pixellab/arena_celestial/arena_floor_tileset.png` (64×64, 16 tiles de 16px) + `_metadata.json`
+- **Tipo:** Top-down Wang tileset (2 terrenos: mármore/ouro → tapete carmesim)
+- **PixelLab ID:** `56596d8b-a7ac-45ec-8ecd-4f9376665938`
+- **TileSet Godot:** `world/tilesets/arena_celestial_tileset.tres` (terrain set corner-match, 2 terrenos) — gerado por `scratch/build_arena_tileset.gd`.
+- **Uso:** pintar o piso da arena (TileMapLayer + aba Terrains → Rect Tool). Demo de autotiling validado.

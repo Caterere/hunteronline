@@ -58,15 +58,8 @@ func _popular_npcs_arco3() -> void:
 		var recepcionista = scn_npc.instantiate()
 		recepcionista.name = "Recepcionista"
 		recepcionista.position = Vector2(50, 0)
-		var spr = recepcionista.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.9, 0.8, 0.5, 1.0)
 		recepcionista.npc_name = "Recepcionista da Arena"
+		NpcSpriteBinder.aplicar(recepcionista, ["npc_recepcionista_arena"])
 		recepcionista.fala_padrao = "Bem-vindo à Arena Celestial! Por favor, preencha este formulário para se registrar. Boa sorte nas lutas e tente não morrer nos andares mais altos!"
 		add_child(recepcionista)
 
@@ -75,15 +68,8 @@ func _popular_npcs_arco3() -> void:
 		var zushi = scn_npc.instantiate()
 		zushi.name = "Zushi"
 		zushi.position = Vector2(1000, -80)
-		var spr = zushi.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(1.0, 0.95, 0.7, 1.0)
 		zushi.npc_name = "Zushi"
+		NpcSpriteBinder.aplicar(zushi, ["npc_discipulo_zushi"])
 		zushi.fala_padrao = "Osu! Sou Zushi, discípulo do mestre Wing! Estou aprendendo o estilo Shingen-ryu de Kung Fu. Preciso treinar mais duro! Osu!"
 		add_child(zushi)
 
