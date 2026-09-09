@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://ddisputapontesmoke01"]
+
+[ext_resource type="Script" path="res://scratch/test_disputa_ponte_smoke.gd" id="1_ponte"]
+
+[node name="TestDisputaPonteSmoke" type="Node2D"]
+script = ExtResource("1_ponte")
