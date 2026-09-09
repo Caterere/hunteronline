@@ -21,7 +21,18 @@ desktop.ini
 # IDEs
 .vscode/
 .idea/
+
+# ============================================================
+# Segredos de MCP (PixelLab) — NUNCA commitar (contêm token).
+# Gere os arquivos reais localmente com: scripts/tools/setup_mcp_local.sh
+# (o token vem de .env / variável PIXELLAB_API_TOKEN). Templates: *.example
+# ============================================================
+.env
+.env.local
+.env.*.local
 .cursor/mcp.json
+.gemini/settings.json
+.claude/settings.json
 
 # Saves locais / dados de usuário
 save/
