@@ -93,6 +93,9 @@ var taxa_regeneracao_defesa: float = 25.0
 var postura: float = 100.0
 var postura_max: float = 100.0
 var em_stagger: bool = false
+# True enquanto o inimigo está sendo empurrado (knockback). Consultado por
+# EnemyAI._update_state() para forçar o estado STAGGER durante o empurrão.
+var em_knockdown: bool = false
 var stagger_timer: float = 0.0
 var stagger_duracao: float = 3.5
 
@@ -702,6 +705,7 @@ func _apply_knockback(
 	)
 
 	knockback_timer = 0.12
+	em_knockdown = true
 
 
 # =========================================================
@@ -717,6 +721,7 @@ func _process_knockback(
 
 	if knockback_timer <= 0.0:
 		knockback_velocity = Vector2.ZERO
+		em_knockdown = false
 		return
 
 	knockback_timer -= delta

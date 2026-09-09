@@ -684,11 +684,12 @@ func _spawn_inimigo_estrada(parent: Node, nome: String, pos: Vector2, e_id: Stri
 		es.enemy_name = e_nome
 		es.is_mission_enemy = true
 		if QuestSystem != null:
-			if not es.died.is_connected(QuestSystem.register_enemy_kill):
-				es.died.connect(func(killed_id):
-					QuestSystem.register_enemy_kill(killed_id)
-					_on_salteador_morto(killed_id)
-				)
+			# register_enemy_kill já é conectado por EnemySystem._ready(); aqui
+			# apenas reagimos à morte para resolver a disputa da ponte (evita
+			# contagem dupla do objetivo de kills).
+			es.died.connect(func(killed_id):
+				_on_salteador_morto(killed_id)
+			)
 	parent.add_child(enemy)
 	if es != null and es.has_method("_vincular_textura_inimigo"):
 		es._vincular_textura_inimigo()
