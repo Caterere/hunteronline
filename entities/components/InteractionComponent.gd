@@ -94,4 +94,3 @@ func _mostrar_hint() -> void:
 func _esconder_hint() -> void:
 	if _hint_label != null and is_instance_valid(_hint_label):
 		_hint_label.visible = false
-
