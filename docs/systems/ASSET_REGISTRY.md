@@ -808,3 +808,32 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **Local:** `res://assets/sprites/characters/npc_calibration_viajante_padokia_8dir.png` + `npc_calibration_viajante_padokia_rotations/`
 - **Mapa:** `world/maps/EstradaPadokiaMap.gd` via `CalibrationArtKit` (`ViajanteCalibracao` @ `(400, 260)`)
 - **Status:** approved / integrated
+
+---
+
+### Registro 82: World Detail Reference (Grass/Dirt/Trees)
+- **Asset:** `world_detail_grass_dirt_trees_ref.png`
+- **Tipo:** Style / World Detail Reference (não-asset de gameplay)
+- **Local:** `res://assets/reference/world_detail_grass_dirt_trees_ref.png`
+- **Uso:** Nível de riqueza ambiental alvo (grama olive + terra jagged + canopies bubbly)
+- **Status:** reference
+
+### Registro 83: Phase 2 — Grass/Dirt Wang (refinado)
+- **Asset:** `phase2_grass_dirt_wang.png`
+- **PixelLab ID:** `599b9329-fb77-44cb-be15-9d15cb2333e4`
+- **Local:** `res://assets/sprites/tilesets/pixellab/phase2_grass_dirt_wang.png`
+- **Integração:** `WorldDensityKit` (Estrada + Floresta)
+- **Status:** approved / integrated
+
+### Registro 84-92: Phase 2 — Vegetation / Rocks / Details
+- `phase2_tree_green_a.png` — `32bbad27-1a74-4db4-9c4f-08fbda14ac0f`
+- `phase2_tree_green_b.png` — `626807eb-2abd-4c13-83d5-6b0ef81d705e`
+- `phase2_tree_autumn_a.png` — `e8420273-0455-4c15-aa2c-3183b1280f2d`
+- `phase2_bush_berry.png` — `c2ad7609-f263-418f-81fe-19760a60f289`
+- `phase2_bush_round.png` — `59d5c200-abf5-43ab-8405-570f75fc6fa1`
+- `phase2_rock_boulder.png` — `877d3738-f2bf-4dc4-930c-d79aba8988b1`
+- `phase2_rock_cluster.png` — `f428641e-f724-4b27-a7dc-6e8a0107b8e7`
+- `phase2_flowers_white.png` — `0086387d-1259-43f9-b092-2073d488fd5f`
+- `phase2_stump.png` — `50eae721-5f03-4d16-91e3-5724d4112340`
+- **Local:** `res://assets/sprites/objects/phase2_*.png`
+- **Status:** approved / integrated

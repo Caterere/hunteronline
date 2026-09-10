@@ -26,6 +26,12 @@
 - [x] Integrar `CalibrationArtKit` na Estrada Real de Padokia
 - [x] Smoke `test_pixellab_calibration_suite`
 
+### Sessão 4 (Phase 2 world density)
+- [x] Referência world detail (grama/terra/árvores)
+- [x] Wang grass/dirt refinado + tree/bush/rock/flower/stump family
+- [x] `WorldDensityKit` em Estrada + Floresta
+- [x] Smoke phase2 density
+
 ## Próximo
 1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
 2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
