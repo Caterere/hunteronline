@@ -137,8 +137,9 @@ func _iniciar_andar(andar: int) -> void:
 			_falha_batismo_nen()
 			return
 
-	var premio_jenny: int = andar * 800 + 2000
+	var premio_jenny: int = Economy.calcular_premio_jenny_andar_arena(andar) if Economy != null else (andar * 140 + 180)
 	lbl_recompensa_info.text = "Andar %d | Prêmio: %s J" % [andar, Economy.formatar_numero(premio_jenny)]
+
 	
 	_spawnar_desafiantes(andar)
 
@@ -224,7 +225,7 @@ func _criar_gladiador(andar: int, idx: int) -> Node2D:
 
 
 func _ao_vencer_andar() -> void:
-	var premio: int = andar_atual * 800 + 2000
+	var premio: int = Economy.calcular_premio_jenny_andar_arena(andar_atual) if Economy != null else (andar_atual * 140 + 180)
 	Economy.adicionar_gold(premio)
 	_sincronizar_progresso_andar(andar_atual + 1)
 	

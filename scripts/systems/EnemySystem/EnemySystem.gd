@@ -994,9 +994,14 @@ func _gerar_drop_loot() -> void:
 		if hud != null and hud.has_method("esconder_boss_bar"):
 			hud.esconder_boss_bar()
 
-	var qtd_gold: int = randi_range(25, 80) * max(1, enemy_data.level if enemy_data != null else 1)
+	var enemy_lv: int = max(1, enemy_data.level if enemy_data != null else 1)
+	var qtd_gold: int = 0
 	if Economy != null:
+		qtd_gold = Economy.calcular_drop_jenny_inimigo(enemy_lv)
 		Economy.adicionar_gold(qtd_gold)
+	else:
+		qtd_gold = maxi(5, int(round(float(randi_range(12, 36) * enemy_lv) * 0.45)))
+
 
 	# Processar Tabela de Drops (GDD Vol 8)
 	if enemy_data != null and not enemy_data.drop_table.is_empty():

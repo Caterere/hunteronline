@@ -69,3 +69,6 @@
 1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
 2. [x] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
 3. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar
+
+### Sessão Jenny early-retune (PR #8)
+- [x] Retune Jenny early-game (quests, drops, Arena) — merged from PR branch

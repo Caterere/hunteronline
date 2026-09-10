@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_jenny_early_retune_suite.gd" id="1"]
+
+[node name="TestJennyEarlyRetuneSuite" type="Node"]
+script = ExtResource("1")

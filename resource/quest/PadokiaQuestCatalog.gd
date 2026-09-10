@@ -28,7 +28,7 @@ static func obter_quest_principal() -> Quest:
 	q.auto_complete = false
 	q.turn_in_npc_key = &"wing"
 	q.reward_xp = 500
-	q.reward_gold = 2500
+	q.reward_gold = 900
 	
 	# Objetivo 1: Falar com Wing
 	var obj1 = QuestObjectiveScript.new()
@@ -63,7 +63,7 @@ static func obter_quest_secundaria_1() -> Quest:
 	q.auto_complete = true
 	q.turn_in_npc_key = &"vendedor"
 	q.reward_xp = 150
-	q.reward_gold = 600
+	q.reward_gold = 250
 	
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.KILL
@@ -85,7 +85,7 @@ static func obter_quest_secundaria_2() -> Quest:
 	q.auto_complete = true
 	q.turn_in_npc_key = &"ferreiro"
 	q.reward_xp = 250
-	q.reward_gold = 1000
+	q.reward_gold = 400
 	
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.KILL
@@ -107,7 +107,7 @@ static func obter_quest_secundaria_estrada() -> Quest:
 	q.auto_complete = true
 	q.turn_in_npc_key = &"guarda_patrulha"
 	q.reward_xp = 220
-	q.reward_gold = 850
+	q.reward_gold = 350
 
 	var obj1 = QuestObjectiveScript.new()
 	obj1.type = QuestObjectiveScript.Type.VISIT
@@ -134,7 +134,7 @@ static func obter_quest_desafio_ravina() -> Quest:
 	q.auto_complete = false
 	q.turn_in_npc_key = &"cacador_de_zaban"
 	q.reward_xp = 350
-	q.reward_gold = 1500
+	q.reward_gold = 550
 	
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.KILL
@@ -157,7 +157,7 @@ static func obter_quest_secreta() -> Quest:
 	q.is_secret = true
 	q.turn_in_npc_key = &"ermitao"
 	q.reward_xp = 400
-	q.reward_gold = 3000
+	q.reward_gold = 800
 	
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.INVESTIGATE
@@ -179,7 +179,7 @@ static func obter_quest_secreta_altar() -> Quest:
 	q.is_secret = true
 	q.turn_in_npc_key = &"guardiao_da_floresta"
 	q.reward_xp = 300
-	q.reward_gold = 1200
+	q.reward_gold = 450
 	
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.STEALTH_PASS
@@ -201,7 +201,7 @@ static func obter_quest_investigacao_furto() -> Quest:
 	q.auto_complete = false
 	q.turn_in_npc_key = &"vendedor"
 	q.reward_xp = 280
-	q.reward_gold = 900
+	q.reward_gold = 400
 
 	var obj1 = QuestObjectiveScript.new()
 	obj1.type = QuestObjectiveScript.Type.VISIT
