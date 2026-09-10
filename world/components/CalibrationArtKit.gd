@@ -168,8 +168,7 @@ func _criar_viajante() -> void:
 	lbl.position = Vector2(-40, -40)
 	lbl.custom_minimum_size = Vector2(80, 14)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if ClassDB.class_exists("HunterUIStyle") or true:
-		HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(0.85, 0.9, 0.7))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(0.85, 0.9, 0.7))
 	lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
 	npc.add_child(lbl)
 
