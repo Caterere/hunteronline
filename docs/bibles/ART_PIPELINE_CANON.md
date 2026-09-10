@@ -112,7 +112,7 @@ PHASE 2  Trees + bushes + rocks + details  [densidade Estrada/Floresta — feito
 PHASE 3  Props + fences + signs + crates   [feito — WorldPropsKit]
 PHASE 4  Landmarks + NPCs + enemies        [feito — WorldLandmarkKit]
 PHASE 5  Combat FX + weather + night       [feito — WorldFxKit]
-PHASE 6  Map polish + storytelling + secrets  [próximo]
+PHASE 6  Map polish + storytelling + secrets  [em curso — WorldPolishKit]
 ```
 
 Kits de integração Godot:
@@ -124,6 +124,7 @@ Kits de integração Godot:
 | `WorldPropsKit` | 3 | Estrada + Floresta |
 | `WorldLandmarkKit` | 4 | Estrada + Floresta |
 | `WorldFxKit` | 5 | Estrada + Floresta |
+| `WorldPolishKit` | 6 | Estrada + Floresta |
 
 ------------------------------------------------------------------------
 

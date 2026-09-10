@@ -55,8 +55,10 @@
 - [x] Hybrid pipeline: pixen → fit → v3 rotate
 - [x] Regen 12 NPCs principais (Lobby/cast) — smoke geometry
 
+### Sessão 9 (Secondary cast + Phase 6)
+- [ ] Hybrid regen cast secundário (Hisoka, Netero, Biscuit, + Style Lock fails)
+- [ ] Phase 6 — `WorldPolishKit` (polish + storytelling + secrets) em Estrada/Floresta
+
 ## Próximo
-1. [ ] Phase 6 — Map polish + storytelling + secrets
-2. [ ] Regenerar cast secundário (Hisoka, Netero, Biscuit…) se necessário
-3. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
-4. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
+1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
+2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
