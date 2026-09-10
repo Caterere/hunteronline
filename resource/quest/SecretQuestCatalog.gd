@@ -139,7 +139,7 @@ static func criar_quest_secreta(id_secret: String) -> Quest:
 			q.description = "Encontre a gravação secreta de Ging Freecss no Distrito Dimensional e decifre sua mensagem sobre o Continente Negro."
 			q.reward_xp = 100000
 			q.reward_gold = 200000
-			var o1 := _criar_obj_visit(&"portal_hunter", "Arquivo Dimensional de Ging")
+			var o1 := _criar_obj_visit(&"story_gateway", "Arquivo do Guia da História")
 			q.objectives = [o1]
 			
 		"secret_gourmet_feast":

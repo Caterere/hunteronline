@@ -376,12 +376,14 @@ func _instanciar_sensores_nen_floresta() -> void:
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuAcampamentoNorte", Vector2(280, 140),
 		&"acampamento_salteadores_norte", "Acampamento de Salteadores",
-		Vector2(140, 100)
+		Vector2(140, 100),
+		&"candidato_exame", "Salteador Alertado"
 	)
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuClareiraLeste", Vector2(620, 380),
 		&"clareira_predadores_leste", "Clareira de Predadores Sensíveis",
-		Vector2(150, 110)
+		Vector2(150, 110),
+		&"lobo_sombras", "Fera das Sombras Alertada"
 	)
 
 

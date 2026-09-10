@@ -61,6 +61,7 @@ func _teste_1_quebra_por_golpes_fortes() -> void:
 		_assinalar(es.defesa_barra_atual == 0.0, "Segundo golpe forte zera a barra de defesa", "Valor inesperado: %f" % es.defesa_barra_atual)
 		_assinalar(es.em_defesa_quebrada == true, "Estado em_defesa_quebrada ativado com sucesso!", "Nao ativou defesa quebrada")
 		_assinalar(es.em_stagger == true, "Inimigo entra em stagger fisico simultaneo", "Stagger nao ativado")
+		_assinalar(es.em_knockdown == true, "Alias legado em_knockdown sincronizado com stagger", "em_knockdown ausente/falso")
 		_assinalar(es.tempo_timer_quebrada == 3.5, "Timer de vulnerabilidade configurado para 3.5s", "Timer incorreto: %f" % es.tempo_timer_quebrada)
 
 	enemy.queue_free()
@@ -166,7 +167,7 @@ func _teste_4_regeneracao_fora_de_combate() -> void:
 # ------------------------------------------------------------------------------
 func _teste_5_boss_bar_hud_com_defesa() -> void:
 	print("\n[TESTE 5/6] Testando Boss Bar com Barra de Defesa no PlayerHUD...")
-	var hud_scn = load("res://ui/HUD/HUD.tscn") as PackedScene
+	var hud_scn = load("res://ui/hud/HUD.tscn") as PackedScene
 	_assinalar(hud_scn != null, "HUD.tscn carregado", "HUD.tscn ausente")
 	if hud_scn == null: return
 

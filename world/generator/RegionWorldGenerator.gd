@@ -450,6 +450,9 @@ func _gerar_ravina_perigo() -> void:
 	zetsu_zone.position = Vector2(360 * config.tile_size, 460 * config.tile_size)
 	zetsu_zone.zone_id = &"ninho_feras_padokia"
 	zetsu_zone.zone_name = "Ninho das Feras das Sombras"
+	zetsu_zone.enemy_id = &"lobo_sombras"
+	zetsu_zone.enemy_name = "Fera do Ninho Alertada"
+	zetsu_zone.mostrar_marcador = true
 	
 	var zcol = CollisionShape2D.new()
 	var zbox = RectangleShape2D.new()
@@ -465,7 +468,8 @@ func _gerar_ravina_perigo() -> void:
 		Vector2(320 * config.tile_size, 480 * config.tile_size),
 		&"acampamento_salteadores_ravina",
 		"Acampamento dos Salteadores da Ravina",
-		Vector2(220, 160)
+		Vector2(220, 160),
+		&"candidato_exame", "Salteador da Ravina Alertado"
 	)
 
 

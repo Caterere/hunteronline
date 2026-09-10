@@ -199,7 +199,7 @@ func _on_etapa_iniciada(etapa_id: String, titulo: String, instrutor: String, ins
 		"nen_conceito":
 			lbl_meta.text = "● Fale com Elena [E] sobre Aura e Nen"
 		"conclusao":
-			lbl_meta.text = "✅ Siga para o Portal Hunter a Leste!"
+			lbl_meta.text = "✅ Fale com o Guia da História na praça!"
 		_:
 			lbl_meta.text = "● Em andamento..."
 	progress_bar.value = 0.0

@@ -133,7 +133,7 @@ func _atualizar_alvo_ativo() -> void:
 	# CONTEXTO 1: HUB CENTRAL / CIDADE DE PADOKIA (LOBBY)
 	# =========================================================
 	if is_lobby:
-		# Passos do hub: Elena (tutorial) → Wing (Nen) → Portal Hunter (leste)
+		# Passos do hub: Elena (tutorial) → Wing (Nen) → Guia da História (praça)
 		var total_passos_lobby := 3
 		var passo_lobby := 0
 
@@ -166,11 +166,11 @@ func _atualizar_alvo_ativo() -> void:
 		else:
 			passo_lobby = 2
 			current_target_type = "portal"
-			current_target_name = "Portal Hunter (Leste — Exame Hunter)"
-			var portal_hunter = cur_scn.get_node_or_null("PortalHunter")
-			if portal_hunter != null and portal_hunter is Node2D:
-				current_target_node = portal_hunter
-				current_target_pos = portal_hunter.global_position
+			current_target_name = "Guia da História (Praça — Missão Atual)"
+			var guia = cur_scn.get_node_or_null("StoryGatewayNPC")
+			if guia != null and guia is Node2D:
+				current_target_node = guia
+				current_target_pos = guia.global_position
 				target_found = true
 			else:
 				var portao_sul = cur_scn.get_node_or_null("PortaoMundoExterior")
@@ -200,7 +200,7 @@ func _atualizar_alvo_ativo() -> void:
 						target_found = true
 
 			if lbl_target_info:
-				lbl_target_info.text = "👉 Passo 3/%d: Siga até o Portal Hunter a Leste para iniciar a jornada!" % total_passos_lobby
+				lbl_target_info.text = "👉 Passo 3/%d: Fale com o Guia da História na praça para continuar sua história!" % total_passos_lobby
 				lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 
 		if target_found and player_ref != null:
@@ -667,7 +667,7 @@ func _buscar_no_recursivo_por_nome(parent: Node, target_id: String, target_name:
 func _coletar_areas_transicao(node: Node, out_list: Array) -> void:
 	if node == null or not is_instance_valid(node) or node.is_queued_for_deletion():
 		return
-	# Só portais reais (Area2D / MapTransitionArea) — evita pegar NPC "PortalHunter"
+	# Só portais reais (Area2D / MapTransitionArea) — evita pegar NPCs de despacho
 	var is_real_portal := node is MapTransitionArea or (node is Area2D and (node.is_in_group("portal") or node.is_in_group("transition")))
 	if is_real_portal and not (node is MissionGPSIndicator) and node is Node2D:
 		out_list.append(node)

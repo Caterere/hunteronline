@@ -96,7 +96,9 @@ static func criar_zetsu(
 	pos: Vector2,
 	zone_id: StringName,
 	zone_name: String,
-	area_size: Vector2 = Vector2(160, 120)
+	area_size: Vector2 = Vector2(160, 120),
+	enemy_id: StringName = &"lobo_sombras",
+	enemy_name: String = "Predador Alertado"
 ) -> ZetsuSensorZone:
 	if parent.get_node_or_null(nome) != null:
 		return parent.get_node_or_null(nome) as ZetsuSensorZone
@@ -107,6 +109,9 @@ static func criar_zetsu(
 	zone.zone_id = zone_id
 	zone.zone_name = zone_name
 	zone.spawn_inimigos_ao_falhar = true
+	zone.enemy_id = enemy_id
+	zone.enemy_name = enemy_name
+	zone.mostrar_marcador = true
 
 	var col := CollisionShape2D.new()
 	var box := RectangleShape2D.new()

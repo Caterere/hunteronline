@@ -654,7 +654,7 @@ func _tentar_disputa_faccao_ponte(forcar: bool = false) -> void:
 
 	if WorldEventManager != null and WorldEventManager.has_method("criar_evento_dinamico"):
 		WorldEventManager.criar_evento_dinamico(
-			"evento_disputa_ponte_padokia",
+			"evento_disputa_ponte_estrada_padokia",
 			"Disputa Territorial na Grande Ponte",
 			"A Associação Hunter e salteadores duelam pelo controle da rota comercial.",
 			"estrada_padokia",
@@ -708,7 +708,7 @@ func _on_salteador_morto(_killed_id) -> void:
 		if ReputationSystem != null:
 			ReputationSystem.alterar_reputacao(ReputationSystem.Faccao.ASSOCIACAO_HUNTER, 80, "Disputa da Grande Ponte")
 		if WorldEventManager != null and WorldEventManager.has_method("resolver_evento_jogador"):
-			WorldEventManager.resolver_evento_jogador("evento_disputa_ponte_padokia", true)
+			WorldEventManager.resolver_evento_jogador("evento_disputa_ponte_estrada_padokia", true)
 		var hud = get_tree().get_first_node_in_group("player_hud")
 		if hud and hud.has_method("exibir_notificacao"):
 			hud.exibir_notificacao("🏛️ Ponte segura! A Associação reconhece sua intervenção (+Rep).")

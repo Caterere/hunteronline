@@ -107,9 +107,12 @@ func _testar_pilar_2_inimigos_postura_e_stagger() -> void:
 	enemy_sys.is_invulnerable = false
 	enemy_sys.take_damage(60)
 	assert_true(enemy_sys.em_stagger == true, "Inimigo entrou em estado de STAGGER ao zerar a postura")
+	assert_true(enemy_sys.em_knockdown == true, "Alias em_knockdown acompanha stagger")
 
 	enemy_ai._update_state()
 	assert_true(enemy_ai.current_state == EnemyAI.State.STAGGER, "EnemyAI transicionou para State.STAGGER")
+	assert_true(enemy_sys.has_method("disparar_fala_ataque"), "EnemySystem expõe disparar_fala_ataque")
+	assert_true("battle_personality" in enemy_sys, "EnemySystem expõe battle_personality")
 
 	var dados_gyo = enemy_sys.obter_dados_inspecao_gyo()
 	assert_true(dados_gyo.has("categoria_nen"), "EnemySystem expõe categoria_nen para Gyo")

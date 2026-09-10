@@ -4,7 +4,7 @@ func _ready() -> void:
 	print("[*] Executando gerador de mapas conectados COM AUTOLOADS ATIVOS...")
 	var tileset = load("res://world/tilesets/lobby_tileset.tres") as TileSet
 	var player_scn = load("res://entities/Player/Player.tscn") as PackedScene
-	var hud_scn = load("res://ui/HUD/HUD.tscn") as PackedScene
+	var hud_scn = load("res://ui/hud/HUD.tscn") as PackedScene
 	var estrada_script = load("res://world/maps/EstradaPadokiaMap.gd")
 	var floresta_script = load("res://world/maps/FlorestaVestigiosMap.gd")
 

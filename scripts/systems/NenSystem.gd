@@ -756,9 +756,11 @@ func ativar_tecnica(
 
 	# --------------------------------------------------------
 	# Precisa ter Nen despertado.
+	# Exceção: ZETSU instintivo (supressão de aura) pode ser usado
+	# em exploração antes do despertar formal.
 	# --------------------------------------------------------
 
-	if obter_aura_maxima() <= 0.0:
+	if tecnica != Tecnica.ZETSU and obter_aura_maxima() <= 0.0:
 
 		print(
 			"Personagem ainda não despertou Nen."
@@ -766,12 +768,8 @@ func ativar_tecnica(
 
 		return false
 
-
-	# --------------------------------------------------------
-	# Precisa ter Aura.
-	# --------------------------------------------------------
-
-	if obter_aura() <= 0.0:
+	# Zetsu sem Nen despertado: não consome aura (aura pode ser 0)
+	if tecnica != Tecnica.ZETSU and obter_aura() <= 0.0:
 
 		print(
 			"Aura insuficiente."
@@ -934,7 +932,11 @@ func toggle_ko() -> void:
 func tecnica_ativa(
 	tecnica: Tecnica
 ) -> bool:
-	if PlayerData == null or not PlayerData.despertou_nen:
+	# Zetsu instintivo pode estar ativo antes do despertar formal (stealth zones).
+	# Demais técnicas exigem Nen despertado.
+	if PlayerData == null:
+		return false
+	if tecnica != Tecnica.ZETSU and not PlayerData.despertou_nen:
 		return false
 
 	match tecnica:
