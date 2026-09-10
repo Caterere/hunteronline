@@ -41,6 +41,10 @@ func _run_all() -> void:
 	_test_06_furto_quest_catalog()
 	await _test_07_gyo_inspect_and_input()
 	await _test_08_pergaminho_ui()
+	await _test_09_padokia_gyo_gate_despertou_nen()
+	_test_10_skill_tree_bloqueada_sem_nen()
+	_test_11_soft_cap_xp_saga()
+	_test_12_heavens_arena_challenge_wires_tower()
 
 
 func _ok(cond: bool, label: String) -> void:
@@ -282,3 +286,106 @@ func _test_08_pergaminho_ui() -> void:
 	await get_tree().process_frame
 	_ok(contract.get_child_count() > 0, "HunterMissionContractUI monta documento")
 	contract.queue_free()
+
+
+func _test_09_padokia_gyo_gate_despertou_nen() -> void:
+	print("\n[TESTE 9] Padokia: Gyo/furto só após despertou_nen...")
+	var scn := load("res://world/maps/regiao_vale_padokia.tscn") as PackedScene
+	if scn == null:
+		var MapScript = load("res://world/maps/RegiaoValePadokiaMap.gd")
+		_ok(MapScript != null, "RegiaoValePadokiaMap.gd carrega")
+		if MapScript == null:
+			return
+		PlayerData.despertou_nen = false
+		var mapa_off = MapScript.new()
+		mapa_off.name = "PadokiaGateOff"
+		add_child(mapa_off)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		_ok(mapa_off.get_node_or_null("PistaFurtoJanela") == null, "Sem pistas Gyo pré-despertar (script)")
+		mapa_off.queue_free()
+		await get_tree().process_frame
+
+		PlayerData.despertou_nen = true
+		var mapa_on = MapScript.new()
+		mapa_on.name = "PadokiaGateOn"
+		add_child(mapa_on)
+		await get_tree().process_frame
+		await get_tree().process_frame
+		if mapa_on.has_method("_popular_pistas_furto_gyo"):
+			mapa_on._popular_pistas_furto_gyo()
+		await get_tree().process_frame
+		_ok(mapa_on.get_node_or_null("PistaFurtoJanela") != null, "Pistas Gyo após despertar (script)")
+		mapa_on.queue_free()
+		PlayerData.despertou_nen = false
+		return
+
+	PlayerData.despertou_nen = false
+	var mapa_a := scn.instantiate()
+	add_child(mapa_a)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_ok(mapa_a.get_node_or_null("PistaFurtoJanela") == null, "Sem PistaFurtoJanela pré-despertar")
+	_ok(mapa_a.get_node_or_null("PistaFurtoPegada") == null, "Sem PistaFurtoPegada pré-despertar")
+	mapa_a.queue_free()
+	await get_tree().process_frame
+
+	PlayerData.despertou_nen = true
+	var mapa_b := scn.instantiate()
+	add_child(mapa_b)
+	await get_tree().process_frame
+	await get_tree().process_frame
+	_ok(mapa_b.get_node_or_null("PistaFurtoJanela") != null, "PistaFurtoJanela após despertar")
+	_ok(mapa_b.get_node_or_null("PistaFurtoPegada") != null, "PistaFurtoPegada após despertar")
+	mapa_b.queue_free()
+	PlayerData.despertou_nen = false
+
+
+func _test_10_skill_tree_bloqueada_sem_nen() -> void:
+	print("\n[TESTE 10] Skill tree bloqueada sem despertou_nen...")
+	PlayerData.despertou_nen = false
+	PlayerData.nen_skill_points = 5
+	var tree = PlayerData.obter_skill_tree() if PlayerData.has_method("obter_skill_tree") else null
+	if tree == null:
+		var NenSkillTreeScript = load("res://scripts/systems/NenSkillTree.gd")
+		_ok(NenSkillTreeScript != null, "NenSkillTree.gd carrega")
+		if NenSkillTreeScript == null:
+			return
+		tree = NenSkillTreeScript.new()
+		add_child(tree)
+	var sp_antes: int = PlayerData.nen_skill_points
+	var ok_invest: bool = tree.investir_ponto("ren_1") if tree.has_method("investir_ponto") else true
+	_ok(ok_invest == false, "investir_ponto retorna false sem despertar Nen")
+	_ok(PlayerData.nen_skill_points == sp_antes, "SP não é consumido com árvore bloqueada (%d)" % PlayerData.nen_skill_points)
+	PlayerData.despertou_nen = true
+	PlayerData.nen_skill_points = 5
+	var ok2: bool = tree.investir_ponto("ren_1") if tree.has_method("investir_ponto") else false
+	_ok(ok2 == true or (tree.has_method("no_desbloqueado") and tree.no_desbloqueado("ren_1")), "investir_ponto funciona após despertar Nen")
+	if tree.get_parent() == self:
+		tree.queue_free()
+	PlayerData.despertou_nen = false
+
+
+func _test_11_soft_cap_xp_saga() -> void:
+	print("\n[TESTE 11] Soft-cap XP por saga...")
+	PlayerData.arco_atual = 1
+	var m_ok: float = ProgressionConfig.obter_multiplicador_xp_soft_cap(20, 1)
+	var m_cap: float = ProgressionConfig.obter_multiplicador_xp_soft_cap(25, 1)
+	var m_over: float = ProgressionConfig.obter_multiplicador_xp_soft_cap(40, 1)
+	_ok(is_equal_approx(m_ok, 1.0), "Abaixo do soft-max: multiplicador 1.0 (%.2f)" % m_ok)
+	_ok(m_cap < 0.5, "No soft-max 25: XP amortecido (%.2f)" % m_cap)
+	_ok(m_over <= 0.06, "Muito acima do soft-max: XP residual baixo (%.2f)" % m_over)
+	_ok(ProgressionConfig.obter_faixa_saga(3).y == 60, "Arena Celestial soft-max = 60")
+	_ok(ProgressionConfig.obter_faixa_saga(6).y == 230, "Formigas soft-max = 230")
+
+
+func _test_12_heavens_arena_challenge_wires_tower() -> void:
+	print("\n[TESTE 12] HeavensArenaTowerUI desafia ringue real...")
+	var UIScript = load("res://ui/Arena/HeavensArenaTowerUI.gd")
+	_ok(UIScript != null, "HeavensArenaTowerUI.gd carrega")
+	if UIScript == null:
+		return
+	var src := FileAccess.get_file_as_string("res://ui/Arena/HeavensArenaTowerUI.gd")
+	_ok("CelestialTowerArena.tscn" in src, "Desafiar aponta para CelestialTowerArena.tscn")
+	_ok("andar_atual + 10" not in src, "Sem avanço automático +10 andares no botão Desafiar")
+	_ok("torre_cena_retorno" in src, "Define cena de retorno da torre")

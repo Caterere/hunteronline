@@ -346,25 +346,26 @@ func _abrir_bau_clareira(bau_node: Node, titulo: String, loot: Array) -> void:
 
 
 func _instanciar_sensores_nen_floresta() -> void:
-	# Pistas Gyo investigativas
-	NenSensorFactory.criar_gyo(
-		self, "GyoClueArvoreRaizes", Vector2(360, 280),
-		&"floresta_aura_raizes", "Raízes Pulsantes de Nen",
-		"As raízes da Árvore Milenar vibram com aura antiga. Alguém treinou Intensificação aqui recentemente.",
-		"Intensificação", 1, Color(0.35, 1.0, 0.55, 0.9)
-	)
-	NenSensorFactory.criar_gyo(
-		self, "GyoCluePegadasSul", Vector2(460, 500),
-		&"floresta_pegadas_fera", "Pegadas de Aura Predatória",
-		"Rastros de aura se dirigem às Ruínas de Zaban. A presa — ou o caçador — passou há pouco.",
-		"Emissão", 1, Color(0.95, 0.55, 0.25, 0.9)
-	)
-	NenSensorFactory.criar_gyo(
-		self, "GyoClueMarcaTotem", Vector2(180, 340),
-		&"floresta_marca_totem", "Marca Ritual Esquecida",
-		"Um selo rudimentar de Nen foi gravado na pedra musgosa. Exige foco de Gyo para ler o padrão.",
-		"Conjuração", 2, Color(0.55, 0.7, 1.0, 0.9)
-	)
+	# Gyo só após despertar Nen (Arena Celestial / Wing) — Zetsu/Ko permanecem exploráveis
+	if PlayerData != null and PlayerData.despertou_nen:
+		NenSensorFactory.criar_gyo(
+			self, "GyoClueArvoreRaizes", Vector2(360, 280),
+			&"floresta_aura_raizes", "Raízes Pulsantes de Nen",
+			"As raízes da Árvore Milenar vibram com aura antiga. Alguém treinou Intensificação aqui recentemente.",
+			"Intensificação", 1, Color(0.35, 1.0, 0.55, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoCluePegadasSul", Vector2(460, 500),
+			&"floresta_pegadas_fera", "Pegadas de Aura Predatória",
+			"Rastros de aura se dirigem às Ruínas de Zaban. A presa — ou o caçador — passou há pouco.",
+			"Emissão", 1, Color(0.95, 0.55, 0.25, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoClueMarcaTotem", Vector2(180, 340),
+			&"floresta_marca_totem", "Marca Ritual Esquecida",
+			"Um selo rudimentar de Nen foi gravado na pedra musgosa. Exige foco de Gyo para ler o padrão.",
+			"Conjuração", 2, Color(0.55, 0.7, 1.0, 0.9)
+		)
 
 	# Segunda rocha KO bloqueando baú/atalho oeste
 	NenSensorFactory.criar_ko(

@@ -115,9 +115,9 @@ static func _adicionar_arco_1(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_1.size()):
 		var id := i + 1
 		var stars := 1 if id <= 12 else 2
-		var hp_base := 450 + (id * 180)
-		var forca := 15 + (id * 2)
-		var def := 8 + int(id * 1.5)
+		var hp_base := 180 + (id * 45)  # ~225–1170 — alinhado ao soft-max lv25
+		var forca := 12 + id
+		var def := 6 + int(id * 0.8)
 		var xp := 180 + (id * 55)  # ~235–1390 — farm não estoura o soft-max 25
 		var gold := 2500 + (id * 600)
 		
@@ -154,9 +154,9 @@ static func _adicionar_arco_2(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_2.size()):
 		var id := 23 + i
 		var stars := 2
-		var hp_base := 2500 + (i * 350)
-		var forca := 35 + (i * 3)
-		var def := 22 + int(i * 2.0)
+		var hp_base := 420 + (i * 65)  # Kukuroo — soft-max ~40
+		var forca := 22 + (i * 2)
+		var def := 14 + i
 		var xp := 450 + (i * 90)  # Kukuroo — soft-max ~40
 		var gold := 8000 + (i * 1200)
 		
@@ -195,9 +195,9 @@ static func _adicionar_arco_3(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_3.size()):
 		var id := 39 + i
 		var stars := 2 if i < 12 else 3
-		var hp_base := 5000 + (i * 550)
-		var forca := 55 + (i * 3)
-		var def := 35 + int(i * 2.5)
+		var hp_base := 700 + (i * 85)  # Arena Celestial — soft-max ~60
+		var forca := 32 + (i * 2)
+		var def := 20 + int(i * 1.5)
 		var xp := 900 + (i * 140)  # Arena Celestial — soft-max ~60
 		var gold := 15000 + (i * 2000)
 		
@@ -239,9 +239,9 @@ static func _adicionar_arco_4(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_4.size()):
 		var id := 63 + i
 		var stars := 3
-		var hp_base := 12000 + (i * 900)
-		var forca := 80 + (i * 4)
-		var def := 50 + int(i * 3.0)
+		var hp_base := 1100 + (i * 110)  # Yorknew — soft-max ~85
+		var forca := 45 + (i * 3)
+		var def := 28 + int(i * 2.0)
 		var xp := 1400 + (i * 160)  # Yorknew — soft-max ~85
 		var gold := 40000 + (i * 3500)
 		
@@ -284,9 +284,9 @@ static func _adicionar_arco_5(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_5.size()):
 		var id := 95 + i
 		var stars := 3 if i < 18 else 4
-		var hp_base := 25000 + (i * 1400)
-		var forca := 120 + (i * 5)
-		var def := 75 + int(i * 3.5)
+		var hp_base := 1800 + (i * 150)  # Greed Island — soft-max ~130
+		var forca := 60 + (i * 3)
+		var def := 38 + int(i * 2.2)
 		var xp := 2200 + (i * 220)  # Greed Island — soft-max ~130
 		var gold := 80000 + (i * 6000)
 		
@@ -331,9 +331,9 @@ static func _adicionar_arco_6(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_6.size()):
 		var id := 129 + i
 		var stars := 4 if i < 25 else 5
-		var hp_base := 55000 + (i * 2500)
-		var forca := 180 + (i * 6)
-		var def := 110 + int(i * 4.0)
+		var hp_base := 3200 + (i * 200)  # Formigas — soft-max ~230
+		var forca := 85 + (i * 4)
+		var def := 55 + int(i * 2.8)
 		var xp := 4500 + (i * 380)  # Formigas Quimera — soft-max ~230
 		var gold := 150000 + (i * 12000)
 		
@@ -369,9 +369,9 @@ static func _adicionar_arco_7(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_7.size()):
 		var id := 171 + i
 		var stars := 4
-		var hp_base := 85000 + (i * 3500)
-		var forca := 240 + (i * 7)
-		var def := 150 + int(i * 5.0)
+		var hp_base := 4800 + (i * 280)  # Eleição — soft-max ~280
+		var forca := 110 + (i * 5)
+		var def := 70 + int(i * 3.5)
 		var xp := 7000 + (i * 450)  # Eleição — rumo ao teto ~280–350
 		var gold := 220000 + (i * 18000)
 		
@@ -408,9 +408,9 @@ static func _adicionar_arco_8(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_8.size()):
 		var id := 185 + i
 		var stars := 5
-		var hp_base := 140000 + (i * 6500)
-		var forca := 320 + (i * 10)
-		var def := 210 + int(i * 7.0)
+		var hp_base := 6200 + (i * 350)  # Continente Negro — soft-max ~320
+		var forca := 140 + (i * 6)
+		var def := 90 + int(i * 4.0)
 		var xp := 9000 + (i * 550)  # Continente Negro — paralelismo p/ 320+
 		var gold := 300000 + (i * 25000)
 		
@@ -448,17 +448,17 @@ static func _adicionar_arco_9(lista: Array[Dictionary]) -> void:
 	for i in range(nomes_pqs_9.size()):
 		var id := 201 + i
 		var stars := 5
-		var hp_base := 220000 + (i * 9000)
-		var forca := 420 + (i * 12)
-		var def := 280 + int(i * 8.0)
+		var hp_base := 7800 + (i * 420)  # Sucessão — soft-max ~350
+		var forca := 170 + (i * 7)
+		var def := 110 + int(i * 4.5)
 		var xp := 11000 + (i * 650)  # Sucessão — teto história ~350; resto via farm
 		var gold := 400000 + (i * 35000)
 		
 		# Boss Rush Supremo (PQ 220)
 		if id == 220:
-			hp_base = 400000
-			forca = 750
-			def = 450
+			hp_base = 18000
+			forca = 280
+			def = 160
 			xp = 35000
 			gold = 1500000
 

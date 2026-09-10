@@ -27,7 +27,10 @@ func _ready() -> void:
 	if AudioManager != null:
 		AudioManager.tocar_musica("legend_of_the_martial_artist")
 
-	andar_atual = PlayerData.torre_andar_atual
+	# Progresso unificado: UI da Arena + torre real
+	var ui_andar: int = int(PlayerData.attributes.get("andar_arena", 1)) if PlayerData != null else 1
+	andar_atual = maxi(1, maxi(ui_andar, PlayerData.torre_andar_atual if PlayerData != null else 1))
+	_sincronizar_progresso_andar(andar_atual)
 	print("=================================")
 	print("[CelestialTower] BEM-VINDO À TORRE CELESTIAL! ANDAR: ", andar_atual)
 	print("=================================")
@@ -36,13 +39,30 @@ func _ready() -> void:
 	_iniciar_andar(andar_atual)
 
 
+func _sincronizar_progresso_andar(andar: int) -> void:
+	if PlayerData == null:
+		return
+	PlayerData.torre_andar_atual = andar
+	PlayerData.attributes["andar_arena"] = andar
+
+
+func _obter_cena_retorno() -> String:
+	var fallback := "res://world/lobby.tscn"
+	if PlayerData == null:
+		return fallback
+	var ret = str(PlayerData.attributes.get("torre_cena_retorno", ""))
+	if ret.is_empty() or not ResourceLoader.exists(ret):
+		return fallback
+	return ret
+
+
 func _criar_elevador_saida() -> void:
 	var elevador := StaticBody2D.new()
 	elevador.name = "ElevadorSaida"
 	elevador.position = Vector2(40, 140)
 
 	var lbl := Label.new()
-	lbl.text = "🚪 Elevador\n[E] Voltar ao Lobby"
+	lbl.text = "🚪 Elevador\n[E] Sair do Ringue"
 	lbl.position = Vector2(-50, -28)
 	lbl.custom_minimum_size = Vector2(100, 14)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -53,18 +73,20 @@ func _criar_elevador_saida() -> void:
 
 	var inter = InteractionComponent.new()
 	inter.name = "InteractionComponent"
-	inter.interaction_text = "[E] Voltar ao Lobby"
+	inter.interaction_text = "[E] Sair do Ringue"
 	inter.interaction_radius = 20.0
 	inter.interacted.connect(func(_p):
+		var destino := _obter_cena_retorno()
+		var nome := "Arena Celestial" if "arena_celestial" in destino else "Capital dos Caçadores"
+		var sub := "Corredor dos Andares" if "arena_celestial" in destino else "Hunter Plaza — Hub Central"
 		var trans = get_node_or_null("/root/SceneTransition")
 		if trans != null and trans.has_method("mudar_cena"):
-			trans.mudar_cena("res://world/lobby.tscn", "Capital dos Caçadores", "Hunter Plaza — Hub Central")
+			trans.mudar_cena(destino, nome, sub)
 		else:
-			get_tree().change_scene_to_file("res://world/lobby.tscn")
+			get_tree().change_scene_to_file(destino)
 	)
 	elevador.add_child(inter)
 	add_child(elevador)
-
 
 
 func _criar_ui_torre() -> void:
@@ -105,18 +127,17 @@ func _criar_ui_torre() -> void:
 
 func _iniciar_andar(andar: int) -> void:
 	andar_atual = andar
-	PlayerData.torre_andar_atual = andar_atual
+	_sincronizar_progresso_andar(andar_atual)
 	lbl_andar_info.text = "🏯 TORRE CELESTIAL: ANDAR %d" % andar_atual
 	
 	# Verificar Batismo do 200º Andar
 	if andar == 200:
-		var nen_sys = get_tree().get_first_node_in_group("nen_system") as NenSystem
-		var tem_nen = nen_sys != null and nen_sys.nen_desbloqueado
+		var tem_nen := PlayerData != null and PlayerData.despertou_nen
 		if not tem_nen:
 			_falha_batismo_nen()
 			return
 
-	var premio_jenny: int = andar * 15000 + 20000
+	var premio_jenny: int = andar * 800 + 2000
 	lbl_recompensa_info.text = "Andar %d | Prêmio: %s J" % [andar, Economy.formatar_numero(premio_jenny)]
 	
 	_spawnar_desafiantes(andar)
@@ -127,11 +148,12 @@ func _falha_batismo_nen() -> void:
 	if hud and hud.has_method("exibir_notificacao"):
 		hud.exibir_notificacao("⚠️ A Barreira Assassina de Nen bloqueou sua passagem! Desperte o Nen antes do 200º Andar!")
 	get_tree().create_timer(3.0).timeout.connect(func():
+		var destino := _obter_cena_retorno()
 		var trans = get_node_or_null("/root/SceneTransition")
 		if trans != null and trans.has_method("mudar_cena"):
-			trans.mudar_cena("res://world/lobby.tscn", "Capital dos Caçadores", "Hunter Plaza — Hub Central")
+			trans.mudar_cena(destino, "Retorno", "Batismo de Nen incompleto")
 		else:
-			get_tree().change_scene_to_file("res://world/lobby.tscn")
+			get_tree().change_scene_to_file(destino)
 	)
 
 
@@ -169,13 +191,20 @@ func _criar_gladiador(andar: int, idx: int) -> Node2D:
 		sys.name = "EnemySystem"
 		body.add_child(sys)
 
+	# Escala alinhada ao soft-max da Arena (~lv 35–60), sem HP de endgame
 	var ed := EnemyData.new()
 	ed.enemy_name = "Gladiador do Andar %d" % andar if andar < 200 else "Mestre de Andar (Nen)"
-	ed.max_health = 1200 + (andar * 350)
-	ed.strength = 18 + (andar * 4)
-	ed.defense = 10 + (andar * 3)
-	ed.xp_reward = 35 + (andar * 18)
+	var hp: int = 280 + (andar * 18)
+	var frc: int = 12 + int(float(andar) * 1.15)
+	var dfs: int = 6 + int(float(andar) * 0.85)
 	ed.is_boss = (andar % 10 == 0)
+	if ed.is_boss:
+		hp = int(float(hp) * 1.65)
+		frc = int(float(frc) * 1.25)
+	ed.max_health = hp
+	ed.strength = frc
+	ed.defense = dfs
+	ed.xp_reward = 28 + (andar * 12)
 	sys.enemy_data = ed
 	sys.max_health = ed.max_health
 	sys.health = ed.max_health
@@ -195,8 +224,9 @@ func _criar_gladiador(andar: int, idx: int) -> Node2D:
 
 
 func _ao_vencer_andar() -> void:
-	var premio: int = andar_atual * 15000 + 20000
+	var premio: int = andar_atual * 800 + 2000
 	Economy.adicionar_gold(premio)
+	_sincronizar_progresso_andar(andar_atual + 1)
 	
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud and hud.has_method("exibir_notificacao"):

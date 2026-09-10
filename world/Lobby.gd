@@ -594,6 +594,8 @@ func _popular_torre_celestial() -> void:
 	inter.interaction_text = "[E] Entrar na Torre Celestial"
 	inter.interaction_radius = 20.0
 	inter.interacted.connect(func(_player):
+		if PlayerData != null:
+			PlayerData.attributes["torre_cena_retorno"] = "res://world/lobby.tscn"
 		var trans = get_node_or_null("/root/SceneTransition")
 		if trans != null and trans.has_method("mudar_cena"):
 			trans.mudar_cena("res://world/maps/CelestialTowerArena.tscn", "Torre Celestial (200 Andares)", "Desafio Solo & Batalha dos Mestres")

@@ -117,18 +117,20 @@ func _instanciar_boss_e_sentinelas() -> void:
 
 
 func _instanciar_sensores_nen_ruinas() -> void:
-	NenSensorFactory.criar_gyo(
-		self, "GyoClueAntecâmara", Vector2(320, 300),
-		&"zaban_selo_antecamara", "Selo de Pedra Resonante",
-		"A antecâmara guarda um selo de Nen. O Guardião Ancestral está vinculado a esta marca.",
-		"Especialização", 1, Color(0.85, 0.75, 0.35, 0.9)
-	)
-	NenSensorFactory.criar_gyo(
-		self, "GyoClueCamaraBoss", Vector2(200, 140),
-		&"zaban_fissura_aura", "Fissura de Aura Ancestral",
-		"Uma rachadura no piso emana aura densa. KO concentrado poderia abrir um atalho lateral.",
-		"Intensificação", 2, Color(1.0, 0.45, 0.3, 0.9)
-	)
+	# Gyo pós-despertar; Ko/Zetsu ficam disponíveis como exploração física
+	if PlayerData != null and PlayerData.despertou_nen:
+		NenSensorFactory.criar_gyo(
+			self, "GyoClueAntecâmara", Vector2(320, 300),
+			&"zaban_selo_antecamara", "Selo de Pedra Resonante",
+			"A antecâmara guarda um selo de Nen. O Guardião Ancestral está vinculado a esta marca.",
+			"Especialização", 1, Color(0.85, 0.75, 0.35, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoClueCamaraBoss", Vector2(200, 140),
+			&"zaban_fissura_aura", "Fissura de Aura Ancestral",
+			"Uma rachadura no piso emana aura densa. KO concentrado poderia abrir um atalho lateral.",
+			"Intensificação", 2, Color(1.0, 0.45, 0.3, 0.9)
+		)
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleCamaraLateral", Vector2(480, 160),
 		"Pilar Rachado da Câmara", &"pedra_aura"
