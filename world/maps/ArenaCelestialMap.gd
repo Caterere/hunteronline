@@ -23,11 +23,13 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ARENA)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco3()
 	_garantir_objeto_teste_agua()
 	_configurar_inimigos()
 	_densificar_corredor_arena()
+	_popular_espectadores_arena()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	_garantir_tower_ui()
@@ -132,16 +134,9 @@ func _popular_npcs_arco3() -> void:
 		var recepcionista = scn_npc.instantiate()
 		recepcionista.name = "Recepcionista"
 		recepcionista.position = Vector2(50, 0)
-		var spr = recepcionista.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(0.9, 0.8, 0.5, 1.0)
 		recepcionista.npc_name = "Recepcionista da Arena"
 		recepcionista.fala_padrao = "Bem-vindo à Arena Celestial! Por favor, preencha este formulário para se registrar. Boa sorte nas lutas e tente não morrer nos andares mais altos!"
+		NpcSpriteBinder.aplicar(recepcionista, ["npc_recepcionista_elena"])
 		add_child(recepcionista)
 
 	# 2. Zushi
@@ -149,16 +144,9 @@ func _popular_npcs_arco3() -> void:
 		var zushi = scn_npc.instantiate()
 		zushi.name = "Zushi"
 		zushi.position = Vector2(1000, -80)
-		var spr = zushi.get_node_or_null("Sprite2D") as Sprite2D
-		if spr:
-			spr.texture = load("res://assets/sprites/characters/player.png")
-			spr.hframes = 6
-			spr.vframes = 10
-			spr.frame = 0
-			spr.position = Vector2(0, -17)
-			spr.modulate = Color(1.0, 0.95, 0.7, 1.0)
 		zushi.npc_name = "Zushi"
 		zushi.fala_padrao = "Osu! Sou Zushi, discípulo do mestre Wing! Estou aprendendo o estilo Shingen-ryu de Kung Fu. Preciso treinar mais duro! Osu!"
+		NpcSpriteBinder.aplicar(zushi, ["npc_discipulo_zushi"])
 		add_child(zushi)
 
 	# 3. Mestre Wing (Dojo — alinhado ao Teste da Água)
@@ -187,14 +175,7 @@ func _popular_npcs_arco3() -> void:
 			hisoka = scn_hisoka.instantiate()
 		else:
 			hisoka = scn_npc.instantiate()
-			var spr = hisoka.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(0.9, 0.1, 0.5, 1.0)
+			NpcSpriteBinder.aplicar(hisoka, ["npc_hisoka"])
 		
 		hisoka.name = "Hisoka"
 		hisoka.position = Vector2(3500, -100)
@@ -324,6 +305,8 @@ func _densificar_corredor_arena() -> void:
 		{"name": "LutadorAmbient_B", "pos": Vector2(1350, 80), "label": "Lutador Veterano (70º)"},
 		{"name": "LutadorAmbient_C", "pos": Vector2(1850, -60), "label": "Lutador Elite (120º)"},
 		{"name": "LutadorAmbient_D", "pos": Vector2(2500, 40), "label": "Lutador do Corredor (160º)"},
+		{"name": "LutadorAmbient_E", "pos": Vector2(2900, -50), "label": "Lutador do 180º"},
+		{"name": "LutadorAmbient_F", "pos": Vector2(3200, 70), "label": "Desafiante do Corredor"},
 	]
 	for f in fillers:
 		if get_node_or_null(f["name"]) != null:
@@ -363,6 +346,35 @@ func _densificar_corredor_arena() -> void:
 		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
 		marker.add_child(lbl)
 		add_child(marker)
+
+
+
+## Espectadores / lutadores offline com sheet PixelLab ambient.
+func _popular_espectadores_arena() -> void:
+	var scn_npc = load("res://entities/npc/NPC.tscn")
+	if scn_npc == null:
+		return
+	var specs := [
+		{"name": "LutadorTreinoA", "pos": Vector2(1200, 90), "npc": "Lutador de Aquecimento", "fala": "O 50º andar já quebra muita gente. Treine o ritmo de respiração!", "ids": ["npc_lutador_arena_ambient"]},
+		{"name": "LutadorTreinoB", "pos": Vector2(2200, -90), "npc": "Lutador do Corredor", "fala": "Hisoka assiste de cima. Não dê espetáculo cedo demais.", "ids": ["npc_lutador_arena_ambient"]},
+	]
+	for s in specs:
+		if get_node_or_null(s["name"]) != null:
+			continue
+		var npc = scn_npc.instantiate()
+		npc.name = s["name"]
+		npc.position = s["pos"]
+		npc.npc_name = s["npc"]
+		npc.fala_padrao = s["fala"]
+		NpcSpriteBinder.aplicar(npc, s["ids"])
+		var living := LivingNPCBehavior.new()
+		living.name = "LivingNPCBehavior"
+		living.npc_nome = s["npc"]
+		living.tipo_marcador = "ambient"
+		living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
+		living.raio_patrulha = 42.0
+		npc.add_child(living)
+		add_child(npc)
 
 
 func _configurar_portal_conclusao() -> void:

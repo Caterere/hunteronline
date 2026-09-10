@@ -26,6 +26,12 @@
 - [x] Integrar `CalibrationArtKit` na Estrada Real de Padokia
 - [x] Smoke `test_pixellab_calibration_suite`
 
+### Sessão 3b (Kukuroo densify + PixelLab) — from PR #7
+- [x] Kukuroo: 5 mordomos ambient + placas + NPCs vivos (Jardineiro/Aprendiz)
+- [x] Kukuroo: trilha Gyo (3) + Ko pedra (pós-Nen) + 3 Zetsu
+- [x] Assets PixelLab 48px: mordomo/mafioso/lutador/herbalista + lanternas/crates/posts + Wang sheets
+- [x] Smoke Kukuroo density + visual density — ver scratch suites
+
 ### Sessão 4 (Phase 2 world density)
 - [x] Referência world detail (grama/terra/árvores)
 - [x] Wang grass/dirt refinado + tree/bush/rock/flower/stump family
@@ -61,4 +67,5 @@
 
 ## Próximo
 1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
-2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
+2. [x] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
+3. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar

@@ -38,6 +38,7 @@ func _ready() -> void:
 	_configurar_audio_e_hud()
 	_posicionar_player()
 	_criar_elementos_interativos()
+	_densificar_vida_estrada()
 	_criar_zona_protecao_escolta()
 	_criar_grande_ponte()
 	_conectar_ciclo_noturno()
@@ -118,6 +119,60 @@ func _posicionar_player() -> void:
 		if wpm != null and wpm.has_method("posicionar_player_no_spawn"):
 			wpm.posicionar_player_no_spawn(player)
 
+
+
+
+func _densificar_vida_estrada() -> void:
+	var scn_npc = load("res://entities/npc/NPC.tscn")
+	if scn_npc == null:
+		return
+	var walkers := [
+		{"name": "ViajantePatrulha", "pos": Vector2(360, 180), "npc": "Viajante da Associação", "fala": "A Estrada Real fica perigosa depois do anoitecer. Fique perto da fogueira.", "ids": ["npc_viajante_scout"], "r": 56.0},
+		{"name": "GuardaItinerante", "pos": Vector2(420, 320), "npc": "Guarda Itinerante", "fala": "Mantenha a carroça à vista. Salteadores cheiram Jenny de longe.", "ids": ["npc_guarda_fronteira"], "r": 64.0},
+	]
+	for w in walkers:
+		if get_node_or_null(w["name"]) != null:
+			continue
+		var npc = scn_npc.instantiate()
+		npc.name = w["name"]
+		npc.position = w["pos"]
+		npc.npc_name = w["npc"]
+		npc.fala_padrao = w["fala"]
+		NpcSpriteBinder.aplicar(npc, w["ids"])
+		var living := LivingNPCBehavior.new()
+		living.name = "LivingNPCBehavior"
+		living.npc_nome = w["npc"]
+		living.tipo_marcador = "ambient"
+		living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
+		living.raio_patrulha = w["r"]
+		npc.add_child(living)
+		add_child(npc)
+
+	# Lanternas extras ao longo da via
+	if get_node_or_null("LanternasEstradaExtra") == null:
+		var root := Node2D.new()
+		root.name = "LanternasEstradaExtra"
+		add_child(root)
+		for i in range(4):
+			var y := 140.0 + i * 110.0
+			for x in [300.0, 500.0]:
+				var n := Node2D.new()
+				n.name = "Lanterna_%d_%d" % [int(x), int(y)]
+				n.position = Vector2(x, y)
+				var spr := Sprite2D.new()
+				spr.centered = true
+				spr.position = Vector2(0, -10)
+				spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+				if ResourceLoader.exists("res://assets/sprites/objects/hunter_road_lantern.png"):
+					spr.texture = load("res://assets/sprites/objects/hunter_road_lantern.png")
+				n.add_child(spr)
+				var light := PointLight2D.new()
+				light.position = Vector2(0, -12)
+				light.color = Color(1.0, 0.85, 0.55)
+				light.energy = 0.85
+				light.texture_scale = 1.05
+				n.add_child(light)
+				root.add_child(n)
 
 func _criar_elementos_interativos() -> void:
 	# 1. Fogueira de Descanso do Caçador (Asset Definitivo)

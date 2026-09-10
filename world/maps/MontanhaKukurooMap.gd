@@ -29,6 +29,8 @@ func _ready() -> void:
 	_garantir_dialogue_ui()
 	_popular_npcs_arco2()
 	_configurar_inimigos()
+	_densificar_alameda_kukuroo()
+	_instanciar_sensores_nen_kukuroo()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -247,6 +249,124 @@ func _configurar_inimigos() -> void:
 				if QuestSystem != null:
 					QuestSystem.registrar_spawn_posicao_missao(&"mordomo_combate", node.global_position, 2, 14, -1, null, "Mordomo de Combate Zoldyck")
 
+
+
+
+## Densifica a alameda Zoldyck: mordomos ambient, placas de zona e props de leitura.
+func _densificar_alameda_kukuroo() -> void:
+	var scn_enemy = load("res://scripts/systems/EnemySystem/Enemy.tscn")
+	if scn_enemy != null:
+		var fillers := [
+			{"name": "MordomoAmbient_A", "pos": Vector2(700, 40), "label": "Mordomo Patrulheiro (Portão)"},
+			{"name": "MordomoAmbient_B", "pos": Vector2(1400, -50), "label": "Mordomo da Alameda"},
+			{"name": "MordomoAmbient_C", "pos": Vector2(2100, 60), "label": "Sentinela do Jardim"},
+			{"name": "MordomoAmbient_D", "pos": Vector2(2800, -40), "label": "Guarda da Mansão"},
+			{"name": "MordomoAmbient_E", "pos": Vector2(3200, 50), "label": "Vigia do Trono"},
+		]
+		for f in fillers:
+			if get_node_or_null(f["name"]) != null:
+				continue
+			var mob = scn_enemy.instantiate()
+			mob.name = f["name"]
+			mob.position = f["pos"]
+			mob.add_to_group("enemy")
+			mob.add_to_group("enemies")
+			var es = mob.get_node_or_null("EnemySystem")
+			if es != null:
+				es.is_mission_enemy = false
+				es.enemy_id = &"mordomo_combate"
+				es.enemy_name = f["label"]
+			add_child(mob)
+
+	var placas := [
+		{"name": "PlacaKukuPortao", "pos": Vector2(250, -70), "text": "📍 Portão da Testagem — 4 toneladas"},
+		{"name": "PlacaKukuAlameda", "pos": Vector2(1200, -90), "text": "📍 Alameda das Árvores Proibidas"},
+		{"name": "PlacaKukuMansao", "pos": Vector2(2400, -110), "text": "📍 Mansão dos Mordomos Zoldyck"},
+		{"name": "PlacaKukuTrono", "pos": Vector2(3400, -90), "text": "📍 Sala do Trono — Silva Zoldyck"},
+	]
+	for p in placas:
+		if get_node_or_null(p["name"]) != null:
+			continue
+		var marker := Node2D.new()
+		marker.name = p["name"]
+		marker.position = p["pos"]
+		var lbl := Label.new()
+		lbl.text = p["text"]
+		lbl.position = Vector2(-70, -10)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 5)
+		lbl.add_theme_color_override("font_color", Color(0.75, 0.95, 0.7, 0.95))
+		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+		marker.add_child(lbl)
+		add_child(marker)
+
+	# NPCs ambient caminhando (vida na montanha)
+	var scn_npc = load("res://entities/npc/NPC.tscn")
+	if scn_npc != null:
+		var ambient_npcs := [
+			{"name": "JardineiroZoldyck", "pos": Vector2(900, 80), "npc": "Jardineiro da Família", "fala": "As árvores proibidas só abrem caminho a quem a família permite...", "ids": ["npc_mordomo_zoldyck_ambient", "npc_viajante_scout"]},
+			{"name": "AprendizMordomo", "pos": Vector2(1900, -70), "npc": "Aprendiz de Mordomo", "fala": "Gotoh exige precisão absoluta. Uma moeda caída é fracasso.", "ids": ["npc_mordomo_zoldyck_ambient", "npc_mordomo_gotoh", "enemy_mordomo_zoldyck"]},
+		]
+		for a in ambient_npcs:
+			if get_node_or_null(a["name"]) != null:
+				continue
+			var npc = scn_npc.instantiate()
+			npc.name = a["name"]
+			npc.position = a["pos"]
+			npc.npc_name = a["npc"]
+			npc.fala_padrao = a["fala"]
+			NpcSpriteBinder.aplicar(npc, a["ids"])
+			var living := LivingNPCBehavior.new()
+			living.name = "LivingNPCBehavior"
+			living.npc_nome = a["npc"]
+			living.tipo_marcador = "ambient"
+			living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
+			living.raio_patrulha = 48.0
+			npc.add_child(living)
+			add_child(npc)
+
+
+## Sensores Nen: Gyo pós-despertar + Zetsu na alameda (prática furtiva).
+func _instanciar_sensores_nen_kukuroo() -> void:
+	if PlayerData != null and PlayerData.despertou_nen:
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaPortaoAura", Vector2(400, -20),
+			&"kukuroo_portao_aura", "Resíduo no Portão da Testagem",
+			"O ferro do portão ainda vibra com a força de quem o abriu — e com aura de assassinos.",
+			"Intensificação", 1, Color(0.55, 0.95, 0.7, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaAlamedaMike", Vector2(1300, 30),
+			&"kukuroo_pegada_mike", "Pegada do Cão Mike",
+			"Aura animal densa entre as árvores. Mike patrulha mesmo sem estar visível.",
+			"Emissão", 1, Color(0.95, 0.65, 0.35, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaTronoSilva", Vector2(3400, -60),
+			&"kukuroo_trono_silva", "Pressão do Trono",
+			"A sala do trono esmaga a aura fraca. Gyo revela o domínio de Silva.",
+			"Especialização", 2, Color(0.7, 0.45, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoPedraAlameda", Vector2(1600, 40),
+			"Pedra Selada da Alameda", &"pocao_aura"
+		)
+
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuArbustoAlameda", Vector2(1100, -100),
+		&"kukuroo_arbusto_alameda", "Arbusto Vigia da Alameda",
+		Vector2(150, 100), &"mordomo_combate", "Mordomo Alertado"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuJardimMansao", Vector2(2300, 90),
+		&"kukuroo_jardim_mansao", "Jardim dos Mordomos",
+		Vector2(160, 110), &"mordomo_combate", "Sentinela Zoldyck Alertada"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCorredorTrono", Vector2(3100, -80),
+		&"kukuroo_corredor_trono", "Corredor do Trono",
+		Vector2(140, 100), &"mordomo_combate", "Guarda do Trono"
+	)
 
 func _configurar_portal_conclusao() -> void:
 	var portal = get_node_or_null("PortalArenaCelestial") as MapTransitionArea
