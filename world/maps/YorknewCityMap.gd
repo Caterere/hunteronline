@@ -26,6 +26,8 @@ func _ready() -> void:
 	_garantir_dialogue_ui()
 	_popular_npcs_arco4()
 	_configurar_inimigos()
+	_densificar_ruas_yorknew()
+	_instanciar_sensores_nen_yorknew()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -203,3 +205,96 @@ func _configurar_portal_conclusao() -> void:
 		portal.story_gate.default_locked_message = "Você precisa concluir todas as 34 etapas de Yorknew City e derrotar a projeção de Chrollo antes de entrar em Greed Island!"
 		portal.callback_dialogo_previo = func(mudar_cena_cb: Callable):
 			StoryCutsceneManager.executar_yorknew_cutscene(get_tree(), mudar_cena_cb)
+
+
+## Densifica as avenidas com mafiosos ambient (não-missão) entre os beats da história.
+func _densificar_ruas_yorknew() -> void:
+	var scn_enemy = load("res://scripts/systems/EnemySystem/Enemy.tscn")
+	if scn_enemy == null:
+		return
+
+	var fillers := [
+		{"name": "MafiosoAmbient_A", "pos": Vector2(600, 40), "label": "Soldado da Máfia (Leilão)"},
+		{"name": "MafiosoAmbient_B", "pos": Vector2(1500, -50), "label": "Capanga das Ruas"},
+		{"name": "MafiosoAmbient_C", "pos": Vector2(2100, 60), "label": "Olheiro do Sindicato"},
+		{"name": "MafiosoAmbient_D", "pos": Vector2(3100, -40), "label": "Guarda do Cemitério"},
+	]
+	for f in fillers:
+		if get_node_or_null(f["name"]) != null:
+			continue
+		var mob = scn_enemy.instantiate()
+		mob.name = f["name"]
+		mob.position = f["pos"]
+		mob.add_to_group("enemy")
+		mob.add_to_group("enemies")
+		var es = mob.get_node_or_null("EnemySystem")
+		if es != null:
+			es.is_mission_enemy = false
+			es.enemy_id = &"mafioso_yorknew"
+			es.enemy_name = f["label"]
+		add_child(mob)
+
+	var placas := [
+		{"name": "PlacaYorkLeilao", "pos": Vector2(350, -70), "text": "📍 Distrito do Leilão Underground"},
+		{"name": "PlacaYorkRuas", "pos": Vector2(1600, -90), "text": "📍 Avenida Central — Yorknew"},
+		{"name": "PlacaYorkCemiterio", "pos": Vector2(2700, -110), "text": "📍 Edifício Cemitério"},
+		{"name": "PlacaYorkTrupe", "pos": Vector2(3700, -90), "text": "📍 Zona da Trupe Fantasma"},
+	]
+	for p in placas:
+		if get_node_or_null(p["name"]) != null:
+			continue
+		var marker := Node2D.new()
+		marker.name = p["name"]
+		marker.position = p["pos"]
+		var lbl := Label.new()
+		lbl.text = p["text"]
+		lbl.position = Vector2(-70, -10)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		lbl.add_theme_font_size_override("font_size", 5)
+		lbl.add_theme_color_override("font_color", Color(0.95, 0.85, 0.45, 0.95))
+		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+		marker.add_child(lbl)
+		add_child(marker)
+
+
+## Trilha Gyo pós-despertar + becos Zetsu (prática furtiva / emboscada).
+func _instanciar_sensores_nen_yorknew() -> void:
+	if PlayerData != null and PlayerData.despertou_nen:
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaLeilaoAura", Vector2(400, -20),
+			&"yorknew_leilao_aura", "Resíduo de Nen no Leilão",
+			"Objetos do leilão underground vibram com aura falsa — Gyo revela falsificações.",
+			"Materialização", 1, Color(0.45, 0.85, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaRuasAranha", Vector2(1800, 30),
+			&"yorknew_pegada_aranha", "Pegada da Aranha",
+			"Rastro diluído de Nen especial — alguém da Trupe passou pelas ruas.",
+			"Especialização", 1, Color(0.95, 0.4, 0.55, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaCemiterioRequiem", Vector2(2700, -80),
+			&"yorknew_requiem_aura", "Eco do Réquiem",
+			"Aura densa no Edifício Cemitério. O réquiem de Uvogin ainda ecoa.",
+			"Emissão", 2, Color(0.7, 0.35, 0.9, 0.9)
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoCaixoteLeilao", Vector2(550, 20),
+			"Caixote Blindado do Leilão", &"pocao_aura"
+		)
+
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuBecoRuasNorte", Vector2(1400, -120),
+		&"yorknew_beco_norte", "Beco Vigiado da Máfia",
+		Vector2(140, 100), &"mafioso_yorknew", "Mafioso Alertado"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuBecoCemiterio", Vector2(2500, 100),
+		&"yorknew_beco_cemiterio", "Alameda do Cemitério",
+		Vector2(160, 110), &"mafioso_yorknew", "Sentinela Mafiosa Alertada"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuBecoEsconderijo", Vector2(3800, -80),
+		&"yorknew_beco_esconderijo", "Beco do Esconderijo da Trupe",
+		Vector2(150, 100), &"mafioso_yorknew", "Olheiro da Aranha"
+	)

@@ -1878,7 +1878,27 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 					q.objectives = [_criar_obj_visit(&"cheadle", "Presidente Cheadle")]
 
 	_quest_cache[chave] = q
+	# Escala narrativa alinhada aos soft-max por saga (ProgressionConfig).
+	# Valores brutos históricos eram de outra curva; o fator evita saltos de dezenas de níveis.
+	q.reward_xp = escalar_xp_narrativo(arco, q.reward_xp)
 	return q
+
+
+## Reduz XP canônico para acompanhar soft-caps: Exam~25, Arena~60, Yorknew~85, GI~130, Formigas~230, fim~350.
+static func escalar_xp_narrativo(arco: int, xp_bruto: int) -> int:
+	var fator: float = 1.0
+	match arco:
+		1: fator = 0.70   # Exam — leve freio
+		2: fator = 0.45   # Kukuroo
+		3: fator = 0.28   # Arena Celestial
+		4: fator = 0.16   # Yorknew
+		5: fator = 0.09   # Greed Island
+		6: fator = 0.055  # Formigas Chimera
+		7: fator = 0.045  # Eleição
+		8: fator = 0.035  # Continente Negro
+		9: fator = 0.028  # Sucessão Kakin
+		_: fator = 0.05
+	return maxi(50, int(round(float(xp_bruto) * fator)))
 
 
 static func _criar_obj_visit(npc_id: StringName, npc_nome: String) -> QuestObjective:
