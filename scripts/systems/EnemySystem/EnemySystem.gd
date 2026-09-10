@@ -1257,4 +1257,3 @@ func _ajustar_arvore_animacao_para_8dir() -> void:
 	var anim_tree = enemy_body.get_node_or_null("AnimationTree") as AnimationTree
 	if anim_tree != null:
 		anim_tree.active = false
-
