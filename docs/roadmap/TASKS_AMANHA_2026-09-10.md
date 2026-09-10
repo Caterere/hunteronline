@@ -56,7 +56,7 @@
 - [x] Regen 12 NPCs principais (Lobby/cast) — smoke geometry
 
 ### Sessão 9 (Secondary cast + Phase 6)
-- [ ] Hybrid regen cast secundário (Hisoka, Netero, Biscuit, + Style Lock fails)
+- [x] Hybrid regen cast secundário (Hisoka, Netero, Biscuit, + Style Lock fails) — 20/20, smoke 102/102
 - [ ] Phase 6 — `WorldPolishKit` (polish + storytelling + secrets) em Estrada/Floresta
 
 ## Próximo

@@ -907,3 +907,9 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
   - `npc_gon`, `npc_killua`, `npc_kurapika`, `npc_leorio`
 - **Status:** approved / integrated (paths unchanged — Lobby/maps pick up automatically)
 
+### Registro 126-145: Secondary Cast Style Lock hybrid regen (pre–Phase 6)
+- **Batch:** `secondary_cast_hybrid_stylelock`
+- **Pipeline:** create_image_pixen → fit (~20px / feet Y≈42) → create_character v3 + fitted south ref
+- **NPCs (20):** Hisoka, Netero, Biscuit, Chrollo, Tonpa, Ging, Hanzo, Menchi, Pokkle, Ponzu, Battera, Melody, Canary, Gotoh, Silva, Tsezguerra, Buhara, Gittarackur, Bodoro, Nicol
+- **Smoke:** `scratch/test_secondary_cast_stylelock_suite.tscn` → 102/102
+- **Meta:** `assets/sprites/tilesets/pixellab/secondary_cast_hybrid_stylelock.json`
