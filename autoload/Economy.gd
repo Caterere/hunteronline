@@ -167,6 +167,27 @@ func adicionar_gold(quantidade: int) -> void:
 	print("[Economy] Gold adicionado: +", quantidade, " | Total: ", PlayerData.attributes["gold"])
 
 
+## Drop de Jenny por kill — faixa base menor + soft-cap early (lv≤15).
+func calcular_drop_jenny_inimigo(enemy_level: int) -> int:
+	var lv: int = maxi(1, enemy_level)
+	var bruto: int = randi_range(12, 36) * lv
+	var fator: float = 1.0
+	if lv <= 15:
+		fator = 0.45
+	elif lv <= 30:
+		fator = 0.65
+	elif lv <= 50:
+		fator = 0.85
+	return maxi(5, int(round(float(bruto) * fator)))
+
+
+## Prêmio de andar da Arena Celestial (curva suave vs linear antiga andar*800+2000).
+func calcular_premio_jenny_andar_arena(andar: int) -> int:
+	var a: int = maxi(1, andar)
+	# Linear leve + termo quadrático suave para mid/late floors.
+	return maxi(100, int(round(float(a) * 140.0 + 180.0 + float(a * a) * 0.35)))
+
+
 func adicionar_ouro(quantidade: int) -> void:
 	adicionar_gold(quantidade)
 

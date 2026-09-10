@@ -20,7 +20,15 @@
 
 ---
 
+### Sessão 4 (Jenny early retune)
+- [x] `CanonQuestCatalog.escalar_jenny_narrativo` por arco
+- [x] Soft-cap drop inimigo + prêmio Arena Celestial
+- [x] Padokia quests/baú early Jenny reduzidos
+- [x] Smoke `test_jenny_early_retune_suite` 
+
+---
+
 ## Próximo
 1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
 2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
-3. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar
+3. [x] Retune fino de Jenny/loot early-game (escala canônica + drop + Arena + Padokia)

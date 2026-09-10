@@ -1881,6 +1881,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 	# Escala narrativa alinhada aos soft-max por saga (ProgressionConfig).
 	# Valores brutos históricos eram de outra curva; o fator evita saltos de dezenas de níveis.
 	q.reward_xp = escalar_xp_narrativo(arco, q.reward_xp)
+	q.reward_gold = escalar_jenny_narrativo(arco, q.reward_gold)
 	return q
 
 
@@ -1899,6 +1900,23 @@ static func escalar_xp_narrativo(arco: int, xp_bruto: int) -> int:
 		9: fator = 0.028  # Sucessão Kakin
 		_: fator = 0.05
 	return maxi(50, int(round(float(xp_bruto) * fator)))
+
+
+## Freia Jenny canônico early/mid para alinhar com loja (30–500) e sink de Hatsu (5k).
+static func escalar_jenny_narrativo(arco: int, jenny_bruto: int) -> int:
+	var fator: float = 1.0
+	match arco:
+		1: fator = 0.40   # Exam — freio forte (loot + baús ainda somam)
+		2: fator = 0.32   # Kukuroo
+		3: fator = 0.22   # Arena Celestial
+		4: fator = 0.15   # Yorknew
+		5: fator = 0.10   # Greed Island
+		6: fator = 0.07   # Formigas Chimera
+		7: fator = 0.055  # Eleição
+		8: fator = 0.04   # Continente Negro
+		9: fator = 0.032  # Sucessão Kakin
+		_: fator = 0.05
+	return maxi(40, int(round(float(jenny_bruto) * fator)))
 
 
 static func _criar_obj_visit(npc_id: StringName, npc_nome: String) -> QuestObjective:
