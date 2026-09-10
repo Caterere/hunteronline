@@ -29,8 +29,10 @@ Design canônico do Hunter Online. Complementa ADRs em `docs/architecture/`.
 | [EQUIPMENT_BIBLE.md](EQUIPMENT_BIBLE.md) | Equipamento |
 | [FACTION_REPUTATION_BIBLE.md](FACTION_REPUTATION_BIBLE.md) | Facções |
 | [UI_UX_BIBLE.md](UI_UX_BIBLE.md) | UI |
-| [VISUAL_BIBLE.md](VISUAL_BIBLE.md) | Visual |
-| [PIXEL_ART_STYLE_BIBLE.md](PIXEL_ART_STYLE_BIBLE.md) | Style lock pixel |
+| [VISUAL_BIBLE.md](VISUAL_BIBLE.md) | Visual / render / Y-sort |
+| [PIXEL_ART_STYLE_BIBLE.md](PIXEL_ART_STYLE_BIBLE.md) | Style lock de **personagens** (48×48) |
+| [PIXEL_ART_PRODUCTION_BIBLE.md](PIXEL_ART_PRODUCTION_BIBLE.md) | Pipeline / mundo rico / phases |
+| [ART_PIPELINE_CANON.md](ART_PIPELINE_CANON.md) | **União anti-conflito** de todas as regras de arte |
 | [AUDIO_BIBLE.md](AUDIO_BIBLE.md) | Áudio |
 | [CUTSCENE_SYSTEM_BIBLE.md](CUTSCENE_SYSTEM_BIBLE.md) | Cutscenes |
 | [QA_BIBLE.md](QA_BIBLE.md) | QA |

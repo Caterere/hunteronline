@@ -1,13 +1,13 @@
 # REGISTRO OFICIAL DE ASSETS PERMANENTES (PIXELLAB PIPELINE)
-## Hunter Online ??? World Production Bible (Se????o 37)
+## Hunter Online — Art Pipeline Canon + Production Bible
 
-Este documento registra formalmente todos os assets permanentes gerados via PixelLab MCP e integrados ao projeto, garantindo reprodutibilidade, continuidade de estilo e rastreabilidade conforme a **World Production Bible**.
+Este documento registra formalmente todos os assets permanentes gerados via PixelLab MCP e integrados ao projeto.
 
-> [!CRITICAL]
-> **STYLE ANCHOR OFICIAL DO PROJETO:** `res://assets/sprites/characters/player.png` (ou `player(3).png`).
-> Todos os personagens do jogo seguem o padr??o **48??48 pixels**, com bonecos de **20 a 22 px de altura**, p??s em **Y = 42**, propor????o chibi 2.5 cabe??as, olhos estilizados em ponto (1??2 px sem esclera), sombreamento plano e paleta reduzida (m??x. 11-14 cores/frame).
-> Aprovados estritamente pela `16_PIXEL_ART_STYLE_BIBLE.md`. Sprites legados gerados em 68??68 px est??o marcados para retifica????o futura para conformidade absoluta com o Style Lock.
-
+> **Autoridade:** `docs/bibles/ART_PIPELINE_CANON.md`
+> **STYLE ANCHOR DE PERSONAGEM:** `res://assets/sprites/characters/player.png` / `assets/reference/player(3).png`
+> Personagens: 48×48, ~20–22 px, pés Y≈42 — `PIXEL_ART_STYLE_BIBLE.md`
+> Mundo: densidade controlada — `PIXEL_ART_PRODUCTION_BIBLE.md` + `assets/reference/world_detail_grass_dirt_trees_ref.png`
+> Sprites legados 68×68 px: retificação futura.
 ---
 
 ### Registro 01: Est??tua Monumental do 12?? Presidente Netero
@@ -777,3 +777,146 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` � 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
 - `assets/tiles/lobby_paths/*` � path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
 - Uso: NenSkillTreeUI n�s SMALL; PlayerHUD barras; Lobby._melhorar_estradas_lobby()
+
+---
+
+### Registro 74: Calibration Batch §94 — Grass/Dirt Wang
+- **Asset:** `calibration_grass_dirt_wang.png`
+- **Tipo:** Wang Tileset 16×16 (sheet 64×64)
+- **PixelLab ID:** `2f8e3bd5-175d-4797-9104-c417157e62e4`
+- **Descrição:** Compact warm brown dirt path ↔ soft temperate green grassland with tufts/flowers
+- **Local:** `res://assets/sprites/tilesets/pixellab/calibration_grass_dirt_wang.png`
+- **Integração:** `CalibrationArtKit` → `EstradaPadokiaMap` (faixa central)
+- **Status:** approved / integrated
+
+### Registro 75-80: Calibration Batch §94 — Vegetation / Rocks / Ground
+- `calibration_tree_a.png` — ID `b3267310-98cc-46ed-94e3-3ffa06f9f34c` (48×64 deciduous)
+- `calibration_tree_b.png` — ID `60c67181-7303-45a0-9998-85f7e117176f` (40×64 pine)
+- `calibration_bush_a.png` — ID `b55b47c5-dfc6-4b1c-80a8-8a6f0130f6a6` (32×32)
+- `calibration_rock_a.png` — ID `dd973f6c-5fa7-4bc5-b0d9-dca95764a545` (32×32)
+- `calibration_rock_b.png` — ID `936fee89-af85-44eb-88c4-3dd362eb1ff9` (40×32)
+- `calibration_ground_details.png` — ID `6dc079f6-76a1-4aa9-a5c4-ec9939004455` (48×32 tufts/flowers/pebbles)
+- **Local:** `res://assets/sprites/objects/calibration_*.png`
+- **Status:** approved / integrated
+
+### Registro 81: Calibration Batch §94 — Viajante Padokia (Style Lock)
+- **Asset:** `npc_calibration_viajante_padokia_8dir.png`
+- **Tipo:** Character / NPC (Style Lock Canônico 48×48 × 8 dir)
+- **PixelLab ID:** `8937fc48-91f8-44aa-a968-d9c096f5966a` (v3 + player reference; rejected first standard/68px attempt)
+- **Descrição:** Traveling hunter apprentice, brown cloak, backpack — 8 directions
+- **Métricas:** frame 48×48, height ~19px, width ~13px, ~10 cores, feet Y≈40
+- **Local:** `res://assets/sprites/characters/npc_calibration_viajante_padokia_8dir.png` + `npc_calibration_viajante_padokia_rotations/`
+- **Mapa:** `world/maps/EstradaPadokiaMap.gd` via `CalibrationArtKit` (`ViajanteCalibracao` @ `(400, 260)`)
+- **Status:** approved / integrated
+
+---
+
+### Registro 82: World Detail Reference (Grass/Dirt/Trees)
+- **Asset:** `world_detail_grass_dirt_trees_ref.png`
+- **Tipo:** Style / World Detail Reference (não-asset de gameplay)
+- **Local:** `res://assets/reference/world_detail_grass_dirt_trees_ref.png`
+- **Uso:** Nível de riqueza ambiental alvo (grama olive + terra jagged + canopies bubbly)
+- **Status:** reference
+
+### Registro 83: Phase 2 — Grass/Dirt Wang (refinado)
+- **Asset:** `phase2_grass_dirt_wang.png`
+- **PixelLab ID:** `599b9329-fb77-44cb-be15-9d15cb2333e4`
+- **Local:** `res://assets/sprites/tilesets/pixellab/phase2_grass_dirt_wang.png`
+- **Integração:** `WorldDensityKit` (Estrada + Floresta)
+- **Status:** approved / integrated
+
+### Registro 84-92: Phase 2 — Vegetation / Rocks / Details
+- `phase2_tree_green_a.png` — `32bbad27-1a74-4db4-9c4f-08fbda14ac0f`
+- `phase2_tree_green_b.png` — `1b5dd42c-4a7e-4bbd-82c7-6c224f96fb48` (regen: single tree variant)
+- `phase2_tree_autumn_a.png` — `e8420273-0455-4c15-aa2c-3183b1280f2d`
+- `phase2_bush_berry.png` — `c2ad7609-f263-418f-81fe-19760a60f289`
+- `phase2_bush_round.png` — `59d5c200-abf5-43ab-8405-570f75fc6fa1`
+- `phase2_rock_boulder.png` — `877d3738-f2bf-4dc4-930c-d79aba8988b1`
+- `phase2_rock_cluster.png` — `f428641e-f724-4b27-a7dc-6e8a0107b8e7`
+- `phase2_flowers_white.png` — `0086387d-1259-43f9-b092-2073d488fd5f`
+- `phase2_stump.png` — `50eae721-5f03-4d16-91e3-5724d4112340`
+- **Local:** `res://assets/sprites/objects/phase2_*.png`
+- **Status:** approved / integrated
+
+
+### Registro 93-100: Phase 3 — Props (fences/signs/crates)
+- `phase3_fence_wood.png` — `711d79f0-8365-4e62-a384-e0381ab16361`
+- `phase3_fence_wood_post.png` — `12046c58-fbe9-4bb7-9b7f-18c4bf28878c`
+- `phase3_signpost.png` — `22398083-0d8c-4042-b546-8360c8e174c4`
+- `phase3_barrel.png` — `f5e3966e-0020-45cb-9c97-16e9238f0374`
+- `phase3_crate.png` — `957ab0f5-155f-43b0-ab1b-02b0601bbf03`
+- `phase3_crate_large.png` — `f63db17e-f0ad-4c87-a829-f9abbbd23228`
+- `phase3_well.png` — `c6333b26-8600-459b-9ab8-1f0e339d2fa4`
+- `phase3_lantern_post.png` — `2b70fa50-946c-48ee-ad53-d71efba29953`
+- **Integração:** `WorldPropsKit` (Estrada + Floresta)
+- **Status:** approved / integrated
+
+
+### Registro 101-103: Phase 4 — Landmarks
+- `phase4_landmark_hunter_arch.png` — `311c32d4-0417-4ec7-8f7d-217d2c5b5b51` (64×64)
+- `phase4_landmark_nen_shrine.png` — `fe8a0429-6445-4946-8f2b-ebbf7ba8919c` (48×64)
+- `phase4_landmark_ruin_pillar.png` — `b7ee8a88-f35b-4227-8bd4-9c4535a01d91` (40×64)
+- **Local:** `res://assets/sprites/objects/phase4_landmark_*.png`
+- **Integração:** `WorldLandmarkKit` (Estrada + Floresta)
+- **Status:** approved / integrated
+
+### Registro 104: Phase 4 — NPC Guarda Estrada
+- **Asset:** `npc_phase4_guarda_estrada_8dir.png`
+- **PixelLab ID:** `8270df66-a380-4754-b8d2-36a0ac6e71a6`
+- **Mode:** v3 + player reference (Style Lock 48×48, 8 dirs)
+- **Local:** `res://assets/sprites/characters/npc_phase4_guarda_estrada_8dir.png` + `npc_phase4_guarda_estrada_rotations/`
+- **Integração:** `WorldLandmarkKit` ambient Guarda (Estrada)
+- **Status:** approved / integrated
+
+### Registro 105: Phase 4 — Enemy Fera Padokia
+- **Asset:** `enemy_phase4_fera_padokia_8dir.png`
+- **PixelLab ID:** `7f86cbaa-5aa3-4ec5-82c6-ed7d24d3bbe2` (regen v2: quadruped `dog` template — humanoid+ref clone rejected)
+- **Mode:** standard quadruped 8-dir (resized 68→48 sheet)
+- **Local:** `res://assets/sprites/characters/enemy_phase4_fera_padokia_8dir.png` + `enemy_phase4_fera_padokia_rotations/`
+- **Integração:** `WorldLandmarkKit` ambient Fera (Floresta)
+- **Status:** approved / integrated
+
+
+### Registro 106-110: Phase 5 — Combat FX (pixen, effect-only regen)
+- `phase5_fx_hit.png` — `c4709111-e03a-47d2-9c24-e47c5c04dfdb` (32×32)
+- `phase5_fx_slash.png` — `d36ae61a-2865-4c00-8d4c-046e513a993a` (48×32)
+- `phase5_fx_nen_aura.png` — `6e16ecbf-9697-42bd-89ca-5a69c90241ee` (48×48)
+- `phase5_fx_heal.png` — `963fd22b-56c9-4628-903e-91b2b0c2c3c1` (32×32)
+- `phase5_fx_dash_dust.png` — `8303909a-1d1d-4469-84c2-902dce7f266b` (32×32)
+- **Local:** `res://assets/sprites/effects/phase5_fx_*.png`
+- **Integração:** `WorldFxKit` showcase + `CombatImpactEffect` sprite flash hooks
+- **Note:** First pixen pass returned character+FX scenes; regen forced effect-only prompts.
+- **Status:** approved / integrated
+
+### Registro 111-113: Phase 5 — Weather / Night
+- `phase5_weather_puddle.png` — `ad2e7ddd-207a-428f-9194-6f1812e31fe7`
+- `phase5_weather_leaf.png` — `bc4a9a79-7177-4731-a7f0-0f03a0618b4a`
+- `phase5_night_lantern_glow.png` — `07fe6176-6858-45f0-84c1-b9805900d8f9`
+- **Local:** `res://assets/sprites/objects/phase5_*.png`
+- **Integração:** `WorldFxKit` (Estrada + Floresta)
+- **Status:** approved / integrated
+
+### Registro 114-125: Main NPC Style Lock hybrid regen (pre–Phase 6)
+- Pipeline: `pixen` unique south → fit ~20px/Y42 → `v3` rotate 8dir
+- Script: `scripts/tools/pixellab_regen_main_npcs_hybrid_stylelock.py`
+- Jobs: `assets/sprites/tilesets/pixellab/main_npc_hybrid_stylelock.json`
+- Regenerated (unique vs Viajante, h≈18–20):
+  - `npc_recepcionista_elena`, `npc_instrutor_combate`, `npc_examinador_oficial`
+  - `npc_ferreiro_mestre`, `npc_vendedor_mercador`, `npc_discipulo_zushi`
+  - `npc_guarda_fronteira`, `npc_viajante_scout`
+  - `npc_gon`, `npc_killua`, `npc_kurapika`, `npc_leorio`
+- **Status:** approved / integrated (paths unchanged — Lobby/maps pick up automatically)
+
+### Registro 126-145: Secondary Cast Style Lock hybrid regen (pre–Phase 6)
+- **Batch:** `secondary_cast_hybrid_stylelock`
+- **Pipeline:** create_image_pixen → fit (~20px / feet Y≈42) → create_character v3 + fitted south ref
+- **NPCs (20):** Hisoka, Netero, Biscuit, Chrollo, Tonpa, Ging, Hanzo, Menchi, Pokkle, Ponzu, Battera, Melody, Canary, Gotoh, Silva, Tsezguerra, Buhara, Gittarackur, Bodoro, Nicol
+- **Smoke:** `scratch/test_secondary_cast_stylelock_suite.tscn` → 102/102
+- **Meta:** `assets/sprites/tilesets/pixellab/secondary_cast_hybrid_stylelock.json`
+
+### Registro 146-157: Phase 6 WorldPolishKit (polish + storytelling + secrets)
+- **Batch:** `phase6_polish_story_secrets`
+- **Assets (12):** abandoned camp, broken cart, scuffle mark, torn banner, broken weapon, hollow stump, false rock, glint, trail marker, path crack, moss patch, fence ruin
+- **Integração:** `WorldPolishKit` em Estrada Padokia + Floresta Vestígios
+- **Smoke:** `scratch/test_phase6_polish_suite.tscn` → 29/29
+- **Meta:** `assets/sprites/tilesets/pixellab/phase6_polish_jobs.json`

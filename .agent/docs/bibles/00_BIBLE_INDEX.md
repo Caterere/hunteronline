@@ -31,6 +31,8 @@ Se código conflitar com Bibles, não reescreva em silêncio — analise e repor
 - 14_DATA_SCHEMA_BIBLE.md — schemas e persistência
 - 15_GAMEPLAY_FOUNDATION_BIBLE.md — tags / conditions / modifiers
 - 16_PIXEL_ART_STYLE_BIBLE.md — style lock 48×48 (âncora: `assets/reference/player(3).png`)
+  - **SSOT canônico no repo:** `docs/bibles/PIXEL_ART_STYLE_BIBLE.md`
+  - **União com Production Bible / Prompt Library:** `docs/bibles/ART_PIPELINE_CANON.md`
 - NEN_SKILL_TREE_BIBLE.md — skill tree de Nen
 
 ## Roadmap

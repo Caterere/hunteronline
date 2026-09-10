@@ -6,7 +6,13 @@
 **Gênero:** MMORPG 2D Top-Down  
 **Direção:** Hunter x Hunter-inspired original MMORPG  
 **Pixel Art:** PixelLab + MCP + Godot  
-**Status:** Documento de produção permanente
+**Status:** Documento de produção permanente (guide histórico)
+
+> **Atualização de autoridade:** o SSOT visual de pipeline/mundo passou para
+> [`../bibles/PIXEL_ART_PRODUCTION_BIBLE.md`](../bibles/PIXEL_ART_PRODUCTION_BIBLE.md)
+> + índice [`../bibles/ART_PIPELINE_CANON.md`](../bibles/ART_PIPELINE_CANON.md).
+> Em conflito com este guide, preferir esses docs. Este arquivo permanece como
+> contexto de produção de mundo / filosofia “conteúdo definitivo”.
 
 ---
 
