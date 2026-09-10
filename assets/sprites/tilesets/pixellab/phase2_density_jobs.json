@@ -21,10 +21,11 @@
     },
     {
       "out": "phase2_tree_green_b.png",
-      "id": "626807eb-2abd-4c13-83d5-6b0ef81d705e",
+      "id": "1b5dd42c-4a7e-4bbd-82c7-6c224f96fb48",
       "queue": "id: 626807eb-2abd-4c13-83d5-6b0ef81d705e\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern pixel-art MMORPG environment. Olive/light-green grass with sparse darker tufts (2-4 pixels), NOT flat, NOT noisy. Dirt paths: desaturated warm tan/brownish-grey irregular patches with jagged pixel-staircased edges into grass \u2014 no smooth gradients. Trees: rounded bubbly overlapping canopy clusters, 3-4 green tones, short brown trunk, readable silhouette, richer than tiny player sprites. Hard pixel ",
       "result": "status: completed\nid: 626807eb-2abd-4c13-83d5-6b0ef81d705e\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern pixel-art MMORPG environment. Olive/light-green grass with sparse darker tufts (2-4 pixels), NOT flat, NOT noisy. Dirt paths: desaturated warm tan/brownish-grey irregular patches with jagged pixel-staircased edges into grass \u2014 no smooth gradients. Trees: rounded bubbly overlapping canopy clusters, 3-4 green tones, short brown trunk, readable silhouette, richer than tiny player sprites. Hard pixel edges, dark outlines, top-left lighting, cast oval ground shadow. No photographic texture, no anti-aliasing, no painterly brushes. Temperate deciduous tree VARIANT: same family as green forest trees but different canopy silhouette and branch layout, lush green tones, short trunk, oval shadow, top-down RPG prop, transparent background.\nsize: 48x64px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:39\ndownload: https://api.pixellab.ai/mcp/map-objects/626807eb-2abd-4c13-83d5-6b0ef81d705e/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"626807eb-2abd-4c13-83d5-6b0ef81d705e\")",
-      "path": "assets/sprites/objects/phase2_tree_green_b.png"
+      "path": "assets/sprites/objects/phase2_tree_green_b.png",
+      "note": "regenerated: previous looked like mini terrain scene"
     },
     {
       "out": "phase2_tree_autumn_a.png",

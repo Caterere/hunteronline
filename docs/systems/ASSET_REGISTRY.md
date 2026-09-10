@@ -827,7 +827,7 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 
 ### Registro 84-92: Phase 2 — Vegetation / Rocks / Details
 - `phase2_tree_green_a.png` — `32bbad27-1a74-4db4-9c4f-08fbda14ac0f`
-- `phase2_tree_green_b.png` — `626807eb-2abd-4c13-83d5-6b0ef81d705e`
+- `phase2_tree_green_b.png` — `1b5dd42c-4a7e-4bbd-82c7-6c224f96fb48` (regen: single tree variant)
 - `phase2_tree_autumn_a.png` — `e8420273-0455-4c15-aa2c-3183b1280f2d`
 - `phase2_bush_berry.png` — `c2ad7609-f263-418f-81fe-19760a60f289`
 - `phase2_bush_round.png` — `59d5c200-abf5-43ab-8405-570f75fc6fa1`
