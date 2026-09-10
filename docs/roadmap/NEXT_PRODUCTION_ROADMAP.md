@@ -58,3 +58,4 @@
    * Sincronização de pacotes binários utilizando o `NetworkProtocol` já arquitetado.
 4. **Progressão**:
    * [x] Soft-cap XP por saga + escala narrativa canônica (`CanonQuestCatalog.escalar_xp_narrativo`).
+   * [x] Soft-cap Jenny early/mid (`escalar_jenny_narrativo` + drop/Arena/Padokia retune).
