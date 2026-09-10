@@ -773,7 +773,6 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - nen_skill_node_rings.png � 0eec61fe-795e-48cc-95e2-039d7bd709fe
 
 ### Registro 71-73: HUD ornamentado + skill small + estradas lobby
-<<<<<<< HEAD
 - `nen_small_node_icons.png` � e3cc9dbf-b684-4ef2-a118-394515c80bf7 (sheet 192�32, 12 �cones)
 - `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` � 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
 - `assets/tiles/lobby_paths/*` � path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
@@ -921,11 +920,11 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **Integração:** `WorldPolishKit` em Estrada Padokia + Floresta Vestígios
 - **Smoke:** `scratch/test_phase6_polish_suite.tscn` → 29/29
 - **Meta:** `assets/sprites/tilesets/pixellab/phase6_polish_jobs.json`
-=======
-- `nen_small_node_icons.png` � e3cc9dbf-b684-4ef2-a118-394515c80bf7 (sheet 192�32, 12 �cones)
-- `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` � 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
-- `assets/tiles/lobby_paths/*` � path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
-- Uso: NenSkillTreeUI n�s SMALL; PlayerHUD barras; Lobby._melhorar_estradas_lobby()
+
+- `nen_small_node_icons.png` � e3cc9dbf-b684-4ef2-a118-394515c80bf7 (sheet 192�32, 12 �cones)
+- `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` � 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
+- `assets/tiles/lobby_paths/*` � path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
+- Uso: NenSkillTreeUI n�s SMALL; PlayerHUD barras; Lobby._melhorar_estradas_lobby()
 
 ### Registro 74: Recepcionista da Arena Celestial (NPC 8dir)
 - **Asset:** `npc_recepcionista_arena_8dir.png` (folha 384×48, 8 frames de 48×48)
@@ -954,4 +953,3 @@ Convertidos para TileSet Godot (corner-match, 2 terrenos) por `scratch/build_top
 - **Ruínas de Zaban** — id `76e7b45f-3a38-4832-9095-9e5c89bfcb81` — grama ↔ pedra ancestral com runas.
   - PNG: `assets/sprites/tilesets/pixellab/zaban_ruinas/zaban_ruinas_tileset.png` · TileSet: `world/tilesets/zaban_ruinas_tileset.tres`
 - Piso da Arena Celestial (Registro 75) agora é PINTADO em jogo por `ArenaCelestialMap._pintar_piso_arena()` (TileMapLayer z=-50).
->>>>>>> origin/cursor/setup-cloud-agent-environment-ce82
