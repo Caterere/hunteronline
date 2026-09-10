@@ -174,7 +174,7 @@ func _criar_gladiador(andar: int, idx: int) -> Node2D:
 	ed.max_health = 1200 + (andar * 350)
 	ed.strength = 18 + (andar * 4)
 	ed.defense = 10 + (andar * 3)
-	ed.xp_reward = 80 + (andar * 40)
+	ed.xp_reward = 35 + (andar * 18)
 	ed.is_boss = (andar % 10 == 0)
 	sys.enemy_data = ed
 	sys.max_health = ed.max_health

@@ -42,8 +42,8 @@ signal skill_points_changed(pontos_disponiveis: int)
 # XP
 # ============================================================
 
-@export var xp_base: int = 300
-@export var xp_growth: float = 1.6
+@export var xp_base: int = 400
+@export var xp_growth: float = 1.65
 
 
 # ============================================================
@@ -90,7 +90,9 @@ func adicionar_xp(
 		return
 
 	var multiplicador = PlayerData.potencial * PlayerData.obter_multiplicador_dificuldade()["xp"]
-	var valor_final = int(valor * multiplicador)
+	# Soft-cap por saga: impede subir de nível sem freio antes da curva narrativa
+	var soft_mult: float = ProgressionConfig.obter_multiplicador_xp_soft_cap(level)
+	var valor_final = int(valor * multiplicador * soft_mult)
 
 	if valor_final <= 0:
 		valor_final = 1
@@ -98,12 +100,21 @@ func adicionar_xp(
 	xp += valor_final
 	PlayerData.attributes["xp"] = xp
 
-	print(
-		"XP RECEBIDO: +",
-		valor_final,
-		" | Origem: ",
-		origem
-	)
+	if soft_mult < 1.0:
+		print(
+			"XP RECEBIDO: +",
+			valor_final,
+			" | Origem: ",
+			origem,
+			" | SoftCap x%.2f (saga teto %d)" % [soft_mult, ProgressionConfig.obter_soft_max_saga_atual()]
+		)
+	else:
+		print(
+			"XP RECEBIDO: +",
+			valor_final,
+			" | Origem: ",
+			origem
+		)
 
 	_verificar_level_up()
 

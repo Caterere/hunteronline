@@ -500,6 +500,14 @@ func _atualizar_status() -> void:
 
 
 func _abrir_skill_tree() -> void:
+	if PlayerData != null and not PlayerData.despertou_nen:
+		var sp: int = PlayerData.nen_skill_points
+		if EventBus != null:
+			EventBus.emit_toast(
+				"🔒 Árvore de Nen bloqueada até a Arena Celestial (Wing). SP acumulados: %d" % sp,
+				HunterUIStyle.COLOR_TEXT_MUTED
+			)
+		return
 	alternar_menu()
 	var menu_ui = get_tree().get_first_node_in_group("hunter_menu")
 	if menu_ui != null and menu_ui.has_method("abrir_aba"):

@@ -108,6 +108,12 @@ func investir_ponto(node_id: Variant) -> bool:
 	var s_id := String(node_id)
 	var sn_id := StringName(s_id)
 
+	# Princípios Nen / árvore só após o despertar (Arena Celestial — Mestre Wing).
+	# Skill Points continuam acumulando por level up desde o início.
+	if PlayerData == null or not PlayerData.despertou_nen:
+		push_warning("[NenSkillTree] Árvore bloqueada até despertar Nen (Arena Celestial). SP acumulados: %d" % (PlayerData.nen_skill_points if PlayerData != null else 0))
+		return false
+
 	if not node_definitions.has(sn_id) and not node_definitions.has(s_id):
 		push_warning("[NenSkillTree] Nó desconhecido: " + s_id)
 		return false
