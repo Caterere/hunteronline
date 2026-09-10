@@ -870,21 +870,22 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 
 ### Registro 105: Phase 4 — Enemy Fera Padokia
 - **Asset:** `enemy_phase4_fera_padokia_8dir.png`
-- **PixelLab ID:** `36017631-2d01-47b4-bc94-3a151be6478a`
-- **Mode:** v3 + player reference (Style Lock 48×48, 8 dirs)
+- **PixelLab ID:** `7f86cbaa-5aa3-4ec5-82c6-ed7d24d3bbe2` (regen v2: quadruped `dog` template — humanoid+ref clone rejected)
+- **Mode:** standard quadruped 8-dir (resized 68→48 sheet)
 - **Local:** `res://assets/sprites/characters/enemy_phase4_fera_padokia_8dir.png` + `enemy_phase4_fera_padokia_rotations/`
 - **Integração:** `WorldLandmarkKit` ambient Fera (Floresta)
 - **Status:** approved / integrated
 
 
-### Registro 106-110: Phase 5 — Combat FX (pixen)
-- `phase5_fx_hit.png` — `c31a60ae-73bb-45bd-a602-91c3c125b6de` (32×32)
-- `phase5_fx_slash.png` — `a7d66425-eb3b-4470-aae6-d6e4b6ddb790` (48×32)
-- `phase5_fx_nen_aura.png` — `03564f2c-bea1-45ec-8628-ab049729c262` (48×48)
-- `phase5_fx_heal.png` — `1fdbab5c-1673-4c99-86a7-1e5142259209` (32×32)
-- `phase5_fx_dash_dust.png` — `4d85050f-acb3-4883-bd00-399027d2312c` (32×32)
+### Registro 106-110: Phase 5 — Combat FX (pixen, effect-only regen)
+- `phase5_fx_hit.png` — `c4709111-e03a-47d2-9c24-e47c5c04dfdb` (32×32)
+- `phase5_fx_slash.png` — `d36ae61a-2865-4c00-8d4c-046e513a993a` (48×32)
+- `phase5_fx_nen_aura.png` — `6e16ecbf-9697-42bd-89ca-5a69c90241ee` (48×48)
+- `phase5_fx_heal.png` — `963fd22b-56c9-4628-903e-91b2b0c2c3c1` (32×32)
+- `phase5_fx_dash_dust.png` — `8303909a-1d1d-4469-84c2-902dce7f266b` (32×32)
 - **Local:** `res://assets/sprites/effects/phase5_fx_*.png`
 - **Integração:** `WorldFxKit` showcase + `CombatImpactEffect` sprite flash hooks
+- **Note:** First pixen pass returned character+FX scenes; regen forced effect-only prompts.
 - **Status:** approved / integrated
 
 ### Registro 111-113: Phase 5 — Weather / Night

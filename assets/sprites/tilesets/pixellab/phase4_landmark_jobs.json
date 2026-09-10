@@ -34,10 +34,11 @@
     },
     {
       "name": "enemy_phase4_fera_padokia",
-      "id": "36017631-2d01-47b4-bc94-3a151be6478a",
+      "id": "7f86cbaa-5aa3-4ec5-82c6-ed7d24d3bbe2",
       "queue": "id: 36017631-2d01-47b4-bc94-3a151be6478a\nname: enemy_phase4_fera_padokia\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"36017631-2d01-47b4-bc94-3a151be6478a\")",
       "result": "status: completed\nid: 36017631-2d01-47b4-bc94-3a151be6478a\nname: enemy_phase4_fera_padokia\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: bf89be13-21c1-4459-9726-0c566e7e2f1b (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/south.png?t=1789060120\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/east.png?t=1789060120\n  north: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/north.png?t=1789060120\n  west: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/west.png?t=1789060120\n  south-east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/south-east.png?t=1789060120\n  north-east: https://backbl",
-      "path": "assets/sprites/characters/enemy_phase4_fera_padokia_8dir.png"
+      "path": "assets/sprites/characters/enemy_phase4_fera_padokia_8dir.png",
+      "regen": "v2 quadruped dog-template beast"
     }
   ]
 }
