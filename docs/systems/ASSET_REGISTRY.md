@@ -875,3 +875,22 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **Local:** `res://assets/sprites/characters/enemy_phase4_fera_padokia_8dir.png` + `enemy_phase4_fera_padokia_rotations/`
 - **Integração:** `WorldLandmarkKit` ambient Fera (Floresta)
 - **Status:** approved / integrated
+
+
+### Registro 106-110: Phase 5 — Combat FX (pixen)
+- `phase5_fx_hit.png` — `c31a60ae-73bb-45bd-a602-91c3c125b6de` (32×32)
+- `phase5_fx_slash.png` — `a7d66425-eb3b-4470-aae6-d6e4b6ddb790` (48×32)
+- `phase5_fx_nen_aura.png` — `03564f2c-bea1-45ec-8628-ab049729c262` (48×48)
+- `phase5_fx_heal.png` — `1fdbab5c-1673-4c99-86a7-1e5142259209` (32×32)
+- `phase5_fx_dash_dust.png` — `4d85050f-acb3-4883-bd00-399027d2312c` (32×32)
+- **Local:** `res://assets/sprites/effects/phase5_fx_*.png`
+- **Integração:** `WorldFxKit` showcase + `CombatImpactEffect` sprite flash hooks
+- **Status:** approved / integrated
+
+### Registro 111-113: Phase 5 — Weather / Night
+- `phase5_weather_puddle.png` — `ad2e7ddd-207a-428f-9194-6f1812e31fe7`
+- `phase5_weather_leaf.png` — `bc4a9a79-7177-4731-a7f0-0f03a0618b4a`
+- `phase5_night_lantern_glow.png` — `07fe6176-6858-45f0-84c1-b9805900d8f9`
+- **Local:** `res://assets/sprites/objects/phase5_*.png`
+- **Integração:** `WorldFxKit` (Estrada + Floresta)
+- **Status:** approved / integrated

@@ -43,8 +43,14 @@
 - [x] `WorldLandmarkKit` em Estrada + Floresta
 - [x] Smoke `test_phase4_landmarks_suite`
 
+### Sessão 7 (Phase 5 FX + weather + night)
+- [x] Combat FX: hit / slash / nen aura / heal / dash dust
+- [x] Weather puddle + leaf + night lantern glow
+- [x] `WorldFxKit` + hooks em `CombatImpactEffect`
+- [x] Smoke `test_phase5_fx_suite`
+
 ## Próximo
-1. [ ] Phase 5 — Combat FX + weather + night (art pipeline)
+1. [ ] Phase 6 — Map polish + storytelling + secrets
 2. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
 3. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
 4. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar

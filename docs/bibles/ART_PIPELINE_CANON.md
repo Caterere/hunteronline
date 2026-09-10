@@ -102,8 +102,8 @@ PHASE 1  Terrain + transitions + paths     [calibração §94 — feito]
 PHASE 2  Trees + bushes + rocks + details  [densidade Estrada/Floresta — feito]
 PHASE 3  Props + fences + signs + crates   [feito — WorldPropsKit]
 PHASE 4  Landmarks + NPCs + enemies        [feito — WorldLandmarkKit]
-PHASE 5  Combat FX + weather + night       [próximo]
-PHASE 6  Map polish + storytelling + secrets
+PHASE 5  Combat FX + weather + night       [feito — WorldFxKit]
+PHASE 6  Map polish + storytelling + secrets  [próximo]
 ```
 
 Kits de integração Godot:
@@ -114,6 +114,7 @@ Kits de integração Godot:
 | `WorldDensityKit` | 2 | Estrada + Floresta |
 | `WorldPropsKit` | 3 | Estrada + Floresta |
 | `WorldLandmarkKit` | 4 | Estrada + Floresta |
+| `WorldFxKit` | 5 | Estrada + Floresta |
 
 ------------------------------------------------------------------------
 
