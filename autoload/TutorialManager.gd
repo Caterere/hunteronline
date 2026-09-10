@@ -137,8 +137,8 @@ const ETAPAS_INFO: Dictionary = {
 		"id": "conclusao",
 		"titulo": "Treinamento Concluído!",
 		"instrutor": "Recepcionista Elena",
-		"objetivo": "Despertar Nen com Wing e depois seguir ao Portal Hunter",
-		"instrucao": "Parabéns! Vá ao norte falar com Mestre Wing para despertar seu Nen. Depois, o Portal Hunter a leste inicia o Exame.",
+		"objetivo": "Despertar Nen com Wing e depois falar com o Guia da História",
+		"instrucao": "Parabéns! Vá ao norte falar com Mestre Wing para despertar seu Nen. Depois, o Guia da História na praça te leva à missão atual.",
 		"acao": "Fale com Mestre Wing (Norte).",
 		"meta": 1.0,
 		"conhecimento": "mundo_exame_hunter"
@@ -157,7 +157,7 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"titulo": "Hunter Plaza (Capital dos Caçadores)",
 		"categoria": "Mundo",
 		"icone": "🌆",
-		"conteudo": "A metrópole central que abriga os 4 grandes distritos: Praça Central (Netero), Distrito dos Mestres (Wing e Biscuit), Distrito Comercial (Ferreiro e Casa) e Distrito Dimensional (Torre Celestial e Portal Hunter)."
+		"conteudo": "A metrópole central que abriga os 4 grandes distritos: Praça Central (Netero), Distrito dos Mestres (Wing e Biscuit), Distrito Comercial (Ferreiro e Casa) e Distrito Dimensional (Torre Celestial). Continuidade da história: Guia da História na praça."
 	},
 	"movimento_exploracao": {
 		"titulo": "Movimentação & Exploração",
@@ -622,7 +622,7 @@ func obter_dialogo_elena() -> Array[Dictionary]:
 			falas.append({"falante": "Recepcionista Elena", "texto": "Hatsus exclusivos só serão forjados com Biscuit Krueger mais adiante na saga — ela não ensina isso no início."})
 			falas.append({"falante": "Recepcionista Elena", "texto": "👉 Agora vá AO NORTE, ao Distrito dos Mestres, e fale com Mestre Wing para despertar seu Nen! O GPS vai guiá-lo."})
 		_:
-			falas.append({"falante": "Recepcionista Elena", "texto": "Fale com Mestre Wing ao norte para despertar seu Nen. Depois siga o GPS até o Portal Hunter a leste!"})
+			falas.append({"falante": "Recepcionista Elena", "texto": "Fale com Mestre Wing ao norte para despertar seu Nen. Depois siga o GPS até o Guia da História na praça!"})
 
 	return falas
 

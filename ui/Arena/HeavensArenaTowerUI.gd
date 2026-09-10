@@ -131,14 +131,20 @@ func _construir_ui() -> void:
 
 
 func _atualizar_torneio() -> void:
-	andar_atual = int(PlayerData.attributes.get("andar_arena", 1))
+	# Unifica progresso UI ↔ torre real
+	var ui_andar: int = int(PlayerData.attributes.get("andar_arena", 1))
+	var torre_andar: int = int(PlayerData.torre_andar_atual) if PlayerData != null else 1
+	andar_atual = maxi(1, maxi(ui_andar, torre_andar))
+	PlayerData.attributes["andar_arena"] = andar_atual
+	PlayerData.torre_andar_atual = andar_atual
+
 	lbl_andar.text = "ANDAR ATUAL: %dº" % andar_atual
 
-	var valor_premio: int = andar_atual * 15000
+	var valor_premio: int = andar_atual * 800 + 2000
 	lbl_premio.text = "Prêmio do Andar: %d Jenny" % valor_premio
 
 	if andar_atual < 50:
-		lbl_oponente.text = "OPONENTE: Gladiador Iniciante\nESTILO: Artes Marciais Físicas (Sem Nen)\n\nVitórias nos andares iniciais rendem bônus rápidos em dinheiro."
+		lbl_oponente.text = "OPONENTE: Gladiador Iniciante\nESTILO: Artes Marciais Físicas (Sem Nen)\n\nVitórias nos andares iniciais rendem Jenny e prática de combate."
 	elif andar_atual < 200:
 		lbl_oponente.text = "OPONENTE: Lutador de Elite do 100º Andar\nESTILO: Nen Básico (Ten / Ren / Gyo)\n\nAtenção: Oponentes deste andar usam aura para reforçar ataques!"
 	else:
@@ -146,11 +152,19 @@ func _atualizar_torneio() -> void:
 
 
 func _on_desafiar_pressed() -> void:
-	var ganho: int = andar_atual * 15000
-	Economy.adicionar_gold(ganho)
-	PlayerData.attributes["andar_arena"] = min(200, andar_atual + 10)
-	print("[HeavensArena] Vitória no %dº Andar! Ganhou +%d Jenny!" % [andar_atual, ganho])
+	# Entra no ringue real (CelestialTowerArena) — sem vitória automática
 	_atualizar_torneio()
+	PlayerData.attributes["torre_cena_retorno"] = "res://world/maps/arena_celestial.tscn"
+	fechar_torneio()
+	var trans = get_node_or_null("/root/SceneTransition")
+	if trans != null and trans.has_method("mudar_cena"):
+		trans.mudar_cena(
+			"res://world/maps/CelestialTowerArena.tscn",
+			"Torre Celestial",
+			"Ringue — Andar %d" % andar_atual
+		)
+	else:
+		get_tree().change_scene_to_file("res://world/maps/CelestialTowerArena.tscn")
 
 
 func _on_sacar_pressed() -> void:

@@ -122,13 +122,28 @@ func rastrear_hatsu(hatsu_res: Resource, contexto: Dictionary = {}) -> void:
 	var lista: Array[Dictionary] = []
 
 	var conditions: Array = []
-	if "conditions" in hatsu_res and hatsu_res.conditions is Array:
+	if "gameplay_conditions" in hatsu_res and hatsu_res.gameplay_conditions is Array:
+		conditions = hatsu_res.gameplay_conditions
+	elif "conditions" in hatsu_res and hatsu_res.conditions is Array:
 		conditions = hatsu_res.conditions
+	elif "modular_conditions" in hatsu_res and hatsu_res.modular_conditions is Array:
+		conditions = hatsu_res.modular_conditions
 	elif hatsu_res.has_method("get_conditions"):
 		conditions = hatsu_res.get_conditions()
 
+	# Fallback: condições enum clássicas do HatsuData (HP, aura, etc.)
+	# Só exibe se o Hatsu realmente declara requisitos — evita painel vazio/ruído.
+	if conditions.is_empty() and "condicoes" in hatsu_res and hatsu_res.condicoes is Array and not hatsu_res.condicoes.is_empty():
+		for c in hatsu_res.condicoes:
+			lista.append({
+				"texto": str(c),
+				"atendida": false
+			})
+		if not lista.is_empty():
+			rastrear_condicoes("⚡ " + str(titulo).to_upper(), lista)
+			return
+
 	if conditions.is_empty():
-		# Hatsu sem restrições ou condições complexas
 		limpar()
 		return
 
@@ -145,7 +160,7 @@ func rastrear_hatsu(hatsu_res: Resource, contexto: Dictionary = {}) -> void:
 				"atendida": cond.get("atendida", false)
 			})
 
-	rastrear_condicoes("⚡ " + titulo.to_upper(), lista)
+	rastrear_condicoes("⚡ " + str(titulo).to_upper(), lista)
 
 
 func _renderizar() -> void:

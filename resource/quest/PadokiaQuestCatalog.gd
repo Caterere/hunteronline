@@ -192,11 +192,12 @@ static func obter_quest_secreta_altar() -> Quest:
 
 # ------------------------------------------------------------
 # 8. QUEST INVESTIGATIVA: FURTO DE AURA NA VILA (GYO)
+# Disponível apenas após despertar Nen (Arena Celestial / Mestre Wing).
 # ------------------------------------------------------------
 static func obter_quest_investigacao_furto() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Vestígios do Furto de Aura"
-	q.description = "Alguém roubou um fragmento de pedra Nen do Empório. Use GYO para rastrear as pegadas de aura na Vila de Padokia e identificar o culpado."
+	q.description = "Após despertar seu Nen com o Mestre Wing, use GYO para rastrear as pegadas de aura do furto no Empório de Padokia e identificar o culpado."
 	q.auto_complete = false
 	q.turn_in_npc_key = &"vendedor"
 	q.reward_xp = 280

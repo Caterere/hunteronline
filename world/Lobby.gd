@@ -9,7 +9,8 @@ extends Node2D
 # - Praça Central (Spawn): Estátua de Netero, Elena, Instrutor, Quadro de Procurados.
 # - Distrito dos Mestres (Norte Longínquo): Mestre Wing, Zushi, Biscuit, Mestre Alquimista.
 # - Distrito Comercial & Bairro Residencial (Oeste Longínquo): Ferreiro, Mercador, Casa do Caçador.
-# - Distrito Dimensional & Santuário Espiritual (Leste Longínquo): Portal Hunter, Chrono (PQs), Curador de Bestas de Nen, Torre Celestial.
+# - Distrito Dimensional & Santuário Espiritual (Leste Longínquo): Chrono (PQs), Curador de Bestas de Nen, Torre Celestial.
+# - Continuidade da história: Guia da História (StoryGatewayNPC) na praça — teleporta ao checkpoint da missão atual.
 # - NPCs Vivos com rotinas e nomes visíveis flutuando pelas grandes avenidas.
 #
 # ============================================================
@@ -453,20 +454,23 @@ func _anexar_rotina_comercial(npc: Node, nome: String, work: Vector2, tavern: Ve
 # 4. DISTRITO DIMENSIONAL & SANTUÁRIO ESPIRITUAL (LESTE LONGÍNQUO)
 # ============================================================
 
+
+func _remover_portal_historia_legado() -> void:
+	# Remove de vez o Portal Hunter / Portal da Missão (seletor e landmark).
+	for nome in ["PortalHunter", "PortalHunter_LEGACY_REMOVING", "PortalDaMissao"]:
+		var n = get_node_or_null(nome)
+		if n != null:
+			n.name = nome + "_REMOVING"
+			n.queue_free()
+	# Também remove UI legado se ainda estiver na árvore
+	var ui = get_tree().root.get_node_or_null("PortalHunterUI") if get_tree() != null else null
+	if ui != null:
+		ui.queue_free()
+
+
 func _popular_distrito_dimensional() -> void:
-	# Portal Hunter (landmark visual + seletor de sagas) — Distrito Leste, longe da praça
-	var portal = get_node_or_null("PortalHunter")
-	if portal == null:
-		var scn_portal = load("res://entities/npc/portal_hunter/PortalHunter.tscn")
-		if scn_portal:
-			portal = scn_portal.instantiate()
-			portal.name = "PortalHunter"
-			add_child(portal)
-	if portal != null:
-		portal.position = Vector2(1180, -40)
-		portal.z_index = 3
-		if portal.has_method("_aplicar_visual_portal"):
-			portal._aplicar_visual_portal()
+	# Portal Hunter / Portal da Missão removidos — continuidade só via StoryGatewayNPC.
+	_remover_portal_historia_legado()
 
 	# Examinador Chrono (Fendas Temporais - 50 Missões Paralelas)
 	var pq_npc = get_node_or_null("ParallelQuestNPC")
@@ -590,6 +594,8 @@ func _popular_torre_celestial() -> void:
 	inter.interaction_text = "[E] Entrar na Torre Celestial"
 	inter.interaction_radius = 20.0
 	inter.interacted.connect(func(_player):
+		if PlayerData != null:
+			PlayerData.attributes["torre_cena_retorno"] = "res://world/lobby.tscn"
 		var trans = get_node_or_null("/root/SceneTransition")
 		if trans != null and trans.has_method("mudar_cena"):
 			trans.mudar_cena("res://world/maps/CelestialTowerArena.tscn", "Torre Celestial (200 Andares)", "Desafio Solo & Batalha dos Mestres")
@@ -869,9 +875,8 @@ func _densificar_lobby_pixel_art() -> void:
 		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(1050, -120), "name": "TendaDecorLeste"},
 		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(1000, 20), "name": "BarracaDecorLeste"},
 	]
-	if ResourceLoader.exists("res://assets/sprites/objects/portal_hunter_arch.png"):
-		# Extra landmark visual perto do portal se o NPC não tiver a textura ainda
-		pass
+
+
 	if ResourceLoader.exists("res://assets/sprites/objects/lobby_bush_flowers_decor.png"):
 		placements.append_array([
 			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(-60, 50), "name": "ArbustoFlorA"},

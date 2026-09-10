@@ -3,7 +3,7 @@
     "pixellab": {
       "httpUrl": "https://api.pixellab.ai/mcp",
       "headers": {
-        "Authorization": "Bearer 9cb7f030-0cb6-48c2-ac83-58d0d0ff9d2d"
+        "Authorization": "Bearer ***REMOVED***"
       }
     }
   }

@@ -7,7 +7,6 @@
 [ext_resource type="PackedScene" path="res://ui/dialogue/DialogueBox.tscn" id="5_dt2ce"]
 [ext_resource type="PackedScene" path="res://scripts/systems/EnemySystem/Enemy.tscn" id="6_b1hph"]
 [ext_resource type="PackedScene" path="res://ui/hud/HUD.tscn" id="7_3xmcv"]
-[ext_resource type="PackedScene" path="res://entities/npc/portal_hunter/PortalHunter.tscn" id="8_portal"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_015am"]
 resource_name = "grass"
@@ -222,8 +221,6 @@ offset_bottom = -18.0
 
 [node name="Enemy" parent="." unique_id=402274775 instance=ExtResource("6_b1hph")]
 
-[node name="PortalHunter" parent="." unique_id=1870446610 instance=ExtResource("8_portal")]
-position = Vector2(96, 1)
 
 [node name="Hud" parent="." unique_id=1991270435 instance=ExtResource("7_3xmcv")]
 

@@ -2,7 +2,7 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-const TOKEN = '9cb7f030-0cb6-48c2-ac83-58d0d0ff9d2d';
+const TOKEN = '***REMOVED***';
 
 function request(pathUrl, method = 'GET', body = null) {
   return new Promise((resolve, reject) => {

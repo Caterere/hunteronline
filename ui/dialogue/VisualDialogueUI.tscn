@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://c802a24k7102m"]
 
-[ext_resource type="Script" path="res://ui/Dialogue/VisualDialogueUI.gd" id="1_visdialogue"]
+[ext_resource type="Script" path="res://ui/dialogue/VisualDialogueUI.gd" id="1_visdialogue"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dialogue"]
 bg_color = Color(0.08, 0.1, 0.16, 0.96)

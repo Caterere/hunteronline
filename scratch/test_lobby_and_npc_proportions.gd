@@ -73,7 +73,7 @@ func _teste_2_npcs_presentes_no_lobby() -> void:
 		"Ferreiro",
 		"TendaMercadorStall",
 		"Vendedor",
-		"PortalHunter",
+		"StoryGatewayNPC",
 		"ParallelQuestNPC",
 		"CuradorBestasNen",
 		"PortaCasaJogador",

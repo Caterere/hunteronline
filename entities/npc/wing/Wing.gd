@@ -44,12 +44,12 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		falas_wing.append({"falante": "Mestre Wing", "texto": afinidade_desc})
 		falas_wing.append({"falante": "Mestre Wing", "texto": "Abrirei suavemente seus nós de aura... Sinta a energia fluir sem escapar: você despertou o TEN (Envolver)!"})
 		falas_wing.append({"falante": "Mestre Wing", "texto": "O Ten envolve seu corpo como um manto protetor, reduzindo drasticamente qualquer impacto recebido."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Durante o combate, segure [Q] para abrir a Barra de Ação Rápida de Nen e alternar suas posturas. Depois, o GPS aponta o Portal Hunter a leste."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Durante o combate, segure [Q] para abrir a Barra de Ação Rápida de Nen e alternar suas posturas. Depois, o GPS aponta o Guia da História na praça."})
 		PlayerData.quest_states["wing_tutorial_progresso"] = 2
 		if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
 			TutorialManager.disparar_tutorial_contextual("nen_despertar")
 		if EventBus != null:
-			EventBus.emit_toast("🥋 Nen despertado! Próximo: Portal Hunter a Leste.", Color(0.35, 1.0, 0.55))
+			EventBus.emit_toast("🥋 Nen despertado! Próximo: Guia da História na praça.", Color(0.35, 1.0, 0.55))
 		if PlayerData != null:
 			PlayerData.tour_lobby_concluido = true
 		if SaveManager != null:

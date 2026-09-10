@@ -116,12 +116,10 @@ Onde $L$ é o nível atual ($1 \le L \le 1000$), e os expoentes $p$ governam a c
 
 O XP necessário para alcançar o próximo nível é calculado por:
 
-$$\text{XP\_Necessário}(L) = \text{XP\_Base} \times L^{\text{XP\_Growth}} = 300 \times L^{1.6}$$
+$$\text{XP\_Necessário}(L) = \text{XP\_Base} \times L^{\text{XP\_Growth}} = 400 \times L^{1.65}$$
 
-- Nível 1 → 2: 300 XP
-- Nível 10 → 11: ~11.900 XP
-- Nível 100 → 101: ~475.000 XP
-- Nível 999 → 1000: ~18.900.000 XP
+- Nível 1 → 2: 400 XP
+- Soft-cap por saga: acima do teto da saga atual, o XP é amortecido (mínimo ~5%) via `ProgressionConfig.obter_multiplicador_xp_soft_cap`.
 - No nível 1000, o sistema trava no teto máximo com indicador visual de `XP: MÁXIMO`.
 
 ---
@@ -130,6 +128,7 @@ $$\text{XP\_Necessário}(L) = \text{XP\_Base} \times L^{\text{XP\_Growth}} = 300
 
 Os Skill Points (concedidos à razão de +1 SP por nível, totalizando 999 pontos no Nível 1000) **não concedem poder base bruto obrigatório**, mas sim personalização profunda através da **Constelação do Nen** (consulte `SKILL_TREE_BIBLE.md` para documentação exaustiva):
 
+- **Bloqueio narrativo:** a árvore só aceita investimento após `despertou_nen` (Arena Celestial / Mestre Wing). SP acumulados antes do despertar ficam bancados.
 - **10 Regiões Temáticas:** Body, Warrior, Nen, Hatsu, Speed, Critical, Vitality, Aura, Specialization e Master.
 - **Hierarquia de 4 Patamares:** Small Nodes (1 rank), Medium Nodes (1 a 3 ranks), Major Nodes (especializações de 8-18%) e Keystones (mudança de regras de combate com tradeoffs).
 - **Atributos Secundários:** Chance/Dano Crítico, Life Steal, Evasão, Bloqueio, Regeneração de Vida/Aura e Redução de Dano.
@@ -140,19 +139,19 @@ Os Skill Points (concedidos à razão de +1 SP por nível, totalizando 999 ponto
 
 ## 8. ESCALONAMENTO DE SAGAS BASEADO EM DADOS (DATA-DRIVEN)
 
-As sagas não possuem limites arbitrários no código. Suas faixas recomendadas são dados declarativos consultados através de `ProgressionConfig.obter_faixa_saga(id)` e `StoryManager.obter_faixa_nivel_saga(id)`:
+As sagas não possuem limites arbitrários no código. Suas faixas recomendadas (soft-max narrativo) são dados declarativos consultados através de `ProgressionConfig.obter_faixa_saga(id)` e `StoryManager.obter_faixa_nivel_saga(id)`:
 
 ```text
-Saga 1 (287º Exame Hunter):             Nível 1 – 80
-Saga 2 (Montanha Kukuroo):              Nível 70 – 150
-Saga 3 (Arena Celestial):               Nível 130 – 250
-Saga 4 (Yorknew City & Trupe):          Nível 220 – 380
-Saga 5 (Greed Island):                  Nível 350 – 520
-Saga 6 (Formigas Chimera):              Nível 500 – 720
-Saga 7 (Eleição Hunter & Alluka):       Nível 680 – 800
-Saga 8 (Continente Negro Expedição):    Nível 780 – 900
-Saga 9 (Guerra de Sucessão Kakin):      Nível 880 – 1000
-Saga 10+ (Novas Sagas de Expansão):     Registradas dinamicamente via StoryManager.registrar_saga()
+Saga 1 (287º Exame Hunter):             Nível 1 – 25
+Saga 2 (Montanha Kukuroo):              Nível 20 – 40
+Saga 3 (Arena Celestial + Nen):         Nível 35 – 60
+Saga 4 (Yorknew City & Trupe):          Nível 55 – 85
+Saga 5 (Greed Island):                  Nível 75 – 130
+Saga 6 (Formigas Chimera):              Nível 120 – 230
+Saga 7 (Eleição Hunter & Alluka):       Nível 200 – 280
+Saga 8 (Continente Negro Expedição):    Nível 250 – 320
+Saga 9 (Guerra de Sucessão Kakin):      Nível 300 – 350
+Saga 10+ (Expansões / paralelas):       até Cap 1000
 ```
 
 ---

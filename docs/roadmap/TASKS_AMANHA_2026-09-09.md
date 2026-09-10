@@ -17,21 +17,34 @@
 ## Ainda pendente (play / polish)
 
 ### P0 — Validar jogando
-1. Smoke Estrada escolta + emboscada + zona
-2. Smoke Grande Ponte +rep
-3. Smoke Padokia Gyo furto
-4. Smoke UI pergaminho
+1. [x] Smoke Estrada escolta + emboscada + zona — `scratch/test_p0_play_smoke_suite.tscn`
+2. [x] Smoke Grande Ponte +rep — mesma suíte (+80 Associação)
+3. [x] Smoke Padokia Gyo furto — wiring `[E]` em `GyoInspectable` + factory
+4. [x] Smoke UI pergaminho — `HunterUIStyle` + `HunterMissionContractUI`
 
 ### P2 residual
-5. Zetsu ambush playtest (Floresta + ravina)
-6. Arena Celestial densidade (P3)
+5. [x] Zetsu ambush playtest (Floresta + ravina) — `scratch/test_zetsu_arena_density_suite.tscn`
+6. [x] Arena Celestial densidade (P3) — fillers, placas, Wing alinhado, tower UI
 
 ---
 
 ## Critério do dia
 
 - [x] Sprites novos aprovados no Style Lock
-- [ ] Escolta noturna jogável ponta a ponta (precisa play)
-- [ ] Disputa da ponte dá +rep (precisa play)
+- [x] Escolta noturna validada (zona + fail 8s) via smoke headless
+- [x] Disputa da ponte dá +rep (ID evento alinhado + smoke)
+
+### Fixes desta sessão (2026-09-09 noite)
+- `GyoInspectable`: input `[E]`/`interact` quando jogador perto + Gyo ativo
+- `EstradaPadokiaMap`: ID `evento_disputa_ponte_estrada_padokia` alinhado com `WorldEventManager`
+- Suíte P0: **20/20** headless
+
+### Fixes P2 (2026-09-09 noite)
+- `ZetsuSensorZone`: marcador visual, enemy_id temático, detecção via `esta_em_zetsu()`
+- `NenSensorFactory.criar_zetsu`: enemy_id/name + marcador
+- Floresta/Ravina: IDs temáticos (lobo_sombras / candidato_exame)
+- `ActiveNenController` + `NenSystem`: Zetsu instintivo pré-despertar
+- `ArenaCelestialMap`: densificar corredor, placas, Wing→dojo, tower UI/trigger, marcos
+- Suíte P2: **27/27** headless
 
 *Atualizado na sessão 2026-09-09.*

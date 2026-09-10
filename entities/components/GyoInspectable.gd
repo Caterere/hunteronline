@@ -55,7 +55,7 @@ func _criar_elementos_visuais() -> void:
 	if get_node_or_null("GyoLabel") == null:
 		label_dica = Label.new()
 		label_dica.name = "GyoLabel"
-		label_dica.text = "🔍 [GYO] " + titulo_pista
+		label_dica.text = "🔍 [E] " + titulo_pista
 		label_dica.position = Vector2(-75, -36)
 		label_dica.custom_minimum_size = Vector2(150, 14)
 		label_dica.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -109,7 +109,27 @@ func _on_body_exited(body: Node2D) -> void:
 		if label_dica != null:
 			label_dica.visible = false
 
+
+func _unhandled_input(event: InputEvent) -> void:
+	# Play wiring: [E] / interact inspeciona a pista quando o jogador está perto
+	# e Gyo está ativo (ou a pista não exige Gyo).
+	if jogador_proximo == null or foi_inspecionado:
+		return
+	if requer_gyo and not gyo_ativo_no_jogador:
+		return
+	var pediu_interact: bool = event.is_action_pressed("interact")
+	var pediu_e: bool = event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_E
+	if pediu_interact or pediu_e:
+		inspecionar(jogador_proximo)
+		get_viewport().set_input_as_handled()
+
+
 func inspecionar(player: Node2D) -> Dictionary:
+	if foi_inspecionado:
+		return {
+			"sucesso": false,
+			"mensagem": "Este vestígio já foi decifrado."
+		}
 	if requer_gyo and not gyo_ativo_no_jogador:
 		return {
 			"sucesso": false,
