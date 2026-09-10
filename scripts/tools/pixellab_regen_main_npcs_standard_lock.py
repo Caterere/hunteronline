@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""DEPRECATED for unique NPCs — kept for reference only.
+"""Regen main NPCs with Style Lock proportions WITHOUT player-ref cloning.
 
-CRITICAL: mode=v3 + reference_image_base64 ROTATES the reference sprite.
-Passing player(3).png clones the player identity (~100% opaque match).
-For unique main NPCs use: pixellab_regen_main_npcs_standard_lock.py
+Uses mode=standard (unique identity) + Style Lock prompt constraints.
+Sequential to respect Tier-1 concurrency.
 """
-
 
 from __future__ import annotations
 
@@ -25,78 +23,73 @@ from PIL import Image
 MCP_URL = "https://api.pixellab.ai/mcp"
 ROOT = Path("/workspace")
 OUT_CHARS = ROOT / "assets" / "sprites" / "characters"
-OUT_META = ROOT / "assets" / "sprites" / "tilesets" / "pixellab" / "main_npc_stylelock_regen.json"
+OUT_META = ROOT / "assets" / "sprites" / "tilesets" / "pixellab" / "main_npc_stylelock_standard.json"
 
-CHAR = (
+LOCK = (
     "retro 16-bit 48x48 rpg sprite, tiny low detail character, chibi 2.5 heads proportion, "
     "20 pixels tall character centered inside 48x48 transparent frame, simple chunky shapes, "
     "DOT EYES 1x2 no white sclera, no mouth, no nose, flat shading, basic outline, "
-    "2 colors per material, game sprite, NEW identity different from player reference"
+    "2 colors per material, game sprite, feet near bottom of frame"
 )
 
-# Batch A: Lobby / early-game principals (highest priority)
+# Unique identities — standard mode creates NEW characters matching Style Lock scale
 NPCS = [
     (
         "npc_recepcionista_elena",
-        f"{CHAR}, Elena Hunter Association receptionist young woman, neat brown hair in low bun, "
-        "navy blue formal vest over white collared shirt, dark navy skirt, tiny gold pin, "
-        "female silhouette, soft posture",
+        f"{LOCK}, young woman receptionist Elena, neat brown hair in low bun, navy blue formal vest "
+        "over white shirt, dark navy skirt, tiny gold pin, female chibi silhouette",
     ),
     (
         "npc_instrutor_combate",
-        f"{CHAR}, Wing Shingen-ryu Nen master instructor, messy unkempt dark hair, thin glasses bridge, "
-        "loose dark green kimono tunic with sash over white shirt, beige training pants, calm mentor stance",
+        f"{LOCK}, Wing Nen instructor, messy dark hair, thin glasses, dark green kimono tunic with "
+        "sash over white shirt, beige pants, calm mentor stance",
     ),
     (
         "npc_examinador_oficial",
-        f"{CHAR}, Satotz Hunter examiner gentleman, dark charcoal bowler hat, tailored purple suit coat, "
-        "white formal cravat, thin wooden cane hint, upright posture, tall hat kept compact",
+        f"{LOCK}, Satotz examiner, charcoal bowler hat (compact), purple suit coat, white cravat, "
+        "thin cane, upright gentleman chibi",
     ),
     (
         "npc_ferreiro_mestre",
-        f"{CHAR}, master blacksmith Duran, short rugged brown hair, leather apron over grey shirt, "
-        "brown pants, strong arms hint, forge worker NPC",
+        f"{LOCK}, blacksmith Duran, short rugged brown hair, leather apron over grey shirt, brown pants, "
+        "strong stocky forge worker",
     ),
     (
         "npc_vendedor_mercador",
-        f"{CHAR}, traveling merchant NPC, green cloth hat, brown vest over cream shirt, pouch belt, "
-        "friendly trader silhouette",
+        f"{LOCK}, merchant trader, green cloth hat, brown vest over cream shirt, pouch belt, friendly stance",
     ),
     (
         "npc_discipulo_zushi",
-        f"{CHAR}, young martial arts disciple Zushi child, short dark hair bowl cut, simple white training "
-        "gi with green sash, smaller child proportions but same Style Lock scale",
+        f"{LOCK}, child disciple Zushi, short dark bowl-cut hair, white training gi with green sash, "
+        "smaller child body still ~20px tall",
     ),
     (
         "npc_guarda_fronteira",
-        f"{CHAR}, frontier gate guard Zebro, grey helmet, grey armor vest, spear held upright, "
-        "stocky sentry stance, NOT same as Padokia road guard",
+        f"{LOCK}, frontier guard Zebro, grey helmet, grey armor vest, upright spear, stocky sentry",
     ),
     (
         "npc_viajante_scout",
-        f"{CHAR}, wilderness scout traveler, green hood or scarf, brown traveler cloak, backpack hint, "
-        "outdoor explorer NPC, NEW identity",
+        f"{LOCK}, wilderness scout, green scarf, brown traveler cloak, small backpack, explorer NPC",
     ),
-    # Batch B: main cast frequently on maps
     (
         "npc_gon",
-        f"{CHAR}, Gon Freecss inspired hunter boy, spiky jet-black hair, green sleeveless jacket, "
-        "white shorts, fishing rod strap hint, energetic child-teen chibi, NEW identity",
+        f"{LOCK}, Gon-inspired hunter boy, spiky jet-black hair, green sleeveless jacket, white shorts, "
+        "energetic child-teen chibi",
     ),
     (
         "npc_killua",
-        f"{CHAR}, Killua Zoldyck inspired assassin boy, silver-white spiky hair, dark blue sleeveless top, "
-        "baggy pants, pale skin, cool stance, NEW identity",
+        f"{LOCK}, Killua-inspired assassin boy, silver-white spiky hair, dark blue sleeveless top, "
+        "baggy pants, pale skin, cool stance",
     ),
     (
         "npc_kurapika",
-        f"{CHAR}, Kurapika inspired blond youth, short blond hair, white shirt with black vest, "
-        "chain accessory hint, determined stance, NEW identity",
+        f"{LOCK}, Kurapika-inspired blond youth, short blond hair, white shirt black vest, chain hint, "
+        "determined stance",
     ),
     (
         "npc_leorio",
-        f"{CHAR}, Leorio inspired tall young man kept chibi, short dark hair, teal suit jacket, "
-        "white shirt, brown pants, briefcase hint, NEW identity",
+        f"{LOCK}, Leorio-inspired young man chibi, short dark hair, teal suit jacket, white shirt, "
+        "brown pants, briefcase hint",
     ),
 ]
 
@@ -167,15 +160,6 @@ def busy(text: str) -> bool:
     )
 
 
-def player_ref_b64() -> str:
-    p3 = Image.open(ROOT / "assets" / "reference" / "player(3).png").convert("RGBA")
-    if p3.size[0] >= 48 and p3.size[1] >= 48:
-        p3 = p3.crop((0, 0, 48, 48))
-    buf = io.BytesIO()
-    p3.save(buf, format="PNG")
-    return base64.b64encode(buf.getvalue()).decode()
-
-
 def poll_char(mcp: MCP, job_id: str, timeout: int = 900) -> dict:
     t0 = time.time()
     last = {"text": "", "images": [], "isError": True}
@@ -192,8 +176,22 @@ def poll_char(mcp: MCP, job_id: str, timeout: int = 900) -> dict:
     return last
 
 
+def normalize_48(im: Image.Image) -> Image.Image:
+    im = im.convert("RGBA")
+    if im.size == (48, 48):
+        return im
+    # Keep feet near Y≈42
+    if im.width > 48 or im.height > 48:
+        im.thumbnail((48, 48), Image.NEAREST)
+    canvas = Image.new("RGBA", (48, 48), (0, 0, 0, 0))
+    ox = (48 - im.width) // 2
+    oy = max(0, 48 - im.height - 5)
+    canvas.paste(im, (ox, oy), im)
+    return canvas
+
+
 def download_character_sheet(token: str, character_id: str, dest_sheet: Path, rot_dir: Path) -> bool:
-    headers = {"Authorization": f"Bearer {token}", "User-Agent": "HunterOnline/npc-regen"}
+    headers = {"Authorization": f"Bearer {token}", "User-Agent": "HunterOnline/npc-standard"}
     url = f"https://api.pixellab.ai/mcp/characters/{character_id}/download"
     req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=120) as resp:
@@ -226,26 +224,12 @@ def download_character_sheet(token: str, character_id: str, dest_sheet: Path, ro
                     match = n
                     break
         if match is None:
-            print(f"    missing rotation {name}", flush=True)
+            print(f"    missing {name}", flush=True)
             return False
-        raw = z.read(match)
-        im = Image.open(io.BytesIO(raw)).convert("RGBA")
-        if im.size != (48, 48):
-            # Style Lock: force into 48 canvas (bottom-align feet)
-            canvas = Image.new("RGBA", (48, 48), (0, 0, 0, 0))
-            # scale down if larger
-            if im.width > 48 or im.height > 48:
-                im.thumbnail((48, 48), Image.NEAREST)
-            ox = (48 - im.width) // 2
-            oy = 48 - im.height - 5  # aim feet near Y≈42-43
-            if oy < 0:
-                oy = 0
-            canvas.paste(im, (ox, oy), im)
-            im = canvas
-        (rot_dir / f"{name}.png").write_bytes(
-            # rewrite normalized
-            (lambda i: (buf := io.BytesIO(), i.save(buf, format="PNG"), buf.getvalue())[2])(im)
-        )
+        im = normalize_48(Image.open(io.BytesIO(z.read(match))))
+        buf = io.BytesIO()
+        im.save(buf, format="PNG")
+        (rot_dir / f"{name}.png").write_bytes(buf.getvalue())
         frames.append(im)
         print(f"    rot {name} {im.size}", flush=True)
     sheet = Image.new("RGBA", (48 * 8, 48), (0, 0, 0, 0))
@@ -257,17 +241,20 @@ def download_character_sheet(token: str, character_id: str, dest_sheet: Path, ro
     return True
 
 
-def main() -> int:
-    print("DEPRECATED: use pixellab_regen_main_npcs_standard_lock.py", file=sys.stderr)
-    return 2
-    # unreachable original follows for reference
-    if False:
-        return _main_impl()
+def opaque_sim(a: Image.Image, b: Image.Image) -> float:
+    same = tot = 0
+    for pa, pb in zip(a.getdata(), b.getdata()):
+        if pa[3] < 20 and pb[3] < 20:
+            continue
+        tot += 1
+        if pa == pb:
+            same += 1
+    return (100.0 * same / tot) if tot else 0.0
 
-def _main_impl() -> int:
+
+def main() -> int:
     token = os.environ.get("PIXELLAB_API_TOKEN", "").strip()
     if not token:
-        print("PIXELLAB_API_TOKEN missing", file=sys.stderr)
         return 1
     mcp = MCP(token)
     mcp.call(
@@ -275,62 +262,90 @@ def _main_impl() -> int:
         {
             "protocolVersion": "2024-11-05",
             "capabilities": {},
-            "clientInfo": {"name": "hunter-npc-stylelock", "version": "1"},
+            "clientInfo": {"name": "hunter-npc-standard-lock", "version": "1"},
         },
     )
     try:
         mcp.call("notifications/initialized", {})
     except Exception:
         pass
+    print("[balance]", mcp.tool("get_balance", {})["text"][:280], flush=True)
 
-    print("[balance]", mcp.tool("get_balance", {})["text"][:300], flush=True)
-    ref = player_ref_b64()
-    meta = {"batch": "main_npc_stylelock_v3", "created_at": time.time(), "characters": []}
+    # clone-detect reference (calibrated viajante)
+    viajante = Image.open(
+        OUT_CHARS / "npc_calibration_viajante_padokia_rotations" / "south.png"
+    ).convert("RGBA")
 
-    queued = []
+    meta = {"batch": "main_npc_stylelock_standard", "created_at": time.time(), "characters": []}
+
     for name, desc in NPCS:
-        print(f"[*] queue {name}", flush=True)
-        r = mcp.tool(
-            "create_character",
-            {
-                "name": name + "_v3lock",
-                "description": desc,
-                "mode": "v3",
-                "size": 48,
-                "detail": "low detail",
-                "outline": "single color black outline",
-                "view": "low top-down",
-                "reference_image_base64": ref,
-            },
-        )
-        print("   ", r["text"][:240].replace("\n", " "), flush=True)
-        cid = uuid_from(r["text"])
+        print(f"[*] queue {name} (standard)", flush=True)
+        r = None
+        for attempt in range(24):
+            r = mcp.tool(
+                "create_character",
+                {
+                    "name": name + "_stdlock",
+                    "description": desc,
+                    "mode": "standard",
+                    "size": 48,
+                    "n_directions": 8,
+                    "detail": "low detail",
+                    "shading": "flat shading",
+                    "outline": "single color black outline",
+                    "view": "low top-down",
+                    "body_type": "humanoid",
+                },
+            )
+            print("   ", r["text"][:240].replace("\n", " "), flush=True)
+            if "429" in r["text"] or "Maximum" in r["text"]:
+                print(f"    wait concurrency {attempt+1}", flush=True)
+                time.sleep(20)
+                continue
+            break
+        cid = uuid_from(r["text"]) if r else None
         if not cid:
-            print("    FAIL no id", flush=True)
+            meta["characters"].append({"name": name, "ok": False, "error": (r or {}).get("text", "")[:400]})
             continue
-        queued.append((name, cid, r["text"]))
-        time.sleep(1)
-
-    for name, cid, qtext in queued:
         print(f"[*] finish {name}", flush=True)
-        r = poll_char(mcp, cid)
+        done = poll_char(mcp, cid)
         sheet = OUT_CHARS / f"{name}_8dir.png"
         rot = OUT_CHARS / f"{name}_rotations"
         ok = download_character_sheet(token, cid, sheet, rot)
+        sim = 0.0
+        if ok:
+            south = Image.open(rot / "south.png").convert("RGBA")
+            sim = opaque_sim(south, viajante)
+            print(f"    opaque_sim_vs_viajante={sim:.1f}%", flush=True)
+            if sim > 70:
+                print("    WARN too similar to viajante — identity may be weak", flush=True)
         meta["characters"].append(
             {
                 "name": name,
                 "id": cid,
                 "ok": ok,
-                "queue": qtext[:400],
-                "result": r["text"][:600],
+                "opaque_sim_viajante": sim,
+                "queue": r["text"][:400],
+                "result": done["text"][:500],
                 "path": str(sheet.relative_to(ROOT)),
             }
         )
+        OUT_META.parent.mkdir(parents=True, exist_ok=True)
+        OUT_META.write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
-    OUT_META.parent.mkdir(parents=True, exist_ok=True)
-    OUT_META.write_text(json.dumps(meta, indent=2), encoding="utf-8")
-    print("[DONE]", json.dumps({"chars": len(meta["characters"]), "ok": sum(1 for c in meta["characters"] if c.get("ok"))}), flush=True)
+    print(
+        "[DONE]",
+        json.dumps(
+            {
+                "chars": len(meta["characters"]),
+                "ok": sum(1 for c in meta["characters"] if c.get("ok")),
+                "unique_enough": sum(
+                    1 for c in meta["characters"] if c.get("ok") and c.get("opaque_sim_viajante", 100) < 70
+                ),
+            }
+        ),
+        flush=True,
+    )
     return 0
 
 
