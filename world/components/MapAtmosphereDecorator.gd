@@ -13,7 +13,8 @@ enum MapKind {
 	DUNGEON,
 	VALE,
 	YORKNEW,
-	KUKUROO
+	KUKUROO,
+	ARENA
 }
 
 @export var map_kind: MapKind = MapKind.FLORESTA
@@ -48,6 +49,8 @@ func _ready() -> void:
 			_densificar_yorknew()
 		MapKind.KUKUROO:
 			_densificar_kukuroo()
+		MapKind.ARENA:
+			_densificar_arena()
 	_espalhar_props_landmark()
 	_conectar_sinais()
 	_atualizar_luz()
@@ -293,6 +296,35 @@ func _densificar_kukuroo() -> void:
 				decor.set_cell(Vector2i(tx, ty), 5, Vector2i(0, 0))
 
 
+
+func _densificar_arena() -> void:
+	# Corredor da Arena Celestial: piso de pedra + postes + equipamentos de treino
+	var mapa := _mapa()
+	if mapa == null:
+		return
+	var chao: TileMapLayer = mapa.get_node_or_null("Chao_TileMapLayer") as TileMapLayer
+	var decor := _garantir_decor_layer()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0xA4E4A01
+	for tx in range(-20, 280):
+		for ty in range(-90, 90):
+			if chao != null and chao.get_cell_source_id(Vector2i(tx, ty)) == -1:
+				chao.set_cell(Vector2i(tx, ty), 0, Vector2i(1, 9))
+			if abs(ty) <= 3 and chao != null:
+				chao.set_cell(Vector2i(tx, ty), 0, Vector2i(1, 5))
+	if decor == null:
+		return
+	for tx in range(-10, 270, 7):
+		for ty in [-36, -18, 18, 36]:
+			var c := Vector2i(tx, ty)
+			if decor.get_cell_source_id(c) == -1:
+				decor.set_cell(c, 8, Vector2i(2, 1))
+		if rng.randf() < 0.4:
+			var b := Vector2i(tx + 2, rng.randi_range(-14, 14))
+			if decor.get_cell_source_id(b) == -1:
+				decor.set_cell(b, 8, Vector2i(4, 2))
+
+
 func _espalhar_props_landmark() -> void:
 	if get_node_or_null("AtmosphereProps") != null:
 		return
@@ -305,6 +337,9 @@ func _espalhar_props_landmark() -> void:
 			_add_prop_sprite(root, "MonolitoNenOeste", Vector2(140, 360), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.55, 0.9, 1.0), Vector2(0.9, 0.9))
 			_add_prop_sprite(root, "MonolitoNenSul", Vector2(520, 520), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.7, 1.0, 0.85), Vector2(0.85, 0.85))
 			_add_prop_sprite(root, "LanternaClareira", Vector2(300, 200), "res://assets/sprites/objects/hunter_road_lantern.png", Color.WHITE, Vector2(1, 1))
+			_add_prop_sprite(root, "ArbustoClareiraA", Vector2(220, 260), "res://assets/sprites/objects/lobby_bush_flowers_decor.png", Color(0.8, 1.0, 0.75), Vector2(1.0, 1.0))
+			_add_prop_sprite(root, "ArbustoClareiraB", Vector2(480, 340), "res://assets/sprites/objects/lobby_bush_flowers_decor.png", Color(0.75, 0.95, 0.7), Vector2(0.9, 0.9))
+			_add_prop_sprite(root, "MarcoPedraSul", Vector2(560, 420), "res://assets/sprites/objects/marco_pedra_milestone.png", Color.WHITE, Vector2(0.95, 0.95))
 			_add_point_light(root, Vector2(300, 190), Color(1.0, 0.85, 0.55), 1.2)
 			_add_point_light(root, Vector2(400, 290), Color(0.45, 1.0, 0.7), 1.4)
 		MapKind.ESTRADA:
@@ -331,11 +366,29 @@ func _espalhar_props_landmark() -> void:
 			_add_prop_sprite(root, "MarcoLeilao", Vector2(200, 0), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.7, 0.85, 1.0), Vector2(1.15, 1.15))
 			_add_prop_sprite(root, "MarcoAranha", Vector2(3800, -40), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.95, 0.45, 0.55), Vector2(1.2, 1.2))
 		MapKind.KUKUROO:
-			_add_prop_sprite(root, "PortaoTesteProp", Vector2(120, 0), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.75, 0.8, 0.7), Vector2(1.4, 1.4))
-			for x in [600.0, 1400.0, 2200.0, 3000.0]:
+			_add_prop_sprite(root, "PortaoTesteProp", Vector2(120, 0), "res://assets/sprites/objects/portao_padokia_arch.png", Color(0.85, 0.88, 0.8), Vector2(1.0, 1.0))
+			_add_prop_sprite(root, "MarcoPedraPortao", Vector2(280, 40), "res://assets/sprites/objects/marco_pedra_milestone.png", Color.WHITE, Vector2(1.0, 1.0))
+			for x in [600.0, 1000.0, 1400.0, 1800.0, 2200.0, 2600.0, 3000.0, 3400.0]:
 				_add_prop_sprite(root, "TochaAlameda_%d" % int(x), Vector2(x, -60), "res://assets/sprites/objects/ruin_nen_torch.png", Color(0.9, 1.0, 0.85), Vector2(1, 1))
+				_add_prop_sprite(root, "LanternaAlameda_%d" % int(x), Vector2(x, 90), "res://assets/sprites/objects/hunter_road_lantern.png", Color(0.95, 1.0, 0.9), Vector2(1, 1))
 				_add_point_light(root, Vector2(x, -70), Color(0.45, 1.0, 0.55), 1.25)
+				_add_point_light(root, Vector2(x, 80), Color(1.0, 0.85, 0.55), 1.1)
+			for x in [800.0, 1600.0, 2400.0, 3200.0]:
+				_add_prop_sprite(root, "ArbustoAlameda_%d" % int(x), Vector2(x, -100), "res://assets/sprites/objects/lobby_bush_flowers_decor.png", Color(0.75, 0.9, 0.7), Vector2(0.9, 0.9))
+				_add_prop_sprite(root, "ArbustoAlamedaS_%d" % int(x), Vector2(x + 40, 110), "res://assets/sprites/objects/lobby_bush_flowers_decor.png", Color(0.7, 0.85, 0.65), Vector2(0.85, 0.85))
 			_add_prop_sprite(root, "MarcoMansao", Vector2(2500, 40), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.55, 0.7, 0.95), Vector2(1.25, 1.25))
+			_add_prop_sprite(root, "MarcoTrono", Vector2(3400, -40), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.7, 0.55, 0.9), Vector2(1.3, 1.3))
+		MapKind.ARENA:
+			for x in [300.0, 700.0, 1100.0, 1500.0, 1900.0, 2300.0, 2700.0, 3100.0, 3500.0]:
+				_add_prop_sprite(root, "LanternaArenaN_%d" % int(x), Vector2(x, -90), "res://assets/sprites/objects/hunter_road_lantern.png", Color(0.95, 0.9, 1.0), Vector2(1.1, 1.1))
+				_add_prop_sprite(root, "LanternaArenaS_%d" % int(x), Vector2(x, 110), "res://assets/sprites/objects/hunter_road_lantern.png", Color(0.95, 0.9, 1.0), Vector2(1.1, 1.1))
+				_add_point_light(root, Vector2(x, -100), Color(0.7, 0.8, 1.0), 1.3)
+				_add_point_light(root, Vector2(x, 100), Color(1.0, 0.7, 0.45), 1.15)
+			for x in [900.0, 1300.0, 1700.0, 2100.0, 2600.0]:
+				_add_prop_sprite(root, "BonecoTreino_%d" % int(x), Vector2(x, 70), "res://assets/sprites/objects/boneco_treino_dummy.png", Color.WHITE, Vector2(1.0, 1.0))
+			_add_prop_sprite(root, "MarcoRecepcao", Vector2(160, 0), "res://assets/sprites/objects/marco_pedra_milestone.png", Color.WHITE, Vector2(1.1, 1.1))
+			_add_prop_sprite(root, "MonolitoDojo", Vector2(1100, -40), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.65, 0.9, 1.0), Vector2(1.15, 1.15))
+			_add_prop_sprite(root, "MonolitoTopo", Vector2(3400, -20), "res://assets/sprites/objects/nen_stone_monolith.png", Color(1.0, 0.55, 0.7), Vector2(1.25, 1.25))
 
 
 func _add_prop_sprite(parent: Node2D, nome: String, pos: Vector2, tex_path: String, modulate: Color, scale: Vector2) -> void:

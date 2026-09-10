@@ -30,6 +30,7 @@ func _ready() -> void:
 	_criar_elementos_floresta()
 	_instanciar_feras_selvagens()
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.FLORESTA)
+	_espalhar_detalhes_clareira()
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)
@@ -93,6 +94,36 @@ func _posicionar_player() -> void:
 			wpm.posicionar_player_no_spawn(player)
 
 
+
+
+func _espalhar_detalhes_clareira() -> void:
+	if get_node_or_null("DetalhesClareira") != null:
+		return
+	var root := Node2D.new()
+	root.name = "DetalhesClareira"
+	add_child(root)
+	var props := [
+		{"n": "ArbustoA", "pos": Vector2(180, 220), "tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "sc": Vector2(1.0, 1.0)},
+		{"n": "ArbustoB", "pos": Vector2(520, 260), "tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "sc": Vector2(0.9, 0.9)},
+		{"n": "ArbustoC", "pos": Vector2(300, 420), "tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "sc": Vector2(1.05, 1.05)},
+		{"n": "MarcoSul", "pos": Vector2(440, 480), "tex": "res://assets/sprites/objects/marco_pedra_milestone.png", "sc": Vector2(1.0, 1.0)},
+		{"n": "LanternaClareiraExtra", "pos": Vector2(260, 340), "tex": "res://assets/sprites/objects/hunter_road_lantern.png", "sc": Vector2(1.0, 1.0)},
+	]
+	for p in props:
+		var n := Node2D.new()
+		n.name = p["n"]
+		n.position = p["pos"]
+		n.z_index = 1
+		var spr := Sprite2D.new()
+		spr.centered = true
+		spr.position = Vector2(0, -8)
+		spr.scale = p["sc"]
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		if ResourceLoader.exists(p["tex"]):
+			spr.texture = load(p["tex"])
+		n.add_child(spr)
+		root.add_child(n)
+
 func _criar_elementos_floresta() -> void:
 	# 1. Árvore Milenar Sagrada (Centro)
 	if get_node_or_null("ArvoreMilenar") == null:
@@ -101,13 +132,12 @@ func _criar_elementos_floresta() -> void:
 		arvore.position = Vector2(400, 300)
 
 		var spr := Sprite2D.new()
-		spr.texture = load("res://assets/sprites/characters/player.png")
-		spr.hframes = 6
-		spr.vframes = 10
-		spr.frame = 0
-		spr.position = Vector2(0, -24)
-		spr.scale = Vector2(1.8, 1.8)
-		spr.modulate = Color(0.2, 0.85, 0.35, 1.0)
+		spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
+		spr.centered = true
+		spr.position = Vector2(0, -28)
+		spr.scale = Vector2(1.35, 1.55)
+		spr.modulate = Color(0.45, 0.95, 0.55, 1.0)
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		arvore.add_child(spr)
 
 		var col := CollisionShape2D.new()
@@ -156,12 +186,19 @@ func _criar_elementos_floresta() -> void:
 		herb.add_child(col)
 
 		var spr := Sprite2D.new()
-		spr.texture = load("res://assets/sprites/characters/player.png")
-		spr.hframes = 6
-		spr.vframes = 10
-		spr.frame = 0
-		spr.position = Vector2(0, -9)
-		spr.modulate = Color(0.4, 0.9, 0.5, 1.0)
+		if ResourceLoader.exists("res://assets/sprites/characters/npc_viajante_scout_8dir.png"):
+			spr.texture = load("res://assets/sprites/characters/npc_viajante_scout_8dir.png")
+			spr.hframes = 8
+			spr.vframes = 1
+			spr.frame = 0
+		else:
+			spr.texture = load("res://assets/sprites/characters/player.png")
+			spr.hframes = 6
+			spr.vframes = 10
+			spr.frame = 0
+		spr.position = Vector2(0, -17)
+		spr.modulate = Color.WHITE
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		herb.add_child(spr)
 
 		var lbl := Label.new()
@@ -200,12 +237,12 @@ func _criar_elementos_floresta() -> void:
 		ko_obs.add_child(col)
 
 		var spr := Sprite2D.new()
-		spr.texture = load("res://assets/sprites/characters/player.png")
-		spr.hframes = 6
-		spr.vframes = 10
-		spr.frame = 0
-		spr.position = Vector2(0, -10)
-		spr.modulate = Color(0.65, 0.55, 0.45, 1.0)
+		spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
+		spr.centered = true
+		spr.position = Vector2(0, -14)
+		spr.scale = Vector2(0.85, 0.7)
+		spr.modulate = Color(0.7, 0.62, 0.5, 1.0)
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		ko_obs.add_child(spr)
 
 		add_child(ko_obs)
