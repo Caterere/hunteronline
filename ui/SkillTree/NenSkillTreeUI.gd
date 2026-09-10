@@ -69,6 +69,10 @@ var lbl_insp_prereqs: Label
 var lbl_insp_tags: Label
 var lbl_insp_condicao: Label
 
+# Overlay de bloqueio pré-despertar (Arena Celestial)
+var lock_overlay: PanelContainer = null
+var lbl_lock_overlay: Label = null
+
 # Compatibilidade com testes e integrações legadas
 var tree_canvas: Control = null
 var node_buttons: Dictionary = {}
@@ -219,6 +223,55 @@ func _construir_ui() -> void:
 	confirmation_dialog.dialog_text = "Deseja resetar todos os pontos investidos na Skill Tree?\n\nTodos os pontos serão devolvidos integralmente ao seu Caçador.\nSeu Nível, XP, Atributos Base, Técnicas e Hatsu permanecerão intactos."
 	confirmation_dialog.confirmed.connect(_confirmar_reset_arvore)
 	add_child(confirmation_dialog)
+
+	# 7. Overlay de bloqueio até despertar Nen (Arena Celestial / Wing)
+	_construir_overlay_bloqueio()
+	_atualizar_estado_bloqueio()
+
+
+func _construir_overlay_bloqueio() -> void:
+	lock_overlay = PanelContainer.new()
+	lock_overlay.name = "NenLockOverlay"
+	lock_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	lock_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	var st := StyleBoxFlat.new()
+	st.bg_color = Color(0.04, 0.05, 0.08, 0.88)
+	st.border_color = HunterUIStyle.COLOR_BORDER_GOLD
+	st.border_width_left = 1
+	st.border_width_top = 1
+	st.border_width_right = 1
+	st.border_width_bottom = 1
+	lock_overlay.add_theme_stylebox_override("panel", st)
+
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	lock_overlay.add_child(center)
+
+	lbl_lock_overlay = Label.new()
+	lbl_lock_overlay.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_lock_overlay.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_lock_overlay.custom_minimum_size = Vector2(220, 0)
+	lbl_lock_overlay.add_theme_font_size_override("font_size", 7)
+	lbl_lock_overlay.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+	center.add_child(lbl_lock_overlay)
+	add_child(lock_overlay)
+
+
+func _atualizar_estado_bloqueio() -> void:
+	if lock_overlay == null:
+		return
+	var bloqueada: bool = PlayerData == null or not PlayerData.despertou_nen
+	lock_overlay.visible = bloqueada
+	if bloqueada and lbl_lock_overlay != null:
+		var sp: int = PlayerData.nen_skill_points if PlayerData != null else 0
+		lbl_lock_overlay.text = (
+			"🔒 CONSTELAÇÃO DE NEN SELADA\n\n"
+			+ "Os princípios de Nen só se revelam na Arena Celestial,\n"
+			+ "sob a orientação do Mestre Wing.\n\n"
+			+ "⚡ SP acumulados: %d\n(liberados ao despertar)" % sp
+		)
+	if btn_invest != null and bloqueada:
+		btn_invest.disabled = true
 
 
 func _construir_top_bar() -> void:
@@ -943,6 +996,14 @@ func _posicionar_tooltip(mouse_pos: Vector2) -> void:
 # AÇÕES E EVENTOS
 # ------------------------------------------------------------------------------
 func _on_invest_pressed() -> void:
+	if PlayerData != null and not PlayerData.despertou_nen:
+		_atualizar_estado_bloqueio()
+		if EventBus != null:
+			EventBus.emit_toast(
+				"🔒 Árvore bloqueada até despertar Nen com Wing.",
+				HunterUIStyle.COLOR_TEXT_MUTED
+			)
+		return
 	if skill_tree == null or selected_node_id.is_empty():
 		return
 	var sucesso := skill_tree.investir_ponto(selected_node_id)
@@ -965,7 +1026,12 @@ func _on_pontos_alterados(_pts: int) -> void:
 
 func _atualizar_badge_pontos() -> void:
 	if lbl_points != null:
-		lbl_points.text = "⭐ PONTOS DE NEN DISPONÍVEIS: %d" % (PlayerData.nen_skill_points if PlayerData != null else 0)
+		var sp: int = PlayerData.nen_skill_points if PlayerData != null else 0
+		if PlayerData != null and not PlayerData.despertou_nen:
+			lbl_points.text = "🔒 SP ACUMULADOS: %d (bloqueados até Arena Celestial)" % sp
+		else:
+			lbl_points.text = "⭐ PONTOS DE NEN DISPONÍVEIS: %d" % sp
+	_atualizar_estado_bloqueio()
 
 
 func _confirmar_reset_arvore() -> void:

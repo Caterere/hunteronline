@@ -104,16 +104,21 @@ func _inicializar_quests_padokia() -> void:
 			QuestSystem.start_quest(quest_princ)
 			print("[RegiaoValePadokiaMap] Quest Principal iniciada: ", quest_princ.quest_name)
 
-		var quest_inv = PadokiaQuestCatalogScript.obter_quest_investigacao_furto()
-		if not PlayerData.is_quest_active(quest_inv) and not PlayerData.is_quest_completed(quest_inv):
-			# Oferecida ao entrar na região — o 1º objetivo é falar com o mercador
-			QuestSystem.start_quest(quest_inv)
-			print("[RegiaoValePadokiaMap] Quest Investigativa iniciada: ", quest_inv.quest_name)
+		# Investigação com Gyo só após despertar Nen (pós Arena Celestial / Wing)
+		if PlayerData != null and PlayerData.despertou_nen:
+			var quest_inv = PadokiaQuestCatalogScript.obter_quest_investigacao_furto()
+			if not PlayerData.is_quest_active(quest_inv) and not PlayerData.is_quest_completed(quest_inv):
+				QuestSystem.start_quest(quest_inv)
+				print("[RegiaoValePadokiaMap] Quest Investigativa (Gyo) iniciada: ", quest_inv.quest_name)
 
 	_popular_pistas_furto_gyo()
 
 
 func _popular_pistas_furto_gyo() -> void:
+	# Gyo / princípios avançados só existem após o despertar narrativo
+	if PlayerData == null or not PlayerData.despertou_nen:
+		return
+
 	# Trilha Gyo na vila (~tile 100–110 / y 250) — coords mundo 16px
 	NenSensorFactory.criar_gyo(
 		self,

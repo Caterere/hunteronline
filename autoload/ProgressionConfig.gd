@@ -84,37 +84,41 @@ const STAT_EXPONENTS: Dictionary = {
 # ------------------------------------------------------------
 # 3. CURVA DE XP
 # ------------------------------------------------------------
-const XP_BASE: int = 300
-const XP_GROWTH: float = 1.6
+# Curva mais exigente no early-game: a história principal guia o nível;
+# missões paralelas / conteúdo futuro empurram até o teto 1000.
+const XP_BASE: int = 400
+const XP_GROWTH: float = 1.65
 
 # ------------------------------------------------------------
 # 4. MARCOS DE NÍVEL (MILESTONES CANÔNICOS)
 # ------------------------------------------------------------
-const MILESTONE_LEVELS: Array[int] = [1, 10, 50, 100, 250, 500, 750, 1000]
+const MILESTONE_LEVELS: Array[int] = [1, 25, 40, 60, 85, 130, 230, 350, 500, 750, 1000]
 
 # ------------------------------------------------------------
 # 5. FAIXAS DE PROGRESSÃO
 # ------------------------------------------------------------
 enum Bracket {
-	EARLY,    # Níveis 1 a 80 (Exame Hunter)
-	MID,      # Níveis 81 a 300 (Kukuroo, Arena, Yorknew, Greed Island)
-	LATE,     # Níveis 301 a 700 (Chimera Ants, Eleição)
-	ENDGAME   # Níveis 701 a 1000 (Continente Negro, Guerra Kakin, Expansões)
+	EARLY,    # Níveis 1 a 60 (Exame → Arena Celestial / despertar Nen)
+	MID,      # Níveis 61 a 130 (Yorknew → Greed Island)
+	LATE,     # Níveis 131 a 350 (Formigas → fim da história lançada)
+	ENDGAME   # Níveis 351 a 1000 (paralelas, expansões, sagas futuras)
 }
 
 # ------------------------------------------------------------
 # 6. FAIXAS RECOMENDADAS DE SAGA (DATA-DRIVEN)
+# Soft-max = teto esperado ao concluir a saga principal.
+# XP acima do soft-max da saga atual é fortemente amortecido.
 # ------------------------------------------------------------
 const SAGA_LEVEL_RANGES: Dictionary = {
-	1: Vector2i(1, 80),      # 287º Exame Hunter
-	2: Vector2i(70, 150),    # Montanha Kukuroo
-	3: Vector2i(130, 250),   # Arena Celestial
-	4: Vector2i(220, 380),   # Yorknew City & Trupe Fantasma
-	5: Vector2i(350, 520),   # Greed Island
-	6: Vector2i(500, 720),   # Formigas Chimera
-	7: Vector2i(680, 800),   # Eleição Hunter & Alluka
-	8: Vector2i(780, 900),   # Continente Negro Expedição
-	9: Vector2i(880, 1000)   # Guerra de Sucessão Kakin
+	1: Vector2i(1, 25),      # 287º Exame Hunter
+	2: Vector2i(20, 40),     # Montanha Kukuroo
+	3: Vector2i(35, 60),     # Arena Celestial (+ descoberta Nen)
+	4: Vector2i(55, 85),     # Yorknew City & Trupe Fantasma
+	5: Vector2i(75, 130),    # Greed Island (+ Hatsu / princípios)
+	6: Vector2i(120, 230),   # Formigas Chimera
+	7: Vector2i(200, 280),   # Eleição Hunter & Alluka
+	8: Vector2i(250, 320),   # Continente Negro Expedição
+	9: Vector2i(300, 350)    # Guerra de Sucessão Kakin (teto história atual)
 }
 
 
@@ -191,11 +195,11 @@ static func obter_skill_points_por_level(_level: int) -> int:
 
 ## Retorna a categoria/faixa de progressão do personagem
 static func obter_bracket_por_nivel(level: int) -> Bracket:
-	if level <= 80:
+	if level <= 60:
 		return Bracket.EARLY
-	elif level <= 300:
+	elif level <= 130:
 		return Bracket.MID
-	elif level <= 700:
+	elif level <= 350:
 		return Bracket.LATE
 	else:
 		return Bracket.ENDGAME
@@ -219,9 +223,33 @@ static func obter_nome_bracket(level: int) -> String:
 static func obter_faixa_saga(saga_id: int) -> Vector2i:
 	if SAGA_LEVEL_RANGES.has(saga_id):
 		return SAGA_LEVEL_RANGES[saga_id]
-	# Fallback gracioso para sagas além da 9 sem quebrar o jogo
-	var base_min = min(880 + (saga_id - 9) * 40, MAX_LEVEL - 50)
+	# Fallback: sagas futuras além da história lançada (rumo ao teto 1000)
+	var base_min = mini(350 + (saga_id - 9) * 80, MAX_LEVEL - 80)
 	return Vector2i(base_min, MAX_LEVEL)
+
+
+## Soft-max (teto esperado) da saga atual do jogador
+static func obter_soft_max_saga_atual() -> int:
+	var arco: int = 1
+	if PlayerData != null:
+		arco = clampi(int(PlayerData.arco_atual), 1, 99)
+	return obter_faixa_saga(arco).y
+
+
+## Multiplicador de XP quando o nível passa do soft-max da saga atual.
+## Mantém progressão residual (paralelas / farm) sem estourar a curva narrativa.
+static func obter_multiplicador_xp_soft_cap(level: int, saga_id: int = -1) -> float:
+	var arco: int = saga_id
+	if arco < 1:
+		arco = 1
+		if PlayerData != null:
+			arco = clampi(int(PlayerData.arco_atual), 1, 99)
+	var soft_max: int = obter_faixa_saga(arco).y
+	if level < soft_max:
+		return 1.0
+	var over: int = level - soft_max
+	# No teto da saga: 30%. Cada nível acima reduz mais (mínimo 5%).
+	return maxf(0.05, 0.30 / (1.0 + float(over) * 0.40))
 
 
 ## Avalia se o nível do jogador está adequado para uma saga

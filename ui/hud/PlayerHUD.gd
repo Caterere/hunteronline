@@ -106,10 +106,12 @@ func _criar_condition_tracker() -> void:
 	if condition_tracker == null:
 		condition_tracker = ConditionTrackerUIScript.new()
 		condition_tracker.name = "ConditionTrackerUI"
-		condition_tracker.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-		condition_tracker.offset_left = -140.0
-		condition_tracker.offset_top = 42.0
-		condition_tracker.offset_right = -10.0
+		# Canto inferior esquerdo — só aparece com Hatsu condicional ativo
+		condition_tracker.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+		condition_tracker.offset_left = 10.0
+		condition_tracker.offset_top = -150.0
+		condition_tracker.offset_right = 160.0
+		condition_tracker.offset_bottom = -12.0
 		add_child(condition_tracker)
 
 
@@ -729,7 +731,11 @@ func _atualizar_header_e_gold() -> void:
 	if lbl_sp_badge:
 		var sp: int = PlayerData.nen_skill_points
 		if sp > 0:
-			lbl_sp_badge.text = "⚡ %d SP [N]" % sp
+			if PlayerData.despertou_nen:
+				lbl_sp_badge.text = "⚡ %d SP [N]" % sp
+			else:
+				# SP acumula desde o lv1; só gasta após despertar Nen (Arena Celestial)
+				lbl_sp_badge.text = "🔒 %d SP (Arena)" % sp
 			lbl_sp_badge.visible = true
 		else:
 			lbl_sp_badge.visible = false
@@ -769,10 +775,7 @@ func _atualizar_condicoes_combate() -> void:
 	if PlayerData.quest_states.get("guanyin_bodhisattva_ativo", false):
 		condicoes_ativas.append({"nome": "🙏 Bodhisattva", "cor": HunterUIStyle.COLOR_GOLD_LIGHT})
 
-	# 6. SP Disponível alerta
-	if PlayerData.nen_skill_points > 0 and condicoes_ativas.size() < 4:
-		condicoes_ativas.append({"nome": "⚡ +%d SP" % PlayerData.nen_skill_points, "cor": HunterUIStyle.COLOR_GOLD})
-
+	# Pílulas compactas de status (NÃO alimentam o tracker de requisitos de Hatsu)
 	for c in condicoes_ativas:
 		var pill := PanelContainer.new()
 		var st := StyleBoxFlat.new()
@@ -795,19 +798,61 @@ func _atualizar_condicoes_combate() -> void:
 		pill.add_child(lbl)
 		hbox_conditions.add_child(pill)
 
-	if condition_tracker != null:
-		if condicoes_ativas.is_empty():
-			condition_tracker.visible = false
+	_atualizar_tracker_requisitos_hatsu()
+
+
+func _atualizar_tracker_requisitos_hatsu() -> void:
+	## Tracker inferior-esquerdo: só quando um Hatsu com condições/juramentos está em uso.
+	if condition_tracker == null:
+		return
+
+	var hatsu_ativo: Resource = _obter_hatsu_condicional_ativo()
+	if hatsu_ativo == null:
+		if condition_tracker.has_method("limpar"):
+			condition_tracker.limpar()
 		else:
-			condition_tracker.visible = true
-			var tracker_items: Array[Dictionary] = []
-			for c in condicoes_ativas:
-				tracker_items.append({
-					"descricao": c.get("nome", "Condição"),
-					"atendida": true,
-					"detalhe": ""
-				})
-			condition_tracker.exibir_condicoes("CONDIÇÕES DE COMBATE", tracker_items)
+			condition_tracker.visible = false
+		return
+
+	var contexto: Dictionary = {}
+	if CombatEngine != null and CombatEngine.has_method("construir_contexto_combate"):
+		var player_ref = get_tree().get_first_node_in_group("player") if get_tree() != null else null
+		contexto = CombatEngine.construir_contexto_combate(player_ref)
+
+	if condition_tracker.has_method("rastrear_hatsu"):
+		condition_tracker.rastrear_hatsu(hatsu_ativo, contexto)
+	else:
+		condition_tracker.visible = false
+
+
+func _obter_hatsu_condicional_ativo() -> Resource:
+	if PlayerData == null or not PlayerData.hatsu_desbloqueado:
+		return null
+
+	var candidatos: Array = []
+	if HatsuManager != null and HatsuManager.has_method("obter_hatsus_ativos_sustentados"):
+		candidatos = HatsuManager.obter_hatsus_ativos_sustentados()
+	elif PlayerData.has_method("obter_hatsu_slot"):
+		for i in range(4):
+			var h = PlayerData.obter_hatsu_slot(i)
+			if h != null:
+				candidatos.append(h)
+
+	for hatsu in candidatos:
+		if hatsu == null:
+			continue
+		var tem_cond := false
+		if "gameplay_conditions" in hatsu and hatsu.gameplay_conditions is Array and not hatsu.gameplay_conditions.is_empty():
+			tem_cond = true
+		elif "conditions" in hatsu and hatsu.conditions is Array and not hatsu.conditions.is_empty():
+			tem_cond = true
+		elif "condicoes" in hatsu and hatsu.condicoes is Array and not hatsu.condicoes.is_empty():
+			tem_cond = true
+		elif "modular_conditions" in hatsu and hatsu.modular_conditions is Array and not hatsu.modular_conditions.is_empty():
+			tem_cond = true
+		if tem_cond:
+			return hatsu
+	return null
 
 
 

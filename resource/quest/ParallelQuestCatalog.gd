@@ -118,8 +118,8 @@ static func _adicionar_arco_1(lista: Array[Dictionary]) -> void:
 		var hp_base := 450 + (id * 180)
 		var forca := 15 + (id * 2)
 		var def := 8 + int(id * 1.5)
-		var xp := 1500 + (id * 300)
-		var gold := 10000 + (id * 2500)
+		var xp := 180 + (id * 55)  # ~235–1390 — farm não estoura o soft-max 25
+		var gold := 2500 + (id * 600)
 		
 		lista.append({
 			"id": id,
@@ -157,8 +157,8 @@ static func _adicionar_arco_2(lista: Array[Dictionary]) -> void:
 		var hp_base := 2500 + (i * 350)
 		var forca := 35 + (i * 3)
 		var def := 22 + int(i * 2.0)
-		var xp := 6000 + (i * 600)
-		var gold := 50000 + (i * 5000)
+		var xp := 450 + (i * 90)  # Kukuroo — soft-max ~40
+		var gold := 8000 + (i * 1200)
 		
 		lista.append({
 			"id": id,
@@ -198,8 +198,8 @@ static func _adicionar_arco_3(lista: Array[Dictionary]) -> void:
 		var hp_base := 5000 + (i * 550)
 		var forca := 55 + (i * 3)
 		var def := 35 + int(i * 2.5)
-		var xp := 15000 + (i * 900)
-		var gold := 120000 + (i * 10000)
+		var xp := 900 + (i * 140)  # Arena Celestial — soft-max ~60
+		var gold := 15000 + (i * 2000)
 		
 		lista.append({
 			"id": id,
@@ -242,8 +242,8 @@ static func _adicionar_arco_4(lista: Array[Dictionary]) -> void:
 		var hp_base := 12000 + (i * 900)
 		var forca := 80 + (i * 4)
 		var def := 50 + int(i * 3.0)
-		var xp := 35000 + (i * 1300)
-		var gold := 350000 + (i * 18000)
+		var xp := 1400 + (i * 160)  # Yorknew — soft-max ~85
+		var gold := 40000 + (i * 3500)
 		
 		lista.append({
 			"id": id,
@@ -287,8 +287,8 @@ static func _adicionar_arco_5(lista: Array[Dictionary]) -> void:
 		var hp_base := 25000 + (i * 1400)
 		var forca := 120 + (i * 5)
 		var def := 75 + int(i * 3.5)
-		var xp := 75000 + (i * 2200)
-		var gold := 900000 + (i * 45000)
+		var xp := 2200 + (i * 220)  # Greed Island — soft-max ~130
+		var gold := 80000 + (i * 6000)
 		
 		lista.append({
 			"id": id,
@@ -334,8 +334,8 @@ static func _adicionar_arco_6(lista: Array[Dictionary]) -> void:
 		var hp_base := 55000 + (i * 2500)
 		var forca := 180 + (i * 6)
 		var def := 110 + int(i * 4.0)
-		var xp := 150000 + (i * 4800)
-		var gold := 2500000 + (i * 110000)
+		var xp := 4500 + (i * 380)  # Formigas Quimera — soft-max ~230
+		var gold := 150000 + (i * 12000)
 		
 		lista.append({
 			"id": id,
@@ -372,8 +372,8 @@ static func _adicionar_arco_7(lista: Array[Dictionary]) -> void:
 		var hp_base := 85000 + (i * 3500)
 		var forca := 240 + (i * 7)
 		var def := 150 + int(i * 5.0)
-		var xp := 250000 + (i * 14000)
-		var gold := 4000000 + (i * 350000)
+		var xp := 7000 + (i * 450)  # Eleição — rumo ao teto ~280–350
+		var gold := 220000 + (i * 18000)
 		
 		lista.append({
 			"id": id,
@@ -411,8 +411,8 @@ static func _adicionar_arco_8(lista: Array[Dictionary]) -> void:
 		var hp_base := 140000 + (i * 6500)
 		var forca := 320 + (i * 10)
 		var def := 210 + int(i * 7.0)
-		var xp := 450000 + (i * 22000)
-		var gold := 7000000 + (i * 500000)
+		var xp := 9000 + (i * 550)  # Continente Negro — paralelismo p/ 320+
+		var gold := 300000 + (i * 25000)
 		
 		lista.append({
 			"id": id,
@@ -451,16 +451,16 @@ static func _adicionar_arco_9(lista: Array[Dictionary]) -> void:
 		var hp_base := 220000 + (i * 9000)
 		var forca := 420 + (i * 12)
 		var def := 280 + int(i * 8.0)
-		var xp := 700000 + (i * 40000)
-		var gold := 12000000 + (i * 900000)
+		var xp := 11000 + (i * 650)  # Sucessão — teto história ~350; resto via farm
+		var gold := 400000 + (i * 35000)
 		
 		# Boss Rush Supremo (PQ 220)
 		if id == 220:
 			hp_base = 400000
 			forca = 750
 			def = 450
-			xp = 1500000
-			gold = 30000000
+			xp = 35000
+			gold = 1500000
 
 		lista.append({
 			"id": id,
