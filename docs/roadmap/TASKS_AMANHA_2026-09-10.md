@@ -28,7 +28,14 @@
 
 ---
 
+### Sessão 5 (Arena PvP assíncrono)
+- [x] `ArenaGhostRegistry`: captura/grava ghosts locais + proxy Besta de Nen
+- [x] `CelestialTowerArena`: andares %5 spawnam ghost/besta; vitória registra ghost
+- [x] Smoke `test_arena_async_pvp_suite` — **20/20**
+
+---
+
 ## Próximo
-1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
-2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
+1. [x] PvP assíncrono dos andares (ghosts / Bestas de Nen) — local-first
+2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew) — ver PR visual-map-density
 3. [x] Retune fino de Jenny/loot early-game (escala canônica + drop + Arena + Padokia)

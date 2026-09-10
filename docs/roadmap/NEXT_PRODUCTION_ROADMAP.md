@@ -53,7 +53,7 @@
    * [ ] Kukuroo: mesmo padrão de densidade pós-Nen.
 2. **Arena Celestial & PvP Assíncrono**:
    * [x] `HeavensArenaTowerUI` → combate real em `CelestialTowerArena` (progresso unificado `andar_arena`/`torre_andar_atual`).
-   * [ ] Sistema de andares 1v1 assíncrono contra outros usuários / Bestas de Nen.
+   * [x] Sistema de andares 1v1 assíncrono local (ghosts + proxies de Bestas de Nen via `ArenaGhostRegistry`).
 3. **Sistemas Multiplayer Autoritativos**:
    * Sincronização de pacotes binários utilizando o `NetworkProtocol` já arquitetado.
 4. **Progressão**:
