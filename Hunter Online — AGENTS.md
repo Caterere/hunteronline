@@ -695,10 +695,17 @@ When modifying pixel-art assets:
 - Preserve character proportions.
 - Preserve sprite scale.
 - Preserve animation compatibility.
-- Do not introduce significantly more detail than the existing style.
+- Do not introduce significantly more detail than the existing style **on characters**.
 - Do not change the visual direction of the project without explicit instruction.
 
-Hunter Online uses a deliberately stylized pixel-art aesthetic.
+Hunter Online uses a deliberately stylized pixel-art aesthetic with a clear hierarchy:
+
+- **Characters** = Style Lock 48×48 (`docs/bibles/PIXEL_ART_STYLE_BIBLE.md`)
+- **World** = richer controlled density (`docs/bibles/PIXEL_ART_PRODUCTION_BIBLE.md`)
+- **Authority / anti-conflict index** = `docs/bibles/ART_PIPELINE_CANON.md`
+- **PixelLab prompts** = `docs/guides/PIXELLAB_PROMPT_LIBRARY.md`
+
+Always read `ART_PIPELINE_CANON.md` before generating or replacing art.
 
 ---
 

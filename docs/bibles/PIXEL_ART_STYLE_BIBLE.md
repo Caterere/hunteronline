@@ -1,5 +1,14 @@
 # BIBLE 16 — PIXEL ART STYLE LOCK & SPRITE GENERATION BIBLE
-## Hunter Online — Single Source of Truth para Arte 2D
+## Hunter Online — Single Source of Truth para PERSONAGENS 2D
+
+> **Escopo SSOT:** style lock de **personagens / NPCs / enemies humanoides** (48×48).
+> **Mundo / tiles / props / pipeline:** ver
+> [`PIXEL_ART_PRODUCTION_BIBLE.md`](PIXEL_ART_PRODUCTION_BIBLE.md) +
+> [`ART_PIPELINE_CANON.md`](ART_PIPELINE_CANON.md).
+> **Prompts PixelLab:** [`../guides/PIXELLAB_PROMPT_LIBRARY.md`](../guides/PIXELLAB_PROMPT_LIBRARY.md).
+>
+> A frase “simplicidade = qualidade” aplica-se a **personagens**. O mundo pode (e deve)
+> ser mais rico — isso não autoriza detalhar o player além deste Style Lock.
 
 ---
 

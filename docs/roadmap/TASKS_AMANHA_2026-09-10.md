@@ -32,6 +32,11 @@
 - [x] `WorldDensityKit` em Estrada + Floresta
 - [x] Smoke phase2 density
 
+### Sessão 5 (Art Canon + Phase 3)
+- [x] `ART_PIPELINE_CANON.md` unindo Style/Production/Prompt/Visual
+- [x] Mover Production Bible + Prompt Library para `docs/`
+- [x] Phase 3 props + `WorldPropsKit` Estrada/Floresta
+
 ## Próximo
 1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
 2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)

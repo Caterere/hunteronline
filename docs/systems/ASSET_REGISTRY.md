@@ -1,13 +1,13 @@
 # REGISTRO OFICIAL DE ASSETS PERMANENTES (PIXELLAB PIPELINE)
-## Hunter Online ??? World Production Bible (Se????o 37)
+## Hunter Online — Art Pipeline Canon + Production Bible
 
-Este documento registra formalmente todos os assets permanentes gerados via PixelLab MCP e integrados ao projeto, garantindo reprodutibilidade, continuidade de estilo e rastreabilidade conforme a **World Production Bible**.
+Este documento registra formalmente todos os assets permanentes gerados via PixelLab MCP e integrados ao projeto.
 
-> [!CRITICAL]
-> **STYLE ANCHOR OFICIAL DO PROJETO:** `res://assets/sprites/characters/player.png` (ou `player(3).png`).
-> Todos os personagens do jogo seguem o padr??o **48??48 pixels**, com bonecos de **20 a 22 px de altura**, p??s em **Y = 42**, propor????o chibi 2.5 cabe??as, olhos estilizados em ponto (1??2 px sem esclera), sombreamento plano e paleta reduzida (m??x. 11-14 cores/frame).
-> Aprovados estritamente pela `16_PIXEL_ART_STYLE_BIBLE.md`. Sprites legados gerados em 68??68 px est??o marcados para retifica????o futura para conformidade absoluta com o Style Lock.
-
+> **Autoridade:** `docs/bibles/ART_PIPELINE_CANON.md`
+> **STYLE ANCHOR DE PERSONAGEM:** `res://assets/sprites/characters/player.png` / `assets/reference/player(3).png`
+> Personagens: 48×48, ~20–22 px, pés Y≈42 — `PIXEL_ART_STYLE_BIBLE.md`
+> Mundo: densidade controlada — `PIXEL_ART_PRODUCTION_BIBLE.md` + `assets/reference/world_detail_grass_dirt_trees_ref.png`
+> Sprites legados 68×68 px: retificação futura.
 ---
 
 ### Registro 01: Est??tua Monumental do 12?? Presidente Netero
@@ -836,4 +836,17 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - `phase2_flowers_white.png` — `0086387d-1259-43f9-b092-2073d488fd5f`
 - `phase2_stump.png` — `50eae721-5f03-4d16-91e3-5724d4112340`
 - **Local:** `res://assets/sprites/objects/phase2_*.png`
+- **Status:** approved / integrated
+
+
+### Registro 93-100: Phase 3 — Props (fences/signs/crates)
+- `phase3_fence_wood.png` — `711d79f0-8365-4e62-a384-e0381ab16361`
+- `phase3_fence_wood_post.png` — `12046c58-fbe9-4bb7-9b7f-18c4bf28878c`
+- `phase3_signpost.png` — `22398083-0d8c-4042-b546-8360c8e174c4`
+- `phase3_barrel.png` — `f5e3966e-0020-45cb-9c97-16e9238f0374`
+- `phase3_crate.png` — `957ab0f5-155f-43b0-ab1b-02b0601bbf03`
+- `phase3_crate_large.png` — `f63db17e-f0ad-4c87-a829-f9abbbd23228`
+- `phase3_well.png` — `c6333b26-8600-459b-9ab8-1f0e339d2fa4`
+- `phase3_lantern_post.png` — `2b70fa50-946c-48ee-ad53-d71efba29953`
+- **Integração:** `WorldPropsKit` (Estrada + Floresta)
 - **Status:** approved / integrated
