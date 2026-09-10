@@ -1,0 +1,102 @@
+{
+  "batch": "main_npc_hybrid_stylelock",
+  "created_at": 1789065135.0770812,
+  "characters": [
+    {
+      "name": "npc_recepcionista_elena",
+      "id": "ff2306da-2432-4e83-856d-d81bc9d570b8",
+      "ok": true,
+      "opaque_sim_viajante": 4.8076923076923075,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_recepcionista_elena_fitted_south.png",
+      "path": "assets/sprites/characters/npc_recepcionista_elena_8dir.png"
+    },
+    {
+      "name": "npc_instrutor_combate",
+      "id": "299e893e-185f-4ac9-a9ab-57f60aaff79f",
+      "ok": true,
+      "opaque_sim_viajante": 8.372093023255815,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_instrutor_combate_fitted_south.png",
+      "path": "assets/sprites/characters/npc_instrutor_combate_8dir.png"
+    },
+    {
+      "name": "npc_examinador_oficial",
+      "id": "6f3dcdf0-ec66-40d5-bd44-6a6eee59f7b2",
+      "ok": true,
+      "opaque_sim_viajante": 8.256880733944953,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_examinador_oficial_fitted_south.png",
+      "path": "assets/sprites/characters/npc_examinador_oficial_8dir.png"
+    },
+    {
+      "name": "npc_ferreiro_mestre",
+      "id": "b861c495-1543-4d49-a1d3-2afa04e3fdd0",
+      "ok": true,
+      "opaque_sim_viajante": 4.366812227074236,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_ferreiro_mestre_fitted_south.png",
+      "path": "assets/sprites/characters/npc_ferreiro_mestre_8dir.png"
+    },
+    {
+      "name": "npc_vendedor_mercador",
+      "id": "31754c6f-2a9c-4b4a-a194-49f0b6184cdb",
+      "ok": true,
+      "opaque_sim_viajante": 8.438818565400844,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_vendedor_mercador_fitted_south.png",
+      "path": "assets/sprites/characters/npc_vendedor_mercador_8dir.png"
+    },
+    {
+      "name": "npc_discipulo_zushi",
+      "id": "cb383ca0-daa2-47da-baee-dfc4b8ab93a0",
+      "ok": true,
+      "opaque_sim_viajante": 4.741379310344827,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_discipulo_zushi_fitted_south.png",
+      "path": "assets/sprites/characters/npc_discipulo_zushi_8dir.png"
+    },
+    {
+      "name": "npc_guarda_fronteira",
+      "id": "d9cce09e-f22f-41af-944f-6dbd22b5f58f",
+      "ok": true,
+      "opaque_sim_viajante": 6.319702602230484,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_guarda_fronteira_fitted_south.png",
+      "path": "assets/sprites/characters/npc_guarda_fronteira_8dir.png"
+    },
+    {
+      "name": "npc_viajante_scout",
+      "id": "e9c9a7df-6a66-4db0-8624-9fbc8aca51b5",
+      "ok": true,
+      "opaque_sim_viajante": 4.621848739495798,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_viajante_scout_fitted_south.png",
+      "path": "assets/sprites/characters/npc_viajante_scout_8dir.png"
+    },
+    {
+      "name": "npc_gon",
+      "id": "35b9f8a2-4ecd-4e0e-80fc-f11ef1f233f2",
+      "ok": true,
+      "opaque_sim_viajante": 3.686635944700461,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_gon_fitted_south.png",
+      "path": "assets/sprites/characters/npc_gon_8dir.png"
+    },
+    {
+      "name": "npc_killua",
+      "id": "07e709ee-4c41-4c66-b0a4-6f5278789cf6",
+      "ok": true,
+      "opaque_sim_viajante": 5.092592592592593,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_killua_fitted_south.png",
+      "path": "assets/sprites/characters/npc_killua_8dir.png"
+    },
+    {
+      "name": "npc_kurapika",
+      "id": "3e151699-65da-4820-a4c3-ee415b7c64d1",
+      "ok": true,
+      "opaque_sim_viajante": 7.906976744186046,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_kurapika_fitted_south.png",
+      "path": "assets/sprites/characters/npc_kurapika_8dir.png"
+    },
+    {
+      "name": "npc_leorio",
+      "id": "23271073-ad65-4137-a3eb-05a0c2cc1732",
+      "ok": true,
+      "opaque_sim_viajante": 4.545454545454546,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_leorio_fitted_south.png",
+      "path": "assets/sprites/characters/npc_leorio_8dir.png"
+    }
+  ]
+}

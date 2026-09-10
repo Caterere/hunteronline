@@ -49,8 +49,14 @@
 - [x] `WorldFxKit` + hooks em `CombatImpactEffect`
 - [x] Smoke `test_phase5_fx_suite`
 
+### Sessão 8 (Main NPC Style Lock before Phase 6)
+- [x] Auditoria Style Lock vs Viajante/Guarda P4
+- [x] Rejeitar v3+player-ref (clones) e standard bare (34–44px)
+- [x] Hybrid pipeline: pixen → fit → v3 rotate
+- [x] Regen 12 NPCs principais (Lobby/cast) — smoke geometry
+
 ## Próximo
 1. [ ] Phase 6 — Map polish + storytelling + secrets
-2. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
-3. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
-4. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar
+2. [ ] Regenerar cast secundário (Hisoka, Netero, Biscuit…) se necessário
+3. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
+4. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)

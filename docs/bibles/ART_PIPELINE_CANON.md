@@ -54,6 +54,15 @@ Mantém-se tudo definido em `PIXEL_ART_STYLE_BIBLE.md`:
 A Production Bible **não substitui** esses números — ela só reforça que o
 personagem fica **simples** relativo ao mundo.
 
+**Pipeline híbrido para NPCs únicos (obrigatório):**
+
+1. `create_image_pixen` — identidade única (south)
+2. fit geométrico ~20px / pés Y≈42 (`pixellab_regen_main_npcs_hybrid_stylelock.py`)
+3. `create_character` mode=`v3` + `reference_image` = south fitted → 8 direções
+
+Não usar `v3` + referência do **player** para NPCs únicos (clona o player).
+Não usar `standard`/`v3` sem fit (sai ~34–44px e quebra o Style Lock).
+
 ### 3.2 Mundo — herda Production Bible nova + referência visual
 
 Mantém-se a hierarquia da Production Bible:

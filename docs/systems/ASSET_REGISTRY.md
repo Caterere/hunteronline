@@ -895,3 +895,15 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **Local:** `res://assets/sprites/objects/phase5_*.png`
 - **Integração:** `WorldFxKit` (Estrada + Floresta)
 - **Status:** approved / integrated
+
+### Registro 114-125: Main NPC Style Lock hybrid regen (pre–Phase 6)
+- Pipeline: `pixen` unique south → fit ~20px/Y42 → `v3` rotate 8dir
+- Script: `scripts/tools/pixellab_regen_main_npcs_hybrid_stylelock.py`
+- Jobs: `assets/sprites/tilesets/pixellab/main_npc_hybrid_stylelock.json`
+- Regenerated (unique vs Viajante, h≈18–20):
+  - `npc_recepcionista_elena`, `npc_instrutor_combate`, `npc_examinador_oficial`
+  - `npc_ferreiro_mestre`, `npc_vendedor_mercador`, `npc_discipulo_zushi`
+  - `npc_guarda_fronteira`, `npc_viajante_scout`
+  - `npc_gon`, `npc_killua`, `npc_kurapika`, `npc_leorio`
+- **Status:** approved / integrated (paths unchanged — Lobby/maps pick up automatically)
+
