@@ -1,0 +1,30 @@
+{
+  "batch": "cast_ref_regen_ging_hisoka_chrollo",
+  "created_at": 1789074665.287627,
+  "characters": [
+    {
+      "name": "npc_ging",
+      "id": "bd080216-7fbf-497d-ad5d-27f2015d26fd",
+      "ok": true,
+      "opaque_sim_viajante": 3.349282296650718,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_ging_fitted_south.png",
+      "path": "assets/sprites/characters/npc_ging_8dir.png"
+    },
+    {
+      "name": "npc_hisoka",
+      "id": "416c331f-db6e-424b-a1bf-b03e8d34c95c",
+      "ok": true,
+      "opaque_sim_viajante": 3.587443946188341,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_hisoka_fitted_south.png",
+      "path": "assets/sprites/characters/npc_hisoka_8dir.png"
+    },
+    {
+      "name": "npc_chrollo",
+      "id": "67482960-1bfd-4c99-b218-c1a460714e3c",
+      "ok": true,
+      "opaque_sim_viajante": 4.3478260869565215,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_chrollo_fitted_south.png",
+      "path": "assets/sprites/characters/npc_chrollo_8dir.png"
+    }
+  ]
+}
