@@ -65,10 +65,20 @@
 - [x] Hybrid regen cast secundário (Hisoka, Netero, Biscuit, + Style Lock fails) — 20/20, smoke 102/102
 - [x] Phase 6 — `WorldPolishKit` (polish + storytelling + secrets) em Estrada/Floresta — smoke 29/29
 
+### Sessão 5 (Arena PvP assíncrono)
+- [x] `ArenaGhostRegistry`: captura/grava ghosts locais + proxy Besta de Nen
+- [x] `CelestialTowerArena`: andares %5 spawnam ghost/besta; vitória registra ghost
+- [x] Smoke `test_arena_async_pvp_suite` — **20/20**
+
+---
+
 ## Próximo
-1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
+1. [x] PvP assíncrono dos andares (ghosts / Bestas de Nen) — merged from PR #9
 2. [x] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
 3. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar
 
 ### Sessão Jenny early-retune (PR #8)
 - [x] Retune Jenny early-game (quests, drops, Arena) — merged from PR branch
+
+### Sessão Arena async PvP (PR #9)
+- [x] PvP assíncrono local na Arena (ghosts / Bestas)
