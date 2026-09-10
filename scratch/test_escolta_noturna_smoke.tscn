@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://descoltanoturnasmoke01"]
+
+[ext_resource type="Script" path="res://scratch/test_escolta_noturna_smoke.gd" id="1_escolta"]
+
+[node name="TestEscoltaNoturnaSmoke" type="Node2D"]
+script = ExtResource("1_escolta")

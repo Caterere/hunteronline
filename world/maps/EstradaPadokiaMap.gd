@@ -34,6 +34,7 @@ var _escolta_falhou: bool = false
 
 func _ready() -> void:
 	_garantir_spawn_points()
+	_pintar_piso_estrada()
 	_configurar_limites_camera()
 	_configurar_audio_e_hud()
 	_posicionar_player()
@@ -60,6 +61,15 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_atualizar_vigilancia_escolta(delta)
+
+
+func _pintar_piso_estrada() -> void:
+	# Grama detalhada (PixelLab) + estrada de pedra na faixa vertical central,
+	# conectando o Portão Norte (Lobby) ao Portão Sul (Floresta).
+	var eh_estrada := func(cx: int, _cy: int) -> bool:
+		return cx >= 11 and cx <= 15
+	WangFloorPainter.pintar(self, "res://world/tilesets/estrada_padokia_tileset.tres",
+		"PisoEstradaPixelLab", -8, 0, 0, 25, 20, eh_estrada)
 
 
 func _garantir_spawn_points() -> void:
@@ -745,11 +755,12 @@ func _spawn_inimigo_estrada(parent: Node, nome: String, pos: Vector2, e_id: Stri
 		es.enemy_name = e_nome
 		es.is_mission_enemy = true
 		if QuestSystem != null:
-			if not es.died.is_connected(QuestSystem.register_enemy_kill):
-				es.died.connect(func(killed_id):
-					QuestSystem.register_enemy_kill(killed_id)
-					_on_salteador_morto(killed_id)
-				)
+			# register_enemy_kill já é conectado por EnemySystem._ready(); aqui
+			# apenas reagimos à morte para resolver a disputa da ponte (evita
+			# contagem dupla do objetivo de kills).
+			es.died.connect(func(killed_id):
+				_on_salteador_morto(killed_id)
+			)
 	parent.add_child(enemy)
 	if es != null and es.has_method("_vincular_textura_inimigo"):
 		es._vincular_textura_inimigo()

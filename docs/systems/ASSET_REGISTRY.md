@@ -773,6 +773,7 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - nen_skill_node_rings.png � 0eec61fe-795e-48cc-95e2-039d7bd709fe
 
 ### Registro 71-73: HUD ornamentado + skill small + estradas lobby
+<<<<<<< HEAD
 - `nen_small_node_icons.png` � e3cc9dbf-b684-4ef2-a118-394515c80bf7 (sheet 192�32, 12 �cones)
 - `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` � 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
 - `assets/tiles/lobby_paths/*` � path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
@@ -920,3 +921,37 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **Integração:** `WorldPolishKit` em Estrada Padokia + Floresta Vestígios
 - **Smoke:** `scratch/test_phase6_polish_suite.tscn` → 29/29
 - **Meta:** `assets/sprites/tilesets/pixellab/phase6_polish_jobs.json`
+=======
+- `nen_small_node_icons.png` � e3cc9dbf-b684-4ef2-a118-394515c80bf7 (sheet 192�32, 12 �cones)
+- `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` � 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
+- `assets/tiles/lobby_paths/*` � path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
+- Uso: NenSkillTreeUI n�s SMALL; PlayerHUD barras; Lobby._melhorar_estradas_lobby()
+
+### Registro 74: Recepcionista da Arena Celestial (NPC 8dir)
+- **Asset:** `npc_recepcionista_arena_8dir.png` (folha 384×48, 8 frames de 48×48)
+- **Tipo:** Character / NPC (Style Lock 48px — APROVADO no validador)
+- **PixelLab ID:** `e8a33d99-da2e-4ee4-96ee-413143037b3a`
+- **Modo:** create_character standard, 8 direções, view low top-down, chibi
+- **Descrição:** female arena receptionist, navy blue vest over white shirt with tie.
+- **Mapa:** `world/maps/arena_celestial.tscn` (NPC "Recepcionista" — antes usava placeholder `player.png`).
+- **Bind:** `NpcSpriteBinder.aplicar(node, ["npc_recepcionista_arena"])` em `ArenaCelestialMap._popular_npcs_arco3()`.
+- **Pipeline:** montado por `scripts/tools/pixellab_assemble_8dir.py` (autocrop + reescala + pés Y=42 + quantização ≤13 cores).
+
+### Registro 75: Tileset do Piso da Arena Celestial (Wang top-down)
+- **Asset:** `assets/sprites/tilesets/pixellab/arena_celestial/arena_floor_tileset.png` (64×64, 16 tiles de 16px) + `_metadata.json`
+- **Tipo:** Top-down Wang tileset (2 terrenos: mármore/ouro → tapete carmesim)
+- **PixelLab ID:** `56596d8b-a7ac-45ec-8ecd-4f9376665938`
+- **TileSet Godot:** `world/tilesets/arena_celestial_tileset.tres` (terrain set corner-match, 2 terrenos) — gerado por `scratch/build_arena_tileset.gd`.
+- **Uso:** pintar o piso da arena (TileMapLayer + aba Terrains → Rect Tool). Demo de autotiling validado.
+
+### Registro 76-78: Tilesets de Cenário Detalhados (PixelLab Wang 32px)
+Gerados com `detail: highly detailed`, `shading: detailed`, view high top-down, tiles 32px.
+Convertidos para TileSet Godot (corner-match, 2 terrenos) por `scratch/build_topdown_tileset.gd`.
+- **Estrada Real de Padokia** — `56...`→ id `1016224d-b2ac-48a0-a8f9-0793895c5e12` — grama ↔ estrada de pedra.
+  - PNG: `assets/sprites/tilesets/pixellab/estrada/estrada_tileset.png` (128×128) · TileSet: `world/tilesets/estrada_padokia_tileset.tres`
+- **Floresta dos Vestígios** — id `be2236a2-c15e-41b1-a424-e9dacb0d6aec` — grama ↔ solo de floresta (raízes/musgo).
+  - PNG: `assets/sprites/tilesets/pixellab/floresta/floresta_tileset.png` · TileSet: `world/tilesets/floresta_vestigios_tileset.tres`
+- **Ruínas de Zaban** — id `76e7b45f-3a38-4832-9095-9e5c89bfcb81` — grama ↔ pedra ancestral com runas.
+  - PNG: `assets/sprites/tilesets/pixellab/zaban_ruinas/zaban_ruinas_tileset.png` · TileSet: `world/tilesets/zaban_ruinas_tileset.tres`
+- Piso da Arena Celestial (Registro 75) agora é PINTADO em jogo por `ArenaCelestialMap._pintar_piso_arena()` (TileMapLayer z=-50).
+>>>>>>> origin/cursor/setup-cloud-agent-environment-ce82

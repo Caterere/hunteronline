@@ -24,6 +24,7 @@ extends Node2D
 
 func _ready() -> void:
 	_garantir_spawn_points()
+	_pintar_piso_floresta()
 	_configurar_limites_camera()
 	_configurar_audio_e_hud()
 	_posicionar_player()
@@ -40,6 +41,15 @@ func _ready() -> void:
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)
+
+
+func _pintar_piso_floresta() -> void:
+	# Grama de floresta detalhada (PixelLab) + trilha de solo na faixa vertical
+	# central, ligando a entrada da Estrada à saída sul.
+	var eh_trilha := func(cx: int, _cy: int) -> bool:
+		return cx >= 11 and cx <= 15
+	WangFloorPainter.pintar(self, "res://world/tilesets/floresta_vestigios_tileset.tres",
+		"PisoFlorestaPixelLab", -8, 0, 0, 25, 20, eh_trilha)
 
 
 func _garantir_spawn_points() -> void:

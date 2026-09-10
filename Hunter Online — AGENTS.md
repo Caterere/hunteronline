@@ -707,6 +707,37 @@ Hunter Online uses a deliberately stylized pixel-art aesthetic with a clear hier
 
 Always read `ART_PIPELINE_CANON.md` before generating or replacing art.
 
+## NEW CONTENT REQUIRES NEW SPRITES (PixelLab MCP)
+
+Not replacing existing art does NOT mean shipping new content without art.
+
+Whenever you add a **new enemy** or a **new scenario/map** (or a new NPC/prop),
+you MUST generate its sprites/tiles with the **PixelLab MCP**
+(`https://api.pixellab.ai/mcp`, docs: `https://api.pixellab.ai/mcp/docs`),
+following the game's Hunter x Hunter pixel-art standard. Do NOT leave a new
+enemy/NPC reusing `player.png` or a placeholder as the final asset.
+
+Rules for generated assets:
+
+- Follow the Style Lock in `docs/bibles/PIXEL_ART_STYLE_BIBLE.md` (and
+  `.agent/docs/bibles/16_PIXEL_ART_STYLE_BIBLE.md`): 48x48 frames, chibi
+  ~2.5-head proportion, 20-22px body height, feet at Y=42, flat shading,
+  reduced palette (≈11-14 colors/frame). Style anchor: `assets/sprites/characters/player.png`.
+- Characters/enemies: 8-direction idle sheet `assets/sprites/characters/<id>_8dir.png`
+  plus walk sheet `<id>_walk_8x8.png` (enemies use the `enemy_<id>_...` prefix so
+  `EnemySystem._vincular_textura_inimigo()` binds them; NPCs use `npc_<name>_...`).
+- Map objects/landmarks: single high-top-down prop in `assets/sprites/objects/`.
+- Scenarios/tilesets: use PixelLab `create_topdown_tileset`; keep tiles in
+  `assets/sprites/tilesets/pixellab/`.
+- Validate every character/enemy sheet with `tools/validate_sprite_style.gd`
+  before wiring it in, and register the asset in `docs/systems/ASSET_REGISTRY.md`
+  (asset name, PixelLab ID, description, size, directions, map, project path).
+- The base flow and tools live in `docs/systems/PIXELLAB_MCP.md`. The MCP needs a
+  local `.cursor/mcp.json` with a Bearer token (gitignored — never commit it). If
+  the MCP is unavailable, use the REST fallback in `scripts/tools/pixellab_*`; if
+  neither is available, state that the sprite step is pending rather than shipping
+  a placeholder as final.
+
 ---
 
 # 28. ANIME FIDELITY
