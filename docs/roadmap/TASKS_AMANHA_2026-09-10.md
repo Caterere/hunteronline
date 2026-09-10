@@ -57,7 +57,7 @@
 
 ### Sessão 9 (Secondary cast + Phase 6)
 - [x] Hybrid regen cast secundário (Hisoka, Netero, Biscuit, + Style Lock fails) — 20/20, smoke 102/102
-- [ ] Phase 6 — `WorldPolishKit` (polish + storytelling + secrets) em Estrada/Floresta
+- [x] Phase 6 — `WorldPolishKit` (polish + storytelling + secrets) em Estrada/Floresta — smoke 29/29
 
 ## Próximo
 1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)

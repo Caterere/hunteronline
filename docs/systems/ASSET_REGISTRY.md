@@ -913,3 +913,10 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - **NPCs (20):** Hisoka, Netero, Biscuit, Chrollo, Tonpa, Ging, Hanzo, Menchi, Pokkle, Ponzu, Battera, Melody, Canary, Gotoh, Silva, Tsezguerra, Buhara, Gittarackur, Bodoro, Nicol
 - **Smoke:** `scratch/test_secondary_cast_stylelock_suite.tscn` → 102/102
 - **Meta:** `assets/sprites/tilesets/pixellab/secondary_cast_hybrid_stylelock.json`
+
+### Registro 146-157: Phase 6 WorldPolishKit (polish + storytelling + secrets)
+- **Batch:** `phase6_polish_story_secrets`
+- **Assets (12):** abandoned camp, broken cart, scuffle mark, torn banner, broken weapon, hollow stump, false rock, glint, trail marker, path crack, moss patch, fence ruin
+- **Integração:** `WorldPolishKit` em Estrada Padokia + Floresta Vestígios
+- **Smoke:** `scratch/test_phase6_polish_suite.tscn` → 29/29
+- **Meta:** `assets/sprites/tilesets/pixellab/phase6_polish_jobs.json`

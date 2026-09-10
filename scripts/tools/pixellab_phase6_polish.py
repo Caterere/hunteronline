@@ -93,16 +93,16 @@ IMAGE_PROPS = [
     (
         "phase6_polish_path_crack.png",
         f"{WORLD} Map polish ground detail: small cracked dirt path wear patch. "
-        "Compact 32x16 seamless-friendly decal.",
+        "Compact square 32x32 seamless-friendly decal.",
         32,
-        16,
+        32,
     ),
     (
         "phase6_polish_moss_patch.png",
         f"{WORLD} Map polish ground detail: soft moss/lichen patch for stone/dirt edges. "
-        "Compact 32x16. Low contrast, supporting detail.",
+        "Compact square 32x32. Low contrast, supporting detail.",
         32,
-        16,
+        32,
     ),
     (
         "phase6_polish_fence_ruin.png",
