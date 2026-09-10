@@ -304,8 +304,8 @@ func _densificar_alameda_kukuroo() -> void:
 	var scn_npc = load("res://entities/npc/NPC.tscn")
 	if scn_npc != null:
 		var ambient_npcs := [
-			{"name": "JardineiroZoldyck", "pos": Vector2(900, 80), "npc": "Jardineiro da Família", "fala": "As árvores proibidas só abrem caminho a quem a família permite...", "ids": ["npc_viajante_scout"]},
-			{"name": "AprendizMordomo", "pos": Vector2(1900, -70), "npc": "Aprendiz de Mordomo", "fala": "Gotoh exige precisão absoluta. Uma moeda caída é fracasso.", "ids": ["npc_mordomo_gotoh", "enemy_mordomo_zoldyck"]},
+			{"name": "JardineiroZoldyck", "pos": Vector2(900, 80), "npc": "Jardineiro da Família", "fala": "As árvores proibidas só abrem caminho a quem a família permite...", "ids": ["npc_mordomo_zoldyck_ambient", "npc_viajante_scout"]},
+			{"name": "AprendizMordomo", "pos": Vector2(1900, -70), "npc": "Aprendiz de Mordomo", "fala": "Gotoh exige precisão absoluta. Uma moeda caída é fracasso.", "ids": ["npc_mordomo_zoldyck_ambient", "npc_mordomo_gotoh", "enemy_mordomo_zoldyck"]},
 		]
 		for a in ambient_npcs:
 			if get_node_or_null(a["name"]) != null:

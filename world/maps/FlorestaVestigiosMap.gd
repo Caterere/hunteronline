@@ -186,8 +186,8 @@ func _criar_elementos_floresta() -> void:
 		herb.add_child(col)
 
 		var spr := Sprite2D.new()
-		if ResourceLoader.exists("res://assets/sprites/characters/npc_viajante_scout_8dir.png"):
-			spr.texture = load("res://assets/sprites/characters/npc_viajante_scout_8dir.png")
+		if ResourceLoader.exists("res://assets/sprites/characters/npc_herbalista_floresta_8dir.png"):
+			spr.texture = load("res://assets/sprites/characters/npc_herbalista_floresta_8dir.png")
 			spr.hframes = 8
 			spr.vframes = 1
 			spr.frame = 0

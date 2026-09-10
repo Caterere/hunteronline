@@ -35,7 +35,12 @@ static func aplicar(node: Node, preferred_ids: Array = []) -> void:
 		"guia": "npc_viajante_scout",
 		"ferreiro": "npc_ferreiro_mestre",
 		"vendedor": "npc_vendedor_mercador",
-		"wing": "npc_instrutor_combate"
+		"wing": "npc_instrutor_combate",
+		"herbalista": "npc_herbalista_floresta",
+		"jardineiro": "npc_mordomo_zoldyck_ambient",
+		"aprendiz": "npc_mordomo_zoldyck_ambient",
+		"mafioso": "npc_mafioso_yorknew_ambient",
+		"lutador": "npc_lutador_arena_ambient"
 	}
 	for k in ALIASES.keys():
 		if k in n_low:

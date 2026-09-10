@@ -60,6 +60,11 @@ func _test_kukuroo() -> void:
 	_assert(mapa.get_node_or_null("PlacaKukuAlameda") != null, "placa alameda")
 	_assert(mapa.get_node_or_null("ZetsuArbustoAlameda") != null, "zetsu alameda")
 	_assert(mapa.get_node_or_null("JardineiroZoldyck") != null, "jardineiro vivo")
+	_assert(
+		mapa.get_node_or_null("MapAtmosphereDecorator/AtmosphereProps/LanternaPedraKuku_900") != null,
+		"lanterna pedra PixelLab"
+	)
+	_assert(mapa.get_node_or_null("MordomoAmbient_E") != null, "mordomo ambient E")
 	mapa.queue_free()
 	await get_tree().process_frame
 

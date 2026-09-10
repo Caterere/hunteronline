@@ -29,6 +29,7 @@ func _ready() -> void:
 	_garantir_objeto_teste_agua()
 	_configurar_inimigos()
 	_densificar_corredor_arena()
+	_popular_espectadores_arena()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	_garantir_tower_ui()
@@ -345,6 +346,35 @@ func _densificar_corredor_arena() -> void:
 		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
 		marker.add_child(lbl)
 		add_child(marker)
+
+
+
+## Espectadores / lutadores offline com sheet PixelLab ambient.
+func _popular_espectadores_arena() -> void:
+	var scn_npc = load("res://entities/npc/NPC.tscn")
+	if scn_npc == null:
+		return
+	var specs := [
+		{"name": "LutadorTreinoA", "pos": Vector2(1200, 90), "npc": "Lutador de Aquecimento", "fala": "O 50º andar já quebra muita gente. Treine o ritmo de respiração!", "ids": ["npc_lutador_arena_ambient"]},
+		{"name": "LutadorTreinoB", "pos": Vector2(2200, -90), "npc": "Lutador do Corredor", "fala": "Hisoka assiste de cima. Não dê espetáculo cedo demais.", "ids": ["npc_lutador_arena_ambient"]},
+	]
+	for s in specs:
+		if get_node_or_null(s["name"]) != null:
+			continue
+		var npc = scn_npc.instantiate()
+		npc.name = s["name"]
+		npc.position = s["pos"]
+		npc.npc_name = s["npc"]
+		npc.fala_padrao = s["fala"]
+		NpcSpriteBinder.aplicar(npc, s["ids"])
+		var living := LivingNPCBehavior.new()
+		living.name = "LivingNPCBehavior"
+		living.npc_nome = s["npc"]
+		living.tipo_marcador = "ambient"
+		living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
+		living.raio_patrulha = 42.0
+		npc.add_child(living)
+		add_child(npc)
 
 
 func _configurar_portal_conclusao() -> void:

@@ -20,7 +20,15 @@
 
 ---
 
+### Sessão 3 (Kukuroo densify + PixelLab)
+- [x] Kukuroo: 5 mordomos ambient + placas + NPCs vivos (Jardineiro/Aprendiz)
+- [x] Kukuroo: trilha Gyo (3) + Ko pedra (pós-Nen) + 3 Zetsu
+- [x] Assets PixelLab 48px: mordomo/mafioso/lutador/herbalista + lanternas/crates/posts + Wang sheets
+- [x] Smoke Kukuroo density + visual density — ver scratch suites
+
+---
+
 ## Próximo
 1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
-2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
+2. [x] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
 3. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar
