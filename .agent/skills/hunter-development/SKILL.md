@@ -51,6 +51,7 @@ Não renomeie casualmente campos persistentes, autoloads, scripts, cenas ou recu
 - Passivas usam `StatModifier` no `PlayerData`; não crie classes privadas de modificador.
 - Portais, GPS, diálogo e quests consultam o estado canônico de progressão.
 - Geração ou importação de sprites de personagens exige frame 48x48, escala ~20-22px de altura, pés em Y=42 e validação prévia com `tools/validate_sprite_style.gd`.
+- **Todo inimigo, NPC, prop ou cenário NOVO exige arte nova via PixelLab MCP** (`https://api.pixellab.ai/mcp`, docs `https://api.pixellab.ai/mcp/docs`), seguindo o Style Lock (`docs/bibles/PIXEL_ART_STYLE_BIBLE.md`) e o padrão Hunter x Hunter. Personagens/inimigos: folha `_8dir.png` + `_walk_8x8.png` (inimigos com prefixo `enemy_<id>_` para o bind em `EnemySystem._vincular_textura_inimigo()`); props em `assets/sprites/objects/`; tilesets via `create_topdown_tileset` em `assets/sprites/tilesets/pixellab/`. Nunca deixe conteúdo novo usando `player.png`/placeholder como asset final. Registre em `docs/systems/ASSET_REGISTRY.md`. Fluxo e tools em `docs/systems/PIXELLAB_MCP.md`. Se o MCP não estiver disponível (token em `.cursor/mcp.json`, gitignored), use o fallback REST `scripts/tools/pixellab_*` ou sinalize que a etapa de sprite ficou pendente.
 - Não esconda defeitos com guards arbitrários, chamadas duplicadas, delays sem explicação ou funcionalidades desativadas.
 
 ## Validação e entrega

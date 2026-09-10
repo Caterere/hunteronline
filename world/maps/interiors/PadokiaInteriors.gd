@@ -242,10 +242,10 @@ func _instanciar_bau_recompensa(pos: Vector2, nome_bau: String) -> void:
 	inter.interaction_radius = 24.0
 	inter.position = pos
 	inter.interacted.connect(func(_p):
-		PlayerData.adicionar_jenny(500)
+		PlayerData.adicionar_jenny(180)
 		var hud = get_tree().get_first_node_in_group("player_hud")
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🎉 Você abriu [%s] e recebeu 500 Jenny!" % nome_bau)
+			hud.exibir_notificacao("🎉 Você abriu [%s] e recebeu 180 Jenny!" % nome_bau)
 	)
 	add_child(inter)
 

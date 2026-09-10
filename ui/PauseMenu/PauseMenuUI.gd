@@ -235,7 +235,7 @@ func _on_lobby_pressed() -> void:
 
 func _on_jornal_pressed() -> void:
 	fechar()
-	var journal = get_tree().root.get_node_or_null("QuestJournalUI")
+	var journal = QuestJournalUI.obter_ou_criar(get_tree())
 	if journal != null and journal.has_method("abrir"):
 		journal.abrir()
 

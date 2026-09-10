@@ -1,4 +1,4 @@
-[gd_scene load_steps=2 format=3 uid="uid://dklantestscene777"]
+[gd_scene format=3 uid="uid://d2wfnc5t8mfoq"]
 
 [ext_resource type="Script" path="res://scratch/test_phase_klan_dedicated_server_suite.gd" id="1_klantest"]
 

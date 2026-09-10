@@ -9,8 +9,11 @@ extends Node2D
 # - Andares 1 a 199: Lutas de artes marciais normais com premiação em Jenny.
 # - Andar 200: O Batismo de Nen (Exige Nen ativo / Ten para sobreviver à intenção assassina).
 # - Andares 200 a 250+: Mestres de Andar (Floor Masters) e usuários de Hatsu avançado.
+# - Andares %5: PvP assíncrono local (ghost do jogador / proxy de Besta de Nen).
 #
 # ============================================================
+
+const ArenaGhostRegistry = preload("res://scripts/systems/arena/ArenaGhostRegistry.gd")
 
 @onready var player: CharacterBody2D = $Player
 var andar_atual: int = 1
@@ -19,6 +22,7 @@ var painel_torre: PanelContainer = null
 var lbl_andar_info: Label = null
 var lbl_recompensa_info: Label = null
 var em_combate: bool = false
+var _oponente_async_ativo: bool = false
 
 
 const InteractionComponent = preload("res://entities/components/InteractionComponent.gd")
@@ -137,8 +141,9 @@ func _iniciar_andar(andar: int) -> void:
 			_falha_batismo_nen()
 			return
 
-	var premio_jenny: int = andar * 800 + 2000
+	var premio_jenny: int = Economy.calcular_premio_jenny_andar_arena(andar) if Economy != null else (andar * 140 + 180)
 	lbl_recompensa_info.text = "Andar %d | Prêmio: %s J" % [andar, Economy.formatar_numero(premio_jenny)]
+
 	
 	_spawnar_desafiantes(andar)
 
@@ -158,12 +163,71 @@ func _falha_batismo_nen() -> void:
 
 
 func _spawnar_desafiantes(andar: int) -> void:
+	_oponente_async_ativo = ArenaGhostRegistry.deve_usar_oponente_async(andar)
+	if _oponente_async_ativo:
+		inimigos_restantes = 1
+		var perfil: Dictionary = ArenaGhostRegistry.obter_oponente_async(andar)
+		var rival = _criar_oponente_async(andar, perfil)
+		add_child(rival)
+		rival.global_position = Vector2(200, 110)
+		var kind := str(perfil.get("kind", "ghost"))
+		var tag := "👻 Ghost" if kind == "ghost" else "🐉 Besta"
+		lbl_recompensa_info.text = "%s | %s | Prêmio: %s J" % [
+			tag,
+			str(perfil.get("nome", "Rival")),
+			Economy.formatar_numero(Economy.calcular_premio_jenny_andar_arena(andar)) if Economy != null else str(andar * 140 + 180)
+		]
+		return
+
 	inimigos_restantes = 1 if andar % 10 == 0 else min(3, 1 + (andar / 50))
 	
 	for i in range(inimigos_restantes):
 		var inimigo = _criar_gladiador(andar, i)
 		add_child(inimigo)
 		inimigo.global_position = Vector2(150 + i * 60, 100 + (i % 2) * 40)
+
+
+func _criar_oponente_async(andar: int, perfil: Dictionary) -> Node2D:
+	var body := _criar_gladiador(andar, 0)
+	var kind := str(perfil.get("kind", "ghost"))
+	body.name = "AsyncRival_%s_%d" % [kind, andar]
+
+	var sprite: Sprite2D = body.get_node_or_null("Sprite2D")
+	if sprite != null:
+		match str(perfil.get("cor_hint", kind)):
+			"nen":
+				sprite.modulate = Color(1.0, 0.35, 0.85, 0.95)
+			"beast":
+				sprite.modulate = Color(0.75, 0.4, 1.0, 0.92)
+			_:
+				sprite.modulate = Color(0.55, 0.85, 1.0, 0.88) # ghost cyan
+
+	var sys: EnemySystem = body.get_node_or_null("EnemySystem")
+	if sys != null:
+		var nome_base := str(perfil.get("nome", "Rival Assíncrono"))
+		var besta := str(perfil.get("besta_nome", ""))
+		if kind == "ghost":
+			sys.enemy_name = "Ghost: %s" % nome_base
+			sys.enemy_id = &"arena_ghost"
+		else:
+			sys.enemy_name = besta if not besta.is_empty() else nome_base
+			sys.enemy_id = &"arena_nen_beast_proxy"
+		sys.max_health = maxi(80, int(perfil.get("max_health", sys.max_health)))
+		sys.health = sys.max_health
+		sys.strength = maxi(8, int(perfil.get("strength", sys.strength)))
+		sys.defense = maxi(4, int(perfil.get("defense", sys.defense)))
+		sys.xp_reward = maxi(20, int(perfil.get("xp_reward", sys.xp_reward)))
+		sys.is_boss = (andar % 10 == 0) or kind == "nen_beast"
+		if sys.enemy_data != null:
+			sys.enemy_data.enemy_name = sys.enemy_name
+			sys.enemy_data.enemy_id = sys.enemy_id
+			sys.enemy_data.max_health = sys.max_health
+			sys.enemy_data.strength = sys.strength
+			sys.enemy_data.defense = sys.defense
+			sys.enemy_data.xp_reward = sys.xp_reward
+			sys.enemy_data.is_boss = sys.is_boss
+			sys.enemy_data.level = maxi(1, int(perfil.get("nivel", andar)))
+	return body
 
 
 func _criar_gladiador(andar: int, idx: int) -> Node2D:
@@ -224,13 +288,16 @@ func _criar_gladiador(andar: int, idx: int) -> Node2D:
 
 
 func _ao_vencer_andar() -> void:
-	var premio: int = andar_atual * 800 + 2000
+	var premio: int = Economy.calcular_premio_jenny_andar_arena(andar_atual) if Economy != null else (andar_atual * 140 + 180)
 	Economy.adicionar_gold(premio)
+	# Grava ghost local para PvP assíncrono futuro (mesmo save / próximos andares).
+	ArenaGhostRegistry.registrar(ArenaGhostRegistry.capturar_do_jogador(andar_atual))
 	_sincronizar_progresso_andar(andar_atual + 1)
 	
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("🏆 VENCEU O ANDAR %d! +%s Jenny!" % [andar_atual, Economy.formatar_numero(premio)])
+		var extra := " | Ghost gravado" if _oponente_async_ativo else ""
+		hud.exibir_notificacao("🏆 VENCEU O ANDAR %d! +%s Jenny!%s" % [andar_atual, Economy.formatar_numero(premio), extra])
 
 	get_tree().create_timer(2.0).timeout.connect(func():
 		_iniciar_andar(andar_atual + 1)

@@ -20,7 +20,65 @@
 
 ---
 
+### Sessão 3 (PixelLab Calibration §94)
+- [x] Ler `HUNTER_ONLINE_PIXELART_PRODUCTION_BIBLE.md` + `HUNTER_ONLINE_PIXELLAB_PROMPT_LIBRARY.md`
+- [x] Batch 94: grass/dirt wang + trees/bush/rocks/ground + 1 NPC (style lock 48px)
+- [x] Integrar `CalibrationArtKit` na Estrada Real de Padokia
+- [x] Smoke `test_pixellab_calibration_suite`
+
+### Sessão 3b (Kukuroo densify + PixelLab) — from PR #7
+- [x] Kukuroo: 5 mordomos ambient + placas + NPCs vivos (Jardineiro/Aprendiz)
+- [x] Kukuroo: trilha Gyo (3) + Ko pedra (pós-Nen) + 3 Zetsu
+- [x] Assets PixelLab 48px: mordomo/mafioso/lutador/herbalista + lanternas/crates/posts + Wang sheets
+- [x] Smoke Kukuroo density + visual density — ver scratch suites
+
+### Sessão 4 (Phase 2 world density)
+- [x] Referência world detail (grama/terra/árvores)
+- [x] Wang grass/dirt refinado + tree/bush/rock/flower/stump family
+- [x] `WorldDensityKit` em Estrada + Floresta
+- [x] Smoke phase2 density
+
+### Sessão 5 (Art Canon + Phase 3)
+- [x] `ART_PIPELINE_CANON.md` unindo Style/Production/Prompt/Visual
+- [x] Mover Production Bible + Prompt Library para `docs/`
+- [x] Phase 3 props + `WorldPropsKit` Estrada/Floresta
+
+### Sessão 6 (Phase 4 landmarks + NPC/enemy)
+- [x] Landmarks: Hunter Arch, Nen Shrine, Ruin Pillar
+- [x] NPC Guarda Estrada + Enemy Fera Padokia (Style Lock v3)
+- [x] `WorldLandmarkKit` em Estrada + Floresta
+- [x] Smoke `test_phase4_landmarks_suite`
+
+### Sessão 7 (Phase 5 FX + weather + night)
+- [x] Combat FX: hit / slash / nen aura / heal / dash dust
+- [x] Weather puddle + leaf + night lantern glow
+- [x] `WorldFxKit` + hooks em `CombatImpactEffect`
+- [x] Smoke `test_phase5_fx_suite`
+
+### Sessão 8 (Main NPC Style Lock before Phase 6)
+- [x] Auditoria Style Lock vs Viajante/Guarda P4
+- [x] Rejeitar v3+player-ref (clones) e standard bare (34–44px)
+- [x] Hybrid pipeline: pixen → fit → v3 rotate
+- [x] Regen 12 NPCs principais (Lobby/cast) — smoke geometry
+
+### Sessão 9 (Secondary cast + Phase 6)
+- [x] Hybrid regen cast secundário (Hisoka, Netero, Biscuit, + Style Lock fails) — 20/20, smoke 102/102
+- [x] Phase 6 — `WorldPolishKit` (polish + storytelling + secrets) em Estrada/Floresta — smoke 29/29
+
+### Sessão 5 (Arena PvP assíncrono)
+- [x] `ArenaGhostRegistry`: captura/grava ghosts locais + proxy Besta de Nen
+- [x] `CelestialTowerArena`: andares %5 spawnam ghost/besta; vitória registra ghost
+- [x] Smoke `test_arena_async_pvp_suite` — **20/20**
+
+---
+
 ## Próximo
-1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
-2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
+1. [x] PvP assíncrono dos andares (ghosts / Bestas de Nen) — merged from PR #9
+2. [x] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
 3. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar
+
+### Sessão Jenny early-retune (PR #8)
+- [x] Retune Jenny early-game (quests, drops, Arena) — merged from PR branch
+
+### Sessão Arena async PvP (PR #9)
+- [x] PvP assíncrono local na Arena (ghosts / Bestas)

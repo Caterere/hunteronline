@@ -13,6 +13,12 @@ extends Node
 # - Swing Arc: Arco visual de corte/golpe do atacante
 # ============================================================
 
+const TEX_HIT := "res://assets/sprites/effects/phase5_fx_hit.png"
+const TEX_SLASH := "res://assets/sprites/effects/phase5_fx_slash.png"
+const TEX_AURA := "res://assets/sprites/effects/phase5_fx_nen_aura.png"
+const TEX_DASH := "res://assets/sprites/effects/phase5_fx_dash_dust.png"
+
+
 static func spawn_swing_arc(parent: Node, pos: Vector2, direction: Vector2 = Vector2.RIGHT, radius: float = 32.0, arc_color: Color = Color.WHITE, is_heavy: bool = false) -> void:
 	if parent == null or not is_instance_valid(parent):
 		return
@@ -57,6 +63,8 @@ static func spawn_slash(parent: Node, pos: Vector2, direction: Vector2 = Vector2
 	if root == null:
 		return
 
+	_spawn_sprite_flash(root, pos, direction.angle(), TEX_SLASH, aura_color, 0.18)
+
 	var slash_node := Node2D.new()
 	slash_node.position = pos
 	slash_node.rotation = direction.angle()
@@ -99,6 +107,8 @@ static func spawn_blunt_impact(parent: Node, pos: Vector2, force: float = 1.0, a
 	var root := _get_effect_root(parent)
 	if root == null:
 		return
+
+	_spawn_sprite_flash(root, pos, 0.0, TEX_HIT, aura_color, 0.2)
 
 	var impact_node := Node2D.new()
 	impact_node.position = pos
@@ -144,6 +154,9 @@ static func spawn_dust_kickup(parent: Node, pos: Vector2, velocity: Vector2 = Ve
 	if root == null:
 		return
 
+	var ang := (-velocity).angle() if velocity != Vector2.ZERO else -PI * 0.5
+	_spawn_sprite_flash(root, pos, ang, TEX_DASH, Color(0.9, 0.85, 0.75), 0.28)
+
 	var dust := CPUParticles2D.new()
 	dust.position = pos
 	dust.emitting = true
@@ -174,6 +187,8 @@ static func spawn_aura_burst(parent: Node, pos: Vector2, aura_color: Color = Col
 	if root == null:
 		return
 
+	_spawn_sprite_flash(root, pos, 0.0, TEX_AURA, aura_color, 0.35)
+
 	var burst_node := Node2D.new()
 	burst_node.position = pos
 	root.add_child(burst_node)
@@ -195,6 +210,26 @@ static func spawn_aura_burst(parent: Node, pos: Vector2, aura_color: Color = Col
 	var tween := burst_node.create_tween()
 	tween.tween_interval(0.48)
 	tween.tween_callback(burst_node.queue_free)
+
+
+static func _spawn_sprite_flash(root: Node, pos: Vector2, rot: float, tex_path: String, tint: Color, dur: float) -> void:
+	if root == null or not ResourceLoader.exists(tex_path):
+		return
+	var n := Node2D.new()
+	n.position = pos
+	n.rotation = rot
+	n.z_index = 20
+	var spr := Sprite2D.new()
+	spr.texture = load(tex_path)
+	spr.centered = true
+	spr.modulate = Color(tint.r, tint.g, tint.b, 0.95)
+	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	n.add_child(spr)
+	root.add_child(n)
+	var tw := n.create_tween()
+	tw.tween_property(spr, "scale", Vector2(1.35, 1.35), dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(spr, "modulate:a", 0.0, dur)
+	tw.tween_callback(n.queue_free)
 
 
 static func _get_effect_root(node: Node) -> Node:

@@ -1,6 +1,10 @@
 # VISUAL & ART DIRECTION BIBLE
 ## HUNTER ONLINE — 2D MMORPG VISUAL IDENTITY & GAME FEEL
 
+> **Escopo SSOT:** resolução, pixel-snap, Y-sort, camadas, game feel visual.
+> Densidade de tiles/props e Style Lock de personagem: ver
+> [`ART_PIPELINE_CANON.md`](ART_PIPELINE_CANON.md).
+
 ---
 
 ## 1. RESOLUÇÃO E FIDELIDADE PIXEL ART

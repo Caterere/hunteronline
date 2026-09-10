@@ -14,7 +14,9 @@
 
 ---
 
-## Ainda pendente (play / polish)
+## Validado por smoke tests headless (Godot 4.6 `--headless`)
+
+Runners em `scratch/` (rodar: `godot --headless --path . res://scratch/<runner>.tscn`).
 
 ### P0 — Validar jogando
 1. [x] Smoke Estrada escolta + emboscada + zona — `scratch/test_p0_play_smoke_suite.tscn`
@@ -25,6 +27,12 @@
 ### P2 residual
 5. [x] Zetsu ambush playtest (Floresta + ravina) — `scratch/test_zetsu_arena_density_suite.tscn`
 6. [x] Arena Celestial densidade (P3) — fillers, placas, Wing alinhado, tower UI
+### Bugs corrigidos durante a validação
+- `EstradaPadokiaMap`: contagem dupla de kills na escolta (objetivo "derrote 2"
+- `EnemySystem`: faltava `em_knockdown` (lido por `EnemyAI._update_state`).
+- `EnemyAI`: acessava `enemy_sys.battle_personality` / `disparar_intro()`
+- `QuestJournalUI` (pergaminho): nunca era instanciado; botão 📜 do HUD e menu
+
 
 ---
 
@@ -46,5 +54,8 @@
 - `ActiveNenController` + `NenSystem`: Zetsu instintivo pré-despertar
 - `ArenaCelestialMap`: densificar corredor, placas, Wing→dojo, tower UI/trigger, marcos
 - Suíte P2: **27/27** headless
+- [x] Escolta noturna jogável ponta a ponta (lógica validada via smoke; falta play visual)
+- [x] Disputa da ponte dá +rep (validado: +80 Associação Hunter, +100 Civis)
 
-*Atualizado na sessão 2026-09-09.*
+
+*Atualizado na sessão 2026-09-09 (validação headless + correções).*

@@ -1,0 +1,10 @@
+{
+  "name": "Hunter Online",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "dedicated-server",
+      "command": "$HOME/.local/bin/godot --headless --path . res://server/HunterServer.tscn"
+    }
+  ]
+}

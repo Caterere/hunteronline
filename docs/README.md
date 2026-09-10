@@ -19,10 +19,12 @@ Código e cenas vencem docs desatualizados quando houver conflito — reporte o 
 ## Começar por aqui
 
 1. [bibles/GAME_MASTER_BIBLE.md](bibles/GAME_MASTER_BIBLE.md) — visão geral dos pilares
-2. [architecture/ADR-001-NEN-ARCHITECTURE.md](architecture/ADR-001-NEN-ARCHITECTURE.md) — Nen híbrido
-3. [roadmap/NEXT_PRODUCTION_ROADMAP.md](roadmap/NEXT_PRODUCTION_ROADMAP.md) — o que fazer agora
-4. [systems/SAVE_SYSTEM.md](systems/SAVE_SYSTEM.md) — persistência (`SaveManager`)
-5. [systems/PIXELLAB_MCP.md](systems/PIXELLAB_MCP.md) — PixelLab (MCP vs scripts)
+2. [bibles/ART_PIPELINE_CANON.md](bibles/ART_PIPELINE_CANON.md) — união das regras de pixel art / PixelLab
+3. [architecture/ADR-001-NEN-ARCHITECTURE.md](architecture/ADR-001-NEN-ARCHITECTURE.md) — Nen híbrido
+4. [roadmap/NEXT_PRODUCTION_ROADMAP.md](roadmap/NEXT_PRODUCTION_ROADMAP.md) — o que fazer agora
+5. [systems/SAVE_SYSTEM.md](systems/SAVE_SYSTEM.md) — persistência (`SaveManager`)
+6. [systems/PIXELLAB_MCP.md](systems/PIXELLAB_MCP.md) — PixelLab (MCP vs scripts)
+7. [guides/PIXELLAB_PROMPT_LIBRARY.md](guides/PIXELLAB_PROMPT_LIBRARY.md) — prompts por categoria
 
 ## Agente Cursor
 

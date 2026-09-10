@@ -461,12 +461,6 @@ func _obter_dica_estatica(obj: QuestObjective) -> String:
 
 
 func _abrir_jornal() -> void:
-	var j_ui = get_tree().root.get_node_or_null("QuestJournalUI")
+	var j_ui = QuestJournalUI.obter_ou_criar(get_tree())
 	if j_ui != null and j_ui.has_method("alternar_menu"):
 		j_ui.alternar_menu()
-	else:
-		var hud = get_tree().get_first_node_in_group("player_hud")
-		if hud != null:
-			var journal = hud.get_node_or_null("QuestJournalUI")
-			if journal != null and journal.has_method("alternar_menu"):
-				journal.alternar_menu()

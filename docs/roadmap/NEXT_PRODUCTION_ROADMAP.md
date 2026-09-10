@@ -50,11 +50,12 @@
 1. **Novas Regiões do Mundo**:
    * [~] Yorknew + Kukuroo densificados (`MapAtmosphereDecorator` YORKNEW/KUKUROO) — conteúdo de arco já existia.
    * [x] Yorknew: trilha Gyo / Zetsu / fillers pós-Nen (`YorknewCityMap`).
-   * [ ] Kukuroo: mesmo padrão de densidade pós-Nen.
+   * [x] Kukuroo: mesmo padrão de densidade pós-Nen (`MontanhaKukurooMap` + PixelLab ambient).
 2. **Arena Celestial & PvP Assíncrono**:
    * [x] `HeavensArenaTowerUI` → combate real em `CelestialTowerArena` (progresso unificado `andar_arena`/`torre_andar_atual`).
-   * [ ] Sistema de andares 1v1 assíncrono contra outros usuários / Bestas de Nen.
+   * [x] Sistema de andares 1v1 assíncrono local (ghosts + proxies de Bestas de Nen via `ArenaGhostRegistry`).
 3. **Sistemas Multiplayer Autoritativos**:
    * Sincronização de pacotes binários utilizando o `NetworkProtocol` já arquitetado.
 4. **Progressão**:
    * [x] Soft-cap XP por saga + escala narrativa canônica (`CanonQuestCatalog.escalar_xp_narrativo`).
+   * [x] Soft-cap Jenny early/mid (`escalar_jenny_narrativo` + drop/Arena/Padokia retune).

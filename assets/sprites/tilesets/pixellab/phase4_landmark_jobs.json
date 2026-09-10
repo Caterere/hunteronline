@@ -1,0 +1,44 @@
+{
+  "batch": "phase4_landmarks_npc_enemy",
+  "created_at": 1789059946.3807766,
+  "landmarks": [
+    {
+      "out": "phase4_landmark_hunter_arch.png",
+      "id": "311c32d4-0417-4ec7-8f7d-217d2c5b5b51",
+      "queue": "id: 311c32d4-0417-4ec7-8f7d-217d2c5b5b51\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Memorable silhouette, medium-high environmental detail, transparent background. No photographic texture, no anti-aliasing, no UI text. Unique landmark: weathered stone Hunter Association road arch",
+      "result": "status: completed\nid: 311c32d4-0417-4ec7-8f7d-217d2c5b5b51\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Memorable silhouette, medium-high environmental detail, transparent background. No photographic texture, no anti-aliasing, no UI text. Unique landmark: weathered stone Hunter Association road arch / gate remnant on Padokia road. Two pillars + cracked lintel with simple crest blank (no text), moss, memorable silhouette. Compact 64x64 gameplay landmark.\nsize: 64x64px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 17:05\ndownload: https://api.pixellab.ai/mcp/map-objects/311c32d4-0417-4ec7-8f7d-217d2c5b5b51/download\n\nhint: place_map_object(map_id=\"<map>\", x=..",
+      "path": "assets/sprites/objects/phase4_landmark_hunter_arch.png"
+    },
+    {
+      "out": "phase4_landmark_nen_shrine.png",
+      "id": "fe8a0429-6445-4946-8f2b-ebbf7ba8919c",
+      "queue": "id: fe8a0429-6445-4946-8f2b-ebbf7ba8919c\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Memorable silhouette, medium-high environmental detail, transparent background. No photographic texture, no anti-aliasing, no UI text. Unique landmark: small forest Nen shrine \u2014 carved stone monol",
+      "result": "status: completed\nid: fe8a0429-6445-4946-8f2b-ebbf7ba8919c\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Memorable silhouette, medium-high environmental detail, transparent background. No photographic texture, no anti-aliasing, no UI text. Unique landmark: small forest Nen shrine \u2014 carved stone monolith with subtle aura-carved rings, offering bowl, moss and root details. Memorable silhouette. Compact 48x64 landmark for Floresta dos Vest\u00edgios.\nsize: 48x64px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 17:05\ndownload: https://api.pixellab.ai/mcp/map-objects/fe8a0429-6445-4946-8f2b-ebbf7ba8919c/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., ob",
+      "path": "assets/sprites/objects/phase4_landmark_nen_shrine.png"
+    },
+    {
+      "out": "phase4_landmark_ruin_pillar.png",
+      "id": "b7ee8a88-f35b-4227-8bd4-9c4535a01d91",
+      "queue": "id: b7ee8a88-f35b-4227-8bd4-9c4535a01d91\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Memorable silhouette, medium-high environmental detail, transparent background. No photographic texture, no anti-aliasing, no UI text. Unique landmark: broken ancient ruin pillar / column stump wi",
+      "result": "status: completed\nid: b7ee8a88-f35b-4227-8bd4-9c4535a01d91\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Memorable silhouette, medium-high environmental detail, transparent background. No photographic texture, no anti-aliasing, no UI text. Unique landmark: broken ancient ruin pillar / column stump with engraved worn glyphs, rubble base, ivy hints. Memorable silhouette. Compact 40x64 prop landmark.\nsize: 40x64px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 17:05\ndownload: https://api.pixellab.ai/mcp/map-objects/b7ee8a88-f35b-4227-8bd4-9c4535a01d91/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"b7ee8a88-f35b-4227-8bd4-9c4535a01d91\"",
+      "path": "assets/sprites/objects/phase4_landmark_ruin_pillar.png"
+    }
+  ],
+  "characters": [
+    {
+      "name": "npc_phase4_guarda_estrada",
+      "id": "8270df66-a380-4754-b8d2-36a0ac6e71a6",
+      "queue": "id: 8270df66-a380-4754-b8d2-36a0ac6e71a6\nname: npc_phase4_guarda_estrada\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"8270df66-a380-4754-b8d2-36a0ac6e71a6\")",
+      "result": "status: completed\nid: 8270df66-a380-4754-b8d2-36a0ac6e71a6\nname: npc_phase4_guarda_estrada\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 90270372-61a1-4b6e-bc38-06d07f2066c6 (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/8270df66-a380-4754-b8d2-36a0ac6e71a6/rotations/south.png?t=1789060072\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/8270df66-a380-4754-b8d2-36a0ac6e71a6/rotations/east.png?t=1789060072\n  north: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/8270df66-a380-4754-b8d2-36a0ac6e71a6/rotations/north.png?t=1789060072\n  west: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/8270df66-a380-4754-b8d2-36a0ac6e71a6/rotations/west.png?t=1789060072\n  south-east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/8270df66-a380-4754-b8d2-36a0ac6e71a6/rotations/south-east.png?t=1789060072\n  north-east: https://backbl",
+      "path": "assets/sprites/characters/npc_phase4_guarda_estrada_8dir.png"
+    },
+    {
+      "name": "enemy_phase4_fera_padokia",
+      "id": "7f86cbaa-5aa3-4ec5-82c6-ed7d24d3bbe2",
+      "queue": "id: 36017631-2d01-47b4-bc94-3a151be6478a\nname: enemy_phase4_fera_padokia\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"36017631-2d01-47b4-bc94-3a151be6478a\")",
+      "result": "status: completed\nid: 36017631-2d01-47b4-bc94-3a151be6478a\nname: enemy_phase4_fera_padokia\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: bf89be13-21c1-4459-9726-0c566e7e2f1b (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/south.png?t=1789060120\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/east.png?t=1789060120\n  north: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/north.png?t=1789060120\n  west: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/west.png?t=1789060120\n  south-east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/36017631-2d01-47b4-bc94-3a151be6478a/rotations/south-east.png?t=1789060120\n  north-east: https://backbl",
+      "path": "assets/sprites/characters/enemy_phase4_fera_padokia_8dir.png",
+      "regen": "v2 quadruped dog-template beast"
+    }
+  ]
+}

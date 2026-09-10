@@ -59,6 +59,21 @@ func _ready() -> void:
 	_construir_ui()
 
 
+# Obtém a instância global do Jornal (pergaminho) sob /root, criando-a sob
+# demanda caso ainda não exista. Necessário porque QuestHUD e PauseMenu
+# procuram por "/root/QuestJournalUI", que não é um autoload.
+static func obter_ou_criar(tree: SceneTree) -> QuestJournalUI:
+	if tree == null or tree.root == null:
+		return null
+	var existente := tree.root.get_node_or_null("QuestJournalUI") as QuestJournalUI
+	if existente != null:
+		return existente
+	var novo := QuestJournalUI.new()
+	novo.name = "QuestJournalUI"
+	tree.root.add_child(novo)
+	return novo
+
+
 func alternar_menu() -> void:
 	if visible:
 		fechar()

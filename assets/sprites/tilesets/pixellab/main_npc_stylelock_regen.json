@@ -1,0 +1,70 @@
+{
+  "batch": "main_npc_stylelock_v3",
+  "created_at": 1789062436.719367,
+  "characters": [
+    {
+      "name": "npc_recepcionista_elena",
+      "id": "e6240774-7a0d-478f-901f-9cce70a7cad5",
+      "ok": true,
+      "queue": "id: e6240774-7a0d-478f-901f-9cce70a7cad5\nname: npc_recepcionista_elena_v3lock\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"e6240774-7a0d-478f-901f-9cce70a7cad5\")",
+      "result": "status: completed\nid: e6240774-7a0d-478f-901f-9cce70a7cad5\nname: npc_recepcionista_elena_v3lock\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 3b1220ba-9ca6-4068-80d5-a09699de4dd7 (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/e6240774-7a0d-478f-901f-9cce70a7cad5/rotations/south.png?t=1789062586\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/e6240774-7a0d",
+      "path": "assets/sprites/characters/npc_recepcionista_elena_8dir.png"
+    },
+    {
+      "name": "npc_instrutor_combate",
+      "id": "c4fb7c66-8357-4efb-8112-cce13da0a76e",
+      "ok": true,
+      "queue": "id: c4fb7c66-8357-4efb-8112-cce13da0a76e\nname: npc_instrutor_combate_v3lock\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"c4fb7c66-8357-4efb-8112-cce13da0a76e\")",
+      "result": "status: completed\nid: c4fb7c66-8357-4efb-8112-cce13da0a76e\nname: npc_instrutor_combate_v3lock\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 950fee47-344c-4061-ae7f-4490d4373bda (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/c4fb7c66-8357-4efb-8112-cce13da0a76e/rotations/south.png?t=1789062570\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/c4fb7c66-8357-4",
+      "path": "assets/sprites/characters/npc_instrutor_combate_8dir.png"
+    },
+    {
+      "name": "npc_examinador_oficial",
+      "id": "7f0fa61f-881b-4ac0-b7c0-2dce00a5b5a2",
+      "ok": true,
+      "queue": "id: 7f0fa61f-881b-4ac0-b7c0-2dce00a5b5a2\nname: npc_examinador_oficial_v3lock\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"7f0fa61f-881b-4ac0-b7c0-2dce00a5b5a2\")",
+      "result": "status: completed\nid: 7f0fa61f-881b-4ac0-b7c0-2dce00a5b5a2\nname: npc_examinador_oficial_v3lock\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 5f666c82-9117-4d2b-83e9-eed4461b08b1 (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/7f0fa61f-881b-4ac0-b7c0-2dce00a5b5a2/rotations/south.png?t=1789062567\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/7f0fa61f-881b-",
+      "path": "assets/sprites/characters/npc_examinador_oficial_8dir.png"
+    },
+    {
+      "name": "npc_ferreiro_mestre",
+      "id": "324de1a0-0f9a-4070-8577-764f313ecf20",
+      "ok": true,
+      "queue": "id: 324de1a0-0f9a-4070-8577-764f313ecf20\nname: npc_ferreiro_mestre_v3lock\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"324de1a0-0f9a-4070-8577-764f313ecf20\")",
+      "result": "status: completed\nid: 324de1a0-0f9a-4070-8577-764f313ecf20\nname: npc_ferreiro_mestre_v3lock\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 01bd7cd3-1c55-4d01-bd9e-84deb66dc2d0 (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/324de1a0-0f9a-4070-8577-764f313ecf20/rotations/south.png?t=1789062569\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/324de1a0-0f9a-407",
+      "path": "assets/sprites/characters/npc_ferreiro_mestre_8dir.png"
+    },
+    {
+      "name": "npc_vendedor_mercador",
+      "id": "114a3ba1-5b99-4d58-8b62-98e8ee072666",
+      "ok": true,
+      "queue": "id: 114a3ba1-5b99-4d58-8b62-98e8ee072666\nname: npc_vendedor_mercador_v3lock\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"114a3ba1-5b99-4d58-8b62-98e8ee072666\")",
+      "result": "status: completed\nid: 114a3ba1-5b99-4d58-8b62-98e8ee072666\nname: npc_vendedor_mercador_v3lock\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 8973ef39-3d6b-48df-907b-1bddf5850db4 (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/114a3ba1-5b99-4d58-8b62-98e8ee072666/rotations/south.png?t=1789063006\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/114a3ba1-5b99-4",
+      "path": "assets/sprites/characters/npc_vendedor_mercador_8dir.png"
+    },
+    {
+      "name": "npc_discipulo_zushi",
+      "id": "6165ec6a-1e81-40c8-b6b7-15f25910f7cc",
+      "ok": true,
+      "queue": "id: 6165ec6a-1e81-40c8-b6b7-15f25910f7cc\nname: npc_discipulo_zushi_v3lock\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"6165ec6a-1e81-40c8-b6b7-15f25910f7cc\")",
+      "result": "status: completed\nid: 6165ec6a-1e81-40c8-b6b7-15f25910f7cc\nname: npc_discipulo_zushi_v3lock\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 2e29ebbe-470b-4ae4-ae53-2c22c21c6375 (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/6165ec6a-1e81-40c8-b6b7-15f25910f7cc/rotations/south.png?t=1789063210\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/6165ec6a-1e81-40c",
+      "path": "assets/sprites/characters/npc_discipulo_zushi_8dir.png"
+    },
+    {
+      "name": "npc_guarda_fronteira",
+      "id": "02ff987d-620c-49a8-8aaf-1964395ccaad",
+      "ok": true,
+      "queue": "id: 02ff987d-620c-49a8-8aaf-1964395ccaad\nname: npc_guarda_fronteira_v3lock\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"02ff987d-620c-49a8-8aaf-1964395ccaad\")",
+      "result": "status: completed\nid: 02ff987d-620c-49a8-8aaf-1964395ccaad\nname: npc_guarda_fronteira_v3lock\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 4b7d0e53-d4a0-43cc-8063-2528d00f9fc3 (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/02ff987d-620c-49a8-8aaf-1964395ccaad/rotations/south.png?t=1789063357\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/02ff987d-620c-49",
+      "path": "assets/sprites/characters/npc_guarda_fronteira_8dir.png"
+    },
+    {
+      "name": "npc_viajante_scout",
+      "id": "e445b99d-0673-493a-ad8d-aa6d10606516",
+      "ok": true,
+      "queue": "id: e445b99d-0673-493a-ad8d-aa6d10606516\nname: npc_viajante_scout_v3lock\nmode: v3 reference (1 generations, 8 directions)\nbody: humanoid\nsize: 48x48px\nview: low top-down\nstyle: from reference image (outline/detail hints ignored)\nstatus: processing (~3-5 min)\n\nhint: get_character(character_id=\"e445b99d-0673-493a-ad8d-aa6d10606516\")",
+      "result": "status: completed\nid: e445b99d-0673-493a-ad8d-aa6d10606516\nname: npc_viajante_scout_v3lock\nstate_name: Idle\ndirections: 8 (south, east, north, west, south-east, north-east, north-west, south-west)\nsize: 48x48px\nview: low top-down\nstyle: -, -, -\ngroup: 6f024c62-9a63-4871-8079-3fb5beee99b6 (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/e445b99d-0673-493a-ad8d-aa6d10606516/rotations/south.png?t=1789063473\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/e445b99d-0673-493a",
+      "path": "assets/sprites/characters/npc_viajante_scout_8dir.png"
+    }
+  ]
+}
