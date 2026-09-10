@@ -34,6 +34,7 @@ func _ready() -> void:
 	WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
 	WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.FLORESTA)
 	WorldFxKit.attach(self, WorldFxKit.KitKind.FLORESTA)
+	WorldPolishKit.attach(self, WorldPolishKit.KitKind.FLORESTA)
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)
