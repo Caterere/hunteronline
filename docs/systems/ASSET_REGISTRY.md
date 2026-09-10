@@ -850,3 +850,28 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - `phase3_lantern_post.png` — `2b70fa50-946c-48ee-ad53-d71efba29953`
 - **Integração:** `WorldPropsKit` (Estrada + Floresta)
 - **Status:** approved / integrated
+
+
+### Registro 101-103: Phase 4 — Landmarks
+- `phase4_landmark_hunter_arch.png` — `311c32d4-0417-4ec7-8f7d-217d2c5b5b51` (64×64)
+- `phase4_landmark_nen_shrine.png` — `fe8a0429-6445-4946-8f2b-ebbf7ba8919c` (48×64)
+- `phase4_landmark_ruin_pillar.png` — `b7ee8a88-f35b-4227-8bd4-9c4535a01d91` (40×64)
+- **Local:** `res://assets/sprites/objects/phase4_landmark_*.png`
+- **Integração:** `WorldLandmarkKit` (Estrada + Floresta)
+- **Status:** approved / integrated
+
+### Registro 104: Phase 4 — NPC Guarda Estrada
+- **Asset:** `npc_phase4_guarda_estrada_8dir.png`
+- **PixelLab ID:** `8270df66-a380-4754-b8d2-36a0ac6e71a6`
+- **Mode:** v3 + player reference (Style Lock 48×48, 8 dirs)
+- **Local:** `res://assets/sprites/characters/npc_phase4_guarda_estrada_8dir.png` + `npc_phase4_guarda_estrada_rotations/`
+- **Integração:** `WorldLandmarkKit` ambient Guarda (Estrada)
+- **Status:** approved / integrated
+
+### Registro 105: Phase 4 — Enemy Fera Padokia
+- **Asset:** `enemy_phase4_fera_padokia_8dir.png`
+- **PixelLab ID:** `36017631-2d01-47b4-bc94-3a151be6478a`
+- **Mode:** v3 + player reference (Style Lock 48×48, 8 dirs)
+- **Local:** `res://assets/sprites/characters/enemy_phase4_fera_padokia_8dir.png` + `enemy_phase4_fera_padokia_rotations/`
+- **Integração:** `WorldLandmarkKit` ambient Fera (Floresta)
+- **Status:** approved / integrated

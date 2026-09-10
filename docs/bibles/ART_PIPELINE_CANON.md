@@ -101,8 +101,8 @@ Da Prompt Library §97 + Production Bible §47 — **não pular**:
 PHASE 1  Terrain + transitions + paths     [calibração §94 — feito]
 PHASE 2  Trees + bushes + rocks + details  [densidade Estrada/Floresta — feito]
 PHASE 3  Props + fences + signs + crates   [feito — WorldPropsKit]
-PHASE 4  Landmarks + NPCs + enemies        [próximo]
-PHASE 5  Combat FX + weather + night
+PHASE 4  Landmarks + NPCs + enemies        [feito — WorldLandmarkKit]
+PHASE 5  Combat FX + weather + night       [próximo]
 PHASE 6  Map polish + storytelling + secrets
 ```
 
@@ -113,6 +113,7 @@ Kits de integração Godot:
 | `CalibrationArtKit` | 1 / demo | Estrada |
 | `WorldDensityKit` | 2 | Estrada + Floresta |
 | `WorldPropsKit` | 3 | Estrada + Floresta |
+| `WorldLandmarkKit` | 4 | Estrada + Floresta |
 
 ------------------------------------------------------------------------
 

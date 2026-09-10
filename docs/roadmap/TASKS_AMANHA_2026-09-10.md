@@ -37,7 +37,14 @@
 - [x] Mover Production Bible + Prompt Library para `docs/`
 - [x] Phase 3 props + `WorldPropsKit` Estrada/Floresta
 
+### Sessão 6 (Phase 4 landmarks + NPC/enemy)
+- [x] Landmarks: Hunter Arch, Nen Shrine, Ruin Pillar
+- [x] NPC Guarda Estrada + Enemy Fera Padokia (Style Lock v3)
+- [x] `WorldLandmarkKit` em Estrada + Floresta
+- [x] Smoke `test_phase4_landmarks_suite`
+
 ## Próximo
-1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
-2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
-3. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar
+1. [ ] Phase 5 — Combat FX + weather + night (art pipeline)
+2. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
+3. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)
+4. [ ] Retune fino de Jenny/loot early-game se economia ainda inflar
