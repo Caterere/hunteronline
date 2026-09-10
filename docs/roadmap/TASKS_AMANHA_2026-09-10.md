@@ -20,6 +20,12 @@
 
 ---
 
+### Sessão 3 (PixelLab Calibration §94)
+- [x] Ler `HUNTER_ONLINE_PIXELART_PRODUCTION_BIBLE.md` + `HUNTER_ONLINE_PIXELLAB_PROMPT_LIBRARY.md`
+- [x] Batch 94: grass/dirt wang + trees/bush/rocks/ground + 1 NPC (style lock 48px)
+- [x] Integrar `CalibrationArtKit` na Estrada Real de Padokia
+- [x] Smoke `test_pixellab_calibration_suite`
+
 ## Próximo
 1. [ ] PvP assíncrono dos andares (ghosts / Bestas de Nen)
 2. [ ] Densificar Kukuroo pós-Nen (mesmo padrão Yorknew)

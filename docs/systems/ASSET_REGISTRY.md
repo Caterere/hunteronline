@@ -777,3 +777,34 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 - `hud_ornate_bar_frame.png` / `hud_ornate_bars_kit.png` � 8ab02532 + ui 652e1a36 (frame ouro pixel com slot interno)
 - `assets/tiles/lobby_paths/*` � path tiles 05f1bf05-c23c-4342-bb10-668da7f1daf6 (18 configs 32px)
 - Uso: NenSkillTreeUI n�s SMALL; PlayerHUD barras; Lobby._melhorar_estradas_lobby()
+
+---
+
+### Registro 74: Calibration Batch §94 — Grass/Dirt Wang
+- **Asset:** `calibration_grass_dirt_wang.png`
+- **Tipo:** Wang Tileset 16×16 (sheet 64×64)
+- **PixelLab ID:** `2f8e3bd5-175d-4797-9104-c417157e62e4`
+- **Descrição:** Compact warm brown dirt path ↔ soft temperate green grassland with tufts/flowers
+- **Local:** `res://assets/sprites/tilesets/pixellab/calibration_grass_dirt_wang.png`
+- **Integração:** `CalibrationArtKit` → `EstradaPadokiaMap` (faixa central)
+- **Status:** approved / integrated
+
+### Registro 75-80: Calibration Batch §94 — Vegetation / Rocks / Ground
+- `calibration_tree_a.png` — ID `b3267310-98cc-46ed-94e3-3ffa06f9f34c` (48×64 deciduous)
+- `calibration_tree_b.png` — ID `60c67181-7303-45a0-9998-85f7e117176f` (40×64 pine)
+- `calibration_bush_a.png` — ID `b55b47c5-dfc6-4b1c-80a8-8a6f0130f6a6` (32×32)
+- `calibration_rock_a.png` — ID `dd973f6c-5fa7-4bc5-b0d9-dca95764a545` (32×32)
+- `calibration_rock_b.png` — ID `936fee89-af85-44eb-88c4-3dd362eb1ff9` (40×32)
+- `calibration_ground_details.png` — ID `6dc079f6-76a1-4aa9-a5c4-ec9939004455` (48×32 tufts/flowers/pebbles)
+- **Local:** `res://assets/sprites/objects/calibration_*.png`
+- **Status:** approved / integrated
+
+### Registro 81: Calibration Batch §94 — Viajante Padokia (Style Lock)
+- **Asset:** `npc_calibration_viajante_padokia_8dir.png`
+- **Tipo:** Character / NPC (Style Lock Canônico 48×48 × 8 dir)
+- **PixelLab ID:** `8937fc48-91f8-44aa-a968-d9c096f5966a` (v3 + player reference; rejected first standard/68px attempt)
+- **Descrição:** Traveling hunter apprentice, brown cloak, backpack — 8 directions
+- **Métricas:** frame 48×48, height ~19px, width ~13px, ~10 cores, feet Y≈40
+- **Local:** `res://assets/sprites/characters/npc_calibration_viajante_padokia_8dir.png` + `npc_calibration_viajante_padokia_rotations/`
+- **Mapa:** `world/maps/EstradaPadokiaMap.gd` via `CalibrationArtKit` (`ViajanteCalibracao` @ `(400, 260)`)
+- **Status:** approved / integrated
