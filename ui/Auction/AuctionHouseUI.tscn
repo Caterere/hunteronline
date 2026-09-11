@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c_auction_house_ui"]
+
+[ext_resource type="Script" path="res://ui/Auction/AuctionHouseUI.gd" id="1_ah"]
+
+[node name="AuctionHouseUI" type="CanvasLayer"]
+script = ExtResource("1_ah")
