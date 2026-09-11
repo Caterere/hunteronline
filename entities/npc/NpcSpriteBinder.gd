@@ -55,6 +55,7 @@ static func aplicar(node: Node, preferred_ids: Array = []) -> void:
 			spr.hframes = 8
 			spr.vframes = 1
 			spr.frame = 0
-			spr.position = Vector2(0, -17)
+			# Style Lock v2 (96px): feet near Y=84 → visual offset ~2× vs 48px lock
+			spr.position = Vector2(0, -34)
 			spr.modulate = Color.WHITE
 			return

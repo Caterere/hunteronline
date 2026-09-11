@@ -5,7 +5,9 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 
 > **Autoridade:** `docs/bibles/ART_PIPELINE_CANON.md`
 > **STYLE ANCHOR DE PERSONAGEM:** `res://assets/sprites/characters/player.png` / `assets/reference/player(3).png`
-> Personagens: 48×48, ~20–22 px, pés Y≈42 — `PIXEL_ART_STYLE_BIBLE.md`
+> Personagens (Style Lock **v2**): 96×96, ~40–44 px, pés Y≈84 — `PIXEL_ART_STYLE_BIBLE.md`  
+> Regeneração saga a saga: [`../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md`](../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md)  
+> Legado 48×48 arquivado em `assets/sprites/characters/_archive_48px/` durante o Quality Pass.
 > Mundo: densidade controlada — `PIXEL_ART_PRODUCTION_BIBLE.md` + `assets/reference/world_detail_grass_dirt_trees_ref.png`
 > Sprites legados 68×68 px: retificação futura.
 ---

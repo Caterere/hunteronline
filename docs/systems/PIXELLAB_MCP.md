@@ -42,14 +42,14 @@ Convenções de saída:
 
 | Conteúdo | Tool | Formato / naming | Pasta |
 |---|---|---|---|
-| Inimigo | `create_character` + `animate_character` | `enemy_<id>_8dir.png` (idle 8 dir, folha 384x48) + `enemy_<id>_walk_8x8.png` | `assets/sprites/characters/` |
+| Inimigo | `create_character` + `animate_character` | `enemy_<id>_8dir.png` (idle 8 dir, folha 768x96) + `enemy_<id>_walk_8x8.png` | `assets/sprites/characters/` |
 | NPC | `create_character` + `animate_character` | `npc_<nome>_8dir.png` (+ `_walk_8x8.png` se andar) | `assets/sprites/characters/` |
 | Prop / Landmark | `create_character` (high top-down) | `<nome>.png` (1 direção) | `assets/sprites/objects/` |
 | Cenário / Tileset | `create_topdown_tileset` | conforme registro | `assets/sprites/tilesets/pixellab/` |
 
-Padrão obrigatório: frame **48x48**, altura do boneco **20–22px**, pés em **Y=42**, proporção chibi ~2.5 cabeças, sombreamento plano, paleta reduzida (≈11–14 cores/frame). Âncora de estilo: `assets/sprites/characters/player.png`.
+Padrão obrigatório (Style Lock **v2**): frame **96×96**, altura do boneco **40–44px**, pés em **Y≈84**, proporção chibi ~2.5 cabeças, sombreamento plano, paleta (~12–20 cores/frame). Âncora: `assets/sprites/characters/player.png`. Roteiro: [`../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md`](../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md).
 
-Depois de gerar: valide personagens/inimigos com `tools/validate_sprite_style.gd`, faça o bind (`EnemySystem` liga automaticamente `enemy_<id>_8dir.png` pelo id) e **registre em `docs/systems/ASSET_REGISTRY.md`** (asset, PixelLab ID, descrição, tamanho, direções, mapa, caminho no projeto).
+Depois de gerar: valide com `tools/validate_sprite_style.gd`, faça o bind e **registre em `docs/systems/ASSET_REGISTRY.md`**.
 
 Se o MCP estiver offline (sem token em `.cursor/mcp.json`), use o fallback REST `scripts/tools/pixellab_*`; se nada estiver disponível, sinalize que a etapa de sprite ficou pendente em vez de shipar placeholder como final.
 
