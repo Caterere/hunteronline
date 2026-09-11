@@ -824,56 +824,57 @@ func _on_server_snapshot_ready(_snapshot: Dictionary) -> void:
 
 
 func _enviar_snapshot_para_peer(peer_id: int, snap: Dictionary) -> void:
+	var use_binary: bool = server_config == null or bool(server_config.snapshot_binary)
 	var use_compress: bool = server_config != null and bool(server_config.snapshot_compress)
 	var min_bytes: int = int(server_config.snapshot_compress_min_bytes) if server_config != null else 256
 	var payload_size: int = 0
 	var raw_size: int = 0
 
-	if use_compress:
-		var raw: PackedByteArray = var_to_bytes(snap)
-		raw_size = raw.size()
-		_snapshot_bytes_raw += raw_size
-		_snapshot_bytes_raw_sec_acc += raw_size
-		if raw_size >= min_bytes:
-			var compressed: PackedByteArray = raw.compress(FileAccess.COMPRESSION_DEFLATE)
-			# Só envia comprimido se valer a pena
-			if compressed.size() > 0 and compressed.size() < raw_size:
-				payload_size = compressed.size()
-				_snapshot_bytes_sent += payload_size
-				_snapshot_bytes_sent_sec_acc += payload_size
-				_snapshot_packets_sent += 1
-				_snapshot_packets_sent_sec_acc += 1
-				_snapshot_compress_hits += 1
-				if peer_id > 0:
-					rpc_id(peer_id, "rpc_receber_snapshot_mundo_comprimido", compressed)
-				else:
-					rpc("rpc_receber_snapshot_mundo_comprimido", compressed)
-				return
-		_snapshot_compress_skips += 1
-		payload_size = raw_size
-		_snapshot_bytes_sent += payload_size
-		_snapshot_bytes_sent_sec_acc += payload_size
-		_snapshot_packets_sent += 1
-		_snapshot_packets_sent_sec_acc += 1
-		if peer_id > 0:
-			rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
-		else:
-			rpc("rpc_receber_snapshot_mundo", snap)
-		return
+	# PREREQ-1: empacota schema binário compacto (NetworkProtocol) antes de comprimir
+	var raw: PackedByteArray
+	var binary_mode := false
+	if use_binary:
+		raw = NetworkProtocol.pack_world_snapshot(snap)
+		binary_mode = not raw.is_empty()
+	if not binary_mode:
+		raw = var_to_bytes(snap)
 
-	raw_size = var_to_bytes(snap).size()
-	payload_size = raw_size
+	raw_size = raw.size()
 	_snapshot_bytes_raw += raw_size
 	_snapshot_bytes_raw_sec_acc += raw_size
+
+	if use_compress and raw_size >= min_bytes:
+		var compressed: PackedByteArray = raw.compress(FileAccess.COMPRESSION_DEFLATE)
+		if compressed.size() > 0 and compressed.size() < raw_size:
+			payload_size = compressed.size()
+			_snapshot_bytes_sent += payload_size
+			_snapshot_bytes_sent_sec_acc += payload_size
+			_snapshot_packets_sent += 1
+			_snapshot_packets_sent_sec_acc += 1
+			_snapshot_compress_hits += 1
+			var rpc_name := "rpc_receber_snapshot_mundo_binario_comprimido" if binary_mode else "rpc_receber_snapshot_mundo_comprimido"
+			if peer_id > 0:
+				rpc_id(peer_id, rpc_name, compressed)
+			else:
+				rpc(rpc_name, compressed)
+			return
+
+	_snapshot_compress_skips += 1
+	payload_size = raw_size
 	_snapshot_bytes_sent += payload_size
 	_snapshot_bytes_sent_sec_acc += payload_size
 	_snapshot_packets_sent += 1
 	_snapshot_packets_sent_sec_acc += 1
-	_snapshot_compress_skips += 1
-	if peer_id > 0:
-		rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
+	if binary_mode:
+		if peer_id > 0:
+			rpc_id(peer_id, "rpc_receber_snapshot_mundo_binario", raw)
+		else:
+			rpc("rpc_receber_snapshot_mundo_binario", raw)
 	else:
-		rpc("rpc_receber_snapshot_mundo", snap)
+		if peer_id > 0:
+			rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
+		else:
+			rpc("rpc_receber_snapshot_mundo", snap)
 
 
 @rpc("authority", "call_local", "unreliable_ordered")
@@ -890,6 +891,37 @@ func rpc_receber_snapshot_mundo_comprimido(payload: PackedByteArray) -> void:
 	if snap is Dictionary:
 		_aplicar_snapshot_mundo(snap)
 
+
+
+
+@rpc("authority", "call_local", "unreliable_ordered")
+func rpc_receber_snapshot_mundo_binario(payload: PackedByteArray) -> void:
+	if payload.is_empty():
+		return
+	_snapshot_bytes_recv += payload.size()
+	_snapshot_packets_recv += 1
+	var snap: Dictionary = NetworkProtocol.unpack_world_snapshot(payload)
+	if snap.is_empty():
+		push_warning("[NetworkManager] Snapshot binário inválido")
+		return
+	_aplicar_snapshot_mundo(snap)
+
+
+@rpc("authority", "call_local", "unreliable_ordered")
+func rpc_receber_snapshot_mundo_binario_comprimido(payload: PackedByteArray) -> void:
+	if payload.is_empty():
+		return
+	_snapshot_bytes_recv += payload.size()
+	_snapshot_packets_recv += 1
+	var raw: PackedByteArray = payload.decompress_dynamic(-1, FileAccess.COMPRESSION_DEFLATE)
+	if raw.is_empty():
+		push_warning("[NetworkManager] Falha ao descomprimir snapshot binário")
+		return
+	var snap: Dictionary = NetworkProtocol.unpack_world_snapshot(raw)
+	if snap.is_empty():
+		push_warning("[NetworkManager] Snapshot binário descomprimido inválido")
+		return
+	_aplicar_snapshot_mundo(snap)
 
 @rpc("authority", "call_local", "unreliable_ordered")
 func rpc_receber_snapshot_mundo(snapshot: Dictionary) -> void:
