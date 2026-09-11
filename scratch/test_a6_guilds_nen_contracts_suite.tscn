@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_a6_guilds_nen_contracts_suite.gd" id="1"]
+
+[node name="TestA6GuildsNenContractsSuite" type="Node"]
+script = ExtResource("1")

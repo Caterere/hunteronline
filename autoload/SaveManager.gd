@@ -222,6 +222,8 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"rumor_data": RumorSystem.salvar_dados() if RumorSystem != null else {},
 		"world_events_data": WorldEventManager.salvar_dados() if WorldEventManager != null else {},
 		"bounty_data": BountySystem.salvar_dados() if BountySystem != null else {},
+		"guild_data": HunterGuildSystem.salvar_dados() if HunterGuildSystem != null else {},
+		"nen_contract_data": NenContractManager.salvar_dados() if NenContractManager != null else {},
 		"secret_bosses_data": SecretBossManager.salvar_dados() if SecretBossManager != null else {},
 		"time_data": {
 			"hour": TimeManager.current_hour,
@@ -609,6 +611,10 @@ func carregar_jogo(slot: int = -1) -> bool:
 		WorldEventManager.carregar_dados(data.get("world_events_data", {}))
 	if BountySystem != null:
 		BountySystem.carregar_dados(data.get("bounty_data", {}))
+	if HunterGuildSystem != null:
+		HunterGuildSystem.carregar_dados(data.get("guild_data", {}))
+	if NenContractManager != null:
+		NenContractManager.carregar_dados(data.get("nen_contract_data", {}))
 	if SecretBossManager != null and data.has("secret_bosses_data"):
 		SecretBossManager.carregar_dados(data.get("secret_bosses_data", {}))
 

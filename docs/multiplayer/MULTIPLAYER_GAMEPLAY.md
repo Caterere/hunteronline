@@ -72,3 +72,4 @@ O multiplayer de Hunter Online foi construído para potencializar a fantasia do 
 | **Revive de Aliados em Combate** | `[IN PROGRESS]` | Canalização de 3s para reanimar membro desmaiado |
 | **Raids Cooperativas de 8 Hunters**| `[PLANNED]` | Masmorras de grande escala nas Ruínas e Continente Negro |
 | **Arena Ranqueada na Torre Celestial**| `[FUTURE]` | Modo competitivo formal com rankings por andar |
+| **Guildas de Caçadores + Contratos de Nen**| `[IMPLEMENTED]` | Guild player org (cap 20, bank Jenny) + juramentos cooperativos (`HunterGuildSystem`, `NenContractManager`) |
