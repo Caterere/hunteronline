@@ -18,11 +18,39 @@ signal party_desfeita()
 signal convite_recebido(de_peer_id: int, nome_lider: String)
 signal party_dados_atualizados(membros: Array)
 
-const MAX_MEMBROS: int = 4
+const MAX_MEMBROS_MUNDO: int = 4
+const MAX_MEMBROS_RAID: int = 8
+## Compat: limite padrão do mundo aberto / dungeon normal
+const MAX_MEMBROS: int = MAX_MEMBROS_MUNDO
 
 var party_id: String = ""
 var lider_id: int = 0
 var membros: Dictionary = {} # peer_id -> Dictionary
+## "world" (4) ou "raid" (8) — raids só elevam o teto dentro de instância
+var party_mode: String = "world"
+
+
+func obter_max_membros() -> int:
+	return MAX_MEMBROS_RAID if party_mode == "raid" else MAX_MEMBROS_MUNDO
+
+
+func definir_modo_party(mode: String) -> void:
+	var m := mode.to_lower()
+	if m != "raid":
+		m = "world"
+	if party_mode == m:
+		return
+	party_mode = m
+	party_dados_atualizados.emit(obter_membros())
+	print("[PartyManager] Modo de party: %s (máx %d)" % [party_mode, obter_max_membros()])
+
+
+func entrar_modo_raid() -> void:
+	definir_modo_party("raid")
+
+
+func sair_modo_raid() -> void:
+	definir_modo_party("world")
 
 
 func _ready() -> void:
@@ -67,8 +95,8 @@ func convidar_jogador(alvo_peer_id: int) -> void:
 		EventBus.emit_toast("Apenas o líder pode convidar novos membros!", Color(1.0, 0.4, 0.4))
 		return
 
-	if membros.size() >= MAX_MEMBROS:
-		EventBus.emit_toast("A party atingiu o limite máximo de 4 caçadores!", Color(1.0, 0.4, 0.4))
+	if membros.size() >= obter_max_membros():
+		EventBus.emit_toast("A party atingiu o limite máximo de %d caçadores!" % obter_max_membros(), Color(1.0, 0.4, 0.4))
 		return
 
 	var meu_nome = PlayerData.character_name if PlayerData != null and "character_name" in PlayerData else "Líder"
@@ -217,7 +245,7 @@ func rpc_confirmar_entrada_party(dados_novo_membro: Dictionary) -> void:
 	if not eh_lider():
 		return
 	var pid: int = int(dados_novo_membro.get("peer_id", 0))
-	if pid > 0 and membros.size() < MAX_MEMBROS:
+	if pid > 0 and membros.size() < obter_max_membros():
 		membros[pid] = dados_novo_membro
 		membro_entrou.emit(pid, dados_novo_membro.get("name", "Hunter"))
 		_sincronizar_todos_membros()
