@@ -15,5 +15,11 @@
 	"snapshot_delta": true,
 	"save_interval_sec": 60,
 	"motd": "Bem-vindo ao servidor LAN de Hunter Online!",
-	"debug": true
+	"debug": true,
+	"snapshot_send_hz": 10.0,
+	"snapshot_compress": true,
+	"snapshot_compress_min_bytes": 256,
+	"enable_master_announce": false,
+	"master_registry_host": "127.0.0.1",
+	"master_registry_port": 7780
 }

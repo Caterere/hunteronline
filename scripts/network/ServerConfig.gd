@@ -29,6 +29,12 @@ var public_host: String = "" # IP/DNS público opcional (VPS); vazio = só LAN/I
 var enable_lan_discovery: bool = true # desligar em host público / VPS
 var interest_radius: float = 900.0 # AoI: só envia entidades perto do jogador
 var snapshot_delta: bool = true # envia só mudanças vs último snapshot do peer
+var snapshot_send_hz: float = 10.0 # cap de envio (ticks de jogo podem ser 20)
+var snapshot_compress: bool = true # comprime snapshots full / grandes
+var snapshot_compress_min_bytes: int = 256
+var enable_master_announce: bool = false
+var master_registry_host: String = "127.0.0.1"
+var master_registry_port: int = 7780
 var save_interval_sec: int = 60
 var motd: String = "Bem-vindo ao servidor LAN de Hunter Online!"
 var debug: bool = true
@@ -50,6 +56,12 @@ func to_dict() -> Dictionary:
 		"enable_lan_discovery": enable_lan_discovery,
 		"interest_radius": interest_radius,
 		"snapshot_delta": snapshot_delta,
+		"snapshot_send_hz": snapshot_send_hz,
+		"snapshot_compress": snapshot_compress,
+		"snapshot_compress_min_bytes": snapshot_compress_min_bytes,
+		"enable_master_announce": enable_master_announce,
+		"master_registry_host": master_registry_host,
+		"master_registry_port": master_registry_port,
 		"save_interval_sec": save_interval_sec,
 		"motd": motd,
 		"debug": debug
@@ -73,6 +85,12 @@ static func from_dict(d: Dictionary) -> ServerConfig:
 	cfg.enable_lan_discovery = bool(d.get("enable_lan_discovery", true))
 	cfg.interest_radius = float(d.get("interest_radius", 900.0))
 	cfg.snapshot_delta = bool(d.get("snapshot_delta", true))
+	cfg.snapshot_send_hz = float(d.get("snapshot_send_hz", 10.0))
+	cfg.snapshot_compress = bool(d.get("snapshot_compress", true))
+	cfg.snapshot_compress_min_bytes = int(d.get("snapshot_compress_min_bytes", 256))
+	cfg.enable_master_announce = bool(d.get("enable_master_announce", false))
+	cfg.master_registry_host = str(d.get("master_registry_host", "127.0.0.1"))
+	cfg.master_registry_port = int(d.get("master_registry_port", 7780))
 	cfg.save_interval_sec = int(d.get("save_interval_sec", 60))
 	cfg.motd = str(d.get("motd", "Bem-vindo ao servidor LAN de Hunter Online!"))
 	cfg.debug = bool(d.get("debug", true))
@@ -145,8 +163,19 @@ func apply_cmdline_args() -> void:
 			public_host = args[i + 1]
 		elif arg == "--interest-radius" and i + 1 < args.size():
 			interest_radius = float(args[i + 1])
+		elif arg == "--snapshot-hz" and i + 1 < args.size():
+			snapshot_send_hz = float(args[i + 1])
+		elif arg == "--no-snapshot-compress":
+			snapshot_compress = false
 		elif arg == "--full-snapshots":
 			snapshot_delta = false
+		elif arg == "--master-announce":
+			enable_master_announce = true
+		elif arg == "--master-host" and i + 1 < args.size():
+			master_registry_host = args[i + 1]
+			enable_master_announce = true
+		elif arg == "--master-port" and i + 1 < args.size():
+			master_registry_port = int(args[i + 1])
 		elif arg == "--no-lan-discovery":
 			enable_lan_discovery = false
 		elif arg == "--save-path" and i + 1 < args.size():

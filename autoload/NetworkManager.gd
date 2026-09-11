@@ -23,6 +23,7 @@ const LanDiscoveryBroadcasterScript = preload("res://scripts/network/LanDiscover
 const LanDiscoveryListenerScript = preload("res://scripts/network/LanDiscoveryListener.gd")
 const ServerStorageManagerScript = preload("res://scripts/network/ServerStorageManager.gd")
 const ServerWorldCoordinatorScript = preload("res://scripts/network/ServerWorldCoordinator.gd")
+const MasterServerRegistryScript = preload("res://scripts/network/MasterServerRegistry.gd")
 const ContentVersionConfigScript = preload("res://scripts/core/ContentVersionConfig.gd")
 
 enum NetworkMode {
@@ -45,6 +46,7 @@ var discovery_broadcaster: Variant = null # LanDiscoveryBroadcaster
 var discovery_listener: Variant = null # LanDiscoveryListener
 var server_storage: Variant = null # ServerStorageManager
 var world_coordinator: Variant = null # ServerWorldCoordinator
+var master_registry: Variant = null # MasterServerRegistry (announce ou processo registry)
 var client_password_input: String = ""
 
 # peer_id -> NetworkPlayer
@@ -59,6 +61,9 @@ const SNAPSHOT_INTERVAL: float = 0.05 # 20 Hz
 var _ping_timer: float = 0.0
 const PING_INTERVAL: float = 2.0
 var _demo_enemies_seeded: bool = false
+var _last_snapshot_send_msec: int = 0
+var _snapshot_bytes_sent: int = 0
+var _snapshot_bytes_raw: int = 0
 
 # Sinais de Ciclo de Vida da Rede (Fase K-LAN)
 signal handshake_completed(success: bool, reason: String)
@@ -184,6 +189,8 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 		discovery_broadcaster = null
 		print("[HunterServer] LAN discovery desabilitado (modo host/VPS).")
 
+	_iniciar_master_announce_se_habilitado(cfg)
+
 	print("\n============================================================")
 	print("                HUNTER MMORPG DEDICATED SERVER              ")
 	print("============================================================")
@@ -194,7 +201,10 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	if not str(cfg.public_host).is_empty():
 		print("Public Host: %s" % cfg.public_host)
 	print("Interest Radius: %.0f px | Delta Snapshots: %s" % [cfg.interest_radius, str(cfg.snapshot_delta)])
+	print("Snapshot Send: %.1f Hz | Compress: %s" % [float(cfg.snapshot_send_hz), str(cfg.snapshot_compress)])
 	print("Discovery Port: %d (UDP Broadcast) [%s]" % [cfg.discovery_port, "ON" if cfg.enable_lan_discovery else "OFF"])
+	if bool(cfg.enable_master_announce):
+		print("Master Announce: %s:%d" % [cfg.master_registry_host, int(cfg.master_registry_port)])
 	print("Max Players: %d" % cfg.max_players)
 	print("Tick Rate: %d TPS" % cfg.tick_rate)
 	print("Save Path: %s" % cfg.save_path)
@@ -202,6 +212,62 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	print("Waiting for hunter connections...")
 	print("============================================================\n")
 	return OK
+
+
+func iniciar_master_registry(listen_port: int = 7780) -> Error:
+	if master_registry != null and master_registry.is_active:
+		master_registry.stop()
+	master_registry = MasterServerRegistryScript.new()
+	var err: Error = master_registry.start_registry(listen_port)
+	if err != OK:
+		push_error("[NetworkManager] Falha ao iniciar Master Registry na porta %d: %d" % [listen_port, err])
+		master_registry = null
+	return err
+
+
+func _iniciar_master_announce_se_habilitado(cfg: Variant) -> void:
+	if cfg == null or not bool(cfg.enable_master_announce):
+		return
+	var public_host: String = str(cfg.public_host).strip_edges()
+	if public_host.is_empty():
+		public_host = _obter_ip_local_preferencial()
+	if master_registry != null and master_registry.is_active:
+		master_registry.stop()
+	master_registry = MasterServerRegistryScript.new()
+	var err: Error = master_registry.start_announce(
+		str(cfg.master_registry_host),
+		int(cfg.master_registry_port),
+		str(cfg.server_name),
+		public_host,
+		int(cfg.port),
+		session.peers.size() if session != null else 0,
+		int(cfg.max_players),
+		str(cfg.region),
+		ContentVersionConfigScript.GAME_VERSION if ContentVersionConfigScript != null else "1.0.0"
+	)
+	if err != OK:
+		push_warning("[HunterServer] Master announce falhou: %d" % err)
+	else:
+		print("[HunterServer] 📡 Anunciando no master registry %s:%d" % [cfg.master_registry_host, int(cfg.master_registry_port)])
+
+
+func _obter_ip_local_preferencial() -> String:
+	var addrs: PackedStringArray = IP.get_local_addresses()
+	for ip in addrs:
+		var s := str(ip)
+		if s.begins_with("127.") or s.contains(":"):
+			continue
+		return s
+	return "127.0.0.1"
+
+
+func _atualizar_master_announce_players() -> void:
+	if master_registry == null or not master_registry.is_active:
+		return
+	if str(master_registry.mode) != "announce":
+		return
+	var count: int = session.peers.size() if session != null else 0
+	master_registry.update_announce_players(count)
 
 
 func conectar_ao_host(ip: String = ConnectionManagerScript.PADRAO_IP, porta: int = ConnectionManagerScript.PADRAO_PORTA) -> Error:
@@ -231,8 +297,16 @@ func desconectar() -> void:
 	if is_dedicated_server():
 		if discovery_broadcaster != null:
 			discovery_broadcaster.stop_broadcast()
+			discovery_broadcaster = null
 		if world_coordinator != null:
 			world_coordinator.stop_coordinator()
+			world_coordinator = null
+
+	if master_registry != null:
+		# Em modo registry puro, deixar o caller decidir; em announce/dedicated, parar.
+		if str(master_registry.mode) == "announce" or is_dedicated_server():
+			master_registry.stop()
+			master_registry = null
 
 	if discovery_listener != null:
 		discovery_listener.stop_listening()
@@ -251,6 +325,9 @@ func desconectar() -> void:
 	last_states.clear()
 	session.limpar()
 	_demo_enemies_seeded = false
+	_last_snapshot_send_msec = 0
+	_snapshot_bytes_sent = 0
+	_snapshot_bytes_raw = 0
 
 
 func _limpar_inimigos_remotos() -> void:
@@ -288,6 +365,7 @@ func _on_peer_connected(id: int) -> void:
 				server_config.max_players,
 				server_config.region
 			)
+		_atualizar_master_announce_players()
 		rpc_id(id, "rpc_sincronizar_sessao", session.room_name, session.max_players)
 
 
@@ -310,6 +388,8 @@ func _on_peer_disconnected(id: int) -> void:
 				server_config.max_players,
 				server_config.region
 			)
+		if master_registry != null and master_registry.is_active and str(master_registry.mode) == "announce":
+			master_registry.update_announce_players(max(0, session.peers.size() - 1))
 
 		# Notificar todos os clientes remanescentes
 		rpc("rpc_notificar_jogador_desconectado", id)
@@ -379,6 +459,10 @@ func obter_jogador_remoto(peer_id: int) -> Node:
 # ============================================================
 
 func _physics_process(delta: float) -> void:
+	# Master registry (modo registry puro ou announce) roda mesmo offline.
+	if master_registry != null and master_registry.is_active:
+		master_registry.update(delta)
+
 	if is_offline_singleplayer():
 		return
 
@@ -611,6 +695,17 @@ func rpc_notificar_jogador_desconectado(peer_id: int) -> void:
 func _on_server_snapshot_ready(_snapshot: Dictionary) -> void:
 	if not is_server_authoritative() or world_coordinator == null:
 		return
+
+	# Cap de taxa de envio (ticks de simulação podem ser mais altos)
+	var send_hz: float = 10.0
+	if server_config != null:
+		send_hz = maxf(1.0, float(server_config.snapshot_send_hz))
+	var min_interval_ms: float = 1000.0 / send_hz
+	var now_ms: int = Time.get_ticks_msec()
+	if _last_snapshot_send_msec > 0 and float(now_ms - _last_snapshot_send_msec) < min_interval_ms:
+		return
+	_last_snapshot_send_msec = now_ms
+
 	# Dedicated: snapshot por peer (AoI + delta). Host listen: broadcast full.
 	if is_dedicated_server():
 		var radius: float = float(server_config.interest_radius) if server_config != null else 900.0
@@ -626,9 +721,47 @@ func _on_server_snapshot_ready(_snapshot: Dictionary) -> void:
 				)
 				if not has_data:
 					continue
-			rpc_id(int(peer_id), "rpc_receber_snapshot_mundo", peer_snap)
+			_enviar_snapshot_para_peer(int(peer_id), peer_snap)
 	else:
-		rpc("rpc_receber_snapshot_mundo", world_coordinator.build_world_snapshot())
+		_enviar_snapshot_para_peer(0, world_coordinator.build_world_snapshot())
+
+
+func _enviar_snapshot_para_peer(peer_id: int, snap: Dictionary) -> void:
+	var use_compress: bool = server_config != null and bool(server_config.snapshot_compress)
+	var min_bytes: int = int(server_config.snapshot_compress_min_bytes) if server_config != null else 256
+
+	if use_compress:
+		var raw: PackedByteArray = var_to_bytes(snap)
+		_snapshot_bytes_raw += raw.size()
+		if raw.size() >= min_bytes:
+			var compressed: PackedByteArray = raw.compress(FileAccess.COMPRESSION_DEFLATE)
+			# Só envia comprimido se valer a pena
+			if compressed.size() > 0 and compressed.size() < raw.size():
+				_snapshot_bytes_sent += compressed.size()
+				if peer_id > 0:
+					rpc_id(peer_id, "rpc_receber_snapshot_mundo_comprimido", compressed)
+				else:
+					rpc("rpc_receber_snapshot_mundo_comprimido", compressed)
+				return
+		_snapshot_bytes_sent += raw.size()
+
+	if peer_id > 0:
+		rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
+	else:
+		rpc("rpc_receber_snapshot_mundo", snap)
+
+
+@rpc("authority", "call_local", "unreliable_ordered")
+func rpc_receber_snapshot_mundo_comprimido(payload: PackedByteArray) -> void:
+	if payload.is_empty():
+		return
+	var raw: PackedByteArray = payload.decompress_dynamic(-1, FileAccess.COMPRESSION_DEFLATE)
+	if raw.is_empty():
+		push_warning("[NetworkManager] Falha ao descomprimir snapshot de mundo")
+		return
+	var snap = bytes_to_var(raw)
+	if snap is Dictionary:
+		rpc_receber_snapshot_mundo(snap)
 
 
 @rpc("authority", "call_local", "unreliable_ordered")

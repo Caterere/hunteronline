@@ -8,9 +8,12 @@ echo ============================================================
 echo [LAN / Radmin VPN / futuro VPS]
 echo Porta Padrao: 7777 (ENet UDP)
 echo Descoberta LAN: 7778 (UDP Broadcast)
+echo Master Registry (opcional): --master-registry [7780]
+echo   Announce: --master-announce --master-host ^<ip^>
 echo.
 echo Dica: outros PCs na mesma rede conectam no IP deste host:porta 7777
-echo       (firewall: liberar UDP 7777; discovery UDP 7778 so na LAN)
+echo       (firewall: liberar UDP 7777; discovery UDP 7778 so na LAN;
+echo        UDP 7780 se usar master registry)
 echo.
 
 REM Prefer GODOT_BIN env, then PATH, then common local names.

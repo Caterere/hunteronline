@@ -14,19 +14,25 @@ extends Control
 const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 const LanDiscoveryListenerScript = preload("res://scripts/network/LanDiscoveryListener.gd")
 const ServerListCatalogScript = preload("res://scripts/network/ServerListCatalog.gd")
+const MasterServerRegistryScript = preload("res://scripts/network/MasterServerRegistry.gd")
 
 var line_edit_ip: LineEdit
 var line_edit_port: LineEdit
 var line_edit_password: LineEdit
+var line_edit_registry_host: LineEdit
+var line_edit_registry_port: LineEdit
 var btn_connect: Button
 var btn_start_server: Button
 var btn_refresh_lan: Button
+var btn_query_registry: Button
 var btn_back: Button
 var lbl_status: Label
 var server_list_container: VBoxContainer
 var public_list_container: VBoxContainer
+var registry_list_container: VBoxContainer
 
 var discovery_listener = null
+var master_registry_client = null
 var _is_connecting: bool = false
 
 
@@ -43,11 +49,16 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if discovery_listener != null and discovery_listener.is_listening:
 		discovery_listener.update(delta)
+	if master_registry_client != null and master_registry_client.is_active:
+		master_registry_client.update(delta)
 
 
 func _exit_tree() -> void:
 	if discovery_listener != null:
 		discovery_listener.stop_listening()
+	if master_registry_client != null:
+		master_registry_client.stop()
+		master_registry_client = null
 
 
 func _construir_ui() -> void:
@@ -172,6 +183,46 @@ func _construir_ui() -> void:
 	public_list_container.add_theme_constant_override("separation", 3)
 	scroll_pub.add_child(public_list_container)
 
+	var hbox_reg_hdr := HBoxContainer.new()
+	col_right.add_child(hbox_reg_hdr)
+
+	var lbl_reg := Label.new()
+	lbl_reg.text = "MASTER REGISTRY (DINÂMICO)"
+	lbl_reg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl_reg.add_theme_font_size_override("font_size", 6)
+	lbl_reg.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+	hbox_reg_hdr.add_child(lbl_reg)
+
+	btn_query_registry = Button.new()
+	btn_query_registry.text = "Consultar"
+	btn_query_registry.pressed.connect(_consultar_master_registry)
+	hbox_reg_hdr.add_child(btn_query_registry)
+
+	var hbox_reg_fields := HBoxContainer.new()
+	hbox_reg_fields.add_theme_constant_override("separation", 4)
+	col_right.add_child(hbox_reg_fields)
+
+	line_edit_registry_host = LineEdit.new()
+	line_edit_registry_host.text = "127.0.0.1"
+	line_edit_registry_host.placeholder_text = "IP do registry"
+	line_edit_registry_host.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	hbox_reg_fields.add_child(line_edit_registry_host)
+
+	line_edit_registry_port = LineEdit.new()
+	line_edit_registry_port.text = "7780"
+	line_edit_registry_port.custom_minimum_size = Vector2(56, 0)
+	hbox_reg_fields.add_child(line_edit_registry_port)
+
+	var scroll_reg := ScrollContainer.new()
+	scroll_reg.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll_reg.custom_minimum_size = Vector2(0, 55)
+	col_right.add_child(scroll_reg)
+
+	registry_list_container = VBoxContainer.new()
+	registry_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	registry_list_container.add_theme_constant_override("separation", 3)
+	scroll_reg.add_child(registry_list_container)
+
 	# Rodapé: Status & Voltar
 	var hbox_footer := HBoxContainer.new()
 	vbox_main.add_child(hbox_footer)
@@ -243,6 +294,91 @@ func _popular_servidores_publicos() -> void:
 			line_edit_ip.text = host
 			line_edit_port.text = str(port)
 			_atualizar_label_status("Selecionado: %s:%d" % [host, port], Color(0.5, 1.0, 0.7))
+		)
+		hbox.add_child(btn_join)
+
+
+func _consultar_master_registry() -> void:
+	var host: String = line_edit_registry_host.text.strip_edges() if line_edit_registry_host != null else "127.0.0.1"
+	var port: int = int(line_edit_registry_port.text.strip_edges()) if line_edit_registry_port != null else 7780
+	if host.is_empty():
+		host = "127.0.0.1"
+	if port <= 0:
+		port = 7780
+
+	if master_registry_client == null:
+		master_registry_client = MasterServerRegistryScript.new()
+		master_registry_client.servers_updated.connect(_on_master_servers_updated)
+		master_registry_client.query_failed.connect(_on_master_query_failed)
+
+	_limpar_lista_registry("Consultando registry %s:%d..." % [host, port])
+	_atualizar_label_status("Consultando master registry %s:%d..." % [host, port], Color(0.5, 0.9, 1.0))
+	var err: Error = master_registry_client.query_servers(host, port)
+	if err != OK:
+		_atualizar_label_status("Falha ao consultar registry: %d" % err, Color(1.0, 0.3, 0.3))
+
+
+func _limpar_lista_registry(msg: String = "Nenhum servidor no registry...") -> void:
+	if registry_list_container == null:
+		return
+	for child in registry_list_container.get_children():
+		child.queue_free()
+	var lbl := Label.new()
+	lbl.name = "EmptyRegistryLabel"
+	lbl.text = msg
+	lbl.add_theme_font_size_override("font_size", 5)
+	lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1.0))
+	registry_list_container.add_child(lbl)
+
+
+func _on_master_query_failed(reason: String) -> void:
+	_atualizar_label_status("Registry: %s" % reason, Color(1.0, 0.4, 0.3))
+	_limpar_lista_registry("Consulta falhou: %s" % reason)
+
+
+func _on_master_servers_updated(servers: Array) -> void:
+	if registry_list_container == null:
+		return
+	for child in registry_list_container.get_children():
+		child.queue_free()
+
+	if servers.is_empty():
+		_limpar_lista_registry("Registry respondeu sem servidores vivos.")
+		_atualizar_label_status("Registry vazio.", Color(1.0, 0.8, 0.3))
+		return
+
+	_atualizar_label_status("Registry: %d servidor(es)" % servers.size(), Color(0.4, 1.0, 0.6))
+	for info in servers:
+		var panel := PanelContainer.new()
+		panel.custom_minimum_size = Vector2(0, 30)
+		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GOLD, 3))
+		registry_list_container.add_child(panel)
+
+		var hbox := HBoxContainer.new()
+		panel.add_child(hbox)
+
+		var lbl_srv := Label.new()
+		lbl_srv.text = "%s | %s:%d | %d/%d | %s" % [
+			info.get("name", "Server"),
+			info.get("host", "127.0.0.1"),
+			int(info.get("port", 7777)),
+			int(info.get("players", 0)),
+			int(info.get("max_players", 16)),
+			info.get("region", "")
+		]
+		lbl_srv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl_srv.add_theme_font_size_override("font_size", 5)
+		hbox.add_child(lbl_srv)
+
+		var btn_join := Button.new()
+		btn_join.text = "USAR"
+		HunterUIStyle.aplicar_estilo_botao(btn_join, HunterUIStyle.COLOR_BORDER_GREEN)
+		var host: String = str(info.get("host", "127.0.0.1"))
+		var port: int = int(info.get("port", 7777))
+		btn_join.pressed.connect(func():
+			line_edit_ip.text = host
+			line_edit_port.text = str(port)
+			_atualizar_label_status("Selecionado via registry: %s:%d" % [host, port], Color(0.5, 1.0, 0.7))
 		)
 		hbox.add_child(btn_join)
 

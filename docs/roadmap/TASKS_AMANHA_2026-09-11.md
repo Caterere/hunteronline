@@ -32,5 +32,7 @@
 
 ## Próximo
 1. [ ] Quando contratar VPS: set `public_host`, `--no-lan-discovery`, editar `server_list.json`
-2. [ ] Master server / matchmaking se houver vários hosts
-3. [ ] Compressão / cap de taxa de snapshot
+2. [x] Master server registry local (announce + query UDP 7780)
+3. [x] Compressão DEFLATE + cap de taxa de snapshot (`snapshot_send_hz`)
+4. [ ] Matchmaking / auth de contas se necessário além do registry
+5. [ ] Stress test com N peers + medir bandwidth dos snapshots

@@ -11,9 +11,12 @@ echo "============================================================"
 echo "[LAN / Radmin VPN / futuro VPS]"
 echo "Porta padrao: 7777 (ENet UDP)"
 echo "Discovery LAN: 7778 (UDP Broadcast)"
+echo "Master Registry (opcional): --master-registry [7780]"
+echo "  Game server announce: --master-announce --master-host <ip>"
 echo
 echo "Outros PCs na mesma rede: conecte no IP deste host:7777"
 echo "Firewall: UDP 7777 (obrigatorio). UDP 7778 so e util na LAN."
+echo "          UDP 7780 se usar master registry."
 echo
 
 GODOT_BIN="${GODOT_BIN:-}"

@@ -59,6 +59,7 @@ func _ready() -> void:
 	_test_18_enemy_damage_and_rewards()
 	_test_19_nen_mitigation_death_respawn()
 	_test_20_server_list_and_interest_delta()
+	_test_21_master_registry_and_snapshot_bandwidth()
 
 	_imprimir_resultado_final()
 
@@ -731,6 +732,105 @@ func _test_20_server_list_and_interest_delta() -> void:
 	assert_test((delta_rem.get("removed_enemies", []) as Array).has(near_eid), "delta remove inimigo fora do AoI")
 
 	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 21: MASTER REGISTRY + SNAPSHOT HZ / COMPRESS
+# ============================================================
+func _test_21_master_registry_and_snapshot_bandwidth() -> void:
+	print("\n--- Teste 21: Master registry + snapshot hz/compress ---")
+	var MasterServerRegistryScript = load("res://scripts/network/MasterServerRegistry.gd")
+
+	var cfg = ServerConfigScript.load_from_file("res://config/server_config.json")
+	assert_test(cfg.snapshot_send_hz >= 1.0, "snapshot_send_hz configurado")
+	assert_test(cfg.snapshot_compress == true, "snapshot_compress habilitado por padrão")
+	assert_test(cfg.master_registry_port == 7780, "porta padrão do master registry")
+
+	var cfg2 = ServerConfigScript.from_dict({
+		"snapshot_send_hz": 5.0,
+		"snapshot_compress": false,
+		"enable_master_announce": true,
+		"master_registry_host": "10.0.0.2",
+		"master_registry_port": 7799
+	})
+	assert_test(cfg2.snapshot_send_hz == 5.0, "from_dict restaura snapshot_send_hz")
+	assert_test(cfg2.snapshot_compress == false, "from_dict restaura snapshot_compress")
+	assert_test(cfg2.enable_master_announce == true, "from_dict restaura enable_master_announce")
+	assert_test(cfg2.master_registry_host == "10.0.0.2", "from_dict restaura master_registry_host")
+	assert_test(cfg2.master_registry_port == 7799, "from_dict restaura master_registry_port")
+
+	# Compressão DEFLATE de snapshot grande
+	var big_snap := {
+		"full": true,
+		"tick": 42,
+		"players": [],
+		"enemies": []
+	}
+	for i in range(40):
+		big_snap["enemies"].append({
+			"id": i,
+			"enemy_id": "lobo_nen",
+			"name": "Enemy_%d_padding_xxxxxxxx" % i,
+			"position": Vector2(i * 10.0, i * 3.0),
+			"hp": 100,
+			"hp_max": 100
+		})
+	var raw: PackedByteArray = var_to_bytes(big_snap)
+	var compressed: PackedByteArray = raw.compress(FileAccess.COMPRESSION_DEFLATE)
+	assert_test(raw.size() >= 256, "snapshot de teste é grande o bastante")
+	assert_test(compressed.size() > 0 and compressed.size() < raw.size(), "DEFLATE reduz snapshot grande")
+	var restored = bytes_to_var(compressed.decompress_dynamic(-1, FileAccess.COMPRESSION_DEFLATE))
+	assert_test(restored is Dictionary and int(restored.get("tick", 0)) == 42, "roundtrip decompress preserva tick")
+	assert_test((restored.get("enemies", []) as Array).size() == 40, "roundtrip preserva enemies")
+
+	# Registry announce → query em loopback
+	var reg_port: int = 17780
+	var registry = MasterServerRegistryScript.new()
+	var err_reg: Error = registry.start_registry(reg_port)
+	assert_test(err_reg == OK, "registry UDP sobe na porta de teste")
+
+	var announcer = MasterServerRegistryScript.new()
+	var err_ann: Error = announcer.start_announce(
+		"127.0.0.1", reg_port, "Hunter Test LAN", "127.0.0.1", 7777, 2, 16, "Capital", "1.0.0"
+	)
+	assert_test(err_ann == OK, "announce inicia sem erro")
+
+	# Troca de pacotes (announce → registry)
+	for _i in range(8):
+		announcer.update(0.05)
+		registry.update(0.05)
+	var listed: Array = registry.get_server_list()
+	assert_test(listed.size() >= 1, "registry registrou servidor anunciado")
+	if listed.size() >= 1:
+		assert_test(str(listed[0].get("name", "")) == "Hunter Test LAN", "nome do servidor no registry")
+		assert_test(int(listed[0].get("players", -1)) == 2, "players no announce")
+
+	announcer.update_announce_players(5)
+	for _j in range(4):
+		announcer.update(0.05)
+		registry.update(0.05)
+	listed = registry.get_server_list()
+	if listed.size() >= 1:
+		assert_test(int(listed[0].get("players", -1)) == 5, "update_announce_players reflete no registry")
+
+	var querier = MasterServerRegistryScript.new()
+	var got_list: Array = []
+	querier.servers_updated.connect(func(servers: Array): got_list = servers)
+	var err_q: Error = querier.query_servers("127.0.0.1", reg_port)
+	assert_test(err_q == OK, "query inicia sem erro")
+	for _k in range(12):
+		querier.update(0.02)
+		registry.update(0.02)
+		if not got_list.is_empty():
+			break
+	assert_test(got_list.size() >= 1, "QUERY retorna LIST com entradas")
+	if got_list.size() >= 1:
+		assert_test(str(got_list[0].get("host", "")) == "127.0.0.1", "ENTRY traz host")
+		assert_test(int(got_list[0].get("port", 0)) == 7777, "ENTRY traz porta do jogo")
+
+	querier.stop()
+	announcer.stop()
+	registry.stop()
 
 
 func _imprimir_resultado_final() -> void:
