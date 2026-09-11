@@ -61,6 +61,7 @@ func _ready() -> void:
 	_test_20_server_list_and_interest_delta()
 	_test_21_master_registry_and_snapshot_bandwidth()
 	_test_22_snapshot_bandwidth_stress()
+	_test_23_chat_sanitize_and_layout()
 
 	_imprimir_resultado_final()
 
@@ -921,6 +922,63 @@ func _test_22_snapshot_bandwidth_stress() -> void:
 	assert_test(ratio_probe < 1.0, "ratio AoI comprimido < 1.0 (%.3f)" % ratio_probe)
 
 	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 23: CHAT SANITIZE + LAYOUT (SEM 1 CHAR/LINHA)
+# ============================================================
+func _test_23_chat_sanitize_and_layout() -> void:
+	print("\n--- Teste 23: Chat sanitize + layout ---")
+	var ChatScript = load("res://ui/chat/MultiplayerChatHUD.gd")
+	assert_test(ChatScript != null, "MultiplayerChatHUD carrega")
+
+	var long_msg := ""
+	for i in range(200):
+		long_msg += "a"
+	var sanitized: String = ChatScript.sanitizar_mensagem(long_msg)
+	assert_test(sanitized.length() == 120, "limite de 120 caracteres aplicado")
+
+	var with_breaks: String = ChatScript.sanitizar_mensagem("ola\nmundo\r\t  caçador")
+	assert_test(not with_breaks.contains("\n"), "remove quebras de linha")
+	assert_test(with_breaks == "ola mundo caçador", "normaliza espaços")
+
+	var chat = ChatScript.new()
+	add_child(chat)
+
+	assert_test(chat.line_input != null and chat.line_input.max_length == 120, "LineEdit max_length=120")
+	assert_test(chat.vbox_log != null, "log container existe")
+	assert_test(chat.vbox_log.custom_minimum_size.x >= 100.0, "log tem largura mínima (evita 1 char/linha)")
+
+	chat.adicionar_mensagem("Gon", "local", "Vamos caçar juntos nesta tarde!")
+	assert_test(chat.vbox_log.get_child_count() == 1, "mensagem única no log")
+	var lbl: Label = chat.vbox_log.get_child(0) as Label
+	assert_test(lbl != null, "linha de chat é Label")
+	assert_test(lbl.custom_minimum_size.x >= 100.0, "label tem largura para autowrap por palavra")
+	assert_test(lbl.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "autowrap WORD_SMART ativo")
+	assert_test(lbl.text.contains("Vamos caçar juntos"), "texto completo na mesma mensagem")
+
+	# NetworkManager sanitize + sinal
+	var got: Dictionary = {"n": 0, "msg": ""}
+	var cb := func(autor: String, canal: String, msg: String):
+		got["n"] = int(got["n"]) + 1
+		got["msg"] = msg
+		got["autor"] = autor
+		got["canal"] = canal
+	NetworkManager.chat_message_received.connect(cb)
+	NetworkManager.enviar_mensagem_chat("geral", "  oi\npeers  ")
+	assert_test(int(got["n"]) == 1, "enviar_mensagem_chat emite sinal offline")
+	assert_test(str(got["msg"]) == "oi peers", "sanitize no NetworkManager")
+	assert_test(str(got["canal"]) == "geral", "canal preservado")
+	NetworkManager.chat_message_received.disconnect(cb)
+
+	# Truncate via NetworkManager
+	NetworkManager.chat_message_received.connect(cb)
+	got["n"] = 0
+	NetworkManager.enviar_mensagem_chat("local", long_msg)
+	assert_test(str(got["msg"]).length() == 120, "NetworkManager trunca em 120")
+	NetworkManager.chat_message_received.disconnect(cb)
+
+	chat.queue_free()
 
 
 func _imprimir_resultado_final() -> void:

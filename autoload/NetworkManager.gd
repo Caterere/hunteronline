@@ -83,6 +83,7 @@ signal player_joined_session(peer_id: int, player_data: Dictionary)
 signal player_left_session(peer_id: int)
 signal world_snapshot_received(snapshot: Dictionary)
 signal combat_hits_confirmed(hits: Array)
+signal chat_message_received(sender_name: String, channel: String, message: String)
 
 
 func _ready() -> void:
@@ -1394,10 +1395,49 @@ func rpc_enviar_mensagem_chat(canal: String, mensagem: String) -> void:
 	if sender_id == 0:
 		sender_id = local_peer_id
 
-	var sender_info = session.obter_peer_info(sender_id)
-	var nome: String = sender_info.get("name", "Hunter_%d" % sender_id)
+	var canal_limpo: String = _sanitizar_canal_chat(canal)
+	var msg_limpa: String = _sanitizar_mensagem_chat(mensagem)
+	if msg_limpa.is_empty():
+		return
 
-	EventBus.emit_toast("[%s] %s: %s" % [canal.to_upper(), nome, mensagem])
+	var sender_info = session.obter_peer_info(sender_id) if session != null else {}
+	var nome: String = str(sender_info.get("name", "Hunter_%d" % sender_id))
+	if nome.is_empty():
+		nome = "Hunter_%d" % sender_id
+
+	chat_message_received.emit(nome, canal_limpo, msg_limpa)
+
+
+func enviar_mensagem_chat(canal: String, mensagem: String) -> void:
+	var canal_limpo: String = _sanitizar_canal_chat(canal)
+	var msg_limpa: String = _sanitizar_mensagem_chat(mensagem)
+	if msg_limpa.is_empty():
+		return
+	if is_offline_singleplayer() or not multiplayer.has_multiplayer_peer():
+		var nome := "Você"
+		if PlayerData != null and "nome_personagem" in PlayerData and not str(PlayerData.nome_personagem).is_empty():
+			nome = str(PlayerData.nome_personagem)
+		chat_message_received.emit(nome, canal_limpo, msg_limpa)
+		return
+	rpc("rpc_enviar_mensagem_chat", canal_limpo, msg_limpa)
+
+
+func _sanitizar_canal_chat(canal: String) -> String:
+	var c := canal.strip_edges().to_lower()
+	if c in ["local", "party", "geral"]:
+		return c
+	return "local"
+
+
+func _sanitizar_mensagem_chat(mensagem: String) -> String:
+	const MAX_CHARS := 120
+	var limpo := mensagem.strip_edges()
+	limpo = limpo.replace("\n", " ").replace("\r", " ").replace("\t", " ")
+	while limpo.contains("  "):
+		limpo = limpo.replace("  ", " ")
+	if limpo.length() > MAX_CHARS:
+		limpo = limpo.substr(0, MAX_CHARS)
+	return limpo
 
 
 @rpc("any_peer", "call_local", "unreliable")

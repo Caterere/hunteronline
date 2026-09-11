@@ -57,6 +57,17 @@ func _ready() -> void:
 	print("[GameManager] GERENCIADOR DE JOGO ATIVO")
 	print("=================================")
 	set_flow_state(GameFlowState.BOOT)
+	_aplicar_display_standalone()
+
+
+func _aplicar_display_standalone() -> void:
+	# No editor permanece janela; no .exe (standalone) abre em tela cheia.
+	if OS.has_feature("editor"):
+		return
+	if not OS.has_feature("standalone"):
+		return
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	print("[GameManager] Display standalone: FULLSCREEN (viewport 640x360 → escala 1920x1080)")
 
 
 func _process(delta: float) -> void:

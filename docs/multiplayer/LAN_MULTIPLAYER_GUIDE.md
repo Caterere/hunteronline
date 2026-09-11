@@ -18,13 +18,14 @@ O servidor roda de forma totalmente independente dos jogadores. Isso significa q
 
 ## 2. REQUISITOS PARA JOGAR
 
-1. **Godot Engine 4.6** (ou o executável compilado do Hunter MMORPG).
+1. **Godot Engine 4.6** (ou o executável compilado do Hunter MMORPG — ver [`docs/guides/HOW_TO_EXPORT_WINDOWS_EXE.md`](../guides/HOW_TO_EXPORT_WINDOWS_EXE.md)).
 2. **Conexão de Rede**:
    - Para quem está na **mesma casa / mesmo roteador Wi-Fi**: Apenas a rede local (LAN).
    - Para quem está jogando com **amigos pela internet**: **Radmin VPN** (recomendado, gratuito e sem cadastro complexo).
 3. **Portas de Rede Utilizadas**:
    - `7777 UDP`: Porta principal de tráfego de jogo (ENet).
    - `7778 UDP`: Porta de anúncio de descoberta automática de LAN (Broadcast).
+   - `7780 UDP` (opcional): Master registry (lista dinâmica de servers).
 
 ---
 
