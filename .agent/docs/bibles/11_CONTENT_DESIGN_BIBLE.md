@@ -1,53 +1,7 @@
-# BIBLE DE DESIGN DE CONTEÚDO
+# 11_CONTENT_DESIGN_BIBLE — PONTE (não SSOT)
 
-## Enemies
-Every enemy should define:
-- identity;
-- level;
-- HP;
-- aura if applicable;
-- attack;
-- defense;
-- speed;
-- behavior;
-- rewards;
-- spawn category;
-- weaknesses/resistances where appropriate.
+> **Fonte canônica:** conteúdo abaixo. Não duplique regras neste arquivo.
 
-## Bosses
-Bosses should introduce mechanics, not merely inflated HP.
+- [ENEMY_AI_BIBLE](../../../docs/bibles/ENEMY_AI_BIBLE.md)
 
-## Rewards
-Rewards should correspond to difficulty and progression.
-
-Possible rewards:
-- XP;
-- Nen XP;
-- money;
-- items;
-- unlocks;
-- Hatsu components;
-- story progression.
-
-## Difficulty
-Difficulty should scale through a combination of:
-- enemy stats;
-- AI behavior;
-- mechanics;
-- encounter composition;
-- objective complexity;
-- resource pressure.
-
-Avoid relying solely on HP inflation.
-
-## Mission Length
-Main saga missions can be designed as long multi-stage sequences, while side missions can be shorter and repeatable.
-
-## Content Consistency
-New content must use canonical systems for:
-- damage;
-- rewards;
-- quests;
-- spawning;
-- persistence;
-- dialogue.
+Índice agente: [00_BIBLE_INDEX.md](00_BIBLE_INDEX.md) · Índice repo: [docs/README.md](../../../docs/README.md)

@@ -36,6 +36,7 @@ Quando houver dúvida ou sobreposição, seguir nesta ordem:
 Cópias na raiz do repo (`HUNTER_ONLINE_PIXELART_PRODUCTION_BIBLE.md`,
 `HUNTER_ONLINE_PIXELLAB_PROMPT_LIBRARY.md`) são **stubs de ponte** para os
 caminhos canônicos acima — editar sempre o arquivo em `docs/`.
+Dumps antigos também em [`docs/archive/root-dumps/`](../archive/root-dumps/).
 
 ------------------------------------------------------------------------
 

@@ -73,4 +73,4 @@ O multiplayer de Hunter Online foi construído para potencializar a fantasia do 
 | **Raids Cooperativas de 8 Hunters**| `[PLANNED]` | Masmorras de grande escala nas Ruínas e Continente Negro — bloqueado por PREREQ-2 |
 | **Arena Ranqueada na Torre Celestial**| `[FUTURE]` | Modo competitivo formal com rankings por andar — bloqueado por **PREREQ-1** (`NetworkProtocol` binário) |
 
-> Pré-requisitos e backlog priorizado: [`docs/roadmap/MMO_SYSTEMS_BACKLOG.md`](../roadmap/MMO_SYSTEMS_BACKLOG.md) (PREREQ-1 sync binário · PREREQ-2 revive aliado).
+> Pré-requisitos e backlog priorizado: [`docs/roadmap/MMO_FEATURES_BACKLOG.md`](../roadmap/MMO_FEATURES_BACKLOG.md) (PREREQ-1 sync binário · PREREQ-2 revive aliado).

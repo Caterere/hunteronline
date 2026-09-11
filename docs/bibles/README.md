@@ -38,4 +38,5 @@ Design canônico do Hunter Online. Complementa ADRs em `docs/architecture/`.
 | [QA_BIBLE.md](QA_BIBLE.md) | QA |
 | [TECHNICAL_ARCHITECTURE_BIBLE.md](TECHNICAL_ARCHITECTURE_BIBLE.md) | Arquitetura técnica |
 
-Agente Cursor: ver também `.agent/docs/bibles/00_BIBLE_INDEX.md`.
+
+Agente Cursor: [`.agent/docs/bibles/00_BIBLE_INDEX.md`](../../.agent/docs/bibles/00_BIBLE_INDEX.md) — **pontes**. SSOT = esta pasta.

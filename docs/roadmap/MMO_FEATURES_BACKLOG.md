@@ -1,8 +1,9 @@
-# HUNTER ONLINE — MMO SYSTEMS BACKLOG
+# MMO FEATURES BACKLOG — Hunter Online
 
-> **Status:** backlog priorizado (sem implementação nesta entrega)  
+> **O que é:** inventário priorizado de sistemas MMO *futuros* (Tier S/A/B), adaptados a HxH.  
+> **Não é:** roadmap de produção do dia a dia → ver [`PRODUCTION_ROADMAP.md`](PRODUCTION_ROADMAP.md).  
 > **Diretriz:** qualidade de gameplay > quantidade de sistemas — estender autoloads/UIs existentes.  
-> **Alinhamento:** [`NEXT_PRODUCTION_ROADMAP.md`](NEXT_PRODUCTION_ROADMAP.md) · [`LIVE_CONTENT_PIPELINE.md`](LIVE_CONTENT_PIPELINE.md) · [`../multiplayer/MULTIPLAYER_GAMEPLAY.md`](../multiplayer/MULTIPLAYER_GAMEPLAY.md)
+> **Alinhamento:** [`PRODUCTION_ROADMAP.md`](PRODUCTION_ROADMAP.md) · [`LIVE_OPS_CONTENT.md`](LIVE_OPS_CONTENT.md) · [`../multiplayer/MULTIPLAYER_GAMEPLAY.md`](../multiplayer/MULTIPLAYER_GAMEPLAY.md)
 
 ---
 
@@ -128,7 +129,7 @@ flowchart LR
 | B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | Master registry local já existe; falta fila de conteúdo |
 | B11 | Territory wars | New World / GW2 WvW | Rotas Associação×Máfia×Salteadores | LiveEventManager | Expandir evento da ponte para meta semanal |
 | B12 | Mounts / dirigível | FFXIV mounts | Skins via `TravelSystem` | TravelSystem | Preferir viagem temática, não mount genérico |
-| B13 | Seasons / battle pass | Destiny / Lost Ark | Temporada de caçada + códex parcial | LIVE_CONTENT_PIPELINE | Cosmético only |
+| B13 | Seasons / battle pass | Destiny / Lost Ark | Temporada de caçada + códex parcial | LIVE_OPS_CONTENT | Cosmético only |
 | B14 | Sockets / Nen stones | WoW/PoE | Gems no enhance +10 | Blacksmith | Risco de power creep |
 | B15 | Corpse run / gear loss | classic WoW | **Evitar** | — | Conflita com death soft + duelos sem pena |
 

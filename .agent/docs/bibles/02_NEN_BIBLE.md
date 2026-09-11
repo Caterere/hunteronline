@@ -1,65 +1,7 @@
-# BIBLE DE NEN
+# 02_NEN_BIBLE — PONTE (não SSOT)
 
-## Core Concept
-Nen is the manipulation of aura. The player's Nen progression is central to combat and Hatsu.
+> **Fonte canônica:** conteúdo abaixo. Não duplique regras neste arquivo.
 
-## Techniques
-### Ten
-Maintains aura around the body. Defensive/basic aura control.
+- [NEN_BIBLE](../../../docs/bibles/NEN_BIBLE.md)
 
-### Zetsu
-Suppresses aura output. Useful for stealth, recovery and risk/reward situations.
-
-### Ren
-Increases aura output. Offensive pressure and aura-intensive actions.
-
-### Gyo
-Concentrates aura into a body part or sense, enabling enhanced perception and focused power.
-
-### Shu
-Extends aura into an object, empowering equipment or held objects.
-
-### Ko
-Concentrates an extreme amount of aura into one point, trading broad defense for focused power.
-
-### En
-Extends aura into an area for detection and awareness.
-
-### Ryu
-Dynamically redistributes aura between body regions according to tactical needs.
-
-## Ryu Modes
-The project supports:
-- Offensive Ryu: favors attack/damage.
-- Defensive Ryu: favors defense/survivability.
-- Balanced Ryu: distributes benefits between offense and defense.
-
-## Aura
-Aura is a finite combat resource.
-Relevant systems must respect `aura` and `aura_max`.
-
-Suggested baseline from the project design:
-- Outside combat: regeneration around 5% of maximum aura per second.
-- In combat: regeneration around 3% of maximum aura per second.
-
-These values are tunable balance values, not immutable engine constants.
-
-## Nen Types
-The six canonical affinities should remain represented:
-- Enhancement
-- Transmutation
-- Conjuration
-- Specialization
-- Manipulation
-- Emission
-
-Affinity should influence Hatsu design and efficiency without preventing creative builds.
-
-## Training & Progression
-Nen techniques should be acquired and upgraded through training, progression, quests and the Nen Skill Tree rather than arbitrary instant unlocks or generic "Nen Level" counters.
-Progression operates via:
-- Nen Awakening (`despertou_nen`) via Wing or specific narrative milestones.
-- Water Divination revealing the player's affinity (`afinidade_nen`).
-- Nen Skill Points (SP) awarded through progression and training.
-- Investment in the 5 pillars of the Nen Skill Tree (Defense, Offense, Stances, Control, Stealth/Regen).
-- Custom Hatsu creation unlocked after sufficient Nen mastery.
+Índice agente: [00_BIBLE_INDEX.md](00_BIBLE_INDEX.md) · Índice repo: [docs/README.md](../../../docs/README.md)
