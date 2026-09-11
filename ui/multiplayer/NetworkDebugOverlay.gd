@@ -108,7 +108,7 @@ func _atualizar_telemetria() -> void:
 
 		if NetworkManager.session != null:
 			ping_ms = NetworkManager.session.obter_latencia(NetworkManager.local_peer_id)
-			p_count = max(1, NetworkManager.session.peers.size())
+			p_count = max(1, NetworkManager.session.connected_peers.size())
 
 		if NetworkManager.server_config != null:
 			tps = NetworkManager.server_config.tick_rate
@@ -120,8 +120,25 @@ func _atualizar_telemetria() -> void:
 	if tree != null:
 		entities_count += tree.get_nodes_in_group("enemies").size() + tree.get_nodes_in_group("remote_player").size()
 
+	var snap_hz := 10.0
+	var snap_kbps := 0.0
+	var snap_ratio := 1.0
+	var snap_pkts := 0
+	if NetworkManager != null and NetworkManager.has_method("obter_snapshot_bandwidth_stats"):
+		var st: Dictionary = NetworkManager.obter_snapshot_bandwidth_stats()
+		snap_hz = float(st.get("snapshot_send_hz", 10.0))
+		snap_kbps = float(st.get("bytes_sent_per_sec", 0)) / 1024.0
+		snap_ratio = float(st.get("compress_ratio", 1.0))
+		snap_pkts = int(st.get("packets_sent_per_sec", 0))
+		# Fallback: usar bandwidth genérica se ainda não houve tick de janela
+		if snap_kbps <= 0.0 and current_bandwidth_kbps > 0.0:
+			snap_kbps = current_bandwidth_kbps
+
 	lbl_info.text = "🌐 NETWORK DIAGNOSTICS [F4]\n" \
 		+ "MODO: %s\n" % mode_str \
 		+ "PING: %d ms | TPS: %d\n" % [ping_ms, tps] \
 		+ "JOGADORES: %d | ENTIDADES: %d\n" % [p_count, entities_count] \
-		+ "PACKETS: %d/s | B/W: %.1f KB/s" % [current_packet_rate, current_bandwidth_kbps]
+		+ "PACKETS: %d/s | B/W: %.1f KB/s\n" % [current_packet_rate, current_bandwidth_kbps] \
+		+ "SNAP: %.0fHz | %.1f KB/s | x%.2f | %d pkt/s" % [snap_hz, snap_kbps, snap_ratio, snap_pkts]
+
+	panel.custom_minimum_size = Vector2(190, 88)

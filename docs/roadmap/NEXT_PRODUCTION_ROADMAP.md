@@ -5,7 +5,7 @@
 * **NÃO criar novos sistemas quando os existentes resolvem a necessidade.**
 * **Foco em: COMBATE + NEN + HATSU + PROGRESSÃO.**
 
-> Tasks detalhadas do dia seguinte: [`TASKS_AMANHA_2026-09-09.md`](TASKS_AMANHA_2026-09-09.md)
+> Tasks detalhadas do dia seguinte: [`TASKS_AMANHA_2026-09-11.md`](TASKS_AMANHA_2026-09-11.md)
 
 ---
 
@@ -46,7 +46,7 @@
 
 ---
 
-## 3. LATER (Longo Prazo / Pré-Multiplayer)
+## 3. LATER (Longo Prazo / Host público)
 1. **Novas Regiões do Mundo**:
    * [~] Yorknew + Kukuroo densificados (`MapAtmosphereDecorator` YORKNEW/KUKUROO) — conteúdo de arco já existia.
    * [x] Yorknew: trilha Gyo / Zetsu / fillers pós-Nen (`YorknewCityMap`).
@@ -54,8 +54,21 @@
 2. **Arena Celestial & PvP Assíncrono**:
    * [x] `HeavensArenaTowerUI` → combate real em `CelestialTowerArena` (progresso unificado `andar_arena`/`torre_andar_atual`).
    * [x] Sistema de andares 1v1 assíncrono local (ghosts + proxies de Bestas de Nen via `ArenaGhostRegistry`).
-3. **Sistemas Multiplayer Autoritativos**:
-   * Sincronização de pacotes binários utilizando o `NetworkProtocol` já arquitetado.
+3. **Sistemas Multiplayer Autoritativos (LAN agora → VPS depois)**:
+   * [x] Dedicated server ENet + handshake + LAN discovery (beacon UDP 7778).
+   * [x] Spawn de puppets remotos + intents → snapshots (autoridade servidor).
+   * [x] Tick fixo 20 TPS + `config/server_config.json` válido + launchers portáteis.
+   * [x] Campos `bind_address` / `public_host` / `enable_lan_discovery` para migrar a um host contratado.
+   * [x] Combate cliente → RPC servidor + proxies de inimigos (`NetworkEnemyProxy`).
+   * [x] Dano inimigo→jogador + recompensas XP/Jenny (`entity_died` → cliente).
+   * [x] Morte/respawn multiplayer + mitigação aura/Nen no dano sofrido.
+   * [x] Lista de servidores / DNS (`config/server_list.json`) + interest/delta snapshots.
+   * [ ] Master server dinâmico / matchmaking (quando houver frota de VPS).
+   * [ ] Compressão / cap de taxa para banda em VPS.
 4. **Progressão**:
    * [x] Soft-cap XP por saga + escala narrativa canônica (`CanonQuestCatalog.escalar_xp_narrativo`).
    * [x] Soft-cap Jenny early/mid (`escalar_jenny_narrativo` + drop/Arena/Padokia retune).
+
+> Tasks do dia: [`TASKS_AMANHA_2026-09-11.md`](TASKS_AMANHA_2026-09-11.md)  
+> Guia LAN: [`docs/multiplayer/LAN_MULTIPLAYER_GUIDE.md`](../multiplayer/LAN_MULTIPLAYER_GUIDE.md)  
+> Host/VPS: [`docs/multiplayer/SERVER_SETUP.md`](../multiplayer/SERVER_SETUP.md)

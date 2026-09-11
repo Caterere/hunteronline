@@ -1,0 +1,20 @@
+{
+	"servers": [
+		{
+			"id": "lan_local",
+			"name": "LAN Local (este PC)",
+			"host": "127.0.0.1",
+			"port": 7777,
+			"region": "Local",
+			"notes": "Use quando o dedicado roda na mesma máquina"
+		},
+		{
+			"id": "vps_placeholder",
+			"name": "Hunter Public VPS (exemplo)",
+			"host": "hunter.example.com",
+			"port": 7777,
+			"region": "Cloud",
+			"notes": "Troque host pelo DNS/IP do VPS contratado"
+		}
+	]
+}

@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scratch/test_snapshot_bandwidth_stress_suite.gd" id="1_bwstress"]
+
+[node name="TestSnapshotBandwidthStressSuite" type="Node2D"]
+script = ExtResource("1_bwstress")
