@@ -218,6 +218,7 @@ func tentar_ataque_pesado(direcao: Vector2) -> bool:
 	CombatImpactEffect.spawn_swing_arc(owner_body, owner_body.global_position, ultima_direcao, 42.0, Color(1.0, 0.85, 0.25), true)
 
 	_disparar_hitbox_ataque(ultima_direcao)
+	_enviar_ataque_rede_se_cliente(true)
 	ataque_timer = ataque_cooldown * 2.2 # Recuperação mais lenta
 	return true
 
@@ -279,7 +280,25 @@ func tentar_atacar(direcao: Vector2) -> void:
 	CombatImpactEffect.spawn_swing_arc(owner_body, owner_body.global_position, ultima_direcao, 32.0, Color.WHITE, false)
 
 	_disparar_hitbox_ataque(ultima_direcao)
+	_enviar_ataque_rede_se_cliente(false)
 	ataque_timer = cd_ataque
+
+
+func _enviar_ataque_rede_se_cliente(is_heavy: bool) -> void:
+	# Em cliente dedicado, a autoridade de dano é o servidor (proxies não têm EnemySystem).
+	if NetworkManager == null:
+		return
+	if NetworkManager.current_mode != NetworkManager.NetworkMode.CLIENT_PEER:
+		return
+	if owner_body == null:
+		return
+	NetworkManager.rpc_id(
+		1,
+		"rpc_solicitar_ataque_servidor",
+		owner_body.global_position,
+		ultima_direcao,
+		is_heavy
+	)
 
 # ============================================================
 # DISPARAR HITBOX (REUTILIZAÇÃO CACHEADA SEM ALOCAÇÃO)
@@ -353,6 +372,10 @@ func _on_attack_hit(
 		return
 
 	if not is_instance_valid(alvo):
+		return
+
+	# Cliente em servidor dedicado: dano autoritativo vem via combat_hits_confirmed.
+	if NetworkManager != null and NetworkManager.current_mode == NetworkManager.NetworkMode.CLIENT_PEER:
 		return
 
 
@@ -771,8 +794,28 @@ func morrer(agressor: Node = null) -> void:
 	)
 	player_morreu.emit()
 	var alvo_agressor = agressor if agressor != null else ultimo_agressor
+	# Em multiplayer dedicado o respawn é autoritativo — só toast, sem DeathScreen local.
+	if NetworkManager != null and NetworkManager.current_mode == NetworkManager.NetworkMode.CLIENT_PEER:
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("☠️ Derrotado! O servidor irá renascê-lo em breve...")
+		return
 	_exibir_tela_morte(alvo_agressor)
 
+
+## Morte confirmada pelo servidor (sem DeathScreen offline).
+func morrer_rede() -> void:
+	if estado == Estado.MORTO:
+		return
+	estado = Estado.MORTO
+	if PlayerData != null:
+		PlayerData.attributes["vida"] = 0
+	if owner_body != null:
+		owner_body.velocity = Vector2.ZERO
+		if owner_body.has_method("travar_controles"):
+			owner_body.travar_controles(true)
+	if nen_system != null:
+		nen_system.desativar_todas_tecnicas()
+	player_morreu.emit()
 
 
 func _exibir_tela_morte(agressor: Node = null) -> void:

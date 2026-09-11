@@ -18,13 +18,14 @@ O servidor roda de forma totalmente independente dos jogadores. Isso significa q
 
 ## 2. REQUISITOS PARA JOGAR
 
-1. **Godot Engine 4.6** (ou o executável compilado do Hunter MMORPG).
+1. **Godot Engine 4.6** (ou o executável compilado do Hunter MMORPG — ver [`docs/guides/HOW_TO_EXPORT_WINDOWS_EXE.md`](../guides/HOW_TO_EXPORT_WINDOWS_EXE.md)).
 2. **Conexão de Rede**:
    - Para quem está na **mesma casa / mesmo roteador Wi-Fi**: Apenas a rede local (LAN).
    - Para quem está jogando com **amigos pela internet**: **Radmin VPN** (recomendado, gratuito e sem cadastro complexo).
 3. **Portas de Rede Utilizadas**:
    - `7777 UDP`: Porta principal de tráfego de jogo (ENet).
    - `7778 UDP`: Porta de anúncio de descoberta automática de LAN (Broadcast).
+   - `7780 UDP` (opcional): Master registry (lista dinâmica de servers).
 
 ---
 
@@ -54,35 +55,29 @@ Se você e seus amigos não dividem o mesmo Wi-Fi, o método mais rápido e est�
 
 Quem for o anfitrião da partida precisa apenas iniciar o servidor dedicado:
 
-### Método 1: Pelo Inicializador Rápido (.bat) — Recomendado
-1. Abra a pasta raiz do projeto.
-2. Dê um duplo clique no arquivo:
-   ```cmd
-   iniciar_servidor_lan.bat
-   ```
-3. Uma janela preta do console abrirá exibindo o banner do servidor:
-   ```text
-   ============================================================
-                   HUNTER MMORPG DEDICATED SERVER              
-   ============================================================
-   Status: ONLINE
-   Server Name: Hunter Dedicated LAN
-   Listening Port: 7777 (ENet UDP)
-   Discovery Port: 7778 (UDP Broadcast)
-   Max Players: 16
-   Tick Rate: 20 TPS
-   Save Path: user://server_saves/
-   Region / Map: res://world/lobby.tscn
-   Waiting for hunter connections...
-   ============================================================
-   ```
-4. **Mantenha esta janela aberta enquanto estiverem jogando!**
+### Método 1: Pelo Inicializador Rápido — Recomendado
+
+**Windows** (`iniciar_servidor_lan.bat`):
+```cmd
+iniciar_servidor_lan.bat
+```
+Define `GODOT_BIN` se o Godot não estiver no PATH.
+
+**Linux / macOS** (`iniciar_servidor_lan.sh`):
+```bash
+chmod +x iniciar_servidor_lan.sh
+./iniciar_servidor_lan.sh
+# opcional:
+GODOT_BIN=/caminho/godot ./iniciar_servidor_lan.sh -- --port 7777 --name "Hunter LAN"
+```
 
 ### Método 2: Pelo Próprio Menu do Jogo
 1. Abra o cliente do jogo.
 2. No menu principal, clique no botão **MULTIPLAYER / LAN**.
 3. Na seção de Servidor Local, clique em **INICIAR SERVIDOR LAN DEDICADO**.
 4. O servidor será inicializado imediatamente em segundo plano.
+
+> Nota: o botão do menu roda o servidor **no mesmo processo** (este PC não joga). Para LAN real, use o script dedicado em uma máquina e os clientes nas outras.
 
 ---
 
