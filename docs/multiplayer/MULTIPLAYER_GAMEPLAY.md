@@ -69,6 +69,8 @@ O multiplayer de Hunter Online foi construído para potencializar a fantasia do 
 | **Aggro Multi-Alvo de Chefes** | `[IMPLEMENTED]` | Threat table dinâmica orientada a dano e taunt |
 | **Drops e Loot Instanciados** | `[IMPLEMENTED]` | Recompensas individuais sem duplicação ou roubo |
 | **Duelos Consensuais 1v1** | `[IMPLEMENTED]` | Arena circular, fim em 1 HP e restauração segura |
-| **Revive de Aliados em Combate** | `[IN PROGRESS]` | Canalização de 3s para reanimar membro desmaiado |
-| **Raids Cooperativas de 8 Hunters**| `[PLANNED]` | Masmorras de grande escala nas Ruínas e Continente Negro |
-| **Arena Ranqueada na Torre Celestial**| `[FUTURE]` | Modo competitivo formal com rankings por andar |
+| **Revive de Aliados em Combate** | `[IN PROGRESS]` | Canalização de 3s para reanimar membro desmaiado — **PREREQ-2** do backlog MMO |
+| **Raids Cooperativas de 8 Hunters**| `[PLANNED]` | Masmorras de grande escala nas Ruínas e Continente Negro — bloqueado por PREREQ-2 |
+| **Arena Ranqueada na Torre Celestial**| `[FUTURE]` | Modo competitivo formal com rankings por andar — bloqueado por **PREREQ-1** (`NetworkProtocol` binário) |
+
+> Pré-requisitos e backlog priorizado: [`docs/roadmap/MMO_SYSTEMS_BACKLOG.md`](../roadmap/MMO_SYSTEMS_BACKLOG.md) (PREREQ-1 sync binário · PREREQ-2 revive aliado).

@@ -22,9 +22,10 @@ Código e cenas vencem docs desatualizados quando houver conflito — reporte o 
 2. [bibles/ART_PIPELINE_CANON.md](bibles/ART_PIPELINE_CANON.md) — união das regras de pixel art / PixelLab
 3. [architecture/ADR-001-NEN-ARCHITECTURE.md](architecture/ADR-001-NEN-ARCHITECTURE.md) — Nen híbrido
 4. [roadmap/NEXT_PRODUCTION_ROADMAP.md](roadmap/NEXT_PRODUCTION_ROADMAP.md) — o que fazer agora
-5. [systems/SAVE_SYSTEM.md](systems/SAVE_SYSTEM.md) — persistência (`SaveManager`)
-6. [systems/PIXELLAB_MCP.md](systems/PIXELLAB_MCP.md) — PixelLab (MCP vs scripts)
-7. [guides/PIXELLAB_PROMPT_LIBRARY.md](guides/PIXELLAB_PROMPT_LIBRARY.md) — prompts por categoria
+5. [roadmap/MMO_SYSTEMS_BACKLOG.md](roadmap/MMO_SYSTEMS_BACKLOG.md) — backlog MMO (Tier S/A/B + PREREQ rede)
+6. [systems/SAVE_SYSTEM.md](systems/SAVE_SYSTEM.md) — persistência (`SaveManager`)
+7. [systems/PIXELLAB_MCP.md](systems/PIXELLAB_MCP.md) — PixelLab (MCP vs scripts)
+8. [guides/PIXELLAB_PROMPT_LIBRARY.md](guides/PIXELLAB_PROMPT_LIBRARY.md) — prompts por categoria
 
 ## Agente Cursor
 

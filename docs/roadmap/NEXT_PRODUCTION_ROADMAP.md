@@ -65,10 +65,16 @@
    * [x] Lista de servidores / DNS (`config/server_list.json`) + interest/delta snapshots.
    * [ ] Master server dinâmico / matchmaking (quando houver frota de VPS).
    * [ ] Compressão / cap de taxa para banda em VPS.
+   * [ ] **PREREQ-1:** sync binário compacto via `NetworkProtocol` (opcodes existem; empacote binário ainda aberto) — ver backlog MMO.
+   * [ ] **PREREQ-2:** revive de aliados em combate (canalização 3s; respawn self já existe) — ver backlog MMO.
 4. **Progressão**:
    * [x] Soft-cap XP por saga + escala narrativa canônica (`CanonQuestCatalog.escalar_xp_narrativo`).
    * [x] Soft-cap Jenny early/mid (`escalar_jenny_narrativo` + drop/Arena/Padokia retune).
+5. **Backlog MMO (sistemas futuros — não diluir foco COMBATE+NEN+HATSU)**:
+   * Inventário priorizado Tier S/A/B (Yorknew AH, Arena ranked, raids 8, GI jogável, contratos rotativos, guildas, Blacklist hunt, Gourmet): [`MMO_SYSTEMS_BACKLOG.md`](MMO_SYSTEMS_BACKLOG.md).
+   * Só puxar items do backlog quando os sistemas atuais não resolvem a necessidade; PREREQ-1/2 bloqueiam AH/ranked/raids.
 
 > Tasks do dia: [`TASKS_AMANHA_2026-09-11.md`](TASKS_AMANHA_2026-09-11.md)  
+> Backlog MMO: [`MMO_SYSTEMS_BACKLOG.md`](MMO_SYSTEMS_BACKLOG.md)  
 > Guia LAN: [`docs/multiplayer/LAN_MULTIPLAYER_GUIDE.md`](../multiplayer/LAN_MULTIPLAYER_GUIDE.md)  
 > Host/VPS: [`docs/multiplayer/SERVER_SETUP.md`](../multiplayer/SERVER_SETUP.md)
