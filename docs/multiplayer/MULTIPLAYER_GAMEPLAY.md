@@ -70,5 +70,5 @@ O multiplayer de Hunter Online foi construído para potencializar a fantasia do 
 | **Drops e Loot Instanciados** | `[IMPLEMENTED]` | Recompensas individuais sem duplicação ou roubo |
 | **Duelos Consensuais 1v1** | `[IMPLEMENTED]` | Arena circular, fim em 1 HP e restauração segura |
 | **Revive de Aliados em Combate** | `[IN PROGRESS]` | Canalização de 3s para reanimar membro desmaiado |
-| **Raids Cooperativas de 8 Hunters**| `[PLANNED]` | Masmorras de grande escala nas Ruínas e Continente Negro |
+| **Raids Cooperativas de 8 Hunters**| `[IN PROGRESS]` | Cap 8 via `PartyManager` modo raid + `RaidInstance`/`RaidCatalog` (vertical Ruínas de Zaban); mapa/encontro boss ainda a ligar |
 | **Arena Ranqueada na Torre Celestial**| `[FUTURE]` | Modo competitivo formal com rankings por andar |
