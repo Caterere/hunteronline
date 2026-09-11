@@ -351,13 +351,10 @@ static func report_tower_result(won: bool, floor: int) -> Dictionary:
 	var st := ensure_season()
 	if not bool(st.get("ranked_mode", false)):
 		return {"skipped": true, "reason": "ranked_off"}
-	var opp := get_pending_opponent()
+	var raw = st.get("pending_opponent", {})
+	var opp: Dictionary = raw if typeof(raw) == TYPE_DICTIONARY else {}
 	if opp.is_empty():
 		opp = _build_opponent(floor, int(st.get("mmr", DEFAULT_MMR)))
-	else:
-		# Consome pending
-		st["pending_opponent"] = {}
-		_save_state(st)
 	return report_match(won, int(opp.get("mmr", DEFAULT_MMR)), floor, str(opp.get("name", "Rival")))
 
 

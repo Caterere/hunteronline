@@ -76,8 +76,6 @@ func encerrar_duelo() -> void:
 
 ## Se Arena ranqueada estiver ON, registra MMR cosmético (S2). Não altera HP/itens.
 func reportar_ranqueado(vencedor_foi_desafiante: bool, opponent_mmr: int = 1000, opponent_name: String = "Duelista") -> Dictionary:
-	if not ClassDB.class_exists("ArenaRankedSeason") and not ResourceLoader.exists("res://scripts/systems/arena/ArenaRankedSeason.gd"):
-		return {"skipped": true, "reason": "no_ranked"}
 	var Ranked = load("res://scripts/systems/arena/ArenaRankedSeason.gd")
 	if Ranked == null:
 		return {"skipped": true, "reason": "no_ranked"}
