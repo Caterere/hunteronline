@@ -153,6 +153,15 @@ func atualizar_status_membro(peer_id: int, hp_val: int, hp_max_val: int, aura_va
 		party_dados_atualizados.emit(obter_membros())
 
 
+func definir_membro_desmaiado(peer_id: int, desmaiado: bool) -> void:
+	if not membros.has(peer_id):
+		return
+	membros[peer_id]["is_downed"] = desmaiado
+	if desmaiado:
+		membros[peer_id]["hp"] = 0
+	party_dados_atualizados.emit(obter_membros())
+
+
 func obter_membros() -> Array:
 	var lista: Array = []
 	for k in membros.keys():
@@ -178,7 +187,8 @@ func _obter_dados_jogador_local() -> Dictionary:
 		"hp_max": hp_m,
 		"aura": au_v,
 		"aura_max": au_m,
-		"is_leader": false
+		"is_leader": false,
+		"is_downed": false
 	}
 
 
