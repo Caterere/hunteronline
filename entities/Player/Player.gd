@@ -29,6 +29,8 @@ var _attack_lunge_current_speed: float = 0.0
 @export_category("Objects")
 @export var _animation_tree: AnimationTree = null
 var controles_travados: bool = false
+var _esta_desmaiado: bool = false
+var _indicador_desmaio: Node2D = null
 
 # Camera & Screen Shake (Fase 1: Juice & Game Feel)
 var _camera: Camera2D = null
@@ -80,6 +82,7 @@ func _ready() -> void:
 
 	add_to_group("player")
 	_aplicar_customizacao_visual()
+	_garantir_indicador_desmaio()
 
 	# Restaurar posição salva se estiver carregando save ou posicionar no SpawnPoint
 	if PlayerData.posicao_salva != Vector2.ZERO:
@@ -100,19 +103,67 @@ func travar_controles(travar: bool = true) -> void:
 	controles_travados = travar
 	if travar:
 		velocity = Vector2.ZERO
-		if _state_machine != null:
+		# Em desmaio a animação "death" manda; não forçar idle aqui.
+		if not _esta_desmaiado and _state_machine != null:
 			_state_machine.travel("idle")
 
 
+func tocar_animacao_morte() -> void:
+	_esta_desmaiado = true
+	velocity = Vector2.ZERO
+	controles_travados = true
+	var played := false
+	if _animation_tree != null:
+		_animation_tree.active = true
+	if _state_machine != null:
+		_state_machine.travel("death")
+		played = true
+	var anim_player := get_node_or_null("Animation") as AnimationPlayer
+	if anim_player != null and anim_player.has_animation("death"):
+		# Garante frames mesmo se a transição do tree falhar sem edges explícitos
+		anim_player.play("death")
+		played = true
+	if not played:
+		var spr := get_node_or_null("Sprite2D") as Sprite2D
+		if spr != null:
+			spr.frame = 59
+	_garantir_indicador_desmaio()
+	if _indicador_desmaio != null and _indicador_desmaio.has_method("show_self_downed"):
+		_indicador_desmaio.call("show_self_downed")
+
+
+func limpar_estado_desmaio() -> void:
+	_esta_desmaiado = false
+	if _indicador_desmaio != null and _indicador_desmaio.has_method("hide_prompt"):
+		_indicador_desmaio.call("hide_prompt")
+
+
 func reviver(pos_respawn: Vector2 = Vector2.ZERO) -> void:
+	limpar_estado_desmaio()
 	travar_controles(false)
 	if combat_system != null:
 		combat_system.reviver()
 	if pos_respawn != Vector2.ZERO:
 		global_position = pos_respawn
+	if _animation_tree != null:
+		_animation_tree.active = true
 	if _state_machine != null:
 		_state_machine.travel("idle")
 	_aplicar_hit_flash()
+
+
+func _garantir_indicador_desmaio() -> void:
+	if _indicador_desmaio != null and is_instance_valid(_indicador_desmaio):
+		return
+	_indicador_desmaio = get_node_or_null("DownedReviveIndicator") as Node2D
+	if _indicador_desmaio != null:
+		return
+	var script_res = load("res://entities/Player/components/DownedReviveIndicator.gd")
+	if script_res == null:
+		return
+	_indicador_desmaio = script_res.new() as Node2D
+	_indicador_desmaio.name = "DownedReviveIndicator"
+	add_child(_indicador_desmaio)
 
 
 func _aplicar_customizacao_visual() -> void:
@@ -474,7 +525,7 @@ func _atualizar_attack_cooldown() -> void:
 
 func _animate() -> void:
 
-	if _is_attacking:
+	if _is_attacking or _esta_desmaiado:
 		return
 
 

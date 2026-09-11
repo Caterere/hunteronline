@@ -31,6 +31,10 @@ var hp_max: int = 100
 var aura: float = 100.0
 var aura_max: float = 100.0
 var current_nen_mode: String = ""
+var is_downed: bool = false
+var _downed_indicator: Node2D = null
+var _death_anim_elapsed: float = 0.0
+const _DEATH_FRAMES: Array[int] = [57, 58, 59]
 
 
 func _ready() -> void:
@@ -45,17 +49,24 @@ func _ready() -> void:
 func _construir_visual() -> void:
 	sprite = Sprite2D.new()
 	sprite.name = "Sprite2D"
+	sprite.position = Vector2(-0.5, -17)
 	var default_tex = load("res://assets/sprites/characters/player.png")
 	if default_tex != null:
 		sprite.texture = default_tex
-		sprite.hframes = 4
-		sprite.vframes = 4
+		sprite.hframes = 6
+		sprite.vframes = 10
 		sprite.frame = 0
 	add_child(sprite)
 
 	aura_glow = AuraGlowEffectScript.new()
 	aura_glow.name = "AuraGlowEffect"
 	add_child(aura_glow)
+
+	var ind_script = load("res://entities/Player/components/DownedReviveIndicator.gd")
+	if ind_script != null:
+		_downed_indicator = ind_script.new()
+		_downed_indicator.name = "DownedReviveIndicator"
+		add_child(_downed_indicator)
 
 
 func _construir_nameplate_e_barras() -> void:
@@ -119,6 +130,12 @@ func aplicar_estado_rede(state: PlayerNetworkState) -> void:
 
 
 func aplicar_estado_snapshot(p_data: Dictionary) -> void:
+	if is_downed:
+		# Mantém corpo no chão; ainda atualiza HP para UI
+		hp = int(p_data.get("hp", hp))
+		if hp_bar != null:
+			hp_bar.value = hp
+		return
 	target_position = Vector2(float(p_data.get("px", global_position.x)), float(p_data.get("py", global_position.y)))
 	target_velocity = Vector2(float(p_data.get("vx", 0.0)), float(p_data.get("vy", 0.0)))
 	facing_direction = Vector2(float(p_data.get("fx", 0.0)), float(p_data.get("fy", 1.0)))
@@ -138,7 +155,37 @@ func aplicar_estado_snapshot(p_data: Dictionary) -> void:
 			aura_glow.aplicar_modo_tecnica(current_nen_mode)
 
 
+func set_downed(downed: bool, corpse_pos: Vector2 = Vector2.ZERO) -> void:
+	is_downed = downed
+	if downed:
+		if corpse_pos != Vector2.ZERO:
+			global_position = corpse_pos
+			target_position = corpse_pos
+		_death_anim_elapsed = 0.0
+		if sprite != null:
+			sprite.frame = _DEATH_FRAMES[0]
+			sprite.modulate = Color(0.85, 0.75, 0.75, 1.0)
+		if _downed_indicator != null and _downed_indicator.has_method("show_for_ally"):
+			_downed_indicator.call("show_for_ally", true)
+		if hp_bar != null:
+			hp_bar.value = 0
+	else:
+		if sprite != null:
+			sprite.frame = 0
+			sprite.modulate = Color.WHITE
+		if _downed_indicator != null and _downed_indicator.has_method("hide_prompt"):
+			_downed_indicator.call("hide_prompt")
+
+
 func _physics_process(delta: float) -> void:
+	if is_downed:
+		_death_anim_elapsed += delta
+		if sprite != null:
+			# 3 frames nos primeiros 0.45s, depois segura o último
+			var idx: int = mini(2, int(_death_anim_elapsed / 0.15))
+			sprite.frame = _DEATH_FRAMES[idx]
+		return
+
 	# Interpolação suave em direção ao alvo (Hermite smoothing com fator 14.0)
 	if target_position != Vector2.ZERO:
 		global_position = global_position.lerp(target_position, clampf(14.0 * delta, 0.0, 1.0))

@@ -776,6 +776,8 @@ func morrer(agressor: Node = null) -> void:
 		owner_body.velocity = Vector2.ZERO
 		if owner_body.has_method("travar_controles"):
 			owner_body.travar_controles(true)
+		if owner_body.has_method("tocar_animacao_morte"):
+			owner_body.tocar_animacao_morte()
 
 	# ========================================================
 	# DESATIVAR NEN
@@ -797,7 +799,7 @@ func morrer(agressor: Node = null) -> void:
 	# Em multiplayer dedicado o respawn é autoritativo — só toast, sem DeathScreen local.
 	if NetworkManager != null and NetworkManager.current_mode == NetworkManager.NetworkMode.CLIENT_PEER:
 		if EventBus != null and EventBus.has_method("emit_toast"):
-			EventBus.emit_toast("☠️ Derrotado! O servidor irá renascê-lo em breve...")
+			EventBus.emit_toast("☠️ Desmaiado! Aguarde revive ([E] no aliado) ou renasça no spawn.")
 		return
 	_exibir_tela_morte(alvo_agressor)
 
@@ -813,6 +815,8 @@ func morrer_rede() -> void:
 		owner_body.velocity = Vector2.ZERO
 		if owner_body.has_method("travar_controles"):
 			owner_body.travar_controles(true)
+		if owner_body.has_method("tocar_animacao_morte"):
+			owner_body.tocar_animacao_morte()
 	if nen_system != null:
 		nen_system.desativar_todas_tecnicas()
 	player_morreu.emit()
@@ -844,6 +848,8 @@ func reviver() -> void:
 	PlayerData.attributes["aura"] = a_max
 
 	if owner_body != null:
+		if owner_body.has_method("limpar_estado_desmaio"):
+			owner_body.limpar_estado_desmaio()
 		if owner_body.has_method("travar_controles"):
 			owner_body.travar_controles(false)
 

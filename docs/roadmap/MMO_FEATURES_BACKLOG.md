@@ -59,7 +59,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | Revive `IN PROGRESS` · Raids `PLANNED` |
+| **Status** | Revive `IMPLEMENTED` · Raids `PLANNED` |
 | **Inspiração** | Alliance/raids (FFXIV/WoW), guardian raids (Lost Ark) |
 | **Deps** | **PREREQ-2** (obrigatório); party/threat/loot já existem |
 | **Reusar** | `autoload/PartyManager.gd`, `scripts/network/CoopDungeonInstance.gd`, `scripts/network/CoopWorldBossCoordinator.gd` |
@@ -147,7 +147,7 @@ flowchart LR
 ## Ordem sugerida de execução
 
 1. **PREREQ-1** — sync binário / compressão estável em `NetworkProtocol` + coordenador.
-2. **PREREQ-2** — revive aliado (canalização 3s).
+2. **PREREQ-2** — revive aliado (canalização 3s) ✅
 3. **A5** — contratos rotativos + Star Hunter (endgame solo/co-op sem backend pesado).
 4. **S3** — raid 8 vertical (1 masmorra).
 5. **S2** — Arena ranqueada + 1ª temporada.

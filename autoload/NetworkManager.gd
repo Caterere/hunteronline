@@ -1062,9 +1062,13 @@ func rpc_aplicar_dano_jogador(damage: int, source_net_id: int, hp_remaining: int
 func _on_server_player_died(peer_id: int, source_net_id: int) -> void:
 	if not is_dedicated_server():
 		return
+	var death_pos := Vector2.ZERO
+	if world_coordinator != null and world_coordinator.players.has(peer_id):
+		var p: Dictionary = world_coordinator.players[peer_id]
+		death_pos = p.get("downed_pos", p.get("position", Vector2.ZERO)) as Vector2
 	rpc_id(peer_id, "rpc_jogador_morreu", source_net_id)
-	# Notifica outros clientes (puppet some / fica caído)
-	rpc("rpc_notificar_jogador_estado", peer_id, true, Vector2.ZERO)
+	# Notifica outros clientes com posição do corpo (para prompt [E] e range)
+	rpc("rpc_notificar_jogador_estado", peer_id, true, death_pos)
 
 
 func _on_server_player_respawned(peer_id: int, spawn_pos: Vector2, hp: int, aura: float) -> void:
@@ -1145,8 +1149,12 @@ func rpc_notificar_jogador_estado(peer_id: int, is_dead: bool, pos: Vector2) -> 
 	var puppet = remote_players.get(peer_id, null)
 	if puppet == null or not is_instance_valid(puppet):
 		return
-	if is_dead:
+	if puppet.has_method("set_downed"):
+		puppet.set_downed(is_dead, pos)
+	elif is_dead:
 		puppet.modulate = Color(0.5, 0.5, 0.5, 0.55)
+		if pos != Vector2.ZERO:
+			puppet.global_position = pos
 	else:
 		puppet.modulate = Color.WHITE
 		if pos != Vector2.ZERO:
