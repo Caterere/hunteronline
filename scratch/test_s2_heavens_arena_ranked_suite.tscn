@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_s2_heavens_arena_ranked_suite.gd" id="1"]
+
+[node name="TestS2HeavensArenaRankedSuite" type="Node"]
+script = ExtResource("1")
