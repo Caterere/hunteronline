@@ -2,8 +2,8 @@
 """Hunter Online — Character Quality Pass (Style Lock v2 / 96px).
 
 Pipeline:
-1) create_image_pixen @ 96×96 (medium detail, unique identity)
-2) fit ~42px tall, feet Y=84, max width ~34
+1) create_image_pixen @ 96×96 (highly detailed, HAIR-FIRST identity)
+2) fit ~46px tall, feet Y=84, max width ~40 (hair volume budget)
 3) create_character mode=v3 + reference=fitted south, size=96 → 8 directions
 4) assemble sheet 768×96 + archive legacy 48px sheets
 
@@ -37,133 +37,143 @@ OUT_META = ROOT / "assets" / "sprites" / "tilesets" / "pixellab" / "cast_v96_sty
 OUT_SOUTH = ROOT / "assets" / "sprites" / "tilesets" / "pixellab" / "v96_south_refs"
 
 FRAME = 96
-TARGET_H = 42
+# Hair-volume budget: iconic HxH silhouettes need more than the old 42×34 box
+TARGET_H = 46
 FEET_Y = 84
-MAX_W = 34
+MAX_W = 40
 
 LOCK = (
-    "readable 16-bit RPG chibi character sprite, about 42 pixels tall inside a 96x96 transparent canvas, "
-    "large head ~55% of body height, chunky silhouette, BLOCK eyes 2x3 or 2x4 dark pixels NO white sclera, "
-    "NO mouth NO nose in idle, flat/basic shading, hard 1px black outline, 2-3 colors per material, "
-    "transparent background, keep empty padding around character, MUST be recognizable at game scale"
+    "readable 16-bit RPG chibi sprite, about 44-46 pixels tall in a 96x96 transparent canvas, "
+    "HAIR SILHOUETTE IS THE #1 IDENTITY SIGNAL — spend most pixels on distinctive anime-accurate hair shape, "
+    "large head ~55% of body, BLOCK eyes 2x3/2x4 dark pixels NO white sclera, NO mouth NO nose idle, "
+    "flat shading, hard 1px black outline, 2-3 colors per material, transparent background, "
+    "do NOT use generic mushroom hair or round blob hair"
 )
 
-# S0 hub + S1 main cast (filenames match existing *_8dir.png stems)
+# Hair-first prompts (Hunter x Hunter 2011 silhouette fidelity)
 CAST: list[tuple[str, str]] = [
     (
-        "npc_recepcionista_elena",
-        f"{LOCK}. Elena Hunter Association receptionist young woman, neat brown hair low bun, "
-        "navy blue formal vest over white collared shirt, dark navy skirt, tiny gold pin, female",
-    ),
-    (
-        "npc_instrutor_combate",
-        f"{LOCK}. Wing Nen instructor, messy dark hair, thin glasses, dark green kimono tunic "
-        "with sash over white shirt, beige pants, calm mentor",
-    ),
-    (
-        "npc_examinador_oficial",
-        f"{LOCK}. Satotz Hunter examiner gentleman, charcoal bowler hat, tailored purple suit, "
-        "white cravat, thin wooden cane, upright posture",
-    ),
-    (
         "npc_gon",
-        f"{LOCK}. Gon Freecss hunter boy, wild spiky jet-black hair unmistakable silhouette, "
-        "green sleeveless jacket, white shorts, cheerful stance",
+        f"{LOCK}. HAIR FIRST: Gon Freecss — jet-black hair with subtle dark-green edge tint, "
+        "TALL VERTICAL jagged spikes pointing mostly UPWARD like a porcupine crown (longest spikes on TOP), "
+        "shorter side spikes, NOT a round radial ball, NOT a bob. Body: green sleeveless jacket, white shorts, "
+        "tan skin, boy hunter. Reject smooth hair and sideways-only spikes.",
     ),
     (
         "npc_killua",
-        f"{LOCK}. Killua Zoldyck assassin boy, silver-white spiky gelled hair unmistakable, "
-        "dark blue sleeveless turtleneck top, baggy white pants, catlike posture",
+        f"{LOCK}. HAIR FIRST: Killua Zoldyck — silver-white / pale lavender-white hair gelled UP and BACK, "
+        "irregular spike lengths (tall crown spikes + shorter sides), messy bangs hanging unevenly over forehead, "
+        "NOT a short uniform spiked crown, NOT blue hair. Body: dark blue sleeveless turtleneck, baggy white pants, "
+        "pale skin, catlike boy assassin.",
     ),
     (
         "npc_kurapika",
-        f"{LOCK}. Kurapika blond youth, short neat blond hair, white shirt black formal vest, "
-        "thin chain accessory, serious stance",
+        f"{LOCK}. HAIR FIRST: Kurapika — short layered golden-blond hair, soft messy layers, longer strands "
+        "framing both sides of the face, NOT spiky, NOT a black bowl cut. Body: white shirt, black formal vest, "
+        "thin chain hint, serious blond youth.",
     ),
     (
         "npc_leorio",
-        f"{LOCK}. Leorio Paradinight tall young man chibi, short dark hair, teal suit jacket, "
-        "white shirt, thin legs, briefcase hint",
+        f"{LOCK}. HAIR FIRST: Leorio — short dark brown hair with slightly fluffy messy top volume, ordinary "
+        "young-man cut, NOT gelled spikes, NOT bald. Body: teal suit jacket, white shirt, tall thin chibi legs, "
+        "briefcase hint.",
     ),
     (
         "npc_hisoka",
-        f"{LOCK}. Hisoka Magician, pointed magenta hair with yellow tip spikes, pale face with "
-        "teardrop and star marks as simple color blocks, dark patterned suit, sinister lean",
+        f"{LOCK}. HAIR FIRST: Hisoka — bright magenta/pink-red hair swept BACKWARD into long needle-like pointed "
+        "spikes (theatrical), NO yellow tips, NO crown of yellow points. Face: very pale with simple star mark "
+        "and teardrop mark as color blocks. Body: dark suit, sinister lean.",
     ),
     (
         "npc_netero",
-        f"{LOCK}. Isaac Netero elderly martial arts master, bald wrinkled head, long white beard "
-        "and mustache mass, orange prayer beads, yellow martial robe, meditative calm",
+        f"{LOCK}. HAIR FIRST: Isaac Netero — BALD wrinkled scalp (no hair on top), thick long WHITE beard and "
+        "mustache mass under chin as the main silhouette. Body: orange prayer beads, yellow martial robe, "
+        "elderly calm master.",
     ),
     (
         "npc_chrollo",
-        f"{LOCK}. Chrollo Lucilfer, black bowl hair with forehead cross tattoo as dark mark, "
-        "dark coat with white skull hand motifs as simple shapes, calm leader stance",
+        f"{LOCK}. HAIR FIRST: Chrollo — neat black bowl cut with straight bangs across forehead, small dark "
+        "cross tattoo visible on forehead below bangs, NOT spiky hair. Body: dark coat with simple white skull "
+        "hand shapes, calm leader.",
     ),
-    # S2 — Hunter Exam secondary + hub support
+    (
+        "npc_recepcionista_elena",
+        f"{LOCK}. HAIR FIRST: Elena — neat medium-brown hair in a tight low bun, clean office silhouette, "
+        "NOT loose long hair. Body: navy vest over white shirt, dark navy skirt, tiny gold pin, female.",
+    ),
+    (
+        "npc_instrutor_combate",
+        f"{LOCK}. HAIR FIRST: Wing — messy unkempt dark hair, slightly floppy and uneven (mentor look), "
+        "thin glasses. Body: dark green kimono tunic with sash, beige pants.",
+    ),
+    (
+        "npc_examinador_oficial",
+        f"{LOCK}. HAIR FIRST: Satotz — hair hidden under charcoal bowler hat (hat is the head silhouette). "
+        "Body: tailored purple suit, white cravat, thin wooden cane, upright gentleman.",
+    ),
     (
         "npc_tonpa",
-        f"{LOCK}. Tonpa veteran exam candidate, balding greasy dark hair, smug smile omitted, "
-        "green tracksuit jacket, sneaky stocky build",
+        f"{LOCK}. HAIR FIRST: Tonpa — balding greasy dark fringe with shiny bald crown, sparse side hair. "
+        "Body: green tracksuit, stocky sneaky exam veteran.",
     ),
     (
         "npc_hanzo",
-        f"{LOCK}. Hanzo ninja examiner candidate, wrapped navy headscarf covering hair, "
-        "traditional dark ninja outfit with sash, slim agile stance",
+        f"{LOCK}. HAIR FIRST: Hanzo — hair fully covered by navy ninja headwrap/scarf silhouette. "
+        "Body: dark ninja outfit with sash, slim agile stance.",
     ),
     (
         "npc_pokkle",
-        f"{LOCK}. Pokkle archer hunter, green hooded cloak, bow silhouette on back, "
-        "adventurous young man",
+        f"{LOCK}. HAIR FIRST: Pokkle — hair mostly under green hood; small brown bangs peek if visible. "
+        "Body: green hooded cloak, bow on back.",
     ),
     (
         "npc_ponzu",
-        f"{LOCK}. Ponzu young woman hunter, pink-purple hair bob, yellow jacket, "
-        "bee motif accessory simple shape, female",
+        f"{LOCK}. HAIR FIRST: Ponzu — pink-lilac bob haircut, rounded soft silhouette, female. "
+        "Body: yellow jacket, simple bee motif.",
     ),
     (
         "npc_menchi",
-        f"{LOCK}. Menchi gourmet hunter examiner, long dark hair, pink chef headband, "
-        "black outfit with pink accents, knife hint, female",
+        f"{LOCK}. HAIR FIRST: Menchi — long dark hair flowing down back/sides plus bright pink chef headband. "
+        "Body: black outfit with pink accents, female gourmet examiner.",
     ),
     (
         "npc_buhara",
-        f"{LOCK}. Buhara gourmet hunter examiner, huge muscular tall chibi, orange shirt, "
-        "voracious cook vibe, thick arms",
+        f"{LOCK}. HAIR FIRST: Buhara — short dark buzz/crew cut on a huge head. "
+        "Body: massive muscular orange-shirt gourmet examiner.",
     ),
     (
         "npc_gittarackur",
-        f"{LOCK}. Gittarackur disguised Illumi, pale face with pins in forehead as dark dots, "
-        "green hoodie, eerie lanky chibi",
+        f"{LOCK}. HAIR FIRST: Gittarackur — dark hair under green hoodie hood; pale face with forehead pins as dots. "
+        "Body: green hoodie, lanky eerie chibi.",
     ),
     (
         "npc_bodoro",
-        f"{LOCK}. Bodoro elderly martial artist, white hair and beard, brown training gi, "
-        "calm fighter stance",
+        f"{LOCK}. HAIR FIRST: Bodoro — white hair with full white beard mass, elderly fighter silhouette. "
+        "Body: brown training gi.",
     ),
     (
         "npc_nicol",
-        f"{LOCK}. young man with dark hair, simple traveler coat, exam candidate look",
+        f"{LOCK}. HAIR FIRST: short dark tidy hair. Body: simple traveler coat, exam candidate.",
     ),
     (
         "npc_discipulo_zushi",
-        f"{LOCK}. Zushi child disciple, short dark bowl-cut hair, white training gi with green sash, kid",
+        f"{LOCK}. HAIR FIRST: Zushi — short dark bowl-cut kid hair. Body: white gi with green sash, child.",
     ),
     (
         "npc_guarda_fronteira",
-        f"{LOCK}. Zebro frontier guard, grey helmet, grey armor vest, upright spear, stocky sentry",
+        f"{LOCK}. HAIR FIRST: hair hidden under grey helmet. Body: grey armor vest, spear, stocky sentry Zebro.",
     ),
     (
         "npc_ferreiro_mestre",
-        f"{LOCK}. master blacksmith, short rugged brown hair, leather apron over grey shirt, brown pants, stocky",
+        f"{LOCK}. HAIR FIRST: short rugged brown hair, slightly messy. Body: leather apron, grey shirt, stocky smith.",
     ),
     (
         "npc_vendedor_mercador",
-        f"{LOCK}. merchant trader, green cloth hat, brown vest over cream shirt, pouch belt",
+        f"{LOCK}. HAIR FIRST: hair under green cloth hat. Body: brown vest, cream shirt, pouch belt.",
     ),
     (
         "npc_viajante_scout",
-        f"{LOCK}. wilderness scout, green scarf, brown traveler cloak, small backpack",
+        f"{LOCK}. HAIR FIRST: short windblown brown hair with green scarf. Body: brown traveler cloak, backpack.",
     ),
 ]
 
@@ -415,7 +425,7 @@ def main() -> int:
     print("[balance]", mcp.tool("get_balance", {})["text"][:260], flush=True)
 
     OUT_SOUTH.mkdir(parents=True, exist_ok=True)
-    meta = {"batch": "cast_v96_stylelock", "created_at": time.time(), "characters": []}
+    meta = {"batch": "cast_v96_hair_pass", "created_at": time.time(), "characters": []}
 
     for name, desc in CAST:
         if only and name not in only:
@@ -435,7 +445,7 @@ def main() -> int:
                     "view": "low top-down",
                     "direction": "south",
                     "outline": "single color black outline",
-                    "detail": "medium detail",
+                    "detail": "highly detailed",
                 },
             )
             print("   ", r["text"][:220].replace("\n", " "), flush=True)
@@ -476,13 +486,13 @@ def main() -> int:
             cr = mcp.tool(
                 "create_character",
                 {
-                    "name": name + "_v96",
-                    "description": desc + ", keep this exact character identity while rotating 8 directions",
+                    "name": name + "_v96_hair",
+                    "description": desc + ", preserve the EXACT hair silhouette while rotating 8 directions",
                     "mode": "v3",
                     "size": FRAME,
                     "view": "low top-down",
                     "outline": "single color black outline",
-                    "detail": "medium detail",
+                    "detail": "highly detailed",
                     "reference_image_base64": ref_b64,
                 },
             )

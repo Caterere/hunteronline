@@ -25,11 +25,36 @@ Toda geração (PixelLab MCP, REST, procedural ou manual) **DEVE** seguir a **li
 de pixels** desta referência — agora na escala 96×96 / corpo ~40–44 px.
 
 > [!IMPORTANT]
-> **RECONHECIMENTO = QUALIDADE.**
-> O personagem precisa ser identificável à escala de jogo (quem é, facção, silhueta).
-> Continua proibido: anatomia realista, esclera branca, micro-fios, shading fotográfico.
-> Detalhe extra só é válido se **aumentar legibilidade de identidade** (cabelo, outfit,
-> acessório marcante) sem quebrar o chibi uniforme.
+> **CABELO = IDENTIDADE #1 (fidelidade anime).**  
+> Em Hunter Online, a silhueta do **cabelo** é o principal sinal de quem é o personagem
+> (Gon, Killua, Hisoka, etc.). Outfit ajuda; cabelo errado = personagem errado.  
+> Depois: reconhecimento geral. Continua proibido: anatomia realista, esclera branca,
+> micro-fios, shading fotográfico. Detalhe extra só vale se melhorar legibilidade
+> (sobretudo cabelo/outfit icônico) sem quebrar o chibi uniforme.
+
+---
+
+### 1.1 FIDELIDADE DE CABELO (SSOT HxH)
+
+Ao gerar/regenerar qualquer personagem nomeado, o prompt **deve começar pelo cabelo**
+(forma, direção dos spikes, cor, o que NÃO é). Budget extra de pixels do Style Lock v2
+existe sobretudo para caber essas silhuetas.
+
+| Personagem | Silhueta de cabelo obrigatória | Anti-padrões |
+| :--- | :--- | :--- |
+| **Gon** | Preto com leve tint verde-escuro nas bordas; **spikes altos e VERTICAIS** (porco-espinho para cima), crowning jagged; laterais mais curtos | Bola radial redonda; bob; spikes só laterais |
+| **Killua** | Prata/branco-lavanda gelado **para cima e para trás**, comprimentos irregulares; franja irregular na testa | Coroa curta uniforme; azul forte demais |
+| **Kurapika** | Loiro dourado curto em camadas, fios laterais mais longos emoldurando o rosto | Spike; bowl cut preto |
+| **Leorio** | Castanho escuro curto, topo um pouco volumoso/bagunçado | Spikes gelados; careca |
+| **Hisoka** | Magenta/rosa-choque **varrido para trás** em agulhas longas e pontudas; **sem pontas amarelas** | Coroa com tips amarelas; cabelo curto |
+| **Netero** | **Careca** + barba/bigode brancos volumosos | Cabelo no topo |
+| **Chrollo** | Bowl cut preto com franja + cruz na testa | Spikes; cabelo longo |
+| **Wing** | Escuro bagunçado / desalinhado | Corte militar limpo |
+| **Elena** | Castanho em coque baixo limpo | Solto longo |
+| **Satotz** | Cabelo oculto sob bowler | Spikes visíveis |
+
+**Fit geométrico:** personagens de cabelo volumoso podem usar até **~46 px de altura** e
+**~40 px de largura** (pés Y≈84). Não esmagar a silhueta do cabelo para caber em 34×42.
 
 ---
 
@@ -38,7 +63,7 @@ de pixels** desta referência — agora na escala 96×96 / corpo ~40–44 px.
 | Métrica | Valor Canônico | Limite Aceitável | Reprovado |
 | :--- | :--- | :--- | :--- |
 | **Canvas do Frame** | **96×96 pixels** | **96×96** fixos | 48×48 legado / 128×128 gameplay / 68×68 |
-| **Altura do Personagem (Idle/Walk)** | **40 a 44 pixels** | **48 px** (chapéu/cabelo alto) | <36 px (pobre) ou >52 px (gigante) |
+| **Altura do Personagem (Idle/Walk)** | **44 a 46 pixels** | **48 px** (cabelo icônico / chapéu) | <36 px (pobre) ou >52 px (gigante) |
 | **Largura do Personagem (Idle/Walk)** | **26 a 30 pixels** | **36 px** (capa/arma) | >40 px |
 | **Ocupação de Área no Frame** | **~18% a 28%** | **< 35%** | >50% |
 | **Baseline dos Pés (Solo)** | **Y = 84** | **Y = 82 a 86** | colado na borda inferior |
