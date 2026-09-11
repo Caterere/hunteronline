@@ -31,9 +31,15 @@ var _is_connecting: bool = false
 func _ready() -> void:
 	_construir_ui()
 	_iniciar_descoberta_lan()
+	set_process(true)
 
 	if NetworkManager != null:
 		NetworkManager.handshake_completed.connect(_on_handshake_completed)
+
+
+func _process(delta: float) -> void:
+	if discovery_listener != null and discovery_listener.is_listening:
+		discovery_listener.update(delta)
 
 
 func _exit_tree() -> void:
@@ -257,11 +263,15 @@ func _on_connect_pressed() -> void:
 
 
 func _on_start_server_pressed() -> void:
-	_atualizar_label_status("Iniciando Servidor Dedicado neste processo...", Color(0.2, 0.8, 1.0))
+	_atualizar_label_status("Iniciando Servidor Dedicado... (este PC nao joga — use outro cliente / script separado)", Color(0.2, 0.8, 1.0))
 	var err = NetworkManager.iniciar_servidor_dedicado()
 	if err == OK:
-		_atualizar_label_status("Servidor Dedicado Online na porta 7777!", Color(0.3, 1.0, 0.5))
+		var porta: int = 7777
+		if NetworkManager.server_config != null:
+			porta = int(NetworkManager.server_config.port)
+		_atualizar_label_status("Servidor Online na porta %d. Prefira ./iniciar_servidor_lan.sh + cliente em outro PC." % porta, Color(0.3, 1.0, 0.5))
 		btn_start_server.disabled = true
+		btn_connect.disabled = true
 	else:
 		_atualizar_label_status("Erro ao iniciar servidor: %d" % err, Color(1.0, 0.3, 0.3))
 
@@ -272,12 +282,14 @@ func _on_handshake_completed(success: bool, reason: String) -> void:
 
 	if success:
 		_atualizar_label_status("Conexão autorizada! Entrando no mundo...", Color(0.3, 1.0, 0.5))
-		# Transicionar para o mapa do mundo
+		var map_path := "res://world/lobby.tscn"
+		if NetworkManager != null and NetworkManager.has_method("obter_mapa_sessao"):
+			map_path = NetworkManager.obter_mapa_sessao()
 		var trans = get_node_or_null("/root/SceneTransition")
 		if trans != null and trans.has_method("mudar_cena"):
-			trans.mudar_cena("res://world/lobby.tscn", "Capital dos Caçadores", "Sessão Co-op LAN")
+			trans.mudar_cena(map_path, "Capital dos Caçadores", "Sessão Co-op LAN")
 		else:
-			get_tree().change_scene_to_file("res://world/lobby.tscn")
+			get_tree().change_scene_to_file(map_path)
 	else:
 		_atualizar_label_status("Conexão falhou: %s" % reason, Color(1.0, 0.3, 0.3))
 

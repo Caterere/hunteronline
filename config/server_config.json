@@ -1,12 +1,17 @@
-﻿{
-	" server_name\: \Hunter LAN Server\,
- \port\: 7777,
- \discovery_port\: 7778,
- \max_players\: 16,
- \server_password\: \\,
- \save_path\: \user://server_saves/\,
- \tick_rate\: 20,
- \starting_map\: \res://world/lobby.tscn\,
- \region\: \Capital dos Caçadores\,
- \debug\: true
+{
+	"server_name": "Hunter Dedicated LAN",
+	"port": 7777,
+	"discovery_port": 7778,
+	"max_players": 16,
+	"server_password": "",
+	"save_path": "user://server_saves/",
+	"tick_rate": 20,
+	"starting_map": "res://world/lobby.tscn",
+	"region": "Capital dos Caçadores",
+	"bind_address": "*",
+	"public_host": "",
+	"enable_lan_discovery": true,
+	"save_interval_sec": 60,
+	"motd": "Bem-vindo ao servidor LAN de Hunter Online!",
+	"debug": true
 }

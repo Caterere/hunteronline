@@ -52,6 +52,9 @@ func _ready() -> void:
 	_test_11_server_enemy_ai_and_rewards()
 	_test_12_server_persistence_and_reconnect()
 	_test_13_single_player_autonomy()
+	_test_14_session_identity_and_peers_alias()
+	_test_15_config_discovery_and_fixed_tick()
+	_test_16_network_manager_puppet_spawn()
 
 	_imprimir_resultado_final()
 
@@ -409,6 +412,86 @@ func _test_13_single_player_autonomy() -> void:
 		assert_test(nm.is_offline_singleplayer() == true, "NetworkManager em modo OFFLINE_SINGLEPLAYER")
 		assert_test(nm.is_server_authoritative() == false, "Single-player local assume autoridade direta")
 		assert_test(PlayerData != null, "PlayerData ativo independentemente de qualquer conexão")
+
+
+# ============================================================
+# TESTE 14: SESSION PEERS ALIAS + NICKNAME → NAME
+# ============================================================
+func _test_14_session_identity_and_peers_alias() -> void:
+	print("\n--- Teste 14: Session peers alias + nickname → name ---")
+	var session = NetworkSession.new()
+	session.adicionar_peer(7, {
+		"nickname": "Hisoka",
+		"character_id": "char_hisoka",
+		"attributes": {"vida": 220, "vida_max": 220, "nivel": 40}
+	})
+	assert_test(session.peers.size() == 1, "Alias peers aponta para connected_peers")
+	assert_test(session.connected_peers.size() == 1, "connected_peers populado")
+	assert_test(session.obter_peer_info(7).get("name") == "Hisoka", "nickname normalizado para name")
+	assert_test(session.obter_latencia(7) == 0, "obter_latencia disponível")
+	session.atualizar_latencia(7, 42)
+	assert_test(session.obter_latencia(7) == 42, "latência atualizada via API")
+
+
+# ============================================================
+# TESTE 15: CONFIG FILE + LAN DISCOVERY TOGGLE + TICK RATE
+# ============================================================
+func _test_15_config_discovery_and_fixed_tick() -> void:
+	print("\n--- Teste 15: Config JSON + discovery toggle + tick fixo ---")
+	var cfg = ServerConfigScript.load_from_file("res://config/server_config.json")
+	assert_test(cfg.port == 7777, "config/server_config.json carrega porta 7777")
+	assert_test(cfg.enable_lan_discovery == true, "LAN discovery habilitada por padrão no JSON")
+	assert_test(cfg.bind_address == "*", "bind_address preparado para LAN/VPS")
+
+	var cfg2 = ServerConfigScript.from_dict({
+		"server_name": "VPS Hunter",
+		"server_port": 9000,
+		"password": "secret",
+		"enable_lan_discovery": false,
+		"public_host": "hunter.example.com"
+	})
+	assert_test(cfg2.port == 9000, "compat server_port → port")
+	assert_test(cfg2.server_password == "secret", "compat password → server_password")
+	assert_test(cfg2.enable_lan_discovery == false, "VPS pode desligar discovery")
+	assert_test(cfg2.public_host == "hunter.example.com", "public_host gravado para host futuro")
+
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.start_coordinator()
+	coord.register_player(9, {"nickname": "Bisky", "attributes": {"vida": 100}}, Vector2(50, 50))
+	assert_test(coord.players[9]["name"] == "Bisky", "coordinator aceita nickname")
+	# 3 frames de ~16ms → pelo menos 1 tick fixo de 50ms
+	coord.tick(0.016)
+	coord.tick(0.016)
+	coord.tick(0.020)
+	assert_test(coord.current_tick >= 1, "accumulator gera tick fixo a ~20 TPS")
+	var pos_after = coord.get_player_position(9)
+	coord.update_player_intent(9, Vector2.RIGHT, Vector2.RIGHT, "TEN")
+	coord.tick(0.05)
+	assert_test(coord.get_player_position(9).x > pos_after.x, "movimento via intenção no tick fixo")
+	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 16: SPAWN DE PUPPET VIA NETWORKMANAGER
+# ============================================================
+func _test_16_network_manager_puppet_spawn() -> void:
+	print("\n--- Teste 16: Spawn de puppet via NetworkManager ---")
+	var nm = get_node_or_null("/root/NetworkManager")
+	assert_test(nm != null, "NetworkManager disponível")
+	if nm == null:
+		return
+	nm.desconectar()
+	nm.current_mode = nm.NetworkMode.CLIENT_PEER
+	nm.local_peer_id = 1
+	nm._spawn_puppet_for_peer(42, {"name": "Illumi", "spawn_pos": Vector2(200, 120)})
+	assert_test(nm.remote_players.has(42), "puppet registrado em remote_players")
+	var puppet = nm.obter_jogador_remoto(42)
+	assert_test(puppet != null and is_instance_valid(puppet), "puppet instanciado na cena")
+	if puppet != null:
+		assert_test(str(puppet.character_name) == "Illumi", "nameplate do puppet correto")
+	nm.remover_jogador_remoto(42)
+	nm.desconectar()
+	assert_test(nm.is_offline_singleplayer(), "volta a offline após limpeza")
 
 
 func _imprimir_resultado_final() -> void:

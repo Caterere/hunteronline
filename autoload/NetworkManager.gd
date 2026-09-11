@@ -72,6 +72,8 @@ func _ready() -> void:
 	anti_cheat = AntiCheatValidatorScript.new()
 
 	_conectar_sinais_multiplayer()
+	if not player_joined_session.is_connected(_on_player_joined_spawn_puppet):
+		player_joined_session.connect(_on_player_joined_spawn_puppet)
 	print("=================================")
 	print("[NetworkManager] MOTOR DE REDE INICIALIZADO (MODO: OFFLINE)")
 	print("=================================")
@@ -151,16 +153,20 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	world_coordinator.snapshot_ready.connect(_on_server_snapshot_ready)
 	world_coordinator.start_coordinator()
 
-	# Iniciar Broadcaster de Descoberta LAN
-	discovery_broadcaster = LanDiscoveryBroadcasterScript.new()
-	discovery_broadcaster.start_broadcast(
-		cfg.server_name,
-		cfg.port,
-		0,
-		cfg.max_players,
-		cfg.region,
-		cfg.discovery_port
-	)
+	# Iniciar Broadcaster de Descoberta LAN (desligar em VPS / host público)
+	if bool(cfg.enable_lan_discovery):
+		discovery_broadcaster = LanDiscoveryBroadcasterScript.new()
+		discovery_broadcaster.start_broadcast(
+			cfg.server_name,
+			cfg.port,
+			0,
+			cfg.max_players,
+			cfg.region,
+			cfg.discovery_port
+		)
+	else:
+		discovery_broadcaster = null
+		print("[HunterServer] LAN discovery desabilitado (modo host/VPS).")
 
 	print("\n============================================================")
 	print("                HUNTER MMORPG DEDICATED SERVER              ")
@@ -168,7 +174,10 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	print("Status: ONLINE")
 	print("Server Name: %s" % cfg.server_name)
 	print("Listening Port: %d (ENet UDP)" % cfg.port)
-	print("Discovery Port: %d (UDP Broadcast)" % cfg.discovery_port)
+	print("Bind Address: %s" % cfg.bind_address)
+	if not str(cfg.public_host).is_empty():
+		print("Public Host: %s" % cfg.public_host)
+	print("Discovery Port: %d (UDP Broadcast) [%s]" % [cfg.discovery_port, "ON" if cfg.enable_lan_discovery else "OFF"])
 	print("Max Players: %d" % cfg.max_players)
 	print("Tick Rate: %d TPS" % cfg.tick_rate)
 	print("Save Path: %s" % cfg.save_path)
@@ -386,6 +395,16 @@ func _enviar_snapshot_local() -> void:
 	if player == null or not is_instance_valid(player):
 		return
 
+	# Cliente em servidor dedicado: autoridade é o servidor — só envia intenções.
+	if current_mode == NetworkMode.CLIENT_PEER:
+		var move_dir: Vector2 = player.velocity.normalized() if player.velocity != Vector2.ZERO else Vector2.ZERO
+		var facing_dir: Vector2 = player._direcao_olhar if "_direcao_olhar" in player else Vector2.DOWN
+		var nen_tech: String = ""
+		if PlayerData != null:
+			nen_tech = str(PlayerData.quest_states.get("tecnica_nen_ativa", ""))
+		rpc_id(1, "rpc_enviar_intencao_input", move_dir, facing_dir, nen_tech)
+		return
+
 	var state = PlayerNetworkStateScript.new()
 	state.peer_id = local_peer_id
 	state.position = player.global_position
@@ -401,15 +420,8 @@ func _enviar_snapshot_local() -> void:
 		state.aura_max = float(PlayerData.attributes.get("aura_max", 100.0))
 		state.active_nen = str(PlayerData.quest_states.get("tecnica_nen_ativa", ""))
 
-	# Enviar via RPC não-confiável e ordenado para todos os peers
+	# Host listen / peer-to-peer legado
 	rpc("rpc_receber_snapshot", state.to_dict())
-
-	# Se estiver conectado a um servidor dedicado, enviar intenção de input
-	if current_mode == NetworkMode.CLIENT_PEER:
-		var move_dir: Vector2 = player.velocity.normalized() if player.velocity != Vector2.ZERO else Vector2.ZERO
-		var facing_dir: Vector2 = player._direcao_olhar if "_direcao_olhar" in player else Vector2.DOWN
-		var nen_tech: String = state.active_nen
-		rpc_id(1, "rpc_enviar_intencao_input", move_dir, facing_dir, nen_tech)
 
 
 # ============================================================
@@ -444,8 +456,21 @@ func rpc_requisitar_handshake(auth_data: Dictionary) -> void:
 		rpc_id(sender_id, "rpc_handshake_rejeitado", "Servidor lotado (%d/%d jogadores)." % [session.peers.size(), max_cap])
 		return
 
-	# Registro de sucesso
-	session.adicionar_peer(sender_id, auth_data)
+	# Registro de sucesso — normalizar nickname → name para sessão/puppets
+	var attrs = auth_data.get("attributes", {})
+	if not (attrs is Dictionary):
+		attrs = {}
+	var normalized: Dictionary = auth_data.duplicate(true)
+	normalized["name"] = nick
+	normalized["nickname"] = nick
+	normalized["character_id"] = c_id
+	if attrs is Dictionary:
+		normalized["level"] = int(attrs.get("nivel", attrs.get("level", 1)))
+		normalized["hp"] = int(attrs.get("vida", attrs.get("hp", 100)))
+		normalized["hp_max"] = int(attrs.get("vida_max", attrs.get("hp_max", 100)))
+		normalized["aura"] = float(attrs.get("aura", 100.0))
+		normalized["aura_max"] = float(attrs.get("aura_max", 100.0))
+	session.adicionar_peer(sender_id, normalized)
 
 	var spawn_pos := Vector2(100, 100)
 	if is_dedicated_server():
@@ -456,34 +481,42 @@ func rpc_requisitar_handshake(auth_data: Dictionary) -> void:
 				if p_arr is Array and p_arr.size() >= 2:
 					spawn_pos = Vector2(float(p_arr[0]), float(p_arr[1]))
 			else:
-				server_storage.save_player_state(c_id, auth_data)
+				server_storage.save_player_state(c_id, normalized)
 
 		if world_coordinator != null:
-			world_coordinator.register_player(sender_id, auth_data, spawn_pos)
+			world_coordinator.register_player(sender_id, normalized, spawn_pos)
 
-	# Preparar lista de jogadores existentes
+	# Preparar lista de jogadores existentes com posições reais do coordenador
 	var existing: Array = []
 	for pid in session.peers.keys():
 		if pid != sender_id:
+			var peer_pos := spawn_pos
+			if world_coordinator != null and world_coordinator.players.has(pid):
+				peer_pos = world_coordinator.get_player_position(pid)
 			existing.append({
 				"peer_id": pid,
 				"info": session.obter_peer_info(pid),
-				"pos": [spawn_pos.x, spawn_pos.y]
+				"pos": [peer_pos.x, peer_pos.y]
 			})
 
 	var s_meta: Dictionary = {
 		"server_name": server_config.server_name if server_config != null else session.room_name,
-		"tick_rate": server_config.tick_rate if server_config != null else 20
+		"tick_rate": server_config.tick_rate if server_config != null else 20,
+		"starting_map": server_config.starting_map if server_config != null else session.current_map_path,
+		"motd": server_config.motd if server_config != null else "",
+		"region": server_config.region if server_config != null else ""
 	}
 
 	rpc_id(sender_id, "rpc_handshake_aceito", s_meta, spawn_pos, existing)
-	rpc("rpc_notificar_jogador_conectado", sender_id, auth_data, spawn_pos)
+	rpc("rpc_notificar_jogador_conectado", sender_id, normalized, spawn_pos)
 	print("[NetworkManager] 🤝 Handshake aceito com sucesso para %s (Peer %d)" % [nick, sender_id])
 
 
 @rpc("authority", "call_remote", "reliable")
 func rpc_handshake_aceito(server_meta: Dictionary, spawn_pos: Vector2, existing_players: Array) -> void:
 	print("[NetworkManager] 🎉 Conexão autorizada pelo servidor: %s" % server_meta.get("server_name", ""))
+	if server_meta.has("starting_map"):
+		session.current_map_path = str(server_meta.get("starting_map", session.current_map_path))
 	handshake_completed.emit(true, "")
 
 	# Atualizar posição inicial do player local se aplicável
@@ -495,6 +528,10 @@ func rpc_handshake_aceito(server_meta: Dictionary, spawn_pos: Vector2, existing_
 	for entry in existing_players:
 		var pid = int(entry.get("peer_id", 0))
 		var info = entry.get("info", {})
+		if info is Dictionary:
+			info = info.duplicate(true)
+			if entry.has("pos") and entry["pos"] is Array and entry["pos"].size() >= 2:
+				info["spawn_pos"] = Vector2(float(entry["pos"][0]), float(entry["pos"][1]))
 		player_joined_session.emit(pid, info)
 
 
@@ -509,9 +546,13 @@ func rpc_handshake_rejeitado(motivo: String) -> void:
 func rpc_notificar_jogador_conectado(peer_id: int, info: Dictionary, pos: Vector2) -> void:
 	if peer_id == local_peer_id:
 		return
-	print("[NetworkManager] Caçador entrou no mundo: %s (Peer %d)" % [info.get("name", "Hunter"), peer_id])
-	session.adicionar_peer(peer_id, info)
-	player_joined_session.emit(peer_id, info)
+	var normalized: Dictionary = info.duplicate(true) if info is Dictionary else {}
+	if not normalized.has("name"):
+		normalized["name"] = normalized.get("nickname", "Hunter_%d" % peer_id)
+	normalized["spawn_pos"] = pos
+	print("[NetworkManager] Caçador entrou no mundo: %s (Peer %d)" % [normalized.get("name", "Hunter"), peer_id])
+	session.adicionar_peer(peer_id, normalized)
+	player_joined_session.emit(peer_id, normalized)
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -537,17 +578,77 @@ func _on_server_snapshot_ready(snapshot: Dictionary) -> void:
 func rpc_receber_snapshot_mundo(snapshot: Dictionary) -> void:
 	world_snapshot_received.emit(snapshot)
 
-	# Atualizar puppets de outros jogadores
+	# Atualizar puppets de outros jogadores (cria se ainda não existir)
 	var players_arr = snapshot.get("players", [])
 	if players_arr is Array:
 		for p_data in players_arr:
 			var pid = int(p_data.get("id", 0))
 			if pid == local_peer_id:
+				_reconciliar_jogador_local(p_data)
 				continue
-			if remote_players.has(pid):
-				var puppet = remote_players[pid]
-				if puppet != null and puppet.has_method("aplicar_estado_snapshot"):
-					puppet.aplicar_estado_snapshot(p_data)
+			if not remote_players.has(pid):
+				var spawn_info := {
+					"name": session.obter_peer_info(pid).get("name", "Hunter_%d" % pid),
+					"spawn_pos": Vector2(float(p_data.get("px", 0.0)), float(p_data.get("py", 0.0)))
+				}
+				_spawn_puppet_for_peer(pid, spawn_info)
+			var puppet = remote_players.get(pid, null)
+			if puppet != null and puppet.has_method("aplicar_estado_snapshot"):
+				puppet.aplicar_estado_snapshot(p_data)
+
+
+func _reconciliar_jogador_local(p_data: Dictionary) -> void:
+	var player = GameManager.active_player if GameManager != null else null
+	if player == null or not is_instance_valid(player):
+		return
+	var server_pos := Vector2(float(p_data.get("px", player.global_position.x)), float(p_data.get("py", player.global_position.y)))
+	var dist: float = player.global_position.distance_to(server_pos)
+	# Soft snap se desvio for grande (anti-desync); leve lerp se pequeno
+	if dist > 64.0:
+		player.global_position = server_pos
+		player.velocity = Vector2.ZERO
+	elif dist > 8.0:
+		player.global_position = player.global_position.lerp(server_pos, 0.35)
+
+
+func _on_player_joined_spawn_puppet(peer_id: int, player_data: Dictionary) -> void:
+	if peer_id == local_peer_id or is_dedicated_server():
+		return
+	_spawn_puppet_for_peer(peer_id, player_data)
+
+
+func _spawn_puppet_for_peer(peer_id: int, info: Dictionary = {}) -> void:
+	if peer_id == local_peer_id or remote_players.has(peer_id):
+		return
+	var scene = get_tree().current_scene if get_tree() != null else null
+	if scene == null:
+		return
+
+	var puppet_script = load("res://scripts/network/NetworkPlayer.gd")
+	if puppet_script == null:
+		return
+	var puppet = puppet_script.new()
+	puppet.peer_id = peer_id
+	puppet.name = "RemotePlayer_%d" % peer_id
+	var display_name: String = str(info.get("name", info.get("nickname", "Hunter_%d" % peer_id)))
+	puppet.character_name = display_name
+	if info.has("spawn_pos") and info["spawn_pos"] is Vector2:
+		puppet.global_position = info["spawn_pos"]
+		puppet.target_position = info["spawn_pos"]
+	elif info.has("pos") and info["pos"] is Array and info["pos"].size() >= 2:
+		var pos := Vector2(float(info["pos"][0]), float(info["pos"][1]))
+		puppet.global_position = pos
+		puppet.target_position = pos
+
+	scene.add_child(puppet)
+	registrar_jogador_remoto(peer_id, puppet)
+	print("[NetworkManager] 🎭 Puppet remoto spawnado: %s (Peer %d)" % [display_name, peer_id])
+
+
+func obter_mapa_sessao() -> String:
+	if server_config != null and not str(server_config.starting_map).is_empty():
+		return server_config.starting_map
+	return session.current_map_path if session != null else "res://world/lobby.tscn"
 
 
 # ============================================================

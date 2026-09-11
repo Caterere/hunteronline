@@ -21,6 +21,7 @@ var tick_rate: int = 20
 var tick_delta: float = 0.05
 var current_tick: int = 0
 var current_map_path: String = "res://world/lobby.tscn"
+var _tick_accumulator: float = 0.0
 
 # peer_id -> PlayerServerEntity: { "peer_id", "char_id", "name", "pos", "vel", "facing", "hp", "hp_max", "aura", "aura_max", "nen_tech", "input_intent", "level" }
 var players: Dictionary = {}
@@ -64,8 +65,12 @@ func stop_coordinator() -> void:
 
 func register_player(peer_id: int, char_data: Dictionary, spawn_pos: Vector2 = Vector2.ZERO) -> void:
 	var char_id = str(char_data.get("character_id", "hunter_%d" % peer_id))
-	var p_name = str(char_data.get("name", "Hunter_%d" % peer_id))
+	var p_name = str(char_data.get("name", char_data.get("nickname", "Hunter_%d" % peer_id)))
+	if p_name.is_empty():
+		p_name = "Hunter_%d" % peer_id
 	var attrs = char_data.get("attributes", {})
+	if not (attrs is Dictionary):
+		attrs = {}
 
 	var p_entity: Dictionary = {
 		"peer_id": peer_id,
@@ -74,17 +79,27 @@ func register_player(peer_id: int, char_data: Dictionary, spawn_pos: Vector2 = V
 		"position": spawn_pos,
 		"velocity": Vector2.ZERO,
 		"facing": Vector2.DOWN,
-		"hp": int(attrs.get("vida", 100)),
-		"hp_max": int(attrs.get("vida_max", 100)),
+		"hp": int(attrs.get("vida", attrs.get("hp", 100))),
+		"hp_max": int(attrs.get("vida_max", attrs.get("hp_max", 100))),
 		"aura": float(attrs.get("aura", 100.0)),
 		"aura_max": float(attrs.get("aura_max", 100.0)),
-		"level": int(attrs.get("nivel", 1)),
+		"level": int(attrs.get("nivel", attrs.get("level", 1))),
 		"nen_tech": str(char_data.get("tecnica_nen_ativa", "TEN")),
 		"input_intent": Vector2.ZERO,
 		"last_input_ts": Time.get_ticks_msec()
 	}
 	players[peer_id] = p_entity
 	print("[ServerWorldCoordinator] 👤 Caçador registrado na simulação: %s (Peer %d)" % [p_name, peer_id])
+
+
+func get_player_position(peer_id: int) -> Vector2:
+	if players.has(peer_id):
+		return players[peer_id]["position"] as Vector2
+	return Vector2.ZERO
+
+
+func get_player_entity(peer_id: int) -> Dictionary:
+	return players.get(peer_id, {})
 
 
 func unregister_player(peer_id: int) -> Dictionary:
@@ -152,6 +167,17 @@ func tick(delta: float) -> void:
 	if not is_active:
 		return
 
+	_tick_accumulator += delta
+	# Evita spiral of death se o frame travar
+	var max_catchup: int = 5
+	var steps: int = 0
+	while _tick_accumulator >= tick_delta and steps < max_catchup:
+		_tick_accumulator -= tick_delta
+		_simulate_fixed_tick(tick_delta)
+		steps += 1
+
+
+func _simulate_fixed_tick(dt: float) -> void:
 	current_tick += 1
 
 	# 1. Simular Movimento dos Jogadores
@@ -160,12 +186,12 @@ func tick(delta: float) -> void:
 		var intent: Vector2 = p["input_intent"]
 		var speed: float = 160.0 # Velocidade canônica de base
 		p["velocity"] = intent * speed
-		p["position"] += p["velocity"] * delta
+		p["position"] += p["velocity"] * dt
 
 	# 2. Simular IA de Inimigos
 	for eid in enemies.keys():
 		var e = enemies[eid]
-		_simulate_enemy_ai(e, delta)
+		_simulate_enemy_ai(e, dt)
 
 	# 3. Gerar Snapshot do Mundo
 	var snapshot = build_world_snapshot()

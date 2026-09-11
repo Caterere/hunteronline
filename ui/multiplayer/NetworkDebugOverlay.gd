@@ -108,7 +108,7 @@ func _atualizar_telemetria() -> void:
 
 		if NetworkManager.session != null:
 			ping_ms = NetworkManager.session.obter_latencia(NetworkManager.local_peer_id)
-			p_count = max(1, NetworkManager.session.peers.size())
+			p_count = max(1, NetworkManager.session.connected_peers.size())
 
 		if NetworkManager.server_config != null:
 			tps = NetworkManager.server_config.tick_rate

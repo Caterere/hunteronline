@@ -54,35 +54,29 @@ Se você e seus amigos não dividem o mesmo Wi-Fi, o método mais rápido e est�
 
 Quem for o anfitrião da partida precisa apenas iniciar o servidor dedicado:
 
-### Método 1: Pelo Inicializador Rápido (.bat) — Recomendado
-1. Abra a pasta raiz do projeto.
-2. Dê um duplo clique no arquivo:
-   ```cmd
-   iniciar_servidor_lan.bat
-   ```
-3. Uma janela preta do console abrirá exibindo o banner do servidor:
-   ```text
-   ============================================================
-                   HUNTER MMORPG DEDICATED SERVER              
-   ============================================================
-   Status: ONLINE
-   Server Name: Hunter Dedicated LAN
-   Listening Port: 7777 (ENet UDP)
-   Discovery Port: 7778 (UDP Broadcast)
-   Max Players: 16
-   Tick Rate: 20 TPS
-   Save Path: user://server_saves/
-   Region / Map: res://world/lobby.tscn
-   Waiting for hunter connections...
-   ============================================================
-   ```
-4. **Mantenha esta janela aberta enquanto estiverem jogando!**
+### Método 1: Pelo Inicializador Rápido — Recomendado
+
+**Windows** (`iniciar_servidor_lan.bat`):
+```cmd
+iniciar_servidor_lan.bat
+```
+Define `GODOT_BIN` se o Godot não estiver no PATH.
+
+**Linux / macOS** (`iniciar_servidor_lan.sh`):
+```bash
+chmod +x iniciar_servidor_lan.sh
+./iniciar_servidor_lan.sh
+# opcional:
+GODOT_BIN=/caminho/godot ./iniciar_servidor_lan.sh -- --port 7777 --name "Hunter LAN"
+```
 
 ### Método 2: Pelo Próprio Menu do Jogo
 1. Abra o cliente do jogo.
 2. No menu principal, clique no botão **MULTIPLAYER / LAN**.
 3. Na seção de Servidor Local, clique em **INICIAR SERVIDOR LAN DEDICADO**.
 4. O servidor será inicializado imediatamente em segundo plano.
+
+> Nota: o botão do menu roda o servidor **no mesmo processo** (este PC não joga). Para LAN real, use o script dedicado em uma máquina e os clientes nas outras.
 
 ---
 
