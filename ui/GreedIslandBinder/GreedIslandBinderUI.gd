@@ -17,18 +17,7 @@ var lbl_progresso: Label
 var lbl_bonus: Label
 var btn_fechar: Button
 
-static var cartas_catalogo = [
-	{"num": "000", "id": "carta_000", "nome": "Aliança dos Caçadores", "rank": "SS", "bonus": "+25% Força e Defesa"},
-	{"num": "001", "id": "carta_001", "nome": "Sopro Secreto do Arcanjo", "rank": "SS", "bonus": "Regenera +50 HP por segundo"},
-	{"num": "002", "id": "carta_002", "nome": "Diamante do Arco-Íris", "rank": "S", "bonus": "+30% Ganho de Jenny"},
-	{"num": "003", "id": "carta_003", "nome": "Anel de Ouro Real", "rank": "S", "bonus": "+20% Defesa Mágica de Nen"},
-	{"num": "017", "id": "carta_017", "nome": "Castelo do Sol Nascente", "rank": "A", "bonus": "+15% Dano de Hatsu"},
-	{"num": "025", "id": "carta_025", "nome": "Dado do Risco e da Sorte", "rank": "A", "bonus": "+25% Taxa de Acerto Crítico"},
-	{"num": "050", "id": "carta_050", "nome": "Fada da Floresta Densa", "rank": "B", "bonus": "+15 Velocidade de Movimento"},
-	{"num": "075", "id": "carta_075", "nome": "Água Sagrada de Dion", "rank": "B", "bonus": "+200 Aura Máxima"},
-	{"num": "084", "id": "carta_084", "nome": "Chave da Verdade Oculta", "rank": "A", "bonus": "+10% Chance de Drop Raro"},
-	{"num": "099", "id": "carta_099", "nome": "Bênção da Fada da Fortuna", "rank": "S", "bonus": "+20% Ganho de XP de Nen"}
-]
+static var cartas_catalogo = GreedIslandCardCatalog.binder_catalog()
 
 
 func _ready() -> void:
