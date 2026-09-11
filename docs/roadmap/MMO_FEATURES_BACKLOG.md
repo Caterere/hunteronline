@@ -14,7 +14,7 @@ Estas duas fundações devem avançar **antes** de AH, ranked, raids 8 e matchma
 | ID | Pré-requisito | Status atual | Arquivos-alvo | Desbloqueia |
 | :--- | :--- | :--- | :--- | :--- |
 | **PREREQ-1** | **Sync binário via `NetworkProtocol`** | Parcial — opcodes + serialize dict existem; snapshots/RPC já rodando; empacote binário compacto ainda aberto | [`scripts/network/NetworkProtocol.gd`](../../scripts/network/NetworkProtocol.gd), [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`docs/multiplayer/NETWORK_PROTOCOL.md`](../multiplayer/NETWORK_PROTOCOL.md) | Leilão Yorknew, ranked Arena, Duty Finder, guild bank sync |
-| **PREREQ-2** | **Revive de aliados em combate** (canalização 3s) | `[IN PROGRESS]` em MULTIPLAYER_GAMEPLAY — existe morte/respawn self; falta revive de party | [`autoload/PartyManager.gd`](../../autoload/PartyManager.gd), [`scripts/combat/CombatSystem.gd`](../../scripts/combat/CombatSystem.gd), [`ui/party/PartyHUD.gd`](../../ui/party/PartyHUD.gd), [`ui/DeathScreen/DeathScreenUI.gd`](../../ui/DeathScreen/DeathScreenUI.gd) | Raids 8, world bosses co-op sérios, Blacklist open hunt |
+| **PREREQ-2** | **Revive de aliados em combate** (canalização 3s) | `[IMPLEMENTED]` — desmaio 30s + canal 3s + interrupt on hit + tecla E | [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`autoload/PartyManager.gd`](../../autoload/PartyManager.gd), [`ui/party/PartyHUD.gd`](../../ui/party/PartyHUD.gd) | Raids 8, world bosses co-op sérios, Blacklist open hunt |
 
 **Ordem mínima:** PREREQ-1 (banda/estabilidade) em paralelo com PREREQ-2 (gameplay co-op). Contratos rotativos (Tier A #5) podem avançar offline sem estes pré-requisitos.
 
@@ -59,7 +59,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | Revive `IN PROGRESS` · Raids `PLANNED` |
+| **Status** | Revive `IMPLEMENTED` · Raids `PLANNED` |
 | **Inspiração** | Alliance/raids (FFXIV/WoW), guardian raids (Lost Ark) |
 | **Deps** | **PREREQ-2** (obrigatório); party/threat/loot já existem |
 | **Reusar** | `autoload/PartyManager.gd`, `scripts/network/CoopDungeonInstance.gd`, `scripts/network/CoopWorldBossCoordinator.gd` |
@@ -147,7 +147,7 @@ flowchart LR
 ## Ordem sugerida de execução
 
 1. **PREREQ-1** — sync binário / compressão estável em `NetworkProtocol` + coordenador.
-2. **PREREQ-2** — revive aliado (canalização 3s).
+2. **PREREQ-2** — revive aliado (canalização 3s) ✅
 3. **A5** — contratos rotativos + Star Hunter (endgame solo/co-op sem backend pesado).
 4. **S3** — raid 8 vertical (1 masmorra).
 5. **S2** — Arena ranqueada + 1ª temporada.
