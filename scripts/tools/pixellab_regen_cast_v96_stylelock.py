@@ -100,6 +100,71 @@ CAST: list[tuple[str, str]] = [
         f"{LOCK}. Chrollo Lucilfer, black bowl hair with forehead cross tattoo as dark mark, "
         "dark coat with white skull hand motifs as simple shapes, calm leader stance",
     ),
+    # S2 — Hunter Exam secondary + hub support
+    (
+        "npc_tonpa",
+        f"{LOCK}. Tonpa veteran exam candidate, balding greasy dark hair, smug smile omitted, "
+        "green tracksuit jacket, sneaky stocky build",
+    ),
+    (
+        "npc_hanzo",
+        f"{LOCK}. Hanzo ninja examiner candidate, wrapped navy headscarf covering hair, "
+        "traditional dark ninja outfit with sash, slim agile stance",
+    ),
+    (
+        "npc_pokkle",
+        f"{LOCK}. Pokkle archer hunter, green hooded cloak, bow silhouette on back, "
+        "adventurous young man",
+    ),
+    (
+        "npc_ponzu",
+        f"{LOCK}. Ponzu young woman hunter, pink-purple hair bob, yellow jacket, "
+        "bee motif accessory simple shape, female",
+    ),
+    (
+        "npc_menchi",
+        f"{LOCK}. Menchi gourmet hunter examiner, long dark hair, pink chef headband, "
+        "black outfit with pink accents, knife hint, female",
+    ),
+    (
+        "npc_buhara",
+        f"{LOCK}. Buhara gourmet hunter examiner, huge muscular tall chibi, orange shirt, "
+        "voracious cook vibe, thick arms",
+    ),
+    (
+        "npc_gittarackur",
+        f"{LOCK}. Gittarackur disguised Illumi, pale face with pins in forehead as dark dots, "
+        "green hoodie, eerie lanky chibi",
+    ),
+    (
+        "npc_bodoro",
+        f"{LOCK}. Bodoro elderly martial artist, white hair and beard, brown training gi, "
+        "calm fighter stance",
+    ),
+    (
+        "npc_nicol",
+        f"{LOCK}. young man with dark hair, simple traveler coat, exam candidate look",
+    ),
+    (
+        "npc_discipulo_zushi",
+        f"{LOCK}. Zushi child disciple, short dark bowl-cut hair, white training gi with green sash, kid",
+    ),
+    (
+        "npc_guarda_fronteira",
+        f"{LOCK}. Zebro frontier guard, grey helmet, grey armor vest, upright spear, stocky sentry",
+    ),
+    (
+        "npc_ferreiro_mestre",
+        f"{LOCK}. master blacksmith, short rugged brown hair, leather apron over grey shirt, brown pants, stocky",
+    ),
+    (
+        "npc_vendedor_mercador",
+        f"{LOCK}. merchant trader, green cloth hat, brown vest over cream shirt, pouch belt",
+    ),
+    (
+        "npc_viajante_scout",
+        f"{LOCK}. wilderness scout, green scarf, brown traveler cloak, small backpack",
+    ),
 ]
 
 
