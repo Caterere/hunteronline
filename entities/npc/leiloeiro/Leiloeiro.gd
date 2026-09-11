@@ -3,7 +3,7 @@ extends NPC
 
 # Leiloeiro do Underground de Yorknew — abre AuctionHouseUI.
 
-var ui_instance: AuctionHouseUI = null
+var ui_instance: CanvasLayer = null
 
 
 func _ready() -> void:
@@ -18,8 +18,9 @@ func _on_interacted(player: CharacterBody2D) -> void:
 		var scene = load("res://ui/Auction/AuctionHouseUI.tscn")
 		if scene:
 			ui_instance = scene.instantiate()
-			get_tree().root.add_child(ui_instance)
 		else:
-			ui_instance = AuctionHouseUI.new()
-			get_tree().root.add_child(ui_instance)
-	ui_instance.abrir()
+			var UiScript = load("res://ui/Auction/AuctionHouseUI.gd")
+			ui_instance = UiScript.new()
+		get_tree().root.add_child(ui_instance)
+	if ui_instance.has_method("abrir"):
+		ui_instance.abrir()

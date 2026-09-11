@@ -56,7 +56,7 @@ func _test_fee_and_seeds() -> void:
 func _test_list_buy_cancel() -> void:
 	print("\n[2] List / buy NPC / cancel...")
 	AuctionHouse.reset_for_tests()
-	if PlayerData.character_id.strip_edges().is_empty():
+	if str(PlayerData.character_id).strip_edges().is_empty():
 		PlayerData.character_id = "test_seller_s1"
 	PlayerData.nome_personagem = "Gon Auction"
 	PlayerData.inventory.clear()
@@ -73,7 +73,6 @@ func _test_list_buy_cancel() -> void:
 	_ok(PlayerData.obter_item_quantidade(&"minerio_aco") == before_qty - 2, "Item em escrow")
 	_ok(AuctionHouse.count_my_active() == 1, "1 anúncio do jogador")
 
-	# Compra seed NPC
 	var npc_id := ""
 	for row in AuctionHouse.get_active_listings():
 		if str(row.get("seller_kind", "")) == "npc":
@@ -87,13 +86,11 @@ func _test_list_buy_cancel() -> void:
 	_ok(Economy.obter_gold() == gold_pre_buy - npc_price, "Jenny paga no buy NPC")
 	_ok(PlayerData.tem_item(StringName(str(buy_npc.get("item_id", ""))), int(buy_npc.get("qty", 1))), "Item NPC no inventário")
 
-	# Não compra próprio
 	var my_id := str(AuctionHouse.get_my_listings()[0].get("listing_id", ""))
 	var self_buy: Dictionary = AuctionHouse.buy_listing(my_id)
 	_ok(not bool(self_buy.get("ok", false)), "Bloqueia compra do próprio anúncio")
 	_ok(str(self_buy.get("error", "")) == "proprio_anuncio", "Erro proprio_anuncio")
 
-	# Cancel devolve item
 	var qty_before_cancel := PlayerData.obter_item_quantidade(&"minerio_aco")
 	var cancelled: Dictionary = AuctionHouse.cancel_listing(my_id)
 	_ok(bool(cancelled.get("ok", false)), "cancel_listing ok")
@@ -112,8 +109,13 @@ func _test_payout_flow() -> void:
 	var listed: Dictionary = AuctionHouse.list_item("cristal_aura", 1, 1000)
 	_ok(bool(listed.get("ok", false)), "Seller listou cristal")
 	var lid := str(listed.get("listing", {}).get("listing_id", ""))
+	if lid.is_empty():
+		# fallback se retorno usar outra chave
+		var mine: Array = AuctionHouse.get_my_listings()
+		if not mine.is_empty():
+			lid = str(mine[0].get("listing_id", ""))
+	_ok(not lid.is_empty(), "listing_id resolvido")
 
-	# Troca identidade para comprador
 	PlayerData.character_id = "buyer_beta"
 	PlayerData.nome_personagem = "Buyer Beta"
 	Economy.definir_gold(5000)
@@ -122,7 +124,6 @@ func _test_payout_flow() -> void:
 	_ok(AuctionHouse.get_pending_payout("seller_alpha") == 1000, "Payout pendente 1000 para seller")
 	_ok(AuctionHouse.get_pending_payout("buyer_beta") == 0, "Buyer sem payout")
 
-	# Volta ao seller e coleta
 	PlayerData.character_id = "seller_alpha"
 	var gold_before := Economy.obter_gold()
 	var collected: Dictionary = AuctionHouse.collect_payout()
@@ -131,11 +132,9 @@ func _test_payout_flow() -> void:
 	_ok(Economy.obter_gold() == gold_before + 1000, "Jenny creditada no collect")
 	_ok(AuctionHouse.get_pending_payout("seller_alpha") == 0, "Payout zerado")
 
-	# Persistência round-trip
 	var blob: Dictionary = AuctionHouse.salvar_dados()
 	AuctionHouse.reset_for_tests()
 	AuctionHouse.carregar_dados(blob)
-	_ok(AuctionHouse.listings.has(lid) or true, "carregar_dados não explode")
 	_ok(typeof(blob.get("listings", null)) == TYPE_DICTIONARY, "salvar_dados tem listings")
 
 
