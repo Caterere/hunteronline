@@ -1,53 +1,8 @@
-# BIBLE DE SAVE E DADOS
+# 09_SAVE_DATA_BIBLE — PONTE (não SSOT)
 
-## Principle
-Anything that represents meaningful player progression must be persisted when intended to survive closing the game.
+> **Fonte canônica:** conteúdo abaixo. Não duplique regras neste arquivo.
 
-## Character Data
-Conceptual persistent data includes:
-- character identity;
-- appearance;
-- level;
-- XP;
-- potential;
-- physical attributes;
-- HP state where appropriate;
-- aura state where appropriate;
-- Nen progression;
-- Nen affinity;
-- Hatsu definitions;
-- Hatsu slots;
-- inventory;
-- currencies/credits;
-- quests;
-- story progression;
-- unlocks.
+- [SAVE_SYSTEM — persistência](../../../docs/systems/SAVE_SYSTEM.md)
+- [LIVE_OPS_CONTENT — versão + migração](../../../docs/roadmap/LIVE_OPS_CONTENT.md)
 
-## Lifecycle
-Required flow:
-Create Character → Save → Exit → Relaunch → Load → Continue.
-
-## Load Validation
-Loading must validate:
-- file existence;
-- schema version;
-- required fields;
-- missing optional fields;
-- corrupted values.
-
-## Versioning
-Save data should have a schema version so future updates can migrate old characters.
-
-## Atomicity
-Saving should minimize the chance of leaving a partially written character.
-
-## Regression Test
-Every major save-system change must test:
-1. fresh character;
-2. save;
-3. restart;
-4. load;
-5. verify progression;
-6. modify;
-7. save again;
-8. reload.
+Índice agente: [00_BIBLE_INDEX.md](00_BIBLE_INDEX.md) · Índice repo: [docs/README.md](../../../docs/README.md)
