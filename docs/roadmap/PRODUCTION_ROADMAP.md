@@ -38,8 +38,8 @@ Itens de quests investigativas, NPCs vivos, eventos de facção, Style Lock Pixe
    - [x] Dedicated ENet, puppets, 20 TPS, combate RPC, proxies, morte/respawn, server list, AoI/delta
    - [ ] Master server / matchmaking (frota VPS)
    - [ ] Compressão / cap de taxa VPS
+   - [x] **PREREQ-2:** revive de aliados (canalização 3s) — ver backlog MMO
    - [ ] **PREREQ-1:** sync binário compacto via `NetworkProtocol` — ver backlog MMO
-   - [ ] **PREREQ-2:** revive de aliados (canalização 3s) — ver backlog MMO
 4. **Progressão** — soft-caps XP/Jenny `[x]`
 5. **Backlog MMO (não diluir COMBATE+NEN+HATSU)**
    - Tier S/A/B: [`MMO_FEATURES_BACKLOG.md`](MMO_FEATURES_BACKLOG.md)
