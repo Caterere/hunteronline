@@ -420,6 +420,9 @@ func complete_quest(quest: Quest) -> void:
 
 	_give_rewards(quest)
 
+	if BountySystem != null and quest.custom_data.get("association_contract", false):
+		BountySystem.notificar_quest_associacao_concluida(quest)
+
 	active_quests.erase(quest)
 
 	print(
@@ -558,6 +561,49 @@ func _give_rewards(quest: Quest) -> void:
 		for tag in quest.optional_consequence_tags:
 			if PlayerData != null:
 				PlayerData.quest_states["consequence_" + tag] = true
+
+	# =====================================================
+	# ITENS DE RECOMPENSA
+	# =====================================================
+
+	for reward in quest.reward_items:
+		if reward == null:
+			continue
+		if reward.type == QuestReward.Type.ITEM and PlayerData != null:
+			PlayerData.adicionar_item(reward.item_id, reward.amount)
+			print("+%d x %s" % [reward.amount, str(reward.item_id)])
+		elif reward.type == QuestReward.Type.GOLD and Economy != null:
+			Economy.adicionar_gold(reward.amount)
+		elif reward.type == QuestReward.Type.XP:
+			var player = get_tree().get_first_node_in_group("player")
+			if player != null:
+				var xp_system = player.get_node_or_null("XPSystem")
+				if xp_system != null:
+					xp_system.adicionar_xp(reward.amount, "Quest Item Reward: " + quest.quest_name)
+
+	# =====================================================
+	# BÔNUS CONTRATOS ASSOCIAÇÃO (A5)
+	# =====================================================
+
+	if quest.custom_data.get("association_contract", false):
+		var rep_bonus := int(quest.custom_data.get("reward_rep_associacao", 0))
+		var fac_xp := int(quest.custom_data.get("reward_faction_xp", 0))
+		if rep_bonus > 0 and ReputationSystem != null:
+			ReputationSystem.alterar_reputacao(
+				ReputationSystem.Faccao.ASSOCIACAO_HUNTER,
+				rep_bonus,
+				"Contrato Associação: " + quest.quest_name
+			)
+		if fac_xp > 0 and FactionManager != null:
+			if FactionManager.faccao_atual == "associacao_hunter" or FactionManager.faccao_atual.is_empty():
+				# XP de contribuição Associacao (se já filiado)
+				if FactionManager.faccao_atual == "associacao_hunter":
+					FactionManager.adicionar_faccao_xp(fac_xp)
+		if EventBus != null:
+			EventBus.emit_toast(
+				"🏛️ Associação: +%d rep · +%d XP facção" % [rep_bonus, fac_xp],
+				Color(0.95, 0.85, 0.35)
+			)
 
 	# Consequências principais da missão
 	for tag in quest.consequence_tags:

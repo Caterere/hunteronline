@@ -83,11 +83,11 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` (pode começar offline) |
+| **Status** | `[IMPLEMENTED]` — rotação diária B/A/S + Star Hunter semanal + gate de licença + refresh 1× grátis/dia |
 | **Inspiração** | Hunt Marks / Roulettes (FFXIV), World Quests (WoW), Bounties (Destiny) |
 | **Deps** | Nenhuma rede pesada |
-| **Reusar** | `autoload/BountySystem.gd`, `ui/contracts/`, `resource/quest/RadiantQuestGenerator.gd`, `autoload/LiveEventManager.gd` |
-| **Tasks** | Reset diário/semanal · tiers de licença B/A/S · Jenny + rep + material · “Star Hunter” weekly (MVP-style) |
+| **Reusar** | `autoload/BountySystem.gd`, `ui/Bounties/BountiesBoardUI.gd`, `resource/quest/RadiantQuestGenerator.gd`, `scripts/missions/QuestManager.gd` |
+| **Tasks** | ✅ Reset diário/semanal · ✅ tiers licença B/A/S · ✅ Jenny + rep + material · ✅ Star Hunter weekly · suite `scratch/test_a5_association_contracts_suite.tscn` |
 
 ### A6. Guildas de Caçadores (player orgs)
 
@@ -148,7 +148,7 @@ flowchart LR
 
 1. **PREREQ-1** — sync binário / compressão estável em `NetworkProtocol` + coordenador.
 2. **PREREQ-2** — revive aliado (canalização 3s) ✅
-3. **A5** — contratos rotativos + Star Hunter (endgame solo/co-op sem backend pesado).
+3. **A5** — contratos rotativos + Star Hunter ✅
 4. **S3** — raid 8 vertical (1 masmorra).
 5. **S2** — Arena ranqueada + 1ª temporada.
 6. **S1** — Leilão Yorknew (economia server-side estável).
