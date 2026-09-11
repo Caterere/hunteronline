@@ -37,6 +37,11 @@ signal snapshot_ready(snapshot_data: Dictionary)
 signal entity_damaged(net_id: int, final_damage: int, current_hp: int)
 signal entity_died(net_id: int, killer_peer_id: int, rewards: Dictionary)
 signal player_damaged(peer_id: int, damage: int, source_net_id: int, hp_remaining: int, knockback_dir: Vector2)
+signal player_died(peer_id: int, source_net_id: int)
+signal player_respawned(peer_id: int, spawn_pos: Vector2, hp: int, aura: float)
+
+const RESPAWN_DELAY_SEC: float = 3.5
+const DEFAULT_SPAWN_POS := Vector2(100, 100)
 
 
 func _init(p_tick_rate: int = 20, p_map_path: String = "res://world/lobby.tscn") -> void:
@@ -78,6 +83,7 @@ func register_player(peer_id: int, char_data: Dictionary, spawn_pos: Vector2 = V
 		"character_id": char_id,
 		"name": p_name,
 		"position": spawn_pos,
+		"spawn_pos": spawn_pos,
 		"velocity": Vector2.ZERO,
 		"facing": Vector2.DOWN,
 		"hp": int(attrs.get("vida", attrs.get("hp", 100))),
@@ -85,9 +91,13 @@ func register_player(peer_id: int, char_data: Dictionary, spawn_pos: Vector2 = V
 		"aura": float(attrs.get("aura", 100.0)),
 		"aura_max": float(attrs.get("aura_max", 100.0)),
 		"level": int(attrs.get("nivel", attrs.get("level", 1))),
+		"defesa": float(attrs.get("defesa", attrs.get("defense", 10.0))),
 		"nen_tech": str(char_data.get("tecnica_nen_ativa", "TEN")),
 		"input_intent": Vector2.ZERO,
-		"last_input_ts": Time.get_ticks_msec()
+		"last_input_ts": Time.get_ticks_msec(),
+		"is_dead": false,
+		"respawn_timer": 0.0,
+		"invuln_timer": 0.0
 	}
 	players[peer_id] = p_entity
 	print("[ServerWorldCoordinator] 👤 Caçador registrado na simulação: %s (Peer %d)" % [p_name, peer_id])
@@ -116,12 +126,36 @@ func update_player_intent(peer_id: int, move_dir: Vector2, facing: Vector2, nen_
 		return
 
 	var p = players[peer_id]
+	if bool(p.get("is_dead", false)):
+		p["input_intent"] = Vector2.ZERO
+		return
 	p["input_intent"] = move_dir.limit_length(1.0)
 	if facing != Vector2.ZERO:
 		p["facing"] = facing
 	if not nen_tech.is_empty():
 		p["nen_tech"] = nen_tech
 	p["last_input_ts"] = Time.get_ticks_msec()
+
+
+func request_respawn(peer_id: int) -> bool:
+	if not players.has(peer_id):
+		return false
+	var p = players[peer_id]
+	if not bool(p.get("is_dead", false)):
+		return false
+	# Permite respawn antecipado se já passou 1s (cliente clicou Renascer)
+	if float(p.get("respawn_timer", 0.0)) > (RESPAWN_DELAY_SEC - 1.0):
+		p["respawn_timer"] = 0.05
+	return true
+
+
+func force_respawn_now(peer_id: int) -> void:
+	if not players.has(peer_id):
+		return
+	var p = players[peer_id]
+	if not bool(p.get("is_dead", false)):
+		return
+	_respawn_player(peer_id)
 
 
 # ============================================================
@@ -184,9 +218,17 @@ func tick(delta: float) -> void:
 func _simulate_fixed_tick(dt: float) -> void:
 	current_tick += 1
 
-	# 1. Simular Movimento dos Jogadores
+	# 1. Simular Movimento / respawn dos Jogadores
 	for pid in players.keys():
 		var p = players[pid]
+		p["invuln_timer"] = max(0.0, float(p.get("invuln_timer", 0.0)) - dt)
+		if bool(p.get("is_dead", false)):
+			p["velocity"] = Vector2.ZERO
+			p["input_intent"] = Vector2.ZERO
+			p["respawn_timer"] = max(0.0, float(p.get("respawn_timer", 0.0)) - dt)
+			if float(p.get("respawn_timer", 0.0)) <= 0.0:
+				_respawn_player(pid)
+			continue
 		var intent: Vector2 = p["input_intent"]
 		var speed: float = 160.0 # Velocidade canônica de base
 		p["velocity"] = intent * speed
@@ -261,17 +303,108 @@ func _aplicar_dano_em_jogador(peer_id: int, source_net_id: int, raw_damage: int,
 	if not players.has(peer_id):
 		return
 	var p = players[peer_id]
+	if bool(p.get("is_dead", false)):
+		return
+	if float(p.get("invuln_timer", 0.0)) > 0.0:
+		return
 	var hp: int = int(p.get("hp", 0))
 	if hp <= 0:
 		return
-	# Mitigação simples server-side (sem Nen completo nesta fatia)
-	var dealt: int = max(1, raw_damage)
+
+	var dealt: int = _calcular_dano_sofrido_servidor(p, raw_damage)
 	hp = max(0, hp - dealt)
 	p["hp"] = hp
 	var kb_dir: Vector2 = ((p["position"] as Vector2) - from_pos).normalized()
 	if kb_dir == Vector2.ZERO:
 		kb_dir = Vector2.RIGHT
 	player_damaged.emit(peer_id, dealt, source_net_id, hp, kb_dir)
+
+	if hp <= 0:
+		_matar_jogador(peer_id, source_net_id)
+
+
+## Mitigação server-side aproximando TEN/KEN/REN/ZETSU + defesa/nível.
+func _calcular_dano_sofrido_servidor(p: Dictionary, raw_damage: int) -> int:
+	var dano: float = float(maxi(1, raw_damage))
+	var tech: String = str(p.get("nen_tech", "")).to_upper()
+	var aura: float = float(p.get("aura", 0.0))
+	var aura_cost: float = 0.0
+	var fator_nen: float = 1.0
+
+	match tech:
+		"TEN":
+			fator_nen = 0.82
+			aura_cost = 4.0
+		"KEN":
+			fator_nen = 0.68
+			aura_cost = 10.0
+		"REN":
+			fator_nen = 0.92
+			aura_cost = 2.0
+		"GYO":
+			fator_nen = 0.90
+			aura_cost = 3.0
+		"RYU":
+			fator_nen = 0.78
+			aura_cost = 6.0
+		"ZETSU":
+			fator_nen = 1.35 # vulnerável sem aura
+			aura_cost = 0.0
+		_:
+			fator_nen = 1.0
+			aura_cost = 0.0
+
+	# Sem aura suficiente, perde o bônus defensivo de Nen (exceto Zetsu que já é pior)
+	if aura_cost > 0.0:
+		if aura >= aura_cost:
+			p["aura"] = max(0.0, aura - aura_cost)
+			dano *= fator_nen
+		else:
+			# Aura insuficiente: mitigação parcial
+			dano *= lerpf(1.0, fator_nen, clampf(aura / aura_cost, 0.0, 1.0))
+			p["aura"] = 0.0
+	else:
+		dano *= fator_nen
+
+	var defesa: float = float(p.get("defesa", 10.0))
+	var nivel: int = int(p.get("level", 1))
+	var fator_def: float = 1.0
+	if PowerScale != null and PowerScale.has_method("calcular_fator_defensivo_por_nivel"):
+		fator_def = PowerScale.calcular_fator_defensivo_por_nivel(defesa, nivel)
+	else:
+		fator_def = 100.0 / (100.0 + max(0.0, defesa))
+
+	return max(1, int(round(dano * fator_def)))
+
+
+func _matar_jogador(peer_id: int, source_net_id: int) -> void:
+	if not players.has(peer_id):
+		return
+	var p = players[peer_id]
+	p["is_dead"] = true
+	p["hp"] = 0
+	p["velocity"] = Vector2.ZERO
+	p["input_intent"] = Vector2.ZERO
+	p["respawn_timer"] = RESPAWN_DELAY_SEC
+	player_died.emit(peer_id, source_net_id)
+	print("[ServerWorldCoordinator] ☠️ Peer %d morreu (src %d). Respawn em %.1fs" % [peer_id, source_net_id, RESPAWN_DELAY_SEC])
+
+
+func _respawn_player(peer_id: int) -> void:
+	if not players.has(peer_id):
+		return
+	var p = players[peer_id]
+	var spawn: Vector2 = p.get("spawn_pos", DEFAULT_SPAWN_POS) as Vector2
+	p["is_dead"] = false
+	p["respawn_timer"] = 0.0
+	p["position"] = spawn
+	p["velocity"] = Vector2.ZERO
+	p["input_intent"] = Vector2.ZERO
+	p["hp"] = int(p.get("hp_max", 100))
+	p["aura"] = float(p.get("aura_max", 100.0))
+	p["invuln_timer"] = 1.5
+	player_respawned.emit(peer_id, spawn, int(p["hp"]), float(p["aura"]))
+	print("[ServerWorldCoordinator] ✨ Peer %d respawnou em %s" % [peer_id, str(spawn)])
 
 
 func build_kill_rewards(enemy: Dictionary) -> Dictionary:
@@ -306,6 +439,8 @@ func apply_player_attack(
 ) -> Array[Dictionary]:
 	var hits: Array[Dictionary] = []
 	if not players.has(attacker_peer):
+		return hits
+	if bool(players[attacker_peer].get("is_dead", false)):
 		return hits
 
 	var atk_pos = (players[attacker_peer]["position"] as Vector2)
@@ -380,7 +515,8 @@ func build_world_snapshot() -> Dictionary:
 			"hp": p["hp"],
 			"hp_max": p["hp_max"],
 			"aura": p["aura"],
-			"nen": p["nen_tech"]
+			"nen": p["nen_tech"],
+			"dead": bool(p.get("is_dead", false))
 		})
 
 	var e_snaps: Array = []

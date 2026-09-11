@@ -25,7 +25,9 @@
 - [x] Dano inimigo→jogador autoritativo + RPC `rpc_aplicar_dano_jogador`
 - [x] Recompensas XP/Jenny via `entity_died` → `rpc_recompensa_kill`
 - [x] Polish visual dos proxies (sprites por `enemy_id`)
+- [x] Morte/respawn multiplayer (`player_died` / `player_respawned` + RPCs)
+- [x] Mitigação aura/Nen no dano sofrido no servidor (TEN/KEN/REN/ZETSU…)
 
 ## Próximo
 1. [ ] Quando contratar host: abrir UDP 7777, set `public_host`, `--no-lan-discovery`
-2. [ ] Morte/respawn multiplayer + sync de aura/Nen no dano sofrido
+2. [ ] Sync de party/chat polish + interest management de snapshots

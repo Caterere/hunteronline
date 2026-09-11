@@ -249,6 +249,12 @@ func ocultar() -> void:
 
 func _on_reviver_pressed() -> void:
 	ocultar()
+	# Em LAN dedicado o servidor é a autoridade do respawn.
+	if NetworkManager != null and NetworkManager.current_mode == NetworkManager.NetworkMode.CLIENT_PEER:
+		if NetworkManager.has_method("solicitar_respawn"):
+			NetworkManager.solicitar_respawn()
+		return
+
 	_restaurar_atributos_player()
 
 	# Se foi derrota para um Chefe, registrar marco narrativo e aplicar foco de revanche

@@ -160,6 +160,10 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 		world_coordinator.player_damaged.connect(_on_server_player_damaged)
 	if not world_coordinator.entity_died.is_connected(_on_server_entity_died):
 		world_coordinator.entity_died.connect(_on_server_entity_died)
+	if not world_coordinator.player_died.is_connected(_on_server_player_died):
+		world_coordinator.player_died.connect(_on_server_player_died)
+	if not world_coordinator.player_respawned.is_connected(_on_server_player_respawned):
+		world_coordinator.player_respawned.connect(_on_server_player_respawned)
 	world_coordinator.start_coordinator()
 	_seed_demo_enemies_if_needed()
 
@@ -741,6 +745,104 @@ func rpc_aplicar_dano_jogador(damage: int, source_net_id: int, hp_remaining: int
 	if AudioManager != null:
 		AudioManager.tocar_hurt()
 	print("[NetworkManager] 💥 Dano rede: -%d HP restante %d (src %d)" % [damage, hp_remaining, source_net_id])
+	# Morte local é disparada por rpc_jogador_morreu (autoridade do servidor)
+
+
+func _on_server_player_died(peer_id: int, source_net_id: int) -> void:
+	if not is_dedicated_server():
+		return
+	rpc_id(peer_id, "rpc_jogador_morreu", source_net_id)
+	# Notifica outros clientes (puppet some / fica caído)
+	rpc("rpc_notificar_jogador_estado", peer_id, true, Vector2.ZERO)
+
+
+func _on_server_player_respawned(peer_id: int, spawn_pos: Vector2, hp: int, aura: float) -> void:
+	if not is_dedicated_server():
+		return
+	rpc_id(peer_id, "rpc_jogador_respawnou", spawn_pos, hp, aura)
+	rpc("rpc_notificar_jogador_estado", peer_id, false, spawn_pos)
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_jogador_morreu(source_net_id: int) -> void:
+	if is_dedicated_server():
+		return
+	if PlayerData != null:
+		PlayerData.attributes["vida"] = 0
+	var player = GameManager.active_player if GameManager != null else null
+	if player != null and is_instance_valid(player):
+		if player.has_method("travar_controles"):
+			player.travar_controles(true)
+		var combat = player.get_node_or_null("CombatSystem")
+		if combat != null and combat.has_method("morrer"):
+			# Evita tela de morte offline duplicada se já estiver morto; usa caminho rede
+			if combat.has_method("morrer_rede"):
+				combat.morrer_rede()
+			else:
+				combat.estado = combat.Estado.MORTO
+				combat.player_morreu.emit()
+	if EventBus != null:
+		EventBus.player_died.emit()
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("☠️ Você foi derrotado! Renascendo em breve... (src %d)" % source_net_id)
+	print("[NetworkManager] ☠️ Morte de rede confirmada (src %d)" % source_net_id)
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_jogador_respawnou(spawn_pos: Vector2, hp: int, aura: float) -> void:
+	if is_dedicated_server():
+		return
+	if PlayerData != null:
+		PlayerData.attributes["vida"] = hp
+		PlayerData.attributes["aura"] = aura
+	var player = GameManager.active_player if GameManager != null else null
+	if player != null and is_instance_valid(player):
+		if player.has_method("reviver"):
+			player.reviver(spawn_pos)
+		else:
+			player.global_position = spawn_pos
+		# Fecha DeathScreen se estiver aberta
+		var death_ui = get_tree().root.get_node_or_null("DeathScreenUI") if get_tree() != null else null
+		if death_ui != null and death_ui.has_method("esconder"):
+			death_ui.esconder()
+		elif death_ui != null:
+			death_ui.visible = false
+			death_ui.queue_free()
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("✨ Renascido! HP/Aura restaurados.")
+	print("[NetworkManager] ✨ Respawn de rede em %s (HP %d)" % [str(spawn_pos), hp])
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_solicitar_respawn() -> void:
+	if not is_dedicated_server() or world_coordinator == null:
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	world_coordinator.request_respawn(sender_id)
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_notificar_jogador_estado(peer_id: int, is_dead: bool, pos: Vector2) -> void:
+	if peer_id == local_peer_id:
+		return
+	var puppet = remote_players.get(peer_id, null)
+	if puppet == null or not is_instance_valid(puppet):
+		return
+	if is_dead:
+		puppet.modulate = Color(0.5, 0.5, 0.5, 0.55)
+	else:
+		puppet.modulate = Color.WHITE
+		if pos != Vector2.ZERO:
+			puppet.global_position = pos
+			if "target_position" in puppet:
+				puppet.target_position = pos
+
+
+## Cliente pede respawn antecipado (botão Renascer).
+func solicitar_respawn() -> void:
+	if current_mode != NetworkMode.CLIENT_PEER:
+		return
+	rpc_id(1, "rpc_solicitar_respawn")
 
 
 @rpc("authority", "call_remote", "reliable")

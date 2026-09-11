@@ -794,8 +794,28 @@ func morrer(agressor: Node = null) -> void:
 	)
 	player_morreu.emit()
 	var alvo_agressor = agressor if agressor != null else ultimo_agressor
+	# Em multiplayer dedicado o respawn é autoritativo — só toast, sem DeathScreen local.
+	if NetworkManager != null and NetworkManager.current_mode == NetworkManager.NetworkMode.CLIENT_PEER:
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("☠️ Derrotado! O servidor irá renascê-lo em breve...")
+		return
 	_exibir_tela_morte(alvo_agressor)
 
+
+## Morte confirmada pelo servidor (sem DeathScreen offline).
+func morrer_rede() -> void:
+	if estado == Estado.MORTO:
+		return
+	estado = Estado.MORTO
+	if PlayerData != null:
+		PlayerData.attributes["vida"] = 0
+	if owner_body != null:
+		owner_body.velocity = Vector2.ZERO
+		if owner_body.has_method("travar_controles"):
+			owner_body.travar_controles(true)
+	if nen_system != null:
+		nen_system.desativar_todas_tecnicas()
+	player_morreu.emit()
 
 
 func _exibir_tela_morte(agressor: Node = null) -> void:

@@ -57,6 +57,7 @@ func _ready() -> void:
 	_test_16_network_manager_puppet_spawn()
 	_test_17_enemy_proxy_and_server_combat()
 	_test_18_enemy_damage_and_rewards()
+	_test_19_nen_mitigation_death_respawn()
 
 	_imprimir_resultado_final()
 
@@ -605,6 +606,79 @@ func _test_18_enemy_damage_and_rewards() -> void:
 	pxy._aplicar_sprite_por_id()
 	assert_test(pxy.sprite != null and pxy.sprite.texture != null, "proxy carrega sprite por enemy_id")
 	pxy.queue_free()
+
+	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 19: MITIGAÇÃO NEN + MORTE/RESPAWN
+# ============================================================
+func _test_19_nen_mitigation_death_respawn() -> void:
+	print("\n--- Teste 19: Mitigação Nen + morte/respawn ---")
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.start_coordinator()
+
+	var deaths: Array = []
+	var respawns: Array = []
+	coord.player_died.connect(func(pid, _src): deaths.append(pid))
+	coord.player_respawned.connect(func(pid, pos, hp, aura):
+		respawns.append({"pid": pid, "pos": pos, "hp": hp, "aura": aura})
+	)
+
+	coord.register_player(8, {
+		"name": "Kurapika",
+		"tecnica_nen_ativa": "KEN",
+		"attributes": {"vida": 100, "vida_max": 100, "aura": 100.0, "aura_max": 100.0, "defesa": 20, "nivel": 10}
+	}, Vector2(50, 50))
+
+	# KEN deve reduzir dano vs raw
+	var p = coord.players[8]
+	var raw := 40
+	var dealt_ken: int = coord._calcular_dano_sofrido_servidor(p, raw)
+	assert_test(dealt_ken < raw, "KEN mitiga dano bruto (%d < %d)" % [dealt_ken, raw])
+	assert_test(float(coord.players[8]["aura"]) < 100.0, "KEN consome aura ao mitigar")
+
+	# ZETSU aumenta dano
+	coord.players[8]["nen_tech"] = "ZETSU"
+	coord.players[8]["aura"] = 100.0
+	var dealt_zetsu: int = coord._calcular_dano_sofrido_servidor(coord.players[8], raw)
+	assert_test(dealt_zetsu > dealt_ken, "ZETSU sofre mais que KEN (%d > %d)" % [dealt_zetsu, dealt_ken])
+
+	# Morte + respawn automático
+	coord.players[8]["nen_tech"] = "TEN"
+	coord.players[8]["aura"] = 100.0
+	coord.players[8]["hp"] = 15
+	coord._aplicar_dano_em_jogador(8, 2000, 80, Vector2(40, 50))
+	assert_test(bool(coord.players[8]["is_dead"]) == true, "jogador marcado como morto")
+	assert_test(deaths.size() == 1, "player_died emitido")
+	assert_test(int(coord.players[8]["hp"]) == 0, "HP zerado na morte")
+
+	# Avançar tempo de respawn (~3.5s)
+	for i in range(80):
+		coord.tick(0.05)
+		if respawns.size() > 0:
+			break
+
+	assert_test(respawns.size() == 1, "player_respawned emitido após delay")
+	assert_test(bool(coord.players[8]["is_dead"]) == false, "jogador vivo após respawn")
+	assert_test(int(coord.players[8]["hp"]) == 100, "HP restaurado no respawn")
+	assert_test(coord.players[8]["position"] == Vector2(50, 50), "respawn na spawn_pos")
+	assert_test(float(coord.players[8]["invuln_timer"]) > 0.0, "invulnerabilidade pós-respawn")
+
+	# Respawn antecipado via request
+	coord.players[8]["hp"] = 1
+	coord._aplicar_dano_em_jogador(8, 2001, 999, Vector2(50, 50))
+	# Durante invuln não deve morrer — espera acabar
+	coord.players[8]["invuln_timer"] = 0.0
+	coord._aplicar_dano_em_jogador(8, 2001, 999, Vector2(50, 50))
+	assert_test(bool(coord.players[8]["is_dead"]) == true, "segunda morte ok")
+	coord.request_respawn(8)
+	# request reduz timer; força ticks
+	for i in range(30):
+		coord.tick(0.05)
+		if not bool(coord.players[8]["is_dead"]):
+			break
+	assert_test(bool(coord.players[8]["is_dead"]) == false, "request_respawn antecipa renascimento")
 
 	coord.stop_coordinator()
 

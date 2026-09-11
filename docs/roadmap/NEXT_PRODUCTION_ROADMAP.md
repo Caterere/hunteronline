@@ -61,8 +61,9 @@
    * [x] Campos `bind_address` / `public_host` / `enable_lan_discovery` para migrar a um host contratado.
    * [x] Combate cliente → RPC servidor + proxies de inimigos (`NetworkEnemyProxy`).
    * [x] Dano inimigo→jogador + recompensas XP/Jenny (`entity_died` → cliente).
-   * [ ] Morte/respawn multiplayer + sync de aura/Nen no dano sofrido.
+   * [x] Morte/respawn multiplayer + mitigação aura/Nen no dano sofrido.
    * [ ] Lista de servidores / DNS quando houver VPS (discovery LAN permanece opcional).
+   * [ ] Interest management / snapshots delta para escala.
 4. **Progressão**:
    * [x] Soft-cap XP por saga + escala narrativa canônica (`CanonQuestCatalog.escalar_xp_narrativo`).
    * [x] Soft-cap Jenny early/mid (`escalar_jenny_narrativo` + drop/Arena/Padokia retune).
