@@ -814,15 +814,14 @@ func _test_21_master_registry_and_snapshot_bandwidth() -> void:
 		assert_test(int(listed[0].get("players", -1)) == 5, "update_announce_players reflete no registry")
 
 	var querier = MasterServerRegistryScript.new()
-	var got_list: Array = []
-	querier.servers_updated.connect(func(servers: Array): got_list = servers)
 	var err_q: Error = querier.query_servers("127.0.0.1", reg_port)
 	assert_test(err_q == OK, "query inicia sem erro")
 	for _k in range(12):
 		querier.update(0.02)
 		registry.update(0.02)
-		if not got_list.is_empty():
+		if not querier.get_server_list().is_empty():
 			break
+	var got_list: Array = querier.get_server_list()
 	assert_test(got_list.size() >= 1, "QUERY retorna LIST com entradas")
 	if got_list.size() >= 1:
 		assert_test(str(got_list[0].get("host", "")) == "127.0.0.1", "ENTRY traz host")
