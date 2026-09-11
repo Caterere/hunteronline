@@ -1,86 +1,14 @@
 {
   "batch": "cast_v96_stylelock",
-  "created_at": 1789161059.051442,
+  "created_at": 1789163222.324982,
   "characters": [
     {
-      "name": "npc_recepcionista_elena",
+      "name": "npc_tonpa",
       "ok": true,
-      "character_id": "7b6be329-e52e-4e3f-9b7a-cfacdbcea43a",
-      "pixen_job": "b23822f4-3463-4a55-83a3-0c37da43e4db",
+      "character_id": "bc67225b-fe69-4e0f-adb7-27508003938c",
+      "pixen_job": "0a4813f9-d3b2-4172-a2fd-1d9b3e499223",
       "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_recepcionista_elena_8dir.png"
-    },
-    {
-      "name": "npc_instrutor_combate",
-      "ok": true,
-      "character_id": "deff0576-2111-4529-8edc-011e4e3cb318",
-      "pixen_job": "001a9d13-d72d-4840-83f3-059174c6c4f6",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_instrutor_combate_8dir.png"
-    },
-    {
-      "name": "npc_examinador_oficial",
-      "ok": true,
-      "character_id": "32213dc1-c912-4f7f-9efc-d02eb796d68c",
-      "pixen_job": "30ef29fe-dbce-431f-bc9a-8f21dd19e4d9",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_examinador_oficial_8dir.png"
-    },
-    {
-      "name": "npc_gon",
-      "ok": true,
-      "character_id": "27cad6d1-0409-4a1b-bb41-f3778b93c34e",
-      "pixen_job": "7a55b634-6ed0-4cfd-99ec-30e151ac46a5",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_gon_8dir.png"
-    },
-    {
-      "name": "npc_killua",
-      "ok": true,
-      "character_id": "808d8e82-d22d-43db-9763-7b510953bf99",
-      "pixen_job": "94a071fe-95bf-4663-a1d2-f75379b7c212",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_killua_8dir.png"
-    },
-    {
-      "name": "npc_kurapika",
-      "ok": true,
-      "character_id": "c87bdc93-2322-4f1e-b477-d7a5241aed26",
-      "pixen_job": "cdbb8e89-c151-4f2e-9a8d-1fbf391a9fa2",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_kurapika_8dir.png"
-    },
-    {
-      "name": "npc_leorio",
-      "ok": true,
-      "character_id": "4f08da4e-9204-4b71-803a-ff7849905179",
-      "pixen_job": "e4ee72bf-a7dc-47a7-a97c-87bd23dbe917",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_leorio_8dir.png"
-    },
-    {
-      "name": "npc_hisoka",
-      "ok": true,
-      "character_id": "3e89a696-efee-4e82-969a-7e20ed36da63",
-      "pixen_job": "d1a2a003-622c-4634-8d54-dec80b212e83",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_hisoka_8dir.png"
-    },
-    {
-      "name": "npc_netero",
-      "ok": true,
-      "character_id": "03cc5d83-87ef-418b-8527-d1324327ce6c",
-      "pixen_job": "1c4b182f-3467-4766-be23-dbe67d930a90",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_netero_8dir.png"
-    },
-    {
-      "name": "npc_chrollo",
-      "ok": true,
-      "character_id": "3728eb7f-47c4-49b0-84e5-f286ff9971c2",
-      "pixen_job": "5f66997e-dd6c-4805-8108-a6052aa7ac7f",
-      "fitted_h": 41,
-      "sheet": "assets/sprites/characters/npc_chrollo_8dir.png"
+      "sheet": "assets/sprites/characters/npc_tonpa_8dir.png"
     }
   ]
 }
