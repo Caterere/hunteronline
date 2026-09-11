@@ -19,8 +19,11 @@
 - [x] Launchers portáteis: `iniciar_servidor_lan.bat` + `iniciar_servidor_lan.sh`
 - [x] Campos VPS-ready: `bind_address`, `public_host`, `enable_lan_discovery`, `--no-lan-discovery`
 - [x] Smoke K-LAN estendido + smoke 2 processos localhost
+- [x] Wire combate cliente → `rpc_solicitar_ataque_servidor` + `combat_hits_confirmed`
+- [x] Proxies visuais de inimigos (`NetworkEnemyProxy`) + seed demo no servidor
+- [x] WorldSpawner silenciado em sessão multiplayer (evita AI local vs proxy)
 
-## Próximo (após LAN estável)
-1. [ ] Wire combate de cena → `rpc_solicitar_ataque_servidor`
-2. [ ] Proxies visuais de inimigos a partir do snapshot
+## Próximo (após combate LAN básico)
+1. [ ] Dano de inimigos do servidor → jogador (HP autoritativo)
+2. [ ] XP/Jenny/loot a partir de `entity_died` no cliente
 3. [ ] Quando contratar host: abrir UDP 7777, set `public_host`, `--no-lan-discovery`

@@ -49,6 +49,8 @@ var client_password_input: String = ""
 
 # peer_id -> NetworkPlayer
 var remote_players: Dictionary = {}
+# net_id -> NetworkEnemyProxy
+var remote_enemies: Dictionary = {}
 # peer_id -> PlayerNetworkState
 var last_states: Dictionary = {}
 
@@ -56,6 +58,7 @@ var _snapshot_timer: float = 0.0
 const SNAPSHOT_INTERVAL: float = 0.05 # 20 Hz
 var _ping_timer: float = 0.0
 const PING_INTERVAL: float = 2.0
+var _demo_enemies_seeded: bool = false
 
 # Sinais de Ciclo de Vida da Rede (Fase K-LAN)
 signal handshake_completed(success: bool, reason: String)
@@ -74,6 +77,8 @@ func _ready() -> void:
 	_conectar_sinais_multiplayer()
 	if not player_joined_session.is_connected(_on_player_joined_spawn_puppet):
 		player_joined_session.connect(_on_player_joined_spawn_puppet)
+	if not combat_hits_confirmed.is_connected(_on_combat_hits_confirmed):
+		combat_hits_confirmed.connect(_on_combat_hits_confirmed)
 	print("=================================")
 	print("[NetworkManager] MOTOR DE REDE INICIALIZADO (MODO: OFFLINE)")
 	print("=================================")
@@ -152,6 +157,7 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	world_coordinator = ServerWorldCoordinatorScript.new(cfg.tick_rate, cfg.starting_map)
 	world_coordinator.snapshot_ready.connect(_on_server_snapshot_ready)
 	world_coordinator.start_coordinator()
+	_seed_demo_enemies_if_needed()
 
 	# Iniciar Broadcaster de Descoberta LAN (desligar em VPS / host público)
 	if bool(cfg.enable_lan_discovery):
@@ -230,8 +236,28 @@ func desconectar() -> void:
 		if p != null and is_instance_valid(p):
 			p.queue_free()
 	remote_players.clear()
+	_limpar_inimigos_remotos()
 	last_states.clear()
 	session.limpar()
+	_demo_enemies_seeded = false
+
+
+func _limpar_inimigos_remotos() -> void:
+	for eid in remote_enemies.keys():
+		var n: Node = remote_enemies[eid]
+		if n != null and is_instance_valid(n):
+			n.queue_free()
+	remote_enemies.clear()
+
+
+func _seed_demo_enemies_if_needed() -> void:
+	if _demo_enemies_seeded or world_coordinator == null:
+		return
+	_demo_enemies_seeded = true
+	# Inimigos de demonstração no lobby/mapa inicial para validar combate LAN.
+	world_coordinator.spawn_enemy(&"lobo_nen", "Lobo de Nen", Vector2(180, 140), 180, 18, 8, false)
+	world_coordinator.spawn_enemy(&"fera_padokia", "Fera de Padokia", Vector2(260, 180), 220, 22, 12, false)
+	print("[HunterServer] 🐺 Inimigos demo spawnados no coordenador (2).")
 
 
 # ============================================================
@@ -595,6 +621,85 @@ func rpc_receber_snapshot_mundo(snapshot: Dictionary) -> void:
 			var puppet = remote_players.get(pid, null)
 			if puppet != null and puppet.has_method("aplicar_estado_snapshot"):
 				puppet.aplicar_estado_snapshot(p_data)
+
+	_sincronizar_inimigos_remotos(snapshot.get("enemies", []))
+
+
+func _sincronizar_inimigos_remotos(enemies_arr: Variant) -> void:
+	if is_dedicated_server():
+		return
+	if not (enemies_arr is Array):
+		return
+
+	var alive_ids: Dictionary = {}
+	for e_data in enemies_arr:
+		if not (e_data is Dictionary):
+			continue
+		var eid: int = int(e_data.get("id", 0))
+		if eid <= 0:
+			continue
+		alive_ids[eid] = true
+		if not remote_enemies.has(eid):
+			_spawn_enemy_proxy(eid, e_data)
+		var proxy = remote_enemies.get(eid, null)
+		if proxy != null and is_instance_valid(proxy) and proxy.has_method("aplicar_estado_snapshot"):
+			proxy.aplicar_estado_snapshot(e_data)
+
+	# Despawn proxies cujo id sumiu do snapshot (mortos no servidor)
+	var to_remove: Array = []
+	for eid in remote_enemies.keys():
+		if not alive_ids.has(eid):
+			to_remove.append(eid)
+	for eid in to_remove:
+		var n = remote_enemies[eid]
+		if n != null and is_instance_valid(n):
+			n.queue_free()
+		remote_enemies.erase(eid)
+
+
+func _spawn_enemy_proxy(net_id: int, data: Dictionary) -> void:
+	if remote_enemies.has(net_id) or is_dedicated_server():
+		return
+	var scene = get_tree().current_scene if get_tree() != null else null
+	if scene == null:
+		return
+	var proxy_script = load("res://scripts/network/NetworkEnemyProxy.gd")
+	if proxy_script == null:
+		return
+	var proxy = proxy_script.new()
+	proxy.net_id = net_id
+	proxy.name = "RemoteEnemy_%d" % net_id
+	proxy.display_name = str(data.get("name", "Beast"))
+	proxy.enemy_id = str(data.get("enemy_id", ""))
+	proxy.is_boss = bool(data.get("boss", false))
+	proxy.hp = int(data.get("hp", 100))
+	proxy.hp_max = int(data.get("hp_max", 100))
+	var pos := Vector2(float(data.get("px", 0.0)), float(data.get("py", 0.0)))
+	proxy.global_position = pos
+	proxy.target_position = pos
+	scene.add_child(proxy)
+	remote_enemies[net_id] = proxy
+	print("[NetworkManager] 🐺 Proxy de inimigo spawnado: %s (net %d)" % [proxy.display_name, net_id])
+
+
+func _on_combat_hits_confirmed(hits: Array) -> void:
+	if is_dedicated_server():
+		return
+	for hit in hits:
+		if not (hit is Dictionary):
+			continue
+		var eid: int = int(hit.get("net_id", 0))
+		var proxy = remote_enemies.get(eid, null)
+		if proxy == null or not is_instance_valid(proxy):
+			continue
+		if proxy.has_method("aplicar_hit_confirmado"):
+			proxy.aplicar_hit_confirmado(
+				int(hit.get("damage", 0)),
+				int(hit.get("hp_remaining", 0)),
+				bool(hit.get("is_dead", false))
+			)
+		if bool(hit.get("is_dead", false)):
+			remote_enemies.erase(eid)
 
 
 func _reconciliar_jogador_local(p_data: Dictionary) -> void:

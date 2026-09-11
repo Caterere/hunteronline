@@ -59,7 +59,8 @@
    * [x] Spawn de puppets remotos + intents → snapshots (autoridade servidor).
    * [x] Tick fixo 20 TPS + `config/server_config.json` válido + launchers portáteis.
    * [x] Campos `bind_address` / `public_host` / `enable_lan_discovery` para migrar a um host contratado.
-   * [ ] Combate/inimigos de cena 100% wired ao servidor (próximo slice co-op).
+   * [x] Combate cliente → RPC servidor + proxies de inimigos (`NetworkEnemyProxy`).
+   * [ ] Dano inimigo→jogador + recompensas (`entity_died`) no cliente.
    * [ ] Lista de servidores / DNS quando houver VPS (discovery LAN permanece opcional).
 4. **Progressão**:
    * [x] Soft-cap XP por saga + escala narrativa canônica (`CanonQuestCatalog.escalar_xp_narrativo`).

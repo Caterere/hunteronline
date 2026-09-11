@@ -55,6 +55,7 @@ func _ready() -> void:
 	_test_14_session_identity_and_peers_alias()
 	_test_15_config_discovery_and_fixed_tick()
 	_test_16_network_manager_puppet_spawn()
+	_test_17_enemy_proxy_and_server_combat()
 
 	_imprimir_resultado_final()
 
@@ -492,6 +493,62 @@ func _test_16_network_manager_puppet_spawn() -> void:
 	nm.remover_jogador_remoto(42)
 	nm.desconectar()
 	assert_test(nm.is_offline_singleplayer(), "volta a offline após limpeza")
+
+
+# ============================================================
+# TESTE 17: ENEMY PROXY + COMBATE AUTORITATIVO CONFIRMADO
+# ============================================================
+func _test_17_enemy_proxy_and_server_combat() -> void:
+	print("\n--- Teste 17: Enemy proxy + hits confirmados ---")
+	var nm = get_node_or_null("/root/NetworkManager")
+	assert_test(nm != null, "NetworkManager disponível para combate")
+	if nm == null:
+		return
+
+	nm.desconectar()
+	var cfg = ServerConfigScript.new()
+	cfg.port = 7798
+	cfg.enable_lan_discovery = false
+	cfg.server_name = "Combat Slice Test"
+	var err = nm.iniciar_servidor_dedicado(cfg)
+	assert_test(err == OK, "servidor dedicado para combate iniciado")
+	assert_test(nm.world_coordinator != null, "coordenador ativo")
+	assert_test(nm.world_coordinator.enemies.size() >= 2, "inimigos demo seedados no servidor")
+
+	# Snapshot deve incluir enemy_id
+	var snap = nm.world_coordinator.build_world_snapshot()
+	assert_test(snap["enemies"].size() >= 2, "snapshot contém inimigos vivos")
+	assert_test(snap["enemies"][0].has("enemy_id"), "snapshot inclui enemy_id")
+
+	# Simular cliente aplicando snapshot → proxies
+	nm.current_mode = nm.NetworkMode.CLIENT_PEER
+	nm.local_peer_id = 99
+	nm._sincronizar_inimigos_remotos(snap["enemies"])
+	assert_test(nm.remote_enemies.size() >= 2, "proxies de inimigos criados no cliente")
+
+	var first_id = int(snap["enemies"][0]["id"])
+	var proxy = nm.remote_enemies[first_id]
+	assert_test(proxy != null and proxy.is_in_group("enemy_proxies"), "proxy no grupo enemy_proxies")
+
+	# Combate autoritativo no coordenador
+	nm.world_coordinator.register_player(5, {"name": "Gon", "attributes": {"vida": 100}}, Vector2(180, 140))
+	var hits = nm.world_coordinator.apply_player_attack(5, Vector2(180, 140), Vector2.RIGHT, 80, 60.0, true)
+	assert_test(hits.size() >= 1, "ataque servidor gerou hits")
+	nm._on_combat_hits_confirmed(hits)
+	# Hit confirmado deve atualizar/despawnar proxy correspondente
+	var any_hit_applied := false
+	for h in hits:
+		var eid = int(h.get("net_id", -1))
+		if bool(h.get("is_dead", false)):
+			assert_test(not nm.remote_enemies.has(eid) or not is_instance_valid(nm.remote_enemies.get(eid)), "proxy morto removido")
+			any_hit_applied = true
+		elif nm.remote_enemies.has(eid):
+			assert_test(int(nm.remote_enemies[eid].hp) == int(h.get("hp_remaining", -1)), "HP do proxy sincronizado com hit")
+			any_hit_applied = true
+	assert_test(any_hit_applied, "feedback de hit aplicado no proxy")
+
+	nm.desconectar()
+	assert_test(nm.remote_enemies.is_empty(), "proxies limpos no disconnect")
 
 
 func _imprimir_resultado_final() -> void:

@@ -38,6 +38,10 @@ var _is_destroyed: bool = false
 func _ready() -> void:
 	add_to_group("world_spawners")
 	_configurar_timer()
+	# Em cliente/servidor dedicado, inimigos vêm do ServerWorldCoordinator (proxies).
+	if NetworkManager != null and not NetworkManager.is_offline_singleplayer():
+		auto_spawn_on_ready = false
+		return
 	if auto_spawn_on_ready:
 		call_deferred("spawn_entity")
 
@@ -51,6 +55,8 @@ func _configurar_timer() -> void:
 
 
 func spawn_entity() -> CharacterBody2D:
+	if NetworkManager != null and not NetworkManager.is_offline_singleplayer():
+		return null
 	if _is_destroyed or not is_inside_tree():
 		return null
 

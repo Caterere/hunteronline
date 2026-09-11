@@ -256,6 +256,13 @@ func apply_player_attack(
 		return hits
 
 	var atk_pos = (players[attacker_peer]["position"] as Vector2)
+	# Soft validation: se o cliente reportou origem absurda, usa posição autoritativa
+	if attack_origin != Vector2.ZERO and atk_pos.distance_to(attack_origin) <= 96.0:
+		atk_pos = atk_pos.lerp(attack_origin, 0.35)
+	var facing: Vector2 = attack_dir
+	if facing == Vector2.ZERO:
+		facing = players[attacker_peer]["facing"] as Vector2
+	facing = facing.normalized() if facing != Vector2.ZERO else Vector2.RIGHT
 	var final_dmg_calc = base_dmg * (2 if is_heavy else 1)
 
 	for eid in enemies.keys():
@@ -265,33 +272,42 @@ func apply_player_attack(
 
 		var e_pos: Vector2 = e["position"]
 		var dist = atk_pos.distance_to(e_pos)
-		if dist <= reach:
-			# Cálculo de mitigação via defesa
-			var def_factor = 100.0 / (100.0 + max(0.0, float(e["defense"])))
-			var dealt = max(1, int(round(float(final_dmg_calc) * def_factor)))
+		if dist > reach:
+			continue
+		# Cone frontal ~120° (dot >= -0.5) — evita acertar costas sem facing
+		var to_enemy: Vector2 = (e_pos - atk_pos).normalized()
+		if to_enemy != Vector2.ZERO and facing.dot(to_enemy) < -0.5:
+			continue
 
-			e["hp"] = max(0, e["hp"] - dealt)
+		# Cálculo de mitigação via defesa
+		var def_factor = 100.0 / (100.0 + max(0.0, float(e["defense"])))
+		var dealt = max(1, int(round(float(final_dmg_calc) * def_factor)))
 
-			# Adicionar ameaça (threat) ao atacante
-			var tt: Dictionary = e["threat_table"]
-			tt[attacker_peer] = float(tt.get(attacker_peer, 0.0)) + float(dealt)
+		e["hp"] = max(0, e["hp"] - dealt)
 
-			var hit_info: Dictionary = {
-				"net_id": eid,
-				"damage": dealt,
-				"hp_remaining": e["hp"],
-				"is_dead": e["hp"] <= 0
+		# Adicionar ameaça (threat) ao atacante
+		var tt: Dictionary = e["threat_table"]
+		tt[attacker_peer] = float(tt.get(attacker_peer, 0.0)) + float(dealt)
+
+		var hit_info: Dictionary = {
+			"net_id": eid,
+			"damage": dealt,
+			"hp_remaining": e["hp"],
+			"is_dead": e["hp"] <= 0,
+			"enemy_id": e["enemy_id"],
+			"px": snappedf(e_pos.x, 0.1),
+			"py": snappedf(e_pos.y, 0.1)
+		}
+		hits.append(hit_info)
+		entity_damaged.emit(eid, dealt, e["hp"])
+
+		if e["hp"] <= 0:
+			var rewards: Dictionary = {
+				"xp": 500 if not e["is_boss"] else 5000,
+				"gold": 1000 if not e["is_boss"] else 15000,
+				"enemy_id": e["enemy_id"]
 			}
-			hits.append(hit_info)
-			entity_damaged.emit(eid, dealt, e["hp"])
-
-			if e["hp"] <= 0:
-				var rewards: Dictionary = {
-					"xp": 500 if not e["is_boss"] else 5000,
-					"gold": 1000 if not e["is_boss"] else 15000,
-					"enemy_id": e["enemy_id"]
-				}
-				entity_died.emit(eid, attacker_peer, rewards)
+			entity_died.emit(eid, attacker_peer, rewards)
 
 	return hits
 
@@ -324,9 +340,12 @@ func build_world_snapshot() -> Dictionary:
 		if e["hp"] > 0:
 			e_snaps.append({
 				"id": eid,
+				"enemy_id": e["enemy_id"],
 				"name": e["name"],
 				"px": snappedf(e["position"].x, 0.1),
 				"py": snappedf(e["position"].y, 0.1),
+				"vx": snappedf(e["velocity"].x, 0.1),
+				"vy": snappedf(e["velocity"].y, 0.1),
 				"hp": e["hp"],
 				"hp_max": e["hp_max"],
 				"state": e["ai_state"],
