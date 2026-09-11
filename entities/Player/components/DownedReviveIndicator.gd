@@ -61,9 +61,9 @@ func _build_ui() -> void:
 func show_for_ally(show_hint: bool = true) -> void:
 	if _lbl_hint != null:
 		_lbl_hint.visible = show_hint
-		_lbl_hint.text = "[E] Reviver" if show_hint else ""
+		_lbl_hint.text = "Aperte [E] reviver" if show_hint else ""
 	if _lbl_status != null:
-		_lbl_status.text = "DESMAIADO"
+		_lbl_status.text = "JOGADOR DESMAIADO"
 	visible = true
 
 
