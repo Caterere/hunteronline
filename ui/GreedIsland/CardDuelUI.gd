@@ -8,7 +8,7 @@ extends CanvasLayer
 const CardDuelSystemScript = preload("res://scripts/systems/CardDuelSystem.gd")
 const CatalogScript = preload("res://resource/greed_island/GreedIslandCardCatalog.gd")
 
-var duel: CardDuelSystem = null
+var duel = null
 var lbl_header: Label
 var lbl_hp: Label
 var lbl_log: Label

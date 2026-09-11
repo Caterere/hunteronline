@@ -17,10 +17,13 @@ var lbl_progresso: Label
 var lbl_bonus: Label
 var btn_fechar: Button
 
-static var cartas_catalogo = GreedIslandCardCatalog.binder_catalog()
+static var cartas_catalogo = null
 
 
 func _ready() -> void:
+	if cartas_catalogo == null:
+		var Cat = load("res://resource/greed_island/GreedIslandCardCatalog.gd")
+		cartas_catalogo = Cat.binder_catalog()
 	process_mode = PROCESS_MODE_ALWAYS
 	layer = 15
 	visible = false

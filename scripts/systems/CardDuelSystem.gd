@@ -4,9 +4,8 @@ extends RefCounted
 # ============================================================
 # HUNTER ONLINE — GREED ISLAND CARD DUEL (S4)
 # ============================================================
-# Duelo 1v1 por turnos usando subset de cartas GI.
-# Não cria inventário paralelo: deck do jogador = owned ∩ catalog.
-# ============================================================
+
+const Catalog = preload("res://resource/greed_island/GreedIslandCardCatalog.gd")
 
 enum Phase { IDLE, PLAYER_TURN, ENEMY_TURN, RESOLVE, FINISHED }
 
@@ -60,20 +59,33 @@ func start_duel(player_cards: Array, enemy_cards: Array, foe_name: String = "Due
 
 
 func start_from_inventory(difficulty: String = "antokiba") -> Dictionary:
-	var owned: Array = GreedIslandCardCatalog.owned_duel_cards()
+	var owned: Array = Catalog.owned_duel_cards()
 	if owned.is_empty():
 		# Starter pack mínimo para first duel (não grava inventário — só sessão)
-		owned = GreedIslandCardCatalog.duel_catalog().slice(10, 18)
-	var foe := GreedIslandCardCatalog.npc_deck(difficulty)
+		owned = Catalog.duel_catalog().slice(10, 18)
+	var foe := Catalog.npc_deck(difficulty)
 	var name := "Razor" if difficulty == "razor" else "Duelista de Antokiba"
 	return start_duel(owned, foe, name)
 
 
 func can_play() -> bool:
-	return phase == Phase.PLAYER_TURN and winner.is_empty()
+	return phase == Phase.PLAYER_TURN and winner.is_empty() and not player_hand.is_empty()
 
 
 func play_card_at(hand_index: int) -> Dictionary:
+	if phase == Phase.PLAYER_TURN and player_hand.is_empty():
+		_finish_by_hp("Sem cartas restantes — fim por HP.")
+		return {
+			"ok": false,
+			"error": "sem_cartas",
+			"finished": true,
+			"winner": winner,
+			"player_hp": player_hp,
+			"enemy_hp": enemy_hp,
+			"log": last_log,
+			"hand": [],
+			"turn": turn,
+		}
 	if not can_play():
 		return {"ok": false, "error": "nao_e_sua_vez"}
 	if hand_index < 0 or hand_index >= player_hand.size():
@@ -86,26 +98,7 @@ func play_card_at(hand_index: int) -> Dictionary:
 	var result := _resolve_clash(player_card, enemy_card)
 	last_log = str(result.get("log", ""))
 	turn += 1
-
-	if player_hp <= 0 and enemy_hp <= 0:
-		winner = "draw"
-		phase = Phase.FINISHED
-	elif enemy_hp <= 0:
-		winner = "player"
-		phase = Phase.FINISHED
-	elif player_hp <= 0:
-		winner = "enemy"
-		phase = Phase.FINISHED
-	elif turn > MAX_TURNS:
-		if player_hp > enemy_hp:
-			winner = "player"
-		elif enemy_hp > player_hp:
-			winner = "enemy"
-		else:
-			winner = "draw"
-		phase = Phase.FINISHED
-	else:
-		phase = Phase.PLAYER_TURN
+	_update_end_state()
 
 	return {
 		"ok": true,
@@ -119,6 +112,35 @@ func play_card_at(hand_index: int) -> Dictionary:
 		"hand": player_hand.duplicate(true),
 		"turn": turn,
 	}
+
+
+func _update_end_state() -> void:
+	if player_hp <= 0 and enemy_hp <= 0:
+		winner = "draw"
+		phase = Phase.FINISHED
+	elif enemy_hp <= 0:
+		winner = "player"
+		phase = Phase.FINISHED
+	elif player_hp <= 0:
+		winner = "enemy"
+		phase = Phase.FINISHED
+	elif turn > MAX_TURNS:
+		_finish_by_hp("Limite de turnos.")
+	elif player_hand.is_empty() and player_deck.is_empty():
+		_finish_by_hp("Cartas esgotadas.")
+	else:
+		phase = Phase.PLAYER_TURN
+
+
+func _finish_by_hp(reason: String) -> void:
+	if player_hp > enemy_hp:
+		winner = "player"
+	elif enemy_hp > player_hp:
+		winner = "enemy"
+	else:
+		winner = "draw"
+	phase = Phase.FINISHED
+	last_log = "%s Resultado: %s (você %d × rival %d)" % [reason, winner, player_hp, enemy_hp]
 
 
 func snapshot() -> Dictionary:
@@ -150,7 +172,7 @@ func _enemy_choose_card() -> Dictionary:
 	if enemy_hand.is_empty():
 		_draw_to_hand(false, 1)
 	if enemy_hand.is_empty():
-		var fallback := GreedIslandCardCatalog.duel_catalog()
+		var fallback := Catalog.duel_catalog()
 		return fallback[0] if not fallback.is_empty() else {"nome": "Carta Vazia", "atk": 1, "def": 1, "kind": "spell"}
 	# Heurística: prioriza attack se player_hp baixo, senão maior atk+def
 	var best_i := 0

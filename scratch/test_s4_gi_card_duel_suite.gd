@@ -4,6 +4,10 @@ extends Node
 # HUNTER ONLINE — S4 GREED ISLAND CARD DUEL SUITE
 # ============================================================
 
+const CardDuelSystemScript = preload("res://scripts/systems/CardDuelSystem.gd")
+const CatalogScript = preload("res://resource/greed_island/GreedIslandCardCatalog.gd")
+const CardDuelUIScript = preload("res://ui/GreedIsland/CardDuelUI.gd")
+
 var _passed: int = 0
 var _total: int = 0
 var _failures: PackedStringArray = []
@@ -16,7 +20,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	_test_catalog()
 	_test_duel_flow()
-	_test_ui_wiring()
+	await _test_ui_wiring()
 	print("\n================================================================================")
 	print("🏆 RESULTADO: %d / %d" % [_passed, _total])
 	if not _failures.is_empty():
@@ -38,52 +42,55 @@ func _ok(cond: bool, label: String) -> void:
 
 func _test_catalog() -> void:
 	print("\n[1] Catálogo duelável...")
-	var cats: Array = GreedIslandCardCatalog.duel_catalog()
+	var cats: Array = CatalogScript.duel_catalog()
 	_ok(cats.size() >= 20, "≥20 cartas dueláveis (%d)" % cats.size())
 	_ok(cats.size() <= 40, "≤40 cartas (subset) (%d)" % cats.size())
 	var first: Dictionary = cats[0]
 	_ok(first.has("id") and first.has("atk") and first.has("def") and first.has("kind"), "Campos de combate presentes")
-	var binder: Array = GreedIslandCardCatalog.binder_catalog()
+	var binder: Array = CatalogScript.binder_catalog()
 	_ok(binder.size() == cats.size(), "Binder catalog alinhado ao duel catalog")
-	var npc: Array = GreedIslandCardCatalog.npc_deck("antokiba")
+	var npc: Array = CatalogScript.npc_deck("antokiba")
 	_ok(npc.size() == 8, "NPC deck Antokiba = 8 (%d)" % npc.size())
-	var razor: Array = GreedIslandCardCatalog.npc_deck("razor")
+	var razor: Array = CatalogScript.npc_deck("razor")
 	_ok(razor.size() == 8, "NPC deck Razor = 8")
-	var by := GreedIslandCardCatalog.by_id("carta_000")
+	var by: Dictionary = CatalogScript.by_id("carta_000")
 	_ok(str(by.get("nome", "")).length() > 0, "by_id carta_000 ok")
 
 
 func _test_duel_flow() -> void:
 	print("\n[2] CardDuelSystem fluxo...")
-	var duel := CardDuelSystem.new()
+	var duel = CardDuelSystemScript.new()
 	var res: Dictionary = duel.start_from_inventory("antokiba")
 	_ok(bool(res.get("ok", false)), "start_from_inventory ok")
-	_ok(int(res.get("player_hp", 0)) == CardDuelSystem.STARTING_HP, "HP inicial player")
+	_ok(int(res.get("player_hp", 0)) == CardDuelSystemScript.STARTING_HP, "HP inicial player")
 	_ok(duel.can_play(), "can_play no turno do player")
 	var hand: Array = res.get("hand", [])
-	_ok(hand.size() == CardDuelSystem.HAND_SIZE, "Mão inicial = HAND_SIZE")
+	_ok(hand.size() == CardDuelSystemScript.HAND_SIZE, "Mão inicial = HAND_SIZE")
 
 	var turns := 0
 	while duel.can_play() and turns < 30:
 		var play: Dictionary = duel.play_card_at(0)
 		_ok(bool(play.get("ok", false)), "play_card_at ok (t%d)" % turns)
 		turns += 1
-		if bool(play.get("finished", false)):
+		if bool(play.get("finished", false)) or not str(play.get("winner", "")).is_empty():
 			break
+	# Se a mão acabou sem finished flag no último ok, força uma checagem
+	if str(duel.snapshot().get("winner", "")).is_empty() and not duel.can_play():
+		var end_play: Dictionary = duel.play_card_at(0)
+		_ok(bool(end_play.get("finished", false)) or not str(duel.snapshot().get("winner", "")).is_empty(), "Fim forçado com mão vazia")
 	var snap: Dictionary = duel.snapshot()
 	_ok(str(snap.get("winner", "")).length() > 0, "Duelo termina com winner")
 	_ok(str(snap.get("winner", "")) in ["player", "enemy", "draw"], "Winner válido")
+	_ok(turns >= 1 and turns <= 30, "Duelo concluiu em %d turnos" % turns)
 
-	# Jogada inválida fora de turno
 	var bad: Dictionary = duel.play_card_at(0)
 	_ok(not bool(bad.get("ok", false)), "Recusa jogada após fim")
 
 
 func _test_ui_wiring() -> void:
 	print("\n[3] UI + mapa + docs...")
-	var UiScript = load("res://ui/GreedIsland/CardDuelUI.gd")
-	_ok(UiScript != null, "CardDuelUI.gd carrega")
-	var ui = UiScript.new()
+	_ok(CardDuelUIScript != null, "CardDuelUI.gd carrega")
+	var ui = CardDuelUIScript.new()
 	add_child(ui)
 	await get_tree().process_frame
 	ui.abrir("antokiba")
