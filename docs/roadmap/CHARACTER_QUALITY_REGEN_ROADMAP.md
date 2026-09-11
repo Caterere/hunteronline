@@ -22,8 +22,8 @@
 
 | Saga | Foco | Status |
 | :--- | :--- | :--- |
-| **S0** | Âncora + hub (player, Elena, Wing, Satotz) | `IN PROGRESS` |
-| **S1** | Main four (Gon, Killua, Kurapika, Leorio) + Hisoka | `PENDING` |
+| **S0** | Âncora + hub (Elena, Wing, Satotz; player sheet TBD) | `DONE` (hub NPCs) |
+| **S1** | Main four (Gon, Killua, Kurapika, Leorio) + Hisoka + Netero + Chrollo | `DONE` |
 | **S2** | Hunter Exam secundários (Tonpa, Hanzo, Pokkle, Ponzu, Menchi, Buhara, Illumi, Bodorro, Nicol…) | `PENDING` |
 | **S3** | Zoldyck (Canary, Gotoh, Silva, mordomos ambient) | `PENDING` |
 | **S4** | Heaven’s Arena (Zushi, lutadores ambient) | `PENDING` |
