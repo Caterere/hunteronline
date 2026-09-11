@@ -1,118 +1,14 @@
 {
-  "batch": "cast_v96_stylelock",
-  "created_at": 1789163222.324982,
+  "batch": "cast_v96_hair_pass",
+  "created_at": 1789170638.7909355,
   "characters": [
     {
-      "name": "npc_tonpa",
+      "name": "npc_gon",
       "ok": true,
-      "character_id": "bc67225b-fe69-4e0f-adb7-27508003938c",
-      "pixen_job": "0a4813f9-d3b2-4172-a2fd-1d9b3e499223",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_tonpa_8dir.png"
-    },
-    {
-      "name": "npc_hanzo",
-      "ok": true,
-      "character_id": "b2f5a477-1d12-44e6-934f-b44c66faff11",
-      "pixen_job": "4710b0cb-381a-4655-ab93-ebd8cc2beb46",
-      "fitted_h": 35,
-      "sheet": "assets/sprites/characters/npc_hanzo_8dir.png"
-    },
-    {
-      "name": "npc_pokkle",
-      "ok": true,
-      "character_id": "d438aace-1b02-4d37-879a-316aa8942438",
-      "pixen_job": "1b3c022c-9fde-40c3-bd6f-87f67ef36140",
-      "fitted_h": 41,
-      "sheet": "assets/sprites/characters/npc_pokkle_8dir.png"
-    },
-    {
-      "name": "npc_ponzu",
-      "ok": true,
-      "character_id": "ba00be68-ddac-4cb4-9572-8f4ab1e51a7e",
-      "pixen_job": "92a6522a-2cd3-402a-aecd-87e511343588",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_ponzu_8dir.png"
-    },
-    {
-      "name": "npc_menchi",
-      "ok": true,
-      "character_id": "de0bf90a-9516-4210-bf4b-0028a4ddfe60",
-      "pixen_job": "bf6bffc2-01b8-4686-a874-217cf5541f78",
-      "fitted_h": 36,
-      "sheet": "assets/sprites/characters/npc_menchi_8dir.png"
-    },
-    {
-      "name": "npc_buhara",
-      "ok": true,
-      "character_id": "84214f42-fb6f-4af4-9f77-37fde2ac8e8a",
-      "pixen_job": "78cb0341-b559-4353-bcd0-00e6f071856c",
-      "fitted_h": 35,
-      "sheet": "assets/sprites/characters/npc_buhara_8dir.png"
-    },
-    {
-      "name": "npc_gittarackur",
-      "ok": true,
-      "character_id": "1f81d724-1eef-4e4d-baa3-e8bdc8d42f20",
-      "pixen_job": "59d4c721-8126-4daa-a418-6e41e1ee5aab",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_gittarackur_8dir.png"
-    },
-    {
-      "name": "npc_bodoro",
-      "ok": true,
-      "character_id": "8aecd3a3-6e9e-4f72-be9f-5c9cf7016ade",
-      "pixen_job": "2fdc773e-111f-4cdb-bb46-986b12be657d",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_bodoro_8dir.png"
-    },
-    {
-      "name": "npc_nicol",
-      "ok": true,
-      "character_id": "ccbc6837-f698-4fe8-a44a-d93d5af0cd8b",
-      "pixen_job": "dbaf0758-2173-4d67-adcc-352d1ef9b4c5",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_nicol_8dir.png"
-    },
-    {
-      "name": "npc_discipulo_zushi",
-      "ok": true,
-      "character_id": "87d1d59e-71ef-4740-b9bd-3c9dcdd3f869",
-      "pixen_job": "32033fb1-0004-4fbe-805d-79a9e0f2c5a2",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_discipulo_zushi_8dir.png"
-    },
-    {
-      "name": "npc_guarda_fronteira",
-      "ok": true,
-      "character_id": "a8fee4c3-be66-430f-853c-90ddb30f321f",
-      "pixen_job": "1f60f2e8-87d3-47a7-a300-330f7d6612d1",
-      "fitted_h": 38,
-      "sheet": "assets/sprites/characters/npc_guarda_fronteira_8dir.png"
-    },
-    {
-      "name": "npc_ferreiro_mestre",
-      "ok": true,
-      "character_id": "5f1b1ed0-8f7b-4f31-a7aa-83e6f1eee9f0",
-      "pixen_job": "5b9a77a9-08e2-4757-a641-990c36f87d71",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_ferreiro_mestre_8dir.png"
-    },
-    {
-      "name": "npc_vendedor_mercador",
-      "ok": true,
-      "character_id": "f8c6084c-f76c-4311-a7da-cd8fb7191598",
-      "pixen_job": "2e94eff6-1c65-49e8-bd18-eb75ab1c8f40",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_vendedor_mercador_8dir.png"
-    },
-    {
-      "name": "npc_viajante_scout",
-      "ok": true,
-      "character_id": "be09b4b8-e06e-400e-afa4-c04674c8b5bb",
-      "pixen_job": "cb806092-3aa9-41d1-a51f-7e22d72da958",
-      "fitted_h": 42,
-      "sheet": "assets/sprites/characters/npc_viajante_scout_8dir.png"
+      "character_id": "1023a61d-0d1c-4a87-ba4c-5b9b518b5b32",
+      "pixen_job": null,
+      "fitted_h": 46,
+      "sheet": "assets/sprites/characters/npc_gon_8dir.png"
     }
   ]
 }

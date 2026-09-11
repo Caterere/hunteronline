@@ -61,10 +61,9 @@ CAST: list[tuple[str, str]] = [
     ),
     (
         "npc_killua",
-        f"{LOCK}. HAIR FIRST: Killua Zoldyck — silver-white / pale lavender-white hair gelled UP and BACK, "
-        "irregular spike lengths (tall crown spikes + shorter sides), messy bangs hanging unevenly over forehead, "
-        "NOT a short uniform spiked crown, NOT blue hair. Body: dark blue sleeveless turtleneck, baggy white pants, "
-        "pale skin, catlike boy assassin.",
+        f"{LOCK}. HAIR FIRST: Killua Zoldyck — SILVER-WHITE hair gelled sharply UPWARD and BACKWARD, "
+        "tall irregular crown spikes (cat-ear silhouette), uneven bangs over forehead, volume on top, "
+        "NOT short buzz spikes, NOT blue, NOT purple. Body: dark blue sleeveless turtleneck, baggy white pants.",
     ),
     (
         "npc_kurapika",
@@ -80,9 +79,9 @@ CAST: list[tuple[str, str]] = [
     ),
     (
         "npc_hisoka",
-        f"{LOCK}. HAIR FIRST: Hisoka — bright magenta/pink-red hair swept BACKWARD into long needle-like pointed "
-        "spikes (theatrical), NO yellow tips, NO crown of yellow points. Face: very pale with simple star mark "
-        "and teardrop mark as color blocks. Body: dark suit, sinister lean.",
+        f"{LOCK}. HAIR FIRST: Hisoka — magenta/hot-pink hair swept BACK in long pointed needles, "
+        "pure pink/magenta only — ABSOLUTELY NO yellow tips, NO gold antenna. "
+        "Face: pale with blue teardrop + red star cheek marks as blocks. Body: dark suit, lean.",
     ),
     (
         "npc_netero",
@@ -397,6 +396,11 @@ def download_sheet(token: str, character_id: str, dest_sheet: Path, rot_dir: Pat
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", default="", help="comma-separated stems")
+    ap.add_argument(
+        "--reuse-fitted",
+        action="store_true",
+        help="Skip pixen when v96_south_refs/<name>_south_fitted.png already exists",
+    )
     args = ap.parse_args()
     only = {s.strip() for s in args.only.split(",") if s.strip()}
 
@@ -433,49 +437,57 @@ def main() -> int:
         print(f"\n=== {name} ===", flush=True)
         archive_legacy(name)
 
-        r = None
-        for _attempt in range(12):
-            r = mcp.tool(
-                "create_image_pixen",
-                {
-                    "description": desc,
-                    "width": FRAME,
-                    "height": FRAME,
-                    "no_background": True,
-                    "view": "low top-down",
-                    "direction": "south",
-                    "outline": "single color black outline",
-                    "detail": "highly detailed",
-                },
-            )
-            print("   ", r["text"][:220].replace("\n", " "), flush=True)
-            if "429" in r["text"] or "Maximum" in r["text"]:
-                time.sleep(20)
-                continue
-            break
-        jid = uuid_from(r["text"]) if r else None
-        if not jid:
-            meta["characters"].append({"name": name, "ok": False, "stage": "pixen"})
-            continue
-
-        img = poll_image(mcp, jid)
-        raw_path = OUT_SOUTH / f"{name}_pixen_raw.png"
-        if not save_img(img["images"], raw_path):
-            m = re.search(r"https://\S+", img["text"])
-            if not m:
-                meta["characters"].append({"name": name, "ok": False, "stage": "pixen_save", "job": jid})
-                continue
-            url = m.group(0).rstrip(").,")
-            req = urllib.request.Request(url, headers={"User-Agent": "ho"})
-            with urllib.request.urlopen(req, timeout=60) as resp:
-                raw_path.write_bytes(resp.read())
-
-        fitted = fit_stylelock_v2(Image.open(raw_path))
         fit_path = OUT_SOUTH / f"{name}_south_fitted.png"
-        fitted.save(fit_path)
-        bb = fitted.split()[-1].getbbox()
-        h = (bb[3] - bb[1]) if bb else 0
-        print(f"    fitted h={h} feetY={bb[3] if bb else None}", flush=True)
+        jid = None
+        if args.reuse_fitted and fit_path.exists():
+            print(f"    reuse fitted {fit_path.name}", flush=True)
+            fitted = Image.open(fit_path).convert("RGBA")
+            bb = fitted.split()[-1].getbbox()
+            h = (bb[3] - bb[1]) if bb else 0
+            print(f"    fitted h={h} feetY={bb[3] if bb else None}", flush=True)
+        else:
+            r = None
+            for _attempt in range(12):
+                r = mcp.tool(
+                    "create_image_pixen",
+                    {
+                        "description": desc,
+                        "width": FRAME,
+                        "height": FRAME,
+                        "no_background": True,
+                        "view": "low top-down",
+                        "direction": "south",
+                        "outline": "single color black outline",
+                        "detail": "highly detailed",
+                    },
+                )
+                print("   ", r["text"][:220].replace("\n", " "), flush=True)
+                if "429" in r["text"] or "Maximum" in r["text"]:
+                    time.sleep(20)
+                    continue
+                break
+            jid = uuid_from(r["text"]) if r else None
+            if not jid:
+                meta["characters"].append({"name": name, "ok": False, "stage": "pixen"})
+                continue
+
+            img = poll_image(mcp, jid)
+            raw_path = OUT_SOUTH / f"{name}_pixen_raw.png"
+            if not save_img(img["images"], raw_path):
+                m = re.search(r"https://\S+", img["text"])
+                if not m:
+                    meta["characters"].append({"name": name, "ok": False, "stage": "pixen_save", "job": jid})
+                    continue
+                url = m.group(0).rstrip(").,")
+                req = urllib.request.Request(url, headers={"User-Agent": "ho"})
+                with urllib.request.urlopen(req, timeout=60) as resp:
+                    raw_path.write_bytes(resp.read())
+
+            fitted = fit_stylelock_v2(Image.open(raw_path))
+            fitted.save(fit_path)
+            bb = fitted.split()[-1].getbbox()
+            h = (bb[3] - bb[1]) if bb else 0
+            print(f"    fitted h={h} feetY={bb[3] if bb else None}", flush=True)
 
         buf = io.BytesIO()
         fitted.save(buf, format="PNG")
@@ -492,7 +504,7 @@ def main() -> int:
                     "size": FRAME,
                     "view": "low top-down",
                     "outline": "single color black outline",
-                    "detail": "highly detailed",
+                    "detail": "high detail",
                     "reference_image_base64": ref_b64,
                 },
             )
