@@ -58,6 +58,7 @@ func _ready() -> void:
 	_test_17_enemy_proxy_and_server_combat()
 	_test_18_enemy_damage_and_rewards()
 	_test_19_nen_mitigation_death_respawn()
+	_test_20_server_list_and_interest_delta()
 
 	_imprimir_resultado_final()
 
@@ -679,6 +680,55 @@ func _test_19_nen_mitigation_death_respawn() -> void:
 		if not bool(coord.players[8]["is_dead"]):
 			break
 	assert_test(bool(coord.players[8]["is_dead"]) == false, "request_respawn antecipa renascimento")
+
+	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 20: SERVER LIST + INTEREST / DELTA SNAPSHOTS
+# ============================================================
+func _test_20_server_list_and_interest_delta() -> void:
+	print("\n--- Teste 20: Server list + interest/delta snapshots ---")
+	var ServerListCatalogScript = load("res://scripts/network/ServerListCatalog.gd")
+	var servers: Array = ServerListCatalogScript.load_servers()
+	assert_test(servers.size() >= 1, "server_list.json carrega entradas")
+	assert_test(str(servers[0].get("host", "")).length() > 0, "entrada tem host")
+	var vps = ServerListCatalogScript.find_by_id("vps_placeholder")
+	assert_test(str(vps.get("host", "")) == "hunter.example.com", "DNS placeholder do VPS encontrado")
+
+	var cfg = ServerConfigScript.load_from_file("res://config/server_config.json")
+	assert_test(cfg.interest_radius >= 100.0, "interest_radius configurado")
+	assert_test(cfg.snapshot_delta == true, "snapshot_delta habilitado por padrão")
+
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.interest_radius_default = 120.0
+	coord.use_snapshot_delta = true
+	coord.start_coordinator()
+	coord.register_player(1, {"name": "Near", "attributes": {"vida": 100}}, Vector2(0, 0))
+	coord.register_player(2, {"name": "Far", "attributes": {"vida": 100}}, Vector2(500, 0))
+	var near_eid: int = coord.spawn_enemy(&"lobo_nen", "Near Wolf", Vector2(40, 0), 50, 10, 5)
+	var far_eid: int = coord.spawn_enemy(&"fera_padokia", "Far Beast", Vector2(480, 0), 50, 10, 5)
+
+	var full1: Dictionary = coord.build_interest_snapshot(1, 120.0, true)
+	assert_test(bool(full1.get("full", false)) == true, "primeiro snapshot é full")
+	assert_test((full1.get("players", []) as Array).size() == 1, "AoI: só peer local no raio 120")
+	assert_test((full1.get("enemies", []) as Array).size() == 1, "AoI: só inimigo perto")
+
+	# Segundo tick sem mudanças → delta vazio
+	var delta_empty: Dictionary = coord.build_interest_snapshot(1, 120.0, false)
+	assert_test(bool(delta_empty.get("full", true)) == false, "segundo snapshot é delta")
+	assert_test((delta_empty.get("players", []) as Array).is_empty(), "delta sem mudanças de players")
+	assert_test((delta_empty.get("enemies", []) as Array).is_empty(), "delta sem mudanças de enemies")
+
+	# Mover inimigo longe para perto → aparece no delta
+	coord.enemies[far_eid]["position"] = Vector2(30, 0)
+	var delta_new: Dictionary = coord.build_interest_snapshot(1, 120.0, false)
+	assert_test((delta_new.get("enemies", []) as Array).size() >= 1, "delta inclui inimigo que entrou no AoI")
+
+	# Afastar o inimigo original → removed_enemies
+	coord.enemies[near_eid]["position"] = Vector2(800, 0)
+	var delta_rem: Dictionary = coord.build_interest_snapshot(1, 120.0, false)
+	assert_test((delta_rem.get("removed_enemies", []) as Array).has(near_eid), "delta remove inimigo fora do AoI")
 
 	coord.stop_coordinator()
 

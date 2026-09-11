@@ -124,6 +124,8 @@ New-NetFirewallRule -DisplayName "Hunter MMORPG Discovery (Broadcast UDP)" -Dire
 ### Checklist rápido: LAN hoje → host depois
 1. **Hoje (mesma rede):** `./iniciar_servidor_lan.sh` no PC host → clientes em IP `192.168.x.x:7777` ou lista LAN.
 2. **Depois (VPS):** mesmo binário/projeto, abrir UDP 7777, setar `public_host`, desligar discovery, clientes conectam por IP/DNS.
+3. **Lista DNS no cliente:** edite `config/server_list.json` (ou `user://server_list.json`) com o host do VPS; o menu Multiplayer mostra em **SERVIDORES PÚBLICOS / DNS**.
+4. **Escalabilidade:** `interest_radius` (padrão 900) e `snapshot_delta` (padrão true) reduzem banda por peer.
 
 ---
 

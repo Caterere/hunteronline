@@ -27,7 +27,10 @@
 - [x] Polish visual dos proxies (sprites por `enemy_id`)
 - [x] Morte/respawn multiplayer (`player_died` / `player_respawned` + RPCs)
 - [x] Mitigação aura/Nen no dano sofrido no servidor (TEN/KEN/REN/ZETSU…)
+- [x] Lista pública/DNS (`config/server_list.json` + menu)
+- [x] Interest management (AoI) + snapshots delta por peer
 
 ## Próximo
-1. [ ] Quando contratar host: abrir UDP 7777, set `public_host`, `--no-lan-discovery`
-2. [ ] Sync de party/chat polish + interest management de snapshots
+1. [ ] Quando contratar VPS: set `public_host`, `--no-lan-discovery`, editar `server_list.json`
+2. [ ] Master server / matchmaking se houver vários hosts
+3. [ ] Compressão / cap de taxa de snapshot

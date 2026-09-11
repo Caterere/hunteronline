@@ -27,6 +27,8 @@ var region: String = "Capital dos Caçadores"
 var bind_address: String = "*" # "*" = todas as interfaces (LAN + futuro VPS)
 var public_host: String = "" # IP/DNS público opcional (VPS); vazio = só LAN/IP local
 var enable_lan_discovery: bool = true # desligar em host público / VPS
+var interest_radius: float = 900.0 # AoI: só envia entidades perto do jogador
+var snapshot_delta: bool = true # envia só mudanças vs último snapshot do peer
 var save_interval_sec: int = 60
 var motd: String = "Bem-vindo ao servidor LAN de Hunter Online!"
 var debug: bool = true
@@ -46,6 +48,8 @@ func to_dict() -> Dictionary:
 		"bind_address": bind_address,
 		"public_host": public_host,
 		"enable_lan_discovery": enable_lan_discovery,
+		"interest_radius": interest_radius,
+		"snapshot_delta": snapshot_delta,
 		"save_interval_sec": save_interval_sec,
 		"motd": motd,
 		"debug": debug
@@ -67,6 +71,8 @@ static func from_dict(d: Dictionary) -> ServerConfig:
 	cfg.bind_address = str(d.get("bind_address", "*"))
 	cfg.public_host = str(d.get("public_host", ""))
 	cfg.enable_lan_discovery = bool(d.get("enable_lan_discovery", true))
+	cfg.interest_radius = float(d.get("interest_radius", 900.0))
+	cfg.snapshot_delta = bool(d.get("snapshot_delta", true))
 	cfg.save_interval_sec = int(d.get("save_interval_sec", 60))
 	cfg.motd = str(d.get("motd", "Bem-vindo ao servidor LAN de Hunter Online!"))
 	cfg.debug = bool(d.get("debug", true))
@@ -137,6 +143,10 @@ func apply_cmdline_args() -> void:
 			bind_address = args[i + 1]
 		elif arg == "--public-host" and i + 1 < args.size():
 			public_host = args[i + 1]
+		elif arg == "--interest-radius" and i + 1 < args.size():
+			interest_radius = float(args[i + 1])
+		elif arg == "--full-snapshots":
+			snapshot_delta = false
 		elif arg == "--no-lan-discovery":
 			enable_lan_discovery = false
 		elif arg == "--save-path" and i + 1 < args.size():

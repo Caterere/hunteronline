@@ -13,6 +13,7 @@ extends Control
 
 const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 const LanDiscoveryListenerScript = preload("res://scripts/network/LanDiscoveryListener.gd")
+const ServerListCatalogScript = preload("res://scripts/network/ServerListCatalog.gd")
 
 var line_edit_ip: LineEdit
 var line_edit_port: LineEdit
@@ -23,6 +24,7 @@ var btn_refresh_lan: Button
 var btn_back: Button
 var lbl_status: Label
 var server_list_container: VBoxContainer
+var public_list_container: VBoxContainer
 
 var discovery_listener = null
 var _is_connecting: bool = false
@@ -31,6 +33,7 @@ var _is_connecting: bool = false
 func _ready() -> void:
 	_construir_ui()
 	_iniciar_descoberta_lan()
+	_popular_servidores_publicos()
 	set_process(true)
 
 	if NetworkManager != null:
@@ -70,7 +73,7 @@ func _construir_ui() -> void:
 
 	# Título
 	var lbl_title := Label.new()
-	lbl_title.text = "HUNTER ONLINE — MULTIPLAYER LAN & VPN"
+	lbl_title.text = "HUNTER ONLINE — MULTIPLAYER LAN / VPN / VPS"
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.add_theme_font_size_override("font_size", 9)
 	lbl_title.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_GOLD)
@@ -96,7 +99,7 @@ func _construir_ui() -> void:
 	col_left.add_child(_criar_label("Endereço IP do Servidor:"))
 	line_edit_ip = LineEdit.new()
 	line_edit_ip.text = "127.0.0.1"
-	line_edit_ip.placeholder_text = "26.x.x.x ou 192.168.x.x"
+	line_edit_ip.placeholder_text = "192.168.x.x / 26.x.x.x / DNS do VPS"
 	col_left.add_child(line_edit_ip)
 
 	col_left.add_child(_criar_label("Porta do Servidor:"))
@@ -145,12 +148,29 @@ func _construir_ui() -> void:
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.custom_minimum_size = Vector2(0, 70)
 	col_right.add_child(scroll)
 
 	server_list_container = VBoxContainer.new()
 	server_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	server_list_container.add_theme_constant_override("separation", 3)
 	scroll.add_child(server_list_container)
+
+	var lbl_public := Label.new()
+	lbl_public.text = "SERVIDORES PÚBLICOS / DNS"
+	lbl_public.add_theme_font_size_override("font_size", 6)
+	lbl_public.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+	col_right.add_child(lbl_public)
+
+	var scroll_pub := ScrollContainer.new()
+	scroll_pub.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll_pub.custom_minimum_size = Vector2(0, 70)
+	col_right.add_child(scroll_pub)
+
+	public_list_container = VBoxContainer.new()
+	public_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	public_list_container.add_theme_constant_override("separation", 3)
+	scroll_pub.add_child(public_list_container)
 
 	# Rodapé: Status & Voltar
 	var hbox_footer := HBoxContainer.new()
@@ -176,6 +196,55 @@ func _criar_label(txt: String) -> Label:
 	l.add_theme_font_size_override("font_size", 5)
 	l.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85, 1.0))
 	return l
+
+
+func _popular_servidores_publicos() -> void:
+	if public_list_container == null:
+		return
+	for child in public_list_container.get_children():
+		child.queue_free()
+
+	var servers: Array = ServerListCatalogScript.load_servers()
+	if servers.is_empty():
+		var lbl := Label.new()
+		lbl.text = "Nenhum servidor em config/server_list.json"
+		lbl.add_theme_font_size_override("font_size", 5)
+		lbl.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6, 1.0))
+		public_list_container.add_child(lbl)
+		return
+
+	for info in servers:
+		var panel := PanelContainer.new()
+		panel.custom_minimum_size = Vector2(0, 30)
+		panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GREEN, 3))
+		public_list_container.add_child(panel)
+
+		var hbox := HBoxContainer.new()
+		panel.add_child(hbox)
+
+		var lbl_srv := Label.new()
+		var notes: String = str(info.get("notes", ""))
+		lbl_srv.text = "%s | %s:%d%s" % [
+			info.get("name", "Server"),
+			info.get("host", "127.0.0.1"),
+			int(info.get("port", 7777)),
+			(" — " + notes) if not notes.is_empty() else ""
+		]
+		lbl_srv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lbl_srv.add_theme_font_size_override("font_size", 5)
+		hbox.add_child(lbl_srv)
+
+		var btn_join := Button.new()
+		btn_join.text = "USAR"
+		HunterUIStyle.aplicar_estilo_botao(btn_join, HunterUIStyle.COLOR_BORDER_GREEN)
+		var host: String = str(info.get("host", "127.0.0.1"))
+		var port: int = int(info.get("port", 7777))
+		btn_join.pressed.connect(func():
+			line_edit_ip.text = host
+			line_edit_port.text = str(port)
+			_atualizar_label_status("Selecionado: %s:%d" % [host, port], Color(0.5, 1.0, 0.7))
+		)
+		hbox.add_child(btn_join)
 
 
 func _iniciar_descoberta_lan() -> void:

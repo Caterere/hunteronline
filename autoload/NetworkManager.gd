@@ -155,6 +155,8 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	# Inicializar Storage e Coordinator no servidor
 	server_storage = ServerStorageManagerScript.new(cfg.save_path)
 	world_coordinator = ServerWorldCoordinatorScript.new(cfg.tick_rate, cfg.starting_map)
+	world_coordinator.interest_radius_default = float(cfg.interest_radius)
+	world_coordinator.use_snapshot_delta = bool(cfg.snapshot_delta)
 	world_coordinator.snapshot_ready.connect(_on_server_snapshot_ready)
 	if not world_coordinator.player_damaged.is_connected(_on_server_player_damaged):
 		world_coordinator.player_damaged.connect(_on_server_player_damaged)
@@ -191,6 +193,7 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	print("Bind Address: %s" % cfg.bind_address)
 	if not str(cfg.public_host).is_empty():
 		print("Public Host: %s" % cfg.public_host)
+	print("Interest Radius: %.0f px | Delta Snapshots: %s" % [cfg.interest_radius, str(cfg.snapshot_delta)])
 	print("Discovery Port: %d (UDP Broadcast) [%s]" % [cfg.discovery_port, "ON" if cfg.enable_lan_discovery else "OFF"])
 	print("Max Players: %d" % cfg.max_players)
 	print("Tick Rate: %d TPS" % cfg.tick_rate)
@@ -538,7 +541,9 @@ func rpc_requisitar_handshake(auth_data: Dictionary) -> void:
 		"tick_rate": server_config.tick_rate if server_config != null else 20,
 		"starting_map": server_config.starting_map if server_config != null else session.current_map_path,
 		"motd": server_config.motd if server_config != null else "",
-		"region": server_config.region if server_config != null else ""
+		"region": server_config.region if server_config != null else "",
+		"public_host": server_config.public_host if server_config != null else "",
+		"interest_radius": server_config.interest_radius if server_config != null else 900.0
 	}
 
 	rpc_id(sender_id, "rpc_handshake_aceito", s_meta, spawn_pos, existing)
@@ -603,20 +608,59 @@ func rpc_notificar_jogador_desconectado(peer_id: int) -> void:
 # SNAPSHOT DE MUNDO DO SERVIDOR DEDICADO
 # ============================================================
 
-func _on_server_snapshot_ready(snapshot: Dictionary) -> void:
-	if is_server_authoritative():
-		rpc("rpc_receber_snapshot_mundo", snapshot)
+func _on_server_snapshot_ready(_snapshot: Dictionary) -> void:
+	if not is_server_authoritative() or world_coordinator == null:
+		return
+	# Dedicated: snapshot por peer (AoI + delta). Host listen: broadcast full.
+	if is_dedicated_server():
+		var radius: float = float(server_config.interest_radius) if server_config != null else 900.0
+		for peer_id in session.peers.keys():
+			var peer_snap: Dictionary = world_coordinator.build_interest_snapshot(int(peer_id), radius)
+			# Evita enviar pacote vazio (sem mudanças) em modo delta
+			if not bool(peer_snap.get("full", false)):
+				var has_data: bool = (
+					(peer_snap.get("players", []) as Array).size() > 0
+					or (peer_snap.get("enemies", []) as Array).size() > 0
+					or (peer_snap.get("removed_players", []) as Array).size() > 0
+					or (peer_snap.get("removed_enemies", []) as Array).size() > 0
+				)
+				if not has_data:
+					continue
+			rpc_id(int(peer_id), "rpc_receber_snapshot_mundo", peer_snap)
+	else:
+		rpc("rpc_receber_snapshot_mundo", world_coordinator.build_world_snapshot())
 
 
 @rpc("authority", "call_local", "unreliable_ordered")
 func rpc_receber_snapshot_mundo(snapshot: Dictionary) -> void:
 	world_snapshot_received.emit(snapshot)
 
+	var is_full: bool = bool(snapshot.get("full", true))
+
+	# Remoções (delta / saiu do AoI)
+	var rem_p = snapshot.get("removed_players", [])
+	if rem_p is Array:
+		for pid_v in rem_p:
+			var pid: int = int(pid_v)
+			if pid != local_peer_id:
+				remover_jogador_remoto(pid)
+	var rem_e = snapshot.get("removed_enemies", [])
+	if rem_e is Array:
+		for eid_v in rem_e:
+			var eid: int = int(eid_v)
+			if remote_enemies.has(eid):
+				var n = remote_enemies[eid]
+				if n != null and is_instance_valid(n):
+					n.queue_free()
+				remote_enemies.erase(eid)
+
 	# Atualizar puppets de outros jogadores (cria se ainda não existir)
 	var players_arr = snapshot.get("players", [])
+	var seen_players: Dictionary = {}
 	if players_arr is Array:
 		for p_data in players_arr:
 			var pid = int(p_data.get("id", 0))
+			seen_players[pid] = true
 			if pid == local_peer_id:
 				_reconciliar_jogador_local(p_data)
 				continue
@@ -630,10 +674,10 @@ func rpc_receber_snapshot_mundo(snapshot: Dictionary) -> void:
 			if puppet != null and puppet.has_method("aplicar_estado_snapshot"):
 				puppet.aplicar_estado_snapshot(p_data)
 
-	_sincronizar_inimigos_remotos(snapshot.get("enemies", []))
+	_sincronizar_inimigos_remotos(snapshot.get("enemies", []), is_full, seen_players)
 
 
-func _sincronizar_inimigos_remotos(enemies_arr: Variant) -> void:
+func _sincronizar_inimigos_remotos(enemies_arr: Variant, is_full: bool = true, _seen_players: Dictionary = {}) -> void:
 	if is_dedicated_server():
 		return
 	if not (enemies_arr is Array):
@@ -653,16 +697,17 @@ func _sincronizar_inimigos_remotos(enemies_arr: Variant) -> void:
 		if proxy != null and is_instance_valid(proxy) and proxy.has_method("aplicar_estado_snapshot"):
 			proxy.aplicar_estado_snapshot(e_data)
 
-	# Despawn proxies cujo id sumiu do snapshot (mortos no servidor)
-	var to_remove: Array = []
-	for eid in remote_enemies.keys():
-		if not alive_ids.has(eid):
-			to_remove.append(eid)
-	for eid in to_remove:
-		var n = remote_enemies[eid]
-		if n != null and is_instance_valid(n):
-			n.queue_free()
-		remote_enemies.erase(eid)
+	# Em snapshot full, despawn proxies ausentes. Em delta, remoções vêm em removed_enemies.
+	if is_full:
+		var to_remove: Array = []
+		for eid in remote_enemies.keys():
+			if not alive_ids.has(eid):
+				to_remove.append(eid)
+		for eid in to_remove:
+			var n = remote_enemies[eid]
+			if n != null and is_instance_valid(n):
+				n.queue_free()
+			remote_enemies.erase(eid)
 
 
 func _spawn_enemy_proxy(net_id: int, data: Dictionary) -> void:

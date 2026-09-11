@@ -22,6 +22,10 @@ var tick_delta: float = 0.05
 var current_tick: int = 0
 var current_map_path: String = "res://world/lobby.tscn"
 var _tick_accumulator: float = 0.0
+# peer_id -> { "players": {id: fingerprint}, "enemies": {id: fingerprint} }
+var _last_interest_state: Dictionary = {}
+var interest_radius_default: float = 900.0
+var use_snapshot_delta: bool = true
 
 # peer_id -> PlayerServerEntity: { "peer_id", "char_id", "name", "pos", "vel", "facing", "hp", "hp_max", "aura", "aura_max", "nen_tech", "input_intent", "level" }
 var players: Dictionary = {}
@@ -56,6 +60,7 @@ func start_coordinator() -> void:
 	players.clear()
 	enemies.clear()
 	active_world_events.clear()
+	_last_interest_state.clear()
 	print("[ServerWorldCoordinator] 🌍 Simulação autoritativa do servidor iniciada a %d TPS." % tick_rate)
 
 
@@ -63,6 +68,7 @@ func stop_coordinator() -> void:
 	is_active = false
 	players.clear()
 	enemies.clear()
+	_last_interest_state.clear()
 
 
 # ============================================================
@@ -114,6 +120,7 @@ func get_player_entity(peer_id: int) -> Dictionary:
 
 
 func unregister_player(peer_id: int) -> Dictionary:
+	clear_interest_state(peer_id)
 	if players.has(peer_id):
 		var removed = players[peer_id]
 		players.erase(peer_id)
@@ -503,43 +510,143 @@ func apply_player_attack(
 func build_world_snapshot() -> Dictionary:
 	var p_snaps: Array = []
 	for pid in players.keys():
-		var p = players[pid]
-		p_snaps.append({
-			"id": pid,
-			"px": snappedf(p["position"].x, 0.1),
-			"py": snappedf(p["position"].y, 0.1),
-			"vx": snappedf(p["velocity"].x, 0.1),
-			"vy": snappedf(p["velocity"].y, 0.1),
-			"fx": snappedf(p["facing"].x, 0.1),
-			"fy": snappedf(p["facing"].y, 0.1),
-			"hp": p["hp"],
-			"hp_max": p["hp_max"],
-			"aura": p["aura"],
-			"nen": p["nen_tech"],
-			"dead": bool(p.get("is_dead", false))
-		})
+		p_snaps.append(_serialize_player(pid, players[pid]))
 
 	var e_snaps: Array = []
 	for eid in enemies.keys():
 		var e = enemies[eid]
 		if e["hp"] > 0:
-			e_snaps.append({
-				"id": eid,
-				"enemy_id": e["enemy_id"],
-				"name": e["name"],
-				"px": snappedf(e["position"].x, 0.1),
-				"py": snappedf(e["position"].y, 0.1),
-				"vx": snappedf(e["velocity"].x, 0.1),
-				"vy": snappedf(e["velocity"].y, 0.1),
-				"hp": e["hp"],
-				"hp_max": e["hp_max"],
-				"state": e["ai_state"],
-				"boss": e["is_boss"]
-			})
+			e_snaps.append(_serialize_enemy(eid, e))
 
 	return {
 		"tick": current_tick,
 		"ts": Time.get_ticks_msec(),
+		"full": true,
 		"players": p_snaps,
-		"enemies": e_snaps
+		"enemies": e_snaps,
+		"removed_players": [],
+		"removed_enemies": []
 	}
+
+
+func _serialize_player(pid: int, p: Dictionary) -> Dictionary:
+	return {
+		"id": pid,
+		"px": snappedf(p["position"].x, 0.1),
+		"py": snappedf(p["position"].y, 0.1),
+		"vx": snappedf(p["velocity"].x, 0.1),
+		"vy": snappedf(p["velocity"].y, 0.1),
+		"fx": snappedf(p["facing"].x, 0.1),
+		"fy": snappedf(p["facing"].y, 0.1),
+		"hp": p["hp"],
+		"hp_max": p["hp_max"],
+		"aura": p["aura"],
+		"nen": p["nen_tech"],
+		"dead": bool(p.get("is_dead", false))
+	}
+
+
+func _serialize_enemy(eid: int, e: Dictionary) -> Dictionary:
+	return {
+		"id": eid,
+		"enemy_id": e["enemy_id"],
+		"name": e["name"],
+		"px": snappedf(e["position"].x, 0.1),
+		"py": snappedf(e["position"].y, 0.1),
+		"vx": snappedf(e["velocity"].x, 0.1),
+		"vy": snappedf(e["velocity"].y, 0.1),
+		"hp": e["hp"],
+		"hp_max": e["hp_max"],
+		"state": e["ai_state"],
+		"boss": e["is_boss"]
+	}
+
+
+func _fingerprint_entity(data: Dictionary) -> String:
+	return "%s|%s|%s|%s|%s|%s|%s" % [
+		str(data.get("px", 0)),
+		str(data.get("py", 0)),
+		str(data.get("vx", 0)),
+		str(data.get("vy", 0)),
+		str(data.get("hp", 0)),
+		str(data.get("nen", data.get("state", ""))),
+		str(data.get("dead", false))
+	]
+
+
+## Snapshot filtrado por Area-of-Interest + opcionalmente delta vs último envio do peer.
+func build_interest_snapshot(for_peer_id: int, radius: float = -1.0, force_full: bool = false) -> Dictionary:
+	var r: float = radius if radius > 0.0 else interest_radius_default
+	var origin := Vector2.ZERO
+	if players.has(for_peer_id):
+		origin = players[for_peer_id]["position"] as Vector2
+
+	var visible_players: Dictionary = {} # id -> serialized
+	var visible_enemies: Dictionary = {}
+
+	for pid in players.keys():
+		var p = players[pid]
+		var pos: Vector2 = p["position"] as Vector2
+		# Sempre inclui o próprio jogador; outros só dentro do raio
+		if pid == for_peer_id or origin.distance_to(pos) <= r:
+			visible_players[pid] = _serialize_player(pid, p)
+
+	for eid in enemies.keys():
+		var e = enemies[eid]
+		if int(e.get("hp", 0)) <= 0:
+			continue
+		var pos: Vector2 = e["position"] as Vector2
+		if origin.distance_to(pos) <= r:
+			visible_enemies[eid] = _serialize_enemy(eid, e)
+
+	var prev: Dictionary = _last_interest_state.get(for_peer_id, {"players": {}, "enemies": {}})
+	var prev_p: Dictionary = prev.get("players", {})
+	var prev_e: Dictionary = prev.get("enemies", {})
+	var do_full: bool = force_full or (not use_snapshot_delta) or prev_p.is_empty()
+
+	var out_players: Array = []
+	var out_enemies: Array = []
+	var removed_players: Array = []
+	var removed_enemies: Array = []
+	var next_p: Dictionary = {}
+	var next_e: Dictionary = {}
+
+	for pid in visible_players.keys():
+		var data: Dictionary = visible_players[pid]
+		var fp := _fingerprint_entity(data)
+		next_p[pid] = fp
+		if do_full or str(prev_p.get(pid, "")) != fp:
+			out_players.append(data)
+
+	for eid in visible_enemies.keys():
+		var data: Dictionary = visible_enemies[eid]
+		var fp := _fingerprint_entity(data)
+		next_e[eid] = fp
+		if do_full or str(prev_e.get(eid, "")) != fp:
+			out_enemies.append(data)
+
+	if not do_full:
+		for pid in prev_p.keys():
+			if not visible_players.has(pid):
+				removed_players.append(pid)
+		for eid in prev_e.keys():
+			if not visible_enemies.has(eid):
+				removed_enemies.append(eid)
+
+	_last_interest_state[for_peer_id] = {"players": next_p, "enemies": next_e}
+
+	return {
+		"tick": current_tick,
+		"ts": Time.get_ticks_msec(),
+		"full": do_full,
+		"players": out_players,
+		"enemies": out_enemies,
+		"removed_players": removed_players,
+		"removed_enemies": removed_enemies,
+		"interest_radius": r
+	}
+
+
+func clear_interest_state(peer_id: int) -> void:
+	if _last_interest_state.has(peer_id):
+		_last_interest_state.erase(peer_id)

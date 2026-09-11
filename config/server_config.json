@@ -11,6 +11,8 @@
 	"bind_address": "*",
 	"public_host": "",
 	"enable_lan_discovery": true,
+	"interest_radius": 900.0,
+	"snapshot_delta": true,
 	"save_interval_sec": 60,
 	"motd": "Bem-vindo ao servidor LAN de Hunter Online!",
 	"debug": true
