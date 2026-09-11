@@ -35,4 +35,6 @@
 2. [x] Master server registry local (announce + query UDP 7780)
 3. [x] Compressão DEFLATE + cap de taxa de snapshot (`snapshot_send_hz`)
 4. [ ] Matchmaking / auth de contas se necessário além do registry
-5. [ ] Stress test com N peers + medir bandwidth dos snapshots
+5. [x] Stress test com N peers + medir bandwidth dos snapshots (F4 overlay + suíte 22 + report)
+6. [ ] Chat de party / proximity voice (futuro)
+7. [ ] Persistência periódica stress sob N peers

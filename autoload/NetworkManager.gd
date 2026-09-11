@@ -64,6 +64,18 @@ var _demo_enemies_seeded: bool = false
 var _last_snapshot_send_msec: int = 0
 var _snapshot_bytes_sent: int = 0
 var _snapshot_bytes_raw: int = 0
+var _snapshot_bytes_recv: int = 0
+var _snapshot_packets_sent: int = 0
+var _snapshot_packets_recv: int = 0
+var _snapshot_sec_timer: float = 0.0
+var _snapshot_bytes_sent_sec_acc: int = 0
+var _snapshot_bytes_raw_sec_acc: int = 0
+var _snapshot_packets_sent_sec_acc: int = 0
+var _snapshot_bytes_sent_per_sec: int = 0
+var _snapshot_bytes_raw_per_sec: int = 0
+var _snapshot_packets_sent_per_sec: int = 0
+var _snapshot_compress_hits: int = 0
+var _snapshot_compress_skips: int = 0
 
 # Sinais de Ciclo de Vida da Rede (Fase K-LAN)
 signal handshake_completed(success: bool, reason: String)
@@ -326,8 +338,52 @@ func desconectar() -> void:
 	session.limpar()
 	_demo_enemies_seeded = false
 	_last_snapshot_send_msec = 0
+	_reset_snapshot_bandwidth_counters()
+
+
+func _reset_snapshot_bandwidth_counters() -> void:
 	_snapshot_bytes_sent = 0
 	_snapshot_bytes_raw = 0
+	_snapshot_bytes_recv = 0
+	_snapshot_packets_sent = 0
+	_snapshot_packets_recv = 0
+	_snapshot_sec_timer = 0.0
+	_snapshot_bytes_sent_sec_acc = 0
+	_snapshot_bytes_raw_sec_acc = 0
+	_snapshot_packets_sent_sec_acc = 0
+	_snapshot_bytes_sent_per_sec = 0
+	_snapshot_bytes_raw_per_sec = 0
+	_snapshot_packets_sent_per_sec = 0
+	_snapshot_compress_hits = 0
+	_snapshot_compress_skips = 0
+
+
+func reset_snapshot_bandwidth_stats() -> void:
+	_reset_snapshot_bandwidth_counters()
+
+
+func obter_snapshot_bandwidth_stats() -> Dictionary:
+	var ratio: float = 1.0
+	if _snapshot_bytes_raw > 0:
+		ratio = float(_snapshot_bytes_sent) / float(_snapshot_bytes_raw)
+	var send_hz: float = 10.0
+	if server_config != null:
+		send_hz = float(server_config.snapshot_send_hz)
+	return {
+		"bytes_sent_total": _snapshot_bytes_sent,
+		"bytes_raw_total": _snapshot_bytes_raw,
+		"bytes_recv_total": _snapshot_bytes_recv,
+		"packets_sent_total": _snapshot_packets_sent,
+		"packets_recv_total": _snapshot_packets_recv,
+		"bytes_sent_per_sec": _snapshot_bytes_sent_per_sec,
+		"bytes_raw_per_sec": _snapshot_bytes_raw_per_sec,
+		"packets_sent_per_sec": _snapshot_packets_sent_per_sec,
+		"compress_ratio": ratio,
+		"compress_hits": _snapshot_compress_hits,
+		"compress_skips": _snapshot_compress_skips,
+		"snapshot_send_hz": send_hz,
+		"snapshot_compress": bool(server_config.snapshot_compress) if server_config != null else false
+	}
 
 
 func _limpar_inimigos_remotos() -> void:
@@ -463,6 +519,8 @@ func _physics_process(delta: float) -> void:
 	if master_registry != null and master_registry.is_active:
 		master_registry.update(delta)
 
+	_atualizar_snapshot_bandwidth_janela(delta)
+
 	if is_offline_singleplayer():
 		return
 
@@ -488,6 +546,21 @@ func _physics_process(delta: float) -> void:
 
 	if discovery_listener != null and discovery_listener.is_listening:
 		discovery_listener.update(delta)
+
+
+func _atualizar_snapshot_bandwidth_janela(delta: float) -> void:
+	if _snapshot_packets_sent == 0 and _snapshot_bytes_sent == 0 and _snapshot_sec_timer <= 0.0:
+		return
+	_snapshot_sec_timer += delta
+	if _snapshot_sec_timer < 1.0:
+		return
+	_snapshot_bytes_sent_per_sec = _snapshot_bytes_sent_sec_acc
+	_snapshot_bytes_raw_per_sec = _snapshot_bytes_raw_sec_acc
+	_snapshot_packets_sent_per_sec = _snapshot_packets_sent_sec_acc
+	_snapshot_bytes_sent_sec_acc = 0
+	_snapshot_bytes_raw_sec_acc = 0
+	_snapshot_packets_sent_sec_acc = 0
+	_snapshot_sec_timer = 0.0
 
 
 func _obter_dados_jogador_local() -> Dictionary:
@@ -729,22 +802,50 @@ func _on_server_snapshot_ready(_snapshot: Dictionary) -> void:
 func _enviar_snapshot_para_peer(peer_id: int, snap: Dictionary) -> void:
 	var use_compress: bool = server_config != null and bool(server_config.snapshot_compress)
 	var min_bytes: int = int(server_config.snapshot_compress_min_bytes) if server_config != null else 256
+	var payload_size: int = 0
+	var raw_size: int = 0
 
 	if use_compress:
 		var raw: PackedByteArray = var_to_bytes(snap)
-		_snapshot_bytes_raw += raw.size()
-		if raw.size() >= min_bytes:
+		raw_size = raw.size()
+		_snapshot_bytes_raw += raw_size
+		_snapshot_bytes_raw_sec_acc += raw_size
+		if raw_size >= min_bytes:
 			var compressed: PackedByteArray = raw.compress(FileAccess.COMPRESSION_DEFLATE)
 			# Só envia comprimido se valer a pena
-			if compressed.size() > 0 and compressed.size() < raw.size():
-				_snapshot_bytes_sent += compressed.size()
+			if compressed.size() > 0 and compressed.size() < raw_size:
+				payload_size = compressed.size()
+				_snapshot_bytes_sent += payload_size
+				_snapshot_bytes_sent_sec_acc += payload_size
+				_snapshot_packets_sent += 1
+				_snapshot_packets_sent_sec_acc += 1
+				_snapshot_compress_hits += 1
 				if peer_id > 0:
 					rpc_id(peer_id, "rpc_receber_snapshot_mundo_comprimido", compressed)
 				else:
 					rpc("rpc_receber_snapshot_mundo_comprimido", compressed)
 				return
-		_snapshot_bytes_sent += raw.size()
+		_snapshot_compress_skips += 1
+		payload_size = raw_size
+		_snapshot_bytes_sent += payload_size
+		_snapshot_bytes_sent_sec_acc += payload_size
+		_snapshot_packets_sent += 1
+		_snapshot_packets_sent_sec_acc += 1
+		if peer_id > 0:
+			rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
+		else:
+			rpc("rpc_receber_snapshot_mundo", snap)
+		return
 
+	raw_size = var_to_bytes(snap).size()
+	payload_size = raw_size
+	_snapshot_bytes_raw += raw_size
+	_snapshot_bytes_raw_sec_acc += raw_size
+	_snapshot_bytes_sent += payload_size
+	_snapshot_bytes_sent_sec_acc += payload_size
+	_snapshot_packets_sent += 1
+	_snapshot_packets_sent_sec_acc += 1
+	_snapshot_compress_skips += 1
 	if peer_id > 0:
 		rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
 	else:
@@ -755,17 +856,25 @@ func _enviar_snapshot_para_peer(peer_id: int, snap: Dictionary) -> void:
 func rpc_receber_snapshot_mundo_comprimido(payload: PackedByteArray) -> void:
 	if payload.is_empty():
 		return
+	_snapshot_bytes_recv += payload.size()
+	_snapshot_packets_recv += 1
 	var raw: PackedByteArray = payload.decompress_dynamic(-1, FileAccess.COMPRESSION_DEFLATE)
 	if raw.is_empty():
 		push_warning("[NetworkManager] Falha ao descomprimir snapshot de mundo")
 		return
 	var snap = bytes_to_var(raw)
 	if snap is Dictionary:
-		rpc_receber_snapshot_mundo(snap)
+		_aplicar_snapshot_mundo(snap)
 
 
 @rpc("authority", "call_local", "unreliable_ordered")
 func rpc_receber_snapshot_mundo(snapshot: Dictionary) -> void:
+	_snapshot_bytes_recv += var_to_bytes(snapshot).size()
+	_snapshot_packets_recv += 1
+	_aplicar_snapshot_mundo(snapshot)
+
+
+func _aplicar_snapshot_mundo(snapshot: Dictionary) -> void:
 	world_snapshot_received.emit(snapshot)
 
 	var is_full: bool = bool(snapshot.get("full", true))

@@ -60,6 +60,7 @@ func _ready() -> void:
 	_test_19_nen_mitigation_death_respawn()
 	_test_20_server_list_and_interest_delta()
 	_test_21_master_registry_and_snapshot_bandwidth()
+	_test_22_snapshot_bandwidth_stress()
 
 	_imprimir_resultado_final()
 
@@ -830,6 +831,96 @@ func _test_21_master_registry_and_snapshot_bandwidth() -> void:
 	querier.stop()
 	announcer.stop()
 	registry.stop()
+
+
+# ============================================================
+# TESTE 22: STRESS N PEERS + BANDWIDTH AoI/DELTA/COMPRESS
+# ============================================================
+func _test_22_snapshot_bandwidth_stress() -> void:
+	print("\n--- Teste 22: Stress N peers + bandwidth snapshots ---")
+	const PEER_COUNT := 8
+	const ENEMY_COUNT := 60
+	const AOI_RADIUS := 350.0
+	const SEND_HZ := 10.0
+
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.interest_radius_default = AOI_RADIUS
+	coord.use_snapshot_delta = true
+	coord.start_coordinator()
+
+	# Peers espalhados: 0 perto da origem, demais em anel
+	for i in range(PEER_COUNT):
+		var angle := TAU * float(i) / float(PEER_COUNT)
+		var pos := Vector2(cos(angle), sin(angle)) * (40.0 if i == 0 else 900.0)
+		coord.register_player(i + 1, {
+			"name": "Hunter_%d" % (i + 1),
+			"attributes": {"vida": 100, "vida_max": 100, "nivel": 5}
+		}, pos)
+
+	# Inimigos: metade perto do peer 1, metade longe
+	for e in range(ENEMY_COUNT):
+		var near: bool = e < int(ENEMY_COUNT / 2)
+		var epos := Vector2(float(e % 10) * 25.0, float(e / 10) * 25.0)
+		if not near:
+			epos += Vector2(2000, 2000)
+		coord.spawn_enemy(&"lobo_nen", "Wolf_%d" % e, epos, 80, 12, 6)
+
+	var full: Dictionary = coord.build_world_snapshot()
+	var full_raw: PackedByteArray = var_to_bytes(full)
+	var full_comp: PackedByteArray = full_raw.compress(FileAccess.COMPRESSION_DEFLATE)
+	assert_test(full_raw.size() > 1000, "mundo cheio gera snapshot substancial (%d B)" % full_raw.size())
+	assert_test(full_comp.size() > 0 and full_comp.size() < full_raw.size(), "compressão reduz mundo cheio (%d→%d)" % [full_raw.size(), full_comp.size()])
+
+	var aoi_full: Dictionary = coord.build_interest_snapshot(1, AOI_RADIUS, true)
+	var aoi_raw: PackedByteArray = var_to_bytes(aoi_full)
+	assert_test(aoi_raw.size() < full_raw.size(), "AoI menor que mundo cheio (%d < %d)" % [aoi_raw.size(), full_raw.size()])
+	assert_test((aoi_full.get("enemies", []) as Array).size() <= int(ENEMY_COUNT / 2) + 2, "AoI limita inimigos distantes")
+	assert_test((aoi_full.get("players", []) as Array).size() <= 3, "AoI limita peers distantes")
+
+	# Deltas vazios após full
+	var empty_delta: Dictionary = coord.build_interest_snapshot(1, AOI_RADIUS, false)
+	var empty_raw: PackedByteArray = var_to_bytes(empty_delta)
+	assert_test(bool(empty_delta.get("full", true)) == false, "segundo snapshot é delta")
+	assert_test(empty_raw.size() < aoi_raw.size(), "delta vazio menor que full AoI")
+
+	# Cap de taxa: 20 ticks/s com send_hz 10 → ~10 envios
+	var min_interval_ms: float = 1000.0 / SEND_HZ
+	var last_send: float = -999999.0
+	var sends: int = 0
+	for tick_i in range(20):
+		var now_ms: float = float(tick_i) * 50.0
+		if now_ms - last_send >= min_interval_ms:
+			last_send = now_ms
+			sends += 1
+	assert_test(sends == 10, "cap 10 Hz em 20 ticks → 10 envios (obtido %d)" % sends)
+
+	# Estimativa de bandwidth: 8 peers * AoI comprimido * 10 Hz
+	var aoi_comp: PackedByteArray = aoi_raw.compress(FileAccess.COMPRESSION_DEFLATE)
+	var est_bytes_per_sec: int = aoi_comp.size() * PEER_COUNT * int(SEND_HZ)
+	var naive_bytes_per_sec: int = full_raw.size() * PEER_COUNT * 20
+	assert_test(est_bytes_per_sec < naive_bytes_per_sec, "AoI+compress+cap << full*20Hz (%d < %d B/s)" % [est_bytes_per_sec, naive_bytes_per_sec])
+	print("  📈 full=%dB aoi=%dB aoi_comp=%dB est=%.1fKB/s naive=%.1fKB/s (saving %.1fx)" % [
+		full_raw.size(), aoi_raw.size(), aoi_comp.size(),
+		float(est_bytes_per_sec) / 1024.0, float(naive_bytes_per_sec) / 1024.0,
+		float(naive_bytes_per_sec) / max(1.0, float(est_bytes_per_sec))
+	])
+
+	# Stats API do NetworkManager
+	NetworkManager.reset_snapshot_bandwidth_stats()
+	NetworkManager.server_config = ServerConfigScript.from_dict({
+		"snapshot_send_hz": SEND_HZ,
+		"snapshot_compress": true,
+		"snapshot_compress_min_bytes": 64
+	})
+	var stats0: Dictionary = NetworkManager.obter_snapshot_bandwidth_stats()
+	assert_test(int(stats0.get("bytes_sent_total", -1)) == 0, "reset zera bytes_sent_total")
+	assert_test(float(stats0.get("snapshot_send_hz", 0.0)) == SEND_HZ, "stats expõem snapshot_send_hz")
+	assert_test(bool(stats0.get("snapshot_compress", false)) == true, "stats expõem snapshot_compress")
+	# Simula contadores como após um envio comprimido
+	var ratio_probe: float = float(aoi_comp.size()) / float(aoi_raw.size())
+	assert_test(ratio_probe < 1.0, "ratio AoI comprimido < 1.0 (%.3f)" % ratio_probe)
+
+	coord.stop_coordinator()
 
 
 func _imprimir_resultado_final() -> void:

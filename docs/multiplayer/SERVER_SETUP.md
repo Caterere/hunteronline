@@ -125,7 +125,13 @@ New-NetFirewallRule -DisplayName "Hunter MMORPG Discovery (Broadcast UDP)" -Dire
 1. **Hoje (mesma rede):** `./iniciar_servidor_lan.sh` no PC host → clientes em IP `192.168.x.x:7777` ou lista LAN.
 2. **Depois (VPS):** mesmo binário/projeto, abrir UDP 7777, setar `public_host`, desligar discovery, clientes conectam por IP/DNS.
 3. **Lista DNS no cliente:** edite `config/server_list.json` (ou `user://server_list.json`) com o host do VPS; o menu Multiplayer mostra em **SERVIDORES PÚBLICOS / DNS**.
-4. **Escalabilidade:** `interest_radius` (padrão 900) e `snapshot_delta` (padrão true) reduzem banda por peer.
+4. **Escalabilidade de banda:**
+   - `interest_radius` (padrão 900) + `snapshot_delta` (padrão true) enviam só o que mudou perto do peer.
+   - `snapshot_send_hz` (padrão 10) limita envio mesmo com tick 20 TPS.
+   - `snapshot_compress` (padrão true) aplica DEFLATE em pacotes ≥ `snapshot_compress_min_bytes`.
+   - Overlay **F4** mostra `SNAP: Hz | KB/s | ratio | pkt/s`.
+   - Relatório headless: `res://scratch/test_snapshot_bandwidth_stress_suite.tscn`.
+5. **Master registry (opcional):** UDP `7780` — `./iniciar_servidor_lan.sh -- --master-registry 7780` e game servers com `--master-announce --master-host <ip>`.
 
 ---
 
