@@ -14,6 +14,7 @@ extends Node2D
 # ============================================================
 
 const ArenaGhostRegistry = preload("res://scripts/systems/arena/ArenaGhostRegistry.gd")
+const ArenaRankedSeason = preload("res://scripts/systems/arena/ArenaRankedSeason.gd")
 
 @onready var player: CharacterBody2D = $Player
 var andar_atual: int = 1
@@ -292,12 +293,20 @@ func _ao_vencer_andar() -> void:
 	Economy.adicionar_gold(premio)
 	# Grava ghost local para PvP assíncrono futuro (mesmo save / próximos andares).
 	ArenaGhostRegistry.registrar(ArenaGhostRegistry.capturar_do_jogador(andar_atual))
+	var ranked_extra := ""
+	var ranked_result: Dictionary = ArenaRankedSeason.report_tower_result(true, andar_atual)
+	if not bool(ranked_result.get("skipped", false)):
+		var delta: int = int(ranked_result.get("delta", 0))
+		ranked_extra = " | Ranked %+d MMR (%d)" % [delta, int(ranked_result.get("mmr", 0))]
+		var new_title := str(ranked_result.get("new_title", ""))
+		if not new_title.is_empty():
+			ranked_extra += " · %s" % new_title
 	_sincronizar_progresso_andar(andar_atual + 1)
 	
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud and hud.has_method("exibir_notificacao"):
 		var extra := " | Ghost gravado" if _oponente_async_ativo else ""
-		hud.exibir_notificacao("🏆 VENCEU O ANDAR %d! +%s Jenny!%s" % [andar_atual, Economy.formatar_numero(premio), extra])
+		hud.exibir_notificacao("🏆 VENCEU O ANDAR %d! +%s Jenny!%s%s" % [andar_atual, Economy.formatar_numero(premio), extra, ranked_extra])
 
 	get_tree().create_timer(2.0).timeout.connect(func():
 		_iniciar_andar(andar_atual + 1)
