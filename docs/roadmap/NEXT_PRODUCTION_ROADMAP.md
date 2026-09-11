@@ -60,7 +60,8 @@
    * [x] Tick fixo 20 TPS + `config/server_config.json` válido + launchers portáteis.
    * [x] Campos `bind_address` / `public_host` / `enable_lan_discovery` para migrar a um host contratado.
    * [x] Combate cliente → RPC servidor + proxies de inimigos (`NetworkEnemyProxy`).
-   * [ ] Dano inimigo→jogador + recompensas (`entity_died`) no cliente.
+   * [x] Dano inimigo→jogador + recompensas XP/Jenny (`entity_died` → cliente).
+   * [ ] Morte/respawn multiplayer + sync de aura/Nen no dano sofrido.
    * [ ] Lista de servidores / DNS quando houver VPS (discovery LAN permanece opcional).
 4. **Progressão**:
    * [x] Soft-cap XP por saga + escala narrativa canônica (`CanonQuestCatalog.escalar_xp_narrativo`).

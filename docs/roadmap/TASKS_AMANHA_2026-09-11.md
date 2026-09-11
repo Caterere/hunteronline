@@ -22,8 +22,10 @@
 - [x] Wire combate cliente → `rpc_solicitar_ataque_servidor` + `combat_hits_confirmed`
 - [x] Proxies visuais de inimigos (`NetworkEnemyProxy`) + seed demo no servidor
 - [x] WorldSpawner silenciado em sessão multiplayer (evita AI local vs proxy)
+- [x] Dano inimigo→jogador autoritativo + RPC `rpc_aplicar_dano_jogador`
+- [x] Recompensas XP/Jenny via `entity_died` → `rpc_recompensa_kill`
+- [x] Polish visual dos proxies (sprites por `enemy_id`)
 
-## Próximo (após combate LAN básico)
-1. [ ] Dano de inimigos do servidor → jogador (HP autoritativo)
-2. [ ] XP/Jenny/loot a partir de `entity_died` no cliente
-3. [ ] Quando contratar host: abrir UDP 7777, set `public_host`, `--no-lan-discovery`
+## Próximo
+1. [ ] Quando contratar host: abrir UDP 7777, set `public_host`, `--no-lan-discovery`
+2. [ ] Morte/respawn multiplayer + sync de aura/Nen no dano sofrido

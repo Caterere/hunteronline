@@ -156,6 +156,10 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	server_storage = ServerStorageManagerScript.new(cfg.save_path)
 	world_coordinator = ServerWorldCoordinatorScript.new(cfg.tick_rate, cfg.starting_map)
 	world_coordinator.snapshot_ready.connect(_on_server_snapshot_ready)
+	if not world_coordinator.player_damaged.is_connected(_on_server_player_damaged):
+		world_coordinator.player_damaged.connect(_on_server_player_damaged)
+	if not world_coordinator.entity_died.is_connected(_on_server_entity_died):
+		world_coordinator.entity_died.connect(_on_server_entity_died)
 	world_coordinator.start_coordinator()
 	_seed_demo_enemies_if_needed()
 
@@ -702,6 +706,88 @@ func _on_combat_hits_confirmed(hits: Array) -> void:
 			remote_enemies.erase(eid)
 
 
+func _on_server_player_damaged(peer_id: int, damage: int, source_net_id: int, hp_remaining: int, knockback_dir: Vector2) -> void:
+	if not is_dedicated_server():
+		return
+	rpc_id(peer_id, "rpc_aplicar_dano_jogador", damage, source_net_id, hp_remaining, knockback_dir)
+
+
+func _on_server_entity_died(net_id: int, killer_peer_id: int, rewards: Dictionary) -> void:
+	if not is_dedicated_server():
+		return
+	if killer_peer_id <= 0:
+		return
+	rpc_id(killer_peer_id, "rpc_recompensa_kill", net_id, rewards)
+	# Também avisa todos para VFX de morte do proxy (se ainda existir)
+	rpc("rpc_notificar_inimigo_morto", net_id)
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_aplicar_dano_jogador(damage: int, source_net_id: int, hp_remaining: int, knockback_dir: Vector2) -> void:
+	if is_dedicated_server():
+		return
+	if PlayerData != null:
+		PlayerData.attributes["vida"] = max(0, hp_remaining)
+	var player = GameManager.active_player if GameManager != null else null
+	if player != null and is_instance_valid(player):
+		if player.has_method("receber_dano_rede"):
+			player.receber_dano_rede(damage, knockback_dir, source_net_id)
+		elif player.has_method("_aplicar_hit_flash"):
+			player._aplicar_hit_flash()
+		if EventBus != null:
+			var hp_max: int = int(PlayerData.attributes.get("vida_max", 100)) if PlayerData != null else 100
+			EventBus.player_damaged.emit(hp_remaining, hp_max, damage)
+			EventBus.emit_camera_shake(0.30, 0.18)
+	if AudioManager != null:
+		AudioManager.tocar_hurt()
+	print("[NetworkManager] 💥 Dano rede: -%d HP restante %d (src %d)" % [damage, hp_remaining, source_net_id])
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_recompensa_kill(net_id: int, rewards: Dictionary) -> void:
+	if is_dedicated_server():
+		return
+	var xp_amt: int = int(rewards.get("xp", 0))
+	var xp_nen: int = int(rewards.get("xp_nen", 0))
+	var gold_amt: int = int(rewards.get("gold", 0))
+	var enemy_name: String = str(rewards.get("enemy_name", "Inimigo"))
+
+	var player = GameManager.active_player if GameManager != null else null
+	var xp_sys = null
+	if player != null:
+		xp_sys = player.get_node_or_null("XPSystem")
+	if xp_sys == null and get_tree() != null:
+		xp_sys = get_tree().get_first_node_in_group("xp_system")
+	if xp_sys != null and xp_sys.has_method("adicionar_xp") and xp_amt > 0:
+		xp_sys.adicionar_xp(xp_amt)
+	if xp_sys != null and xp_sys.has_method("adicionar_xp_nen") and xp_nen > 0:
+		xp_sys.adicionar_xp_nen(xp_nen)
+
+	if gold_amt > 0:
+		if Economy != null and Economy.has_method("adicionar_gold"):
+			Economy.adicionar_gold(gold_amt)
+		elif PlayerData != null and PlayerData.has_method("adicionar_gold"):
+			PlayerData.adicionar_gold(gold_amt)
+
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("☠️ %s derrotado! +%d XP / +%d Jenny" % [enemy_name, xp_amt, gold_amt])
+	print("[NetworkManager] 🎁 Recompensa kill net %d: XP %d / NenXP %d / Jenny %d" % [net_id, xp_amt, xp_nen, gold_amt])
+
+
+@rpc("authority", "call_local", "reliable")
+func rpc_notificar_inimigo_morto(net_id: int) -> void:
+	if is_dedicated_server():
+		return
+	if remote_enemies.has(net_id):
+		var proxy = remote_enemies[net_id]
+		if proxy != null and is_instance_valid(proxy):
+			if proxy.has_method("aplicar_hit_confirmado"):
+				proxy.aplicar_hit_confirmado(0, 0, true)
+			else:
+				proxy.queue_free()
+		remote_enemies.erase(net_id)
+
+
 func _reconciliar_jogador_local(p_data: Dictionary) -> void:
 	var player = GameManager.active_player if GameManager != null else null
 	if player == null or not is_instance_valid(player):
@@ -714,6 +800,13 @@ func _reconciliar_jogador_local(p_data: Dictionary) -> void:
 		player.velocity = Vector2.ZERO
 	elif dist > 8.0:
 		player.global_position = player.global_position.lerp(server_pos, 0.35)
+
+	# HP autoritativo do snapshot (evita drift visual)
+	if PlayerData != null and p_data.has("hp"):
+		var server_hp: int = int(p_data.get("hp", PlayerData.attributes.get("vida", 100)))
+		var local_hp: int = int(PlayerData.attributes.get("vida", 100))
+		if abs(server_hp - local_hp) > 0:
+			PlayerData.attributes["vida"] = server_hp
 
 
 func _on_player_joined_spawn_puppet(peer_id: int, player_data: Dictionary) -> void:

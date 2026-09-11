@@ -140,6 +140,17 @@ func receber_dano(dano: int, direcao_ataque: Vector2 = Vector2.ZERO, _forca_knoc
 	_aplicar_hit_flash()
 
 
+## Dano já calculado pelo servidor dedicado — só feedback visual/local.
+func receber_dano_rede(dano: int, direcao_ataque: Vector2 = Vector2.ZERO, _source_net_id: int = 0) -> void:
+	_aplicar_hit_flash()
+	if combat_system != null and combat_system.has_method("_executar_hit_flash"):
+		combat_system._executar_hit_flash()
+	if DamageNumberSystem != null and dano > 0:
+		DamageNumberSystem.spawn_dano(global_position, dano, false)
+	if dano > 0:
+		velocity += direcao_ataque.normalized() * 120.0
+
+
 func _aplicar_hit_flash() -> void:
 	var spr := get_node_or_null("Sprite2D") as Sprite2D
 	if spr == null or em_hit_flash:

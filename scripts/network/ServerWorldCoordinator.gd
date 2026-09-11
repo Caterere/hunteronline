@@ -36,6 +36,7 @@ var active_world_events: Array[Dictionary] = []
 signal snapshot_ready(snapshot_data: Dictionary)
 signal entity_damaged(net_id: int, final_damage: int, current_hp: int)
 signal entity_died(net_id: int, killer_peer_id: int, rewards: Dictionary)
+signal player_damaged(peer_id: int, damage: int, source_net_id: int, hp_remaining: int, knockback_dir: Vector2)
 
 
 func _init(p_tick_rate: int = 20, p_map_path: String = "res://world/lobby.tscn") -> void:
@@ -153,6 +154,9 @@ func spawn_enemy(
 		"target_peer": -1,
 		"ai_state": "PATROL",
 		"state_timer": 0.0,
+		"attack_cd": 0.0,
+		"attack_range": 38.0 if not is_boss else 48.0,
+		"attack_interval": 0.85 if not is_boss else 1.1,
 		"threat_table": {} # peer_id -> float (threat)
 	}
 	enemies[nid] = e_entity
@@ -202,6 +206,8 @@ func _simulate_enemy_ai(e: Dictionary, delta: float) -> void:
 	if e["hp"] <= 0:
 		return
 
+	e["attack_cd"] = max(0.0, float(e.get("attack_cd", 0.0)) - delta)
+
 	# Selecionar alvo com maior ameaça ou jogador mais próximo
 	var target_pos: Vector2 = Vector2.ZERO
 	var target_peer: int = -1
@@ -213,6 +219,8 @@ func _simulate_enemy_ai(e: Dictionary, delta: float) -> void:
 
 	for pid in players.keys():
 		var p = players[pid]
+		if int(p.get("hp", 0)) <= 0:
+			continue
 		var dist = (p["position"] as Vector2).distance_to(e["position"] as Vector2)
 		var threat = float(threat_table.get(pid, 0.0))
 
@@ -227,16 +235,61 @@ func _simulate_enemy_ai(e: Dictionary, delta: float) -> void:
 
 	e["target_peer"] = target_peer
 
-	# Comportamento de perseguição
+	# Comportamento de perseguição / ataque
 	if target_peer != -1:
-		var dir = (target_pos - (e["position"] as Vector2)).normalized()
-		var spd = 110.0 if not e["is_boss"] else 95.0
-		e["velocity"] = dir * spd
-		e["position"] += e["velocity"] * delta
-		e["ai_state"] = "CHASE"
+		var e_pos: Vector2 = e["position"] as Vector2
+		var dist_to_target: float = e_pos.distance_to(target_pos)
+		var attack_range: float = float(e.get("attack_range", 38.0))
+		if dist_to_target <= attack_range:
+			e["velocity"] = Vector2.ZERO
+			e["ai_state"] = "ATTACK"
+			if float(e.get("attack_cd", 0.0)) <= 0.0:
+				_aplicar_dano_em_jogador(target_peer, int(e.get("net_id", 0)), int(e.get("damage", 15)), e_pos)
+				e["attack_cd"] = float(e.get("attack_interval", 0.85))
+		else:
+			var dir = (target_pos - e_pos).normalized()
+			var spd = 110.0 if not e["is_boss"] else 95.0
+			e["velocity"] = dir * spd
+			e["position"] += e["velocity"] * delta
+			e["ai_state"] = "CHASE"
 	else:
 		e["velocity"] = Vector2.ZERO
 		e["ai_state"] = "IDLE"
+
+
+func _aplicar_dano_em_jogador(peer_id: int, source_net_id: int, raw_damage: int, from_pos: Vector2) -> void:
+	if not players.has(peer_id):
+		return
+	var p = players[peer_id]
+	var hp: int = int(p.get("hp", 0))
+	if hp <= 0:
+		return
+	# Mitigação simples server-side (sem Nen completo nesta fatia)
+	var dealt: int = max(1, raw_damage)
+	hp = max(0, hp - dealt)
+	p["hp"] = hp
+	var kb_dir: Vector2 = ((p["position"] as Vector2) - from_pos).normalized()
+	if kb_dir == Vector2.ZERO:
+		kb_dir = Vector2.RIGHT
+	player_damaged.emit(peer_id, dealt, source_net_id, hp, kb_dir)
+
+
+func build_kill_rewards(enemy: Dictionary) -> Dictionary:
+	var is_boss: bool = bool(enemy.get("is_boss", false))
+	var level_proxy: int = 8 if not is_boss else 25
+	var jenny: int = 0
+	if Economy != null and Economy.has_method("calcular_drop_jenny_inimigo"):
+		jenny = Economy.calcular_drop_jenny_inimigo(level_proxy)
+	else:
+		jenny = 80 if not is_boss else 600
+	return {
+		"xp": 120 if not is_boss else 900,
+		"xp_nen": 25 if not is_boss else 180,
+		"gold": jenny,
+		"enemy_id": str(enemy.get("enemy_id", "")),
+		"enemy_name": str(enemy.get("name", "Beast")),
+		"is_boss": is_boss
+	}
 
 
 # ============================================================
@@ -302,11 +355,7 @@ func apply_player_attack(
 		entity_damaged.emit(eid, dealt, e["hp"])
 
 		if e["hp"] <= 0:
-			var rewards: Dictionary = {
-				"xp": 500 if not e["is_boss"] else 5000,
-				"gold": 1000 if not e["is_boss"] else 15000,
-				"enemy_id": e["enemy_id"]
-			}
+			var rewards: Dictionary = build_kill_rewards(e)
 			entity_died.emit(eid, attacker_peer, rewards)
 
 	return hits

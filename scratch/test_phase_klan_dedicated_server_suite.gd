@@ -56,6 +56,7 @@ func _ready() -> void:
 	_test_15_config_discovery_and_fixed_tick()
 	_test_16_network_manager_puppet_spawn()
 	_test_17_enemy_proxy_and_server_combat()
+	_test_18_enemy_damage_and_rewards()
 
 	_imprimir_resultado_final()
 
@@ -549,6 +550,63 @@ func _test_17_enemy_proxy_and_server_combat() -> void:
 
 	nm.desconectar()
 	assert_test(nm.remote_enemies.is_empty(), "proxies limpos no disconnect")
+
+
+# ============================================================
+# TESTE 18: DANO INIMIGO→JOGADOR + RECOMPENSAS DE KILL
+# ============================================================
+func _test_18_enemy_damage_and_rewards() -> void:
+	print("\n--- Teste 18: Dano inimigo→jogador + recompensas ---")
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.start_coordinator()
+	coord.register_player(3, {"name": "Gon", "attributes": {"vida": 100, "vida_max": 100}}, Vector2(100, 100))
+
+	var damaged_events: Array = []
+	var reward_events: Array = []
+	coord.player_damaged.connect(func(pid, dmg, src, hp_left, _kb):
+		damaged_events.append({"pid": pid, "dmg": dmg, "src": src, "hp": hp_left})
+	)
+	coord.entity_died.connect(func(nid, killer, rewards):
+		reward_events.append({"nid": nid, "killer": killer, "rewards": rewards})
+	)
+
+	# Spawn inimigo em cima do jogador para forçar ATTACK
+	var eid = coord.spawn_enemy(&"lobo_nen", "Lobo de Nen", Vector2(110, 100), 80, 20, 5, false)
+	assert_test(coord.enemies.has(eid), "inimigo spawnado para teste de dano")
+
+	# Simular ~1s de ticks para cooldown de ataque
+	for i in range(25):
+		coord.tick(0.05)
+
+	assert_test(damaged_events.size() >= 1, "servidor emitiu player_damaged")
+	if damaged_events.size() >= 1:
+		assert_test(int(damaged_events[0]["pid"]) == 3, "dano direcionado ao peer correto")
+		assert_test(int(damaged_events[0]["hp"]) < 100, "HP do jogador no servidor reduziu")
+		var last_evt: Dictionary = damaged_events[damaged_events.size() - 1]
+		assert_test(int(coord.players[3]["hp"]) == int(last_evt["hp"]), "HP coordinator alinhado ao último evento")
+
+	# Matar inimigo e validar rewards
+	coord.players[3]["position"] = Vector2(110, 100)
+	var hits = coord.apply_player_attack(3, Vector2(110, 100), Vector2.RIGHT, 200, 80.0, true)
+	assert_test(hits.size() >= 1 and bool(hits[0].get("is_dead", false)), "inimigo morto no ataque")
+	assert_test(reward_events.size() >= 1, "entity_died emitido com recompensas")
+	if reward_events.size() >= 1:
+		var r: Dictionary = reward_events[0]["rewards"]
+		assert_test(int(r.get("xp", 0)) > 0, "recompensa inclui XP")
+		assert_test(int(r.get("gold", 0)) > 0, "recompensa inclui Jenny/gold")
+		assert_test(int(reward_events[0]["killer"]) == 3, "killer_peer_id correto")
+
+	# Proxy sprite mapping
+	var EnemyProxyScript = load("res://scripts/network/NetworkEnemyProxy.gd")
+	var pxy = EnemyProxyScript.new()
+	pxy.enemy_id = "fera_padokia"
+	pxy.display_name = "Fera"
+	add_child(pxy)
+	pxy._aplicar_sprite_por_id()
+	assert_test(pxy.sprite != null and pxy.sprite.texture != null, "proxy carrega sprite por enemy_id")
+	pxy.queue_free()
+
+	coord.stop_coordinator()
 
 
 func _imprimir_resultado_final() -> void:
