@@ -234,6 +234,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"relationship_data": RelationshipSystem.salvar_dados() if RelationshipSystem != null else {},
 		"association_mail_data": AssociationMailSystem.salvar_dados() if AssociationMailSystem != null else {},
 		"hunter_friends_data": HunterFriendsSystem.salvar_dados() if HunterFriendsSystem != null else {},
+		"duty_finder_data": DutyFinderSystem.salvar_dados() if DutyFinderSystem != null else {},
 		"rumor_data": RumorSystem.salvar_dados() if RumorSystem != null else {},
 		"world_events_data": WorldEventManager.salvar_dados() if WorldEventManager != null else {},
 		"bounty_data": BountySystem.salvar_dados() if BountySystem != null else {},
@@ -649,6 +650,8 @@ func carregar_jogo(slot: int = -1) -> bool:
 		AssociationMailSystem.carregar_dados(data.get("association_mail_data", {}))
 	if HunterFriendsSystem != null:
 		HunterFriendsSystem.carregar_dados(data.get("hunter_friends_data", {}))
+	if DutyFinderSystem != null:
+		DutyFinderSystem.carregar_dados(data.get("duty_finder_data", {}))
 	if RumorSystem != null:
 		RumorSystem.carregar_dados(data.get("rumor_data", {}))
 	if WorldEventManager != null:

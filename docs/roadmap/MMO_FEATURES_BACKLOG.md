@@ -126,7 +126,7 @@ flowchart LR
 | ID | Sistema | Inspiração | Adaptação HxH | Deps | Nota |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | `[IMPLEMENTED]` — `AssociationMailSystem` + `HunterFriendsSystem` + UI; suite `scratch/test_b9_mail_friends_suite.tscn` 23/23 |
-| B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | Master registry local já existe; falta fila de conteúdo |
+| B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | `[IMPLEMENTED]` — `DutyFinderSystem` + stubs offline; suite `scratch/test_b10_duty_finder_suite.tscn` |
 | B11 | Territory wars | New World / GW2 WvW | Rotas Associação×Máfia×Salteadores | LiveEventManager | Expandir evento da ponte para meta semanal |
 | B12 | Mounts / dirigível | FFXIV mounts | Skins via `TravelSystem` | TravelSystem | Preferir viagem temática, não mount genérico |
 | B13 | Seasons / battle pass | Destiny / Lost Ark | Temporada de caçada + códex parcial | LIVE_OPS_CONTENT | Cosmético only |
