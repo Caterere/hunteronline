@@ -8,29 +8,39 @@
 > **Prompts PixelLab:** [`../guides/PIXELLAB_PROMPT_LIBRARY.md`](../guides/PIXELLAB_PROMPT_LIBRARY.md).
 > **Roteiro de regeneração:** [`../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md`](../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md).
 >
-> **Upgrade 2026-09 (Quality Pass):** o budget de pixels do **corpo do personagem**
-> foi **dobrado** vs o lock antigo (20–22 → 40–44 px) para melhorar reconhecimento
-> de silhueta/identidade. Mantém-se **chibi ~2.5 cabeças**, tamanho uniforme entre
-> cast, e mundo continua podendo ser mais rico que o char.
+> **Upgrade 2026-09 (Quality Pack):** o cast nomeado usa as refs em
+> [`assets/reference/cast_quality_pack/`](../../assets/reference/cast_quality_pack/)
+> como **SSOT visual**. Frame continua **96×96**; o corpo encaixa em **~60–68 px**
+> (pés Y≈84) para caber o chibi das refs sem esmagar cabelo/outfit. Mundo pode
+> continuar mais rico que o char.
 
 ---
 
 ### 1. PRINCÍPIO SUPREMO: RECONHECIMENTO + CONSISTÊNCIA
 
-O arquivo canônico do projeto é:
+**SSOT visual do cast (prioridade máxima):**
 ```
-res://assets/sprites/characters/player.png (style lock também em `assets/reference/player(3).png`)
+assets/reference/cast_quality_pack/
+  grid_24_cast.png          # Gon→Gotoh (L→R, cima→baixo)
+  south_refs/<id>_south_ref.png
+  netero_heart_uniform_ref.jpg / chrollo_troupe_coat_ref.png / <nome>_ref.png
 ```
-Toda geração (PixelLab MCP, REST, procedural ou manual) **DEVE** seguir a **linguagem
-de pixels** desta referência — agora na escala 96×96 / corpo ~40–44 px.
+
+Âncora técnica de canvas/padding:
+```
+res://assets/sprites/characters/player.png
+```
+
+Toda regeneração de personagem nomeado **DEVE** partir da south_ref correspondente
+(`create_character` `mode=v3` + `reference_image_base64`). Prompt textual só guia
+rotação/animação — **não** reinventa o design.
 
 > [!IMPORTANT]
-> **CABELO = IDENTIDADE #1 (fidelidade anime).**  
-> Em Hunter Online, a silhueta do **cabelo** é o principal sinal de quem é o personagem
-> (Gon, Killua, Hisoka, etc.). Outfit ajuda; cabelo errado = personagem errado.  
-> Depois: reconhecimento geral. Continua proibido: anatomia realista, esclera branca,
-> micro-fios, shading fotográfico. Detalhe extra só vale se melhorar legibilidade
-> (sobretudo cabelo/outfit icônico) sem quebrar o chibi uniforme.
+> **FIDELIDADE À REF = IDENTIDADE #1.**  
+> O PNG de referência (grade ou standalone) define cabelo, outfit e proporção.
+> Cabelo continua o sinal mais forte (Gon spikes + tips verdes, Killua prata, etc.).
+> Proibido: reinventar silhueta via prompt; misturar o Chrollo de terno da grade com
+> o casaco da trupe (casaco = canônico); Netero sem uniforme heart / topknot.
 
 ---
 
@@ -47,32 +57,32 @@ existe sobretudo para caber essas silhuetas.
 | **Kurapika** | Loiro dourado curto em camadas, fios laterais mais longos emoldurando o rosto | Spike; bowl cut preto |
 | **Leorio** | Castanho escuro curto, topo um pouco volumoso/bagunçado | Spikes gelados; careca |
 | **Hisoka** | Magenta/rosa-choque **varrido para trás** em agulhas longas e pontudas; **sem pontas amarelas** | Coroa com tips amarelas; cabelo curto |
-| **Netero** | **Careca** + barba/bigode brancos volumosos | Cabelo no topo |
-| **Chrollo** | Bowl cut preto com franja + cruz na testa | Spikes; cabelo longo |
+| **Netero** | Careca + **topknot** branco + sobrancelhas/barba/bigode brancos (uniforme heart) | Sem topknot; kimono roxo como idle padrão |
+| **Chrollo** | Cabelo preto slicked + cruz roxa na testa; **casaco trupe** (gola pelepura) | Terno preto da grade como look padrão |
 | **Wing** | Escuro bagunçado / desalinhado | Corte militar limpo |
 | **Elena** | Castanho em coque baixo limpo | Solto longo |
 | **Satotz** | Cabelo oculto sob bowler | Spikes visíveis |
 
-**Fit geométrico:** personagens de cabelo volumoso podem usar até **~46 px de altura** e
-**~40 px de largura** (pés Y≈84). Não esmagar a silhueta do cabelo para caber em 34×42.
+**Fit geométrico (Quality Pack):** alvo **~64 px de altura**, largura até **~48 px**
+(pés Y≈84). Não esmagar cabelo/capa das refs da grade (~65 px nativos).
 
 ---
 
-### 2. MÉTRICAS CANÔNICAS (Style Lock v2 — 96×96)
+### 2. MÉTRICAS CANÔNICAS (Style Lock v2 — 96×96 + Quality Pack)
 
 | Métrica | Valor Canônico | Limite Aceitável | Reprovado |
 | :--- | :--- | :--- | :--- |
-| **Canvas do Frame** | **96×96 pixels** | **96×96** fixos | 48×48 legado / 128×128 gameplay / 68×68 |
-| **Altura do Personagem (Idle/Walk)** | **44 a 46 pixels** | **48 px** (cabelo icônico / chapéu) | <36 px (pobre) ou >52 px (gigante) |
-| **Largura do Personagem (Idle/Walk)** | **26 a 30 pixels** | **36 px** (capa/arma) | >40 px |
-| **Ocupação de Área no Frame** | **~18% a 28%** | **< 35%** | >50% |
+| **Canvas do Frame** | **96×96 pixels** | **96×96** fixos | 48×48 legado / 128×128 gameplay |
+| **Altura do Personagem (Idle/Walk)** | **60 a 66 pixels** | **68 px** (cabelo/capa) | <48 px (pobre) ou >74 px |
+| **Largura do Personagem (Idle/Walk)** | **28 a 40 pixels** | **52 px** (capa/arma/cabelo) | >56 px |
+| **Ocupação de Área no Frame** | **~22% a 38%** | **< 45%** | >55% |
 | **Baseline dos Pés (Solo)** | **Y = 84** | **Y = 82 a 86** | colado na borda inferior |
-| **Top Padding** | **36 a 44 px livres** | **≥ 28 px** | <20 px |
+| **Top Padding** | **12 a 24 px livres** | **≥ 10 px** | <8 px |
 | **Bottom Padding** | **10 a 12 px** (Y=86..95) | **≥ 8 px** | <4 px |
-| **Padding Lateral** | **30 a 36 px** por lado | **≥ 24 px** | <16 px |
-| **Cores Únicas por Frame** | **12 a 20 cores** | **24 cores** | >32 cores |
-| **Cores Totais na Spritesheet** | **18 a 28 cores** | **36 cores** | >48 cores |
-| **Proporção Corporal** | **Chibi (~2.5 cabeças)** | **2.2 a 2.7 cabeças** | 4+ cabeças realistas |
+| **Padding Lateral** | **22 a 34 px** por lado | **≥ 16 px** | <12 px |
+| **Cores Únicas por Frame** | **12 a 28 cores** | **36 cores** | >48 cores |
+| **Cores Totais na Spritesheet** | **18 a 40 cores** | **56 cores** | >64 cores |
+| **Proporção Corporal** | **Chibi (~2.5–3 cabeças)** | **2.2 a 3.2 cabeças** | 4+ cabeças realistas |
 
 #### Folha 8 direções
 - Idle/walk direcional: **768×96** (8 frames × 96)
@@ -131,35 +141,35 @@ respeite o teto de cores da tabela acima.
 ### 5. O QUE MUDA / O QUE NÃO MUDA ENTRE PERSONAGENS
 
 - **Muda:** cor/silhueta de cabelo, outfit, acessório, proporção leve de ombros.
-- **Nunca muda:** frame 96×96, altura-alvo ~40–44, pés Y≈84, chibi ~2.5 cabeças,
-  olhos sem esclera, outline 1px nítido, alpha binário no corpo.
+- **Nunca muda:** frame 96×96, pés Y≈84, chibi das refs Quality Pack, outline nítido,
+  alpha binário no corpo, fidelidade à south_ref.
 
 ---
 
 ### 6. INTEGRAÇÃO PIXELLAB MCP
 
-#### 6.1 Pipeline híbrido (obrigatório para NPCs únicos)
+#### 6.1 Pipeline Quality Pack (obrigatório para cast nomeado)
 
-1. `create_image_pixen` — identidade south em **96×96**, `detail: medium detail`
-2. Fit geométrico ~40–44 px / pés Y≈84 (`pixellab_regen_cast_v96_stylelock.py`)
+1. South ref em `assets/reference/cast_quality_pack/south_refs/<id>_south_ref.png`
+2. Fit ~64 px / pés Y≈84 (`pixellab_regen_cast_from_quality_refs.py`)
 3. `create_character` `mode=v3` + `reference_image_base64` = south fitted, `size: 96`
+4. `animate_character`: `breathing-idle`, `walk`, `taking-punch` (hit) — 8 dirs
+5. Habilidades futuras: templates/`action_description` por Hatsu (fora do MVP)
 
 ```json
 {
-  "name": "NomeDoPersonagem",
-  "description": "retro 16-bit rpg sprite, chibi 2.5 heads, readable identity silhouette, about 42 pixels tall character centered in 96x96 transparent frame, chunky shapes, dark block eyes no sclera, flat/basic shading, single color black outline, game sprite",
+  "name": "npc_gon",
+  "description": "Preserve EXACT pixel identity from reference south sprite while rotating 8 directions; chibi RPG, 96x96 transparent frame, feet near bottom",
   "mode": "v3",
   "size": 96,
-  "detail": "medium detail",
-  "outline": "single color black outline",
-  "view": "low top-down"
+  "reference_image_base64": "<fitted south png>"
 }
 ```
 
 > [!WARNING]
+> - **NÃO** regenerar cast nomeado só com `create_image_pixen` sem a south_ref.
 > - **NÃO** usar `size: 48` para personagens novos de gameplay.
-> - **NÃO** usar high detail / shading fotográfico / proporção realistic.
-> - Se o corpo ficar <36 px ou >52 px após fit, regenerar.
+> - Se o corpo ficar <48 px ou >74 px após fit, ajustar fit — não inventar novo design.
 > - Não usar `v3` + referência do **player** para NPCs únicos (clona identidade).
 
 #### 6.2 Quantização
@@ -171,12 +181,12 @@ respeite o teto de cores da tabela acima.
 ### 7. CHECKLIST DE ACEITAÇÃO (GATE)
 
 - [ ] Frame **96×96** (folha 8dir = 768×96)
-- [ ] Altura idle **40–48 px**; largura **24–36 px**
+- [ ] Altura idle **60–68 px**; largura **28–52 px**
 - [ ] Pés em **Y=82–86**
-- [ ] Top padding ≥ 28 px; laterais ≥ 24 px
-- [ ] Olhos em bloco escuro sem esclera
-- [ ] Chibi ~2.5 cabeças; silhueta reconhecível do personagem
-- [ ] ≤24 cores/frame; ≤36 na folha
+- [ ] Top padding ≥ 10 px; laterais ≥ 16 px
+- [ ] Fidelidade visual à south_ref (cabelo + outfit)
+- [ ] Animações mínimas: idle / walk / hit (8 dirs quando aplicável)
+- [ ] ≤36 cores/frame; ≤56 na folha
 - [ ] Sem anti-aliasing suave no corpo
 - [ ] `tools/validate_sprite_style.gd` aprovado
 

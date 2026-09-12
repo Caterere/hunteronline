@@ -1,5 +1,11 @@
 # CHARACTER QUALITY REGEN — Hunter Online
 
+> **Update 2026-09:** cast nomeado regenera a partir de
+> `assets/reference/cast_quality_pack/south_refs/` (fidelidade às refs do diretor)
+> via `scripts/tools/pixellab_regen_cast_from_quality_refs.py` (idle/walk/hit).
+> Corpo ~64px no frame 96×96.
+
+
 > **Objetivo:** regenerar **todos** os personagens com Style Lock v2 (frame **96×96**,
 > corpo **~40–44 px**, chibi uniforme) via PixelLab MCP, para ficarem reconhecíveis.
 > **SSOT de métricas:** [`../bibles/PIXEL_ART_STYLE_BIBLE.md`](../bibles/PIXEL_ART_STYLE_BIBLE.md)

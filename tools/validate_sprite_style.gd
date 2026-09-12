@@ -5,17 +5,17 @@ extends SceneTree
 # Baseado no Style Anchor Canônico: player(3).png / player.png
 # ==============================================================================
 
-# Style Lock v2 (Quality Pass) — corpo ~2× pixels, chibi uniforme
+# Style Lock v2 (Quality Pack) — refs cast_quality_pack ~64px tall in 96 canvas
 const EXPECTED_FRAME_W = 96
 const EXPECTED_FRAME_H = 96
 const TARGET_FEET_Y = 84
 const TOLERANCE_FEET_Y = 2
-const MAX_IDLE_WIDTH = 36
-const MAX_IDLE_HEIGHT = 52
-const MIN_TOP_PADDING = 24
+const MAX_IDLE_WIDTH = 56
+const MAX_IDLE_HEIGHT = 74
+const MIN_TOP_PADDING = 8
 const MIN_BOTTOM_PADDING = 8
-const MAX_COLORS_PER_FRAME = 24
-const MAX_COLORS_TOTAL_SHEET = 36
+const MAX_COLORS_PER_FRAME = 36
+const MAX_COLORS_TOTAL_SHEET = 56
 
 func validate_sprite(path: String) -> bool:
 	var real_path = ProjectSettings.globalize_path(path) if path.begins_with("res://") else path
