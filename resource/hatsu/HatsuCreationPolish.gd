@@ -276,3 +276,112 @@ static func camada_atual(mastery: float) -> Dictionary:
 		if mastery >= float(c["mastery_min"]):
 			best = c
 	return best
+
+
+# ------------------------------------------------------------
+# FILTROS DE CRIAÇÃO (v1 restritivo — amplia depois)
+# Evita repetir identidade do preset e limita opções por tipo Nen.
+# ------------------------------------------------------------
+
+static func preset_trava_identidade(preset_id: int) -> bool:
+	## Presets temáticos já definem objetivo/forma/alvo; não reperguntar.
+	return preset_id != 0 # CRIAR_DO_ZERO
+
+
+static func objetivos_permitidos(categoria: int) -> Array:
+	match categoria:
+		0: # INTENSIFICACAO — reforço / cura / impacto
+			return [0, 1, 2] # DANO, DEFESA, CURA
+		1: # TRANSFORMACAO
+			return [0, 1, 3, 5] # DANO, DEFESA, MOBILIDADE, CONTROLE
+		2: # EMISSAO
+			return [0, 3, 5] # DANO, MOBILIDADE, CONTROLE
+		3: # CONJURACAO
+			return [0, 1, 4, 5] # DANO, DEFESA, SUPORTE, CONTROLE
+		4: # MANIPULACAO
+			return [4, 5, 0] # SUPORTE, CONTROLE, DANO
+		_: # ESPECIALIZACAO
+			return [0, 4, 5] # DANO, SUPORTE, CONTROLE
+
+
+static func formas_permitidas(categoria: int) -> Array:
+	match categoria:
+		0: # INTENSIFICACAO — corpo a corpo / self
+			return [3, 2] # TOQUE, PESSOAL
+		1: # TRANSFORMACAO
+			return [3, 2, 0] # TOQUE, PESSOAL, PROJETIL
+		2: # EMISSAO
+			return [0, 1, 4] # PROJETIL, AREA, ZONA
+		3: # CONJURACAO
+			return [2, 3, 1] # PESSOAL, TOQUE, AREA
+		4: # MANIPULACAO
+			return [0, 3, 4] # PROJETIL, TOQUE, ZONA
+		_: # ESPECIALIZACAO
+			return [3, 2, 0] # TOQUE, PESSOAL, PROJETIL
+
+
+static func alvos_permitidos(categoria: int, objetivo: int = -1) -> Array:
+	match categoria:
+		0: # INTENSIFICACAO
+			if objetivo == 2: # CURA
+				return [2, 3] # PROPRIO_USUARIO, ALIADO
+			return [0, 2] # INIMIGO_UNICO, PROPRIO_USUARIO
+		1: # TRANSFORMACAO
+			return [0, 2]
+		2: # EMISSAO
+			return [0, 1] # INIMIGO_UNICO, AREA
+		3: # CONJURACAO
+			return [0, 2, 3]
+		4: # MANIPULACAO
+			return [0, 1, 3]
+		_:
+			return [0, 2, 3]
+
+
+static func efeitos_secundarios_permitidos(categoria: int) -> Array:
+	## Catálogo curto por tipo — evita "cura" pedir stun/homing etc.
+	match categoria:
+		0: # INTENSIFICACAO
+			return [6, 3, 10, 2, 11] # KNOCKBACK, STAT_MOD, AURA_GAIN, SHIELD, PIERCING
+		1: # TRANSFORMACAO
+			return [7, 8, 3, 6, 13] # STUN, SLOW, STAT_MOD, KNOCKBACK, REFLECTION
+		2: # EMISSAO
+			return [12, 14, 11, 6, 9] # TRACKING, AREA_BURST, PIERCING, KNOCKBACK, AURA_DRAIN
+		3: # CONJURACAO
+			return [2, 3, 7, 14, 10] # SHIELD, STAT_MOD, STUN, AREA_BURST, AURA_GAIN
+		4: # MANIPULACAO
+			return [7, 8, 3, 15, 12] # STUN, SLOW, STAT_MOD, CHAIN, TRACKING
+		_: # ESPECIALIZACAO
+			return [9, 16, 19, 7, 3] # AURA_DRAIN, DEVOUR_STATS, INFORMATION, STUN, STAT_MOD
+
+
+static func estilos_visuais_permitidos(categoria: int) -> Array:
+	match categoria:
+		0:
+			return [0, 5, 3] # PURO_PULSANTE, ANEIS_IMPACTO, LAMINA_CORTE
+		1:
+			return [0, 2, 1, 3] # PURO, RELAMPAGOS, CHAMAS, LAMINA
+		2:
+			return [0, 5, 4] # PURO, ANEIS, SHURIKEN
+		3:
+			return [0, 3, 7] # PURO, LAMINA, DRAGAO
+		4:
+			return [0, 6, 4] # PURO, NEVOA, SHURIKEN
+		_:
+			return [0, 6, 7]
+
+
+static func filtrar_catalogo(catalogo: Array, ids_permitidos: Array) -> Array:
+	var out: Array = []
+	for item in catalogo:
+		if int(item.get("id", -1)) in ids_permitidos:
+			out.append(item)
+	return out
+
+
+static func garantir_selecao_permitida(atual: int, permitidos: Array, fallback: int = 0) -> int:
+	if permitidos.is_empty():
+		return atual
+	if atual in permitidos:
+		return atual
+	return int(permitidos[0]) if not permitidos.is_empty() else fallback
