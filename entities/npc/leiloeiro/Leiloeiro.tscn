@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://c_leiloeiro_npc"]
+
+[ext_resource type="Script" path="res://entities/npc/leiloeiro/Leiloeiro.gd" id="1_lei"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/npc_vendedor_mercador_8dir.png" id="2_tex"]
+[ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="3_int"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 5.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 24.0
+
+[node name="Leiloeiro" type="CharacterBody2D"]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_lei")
+npc_name = "Leiloeiro do Underground"
+fala_padrao = "Bem-vindo ao leilão de Yorknew. Escrow garantido pela casa — taxa de 5% na listagem."
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -18)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_tex")
+hframes = 8
+vframes = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -2)
+shape = SubResource("CircleShape2D_body")
+
+[node name="InteractionComponent" type="Area2D" parent="."]
+script = ExtResource("3_int")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionComponent"]
+shape = SubResource("CircleShape2D_interact")

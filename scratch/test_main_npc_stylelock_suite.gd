@@ -61,15 +61,16 @@ func _test_assets_and_geometry() -> void:
 		if img == null:
 			_ok(false, "image load %s" % name)
 			continue
-		_ok(img.get_width() == 48 and img.get_height() == 48, "48x48 %s" % name)
+		# Style Lock v2: canvas 96×96, corpo chibi ~40–68px, pés ~Y84
+		_ok(img.get_width() == 96 and img.get_height() == 96, "96x96 %s" % name)
 		var bb := _opaque_bbox(img)
 		if bb.size.x <= 0:
 			_ok(false, "opaque bbox %s" % name)
 			continue
 		var h := int(bb.size.y)
 		var feet_y := int(bb.position.y + bb.size.y)
-		_ok(h >= 17 and h <= 24, "%s height %d in 17..24" % [name, h])
-		_ok(feet_y >= 40 and feet_y <= 44, "%s feetY %d in 40..44" % [name, feet_y])
+		_ok(h >= 34 and h <= 72, "%s height %d in 34..72" % [name, h])
+		_ok(feet_y >= 80 and feet_y <= 88, "%s feetY %d in 80..88" % [name, feet_y])
 
 
 func _opaque_bbox(img: Image) -> Rect2:

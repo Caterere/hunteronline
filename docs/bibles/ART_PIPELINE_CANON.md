@@ -25,7 +25,7 @@ Quando houver dúvida ou sobreposição, seguir nesta ordem:
 
 | Tema | SSOT (autoridade) | Docs de apoio (não contradizer o SSOT) |
 |---|---|---|
-| **Style lock de personagem** (48×48, escala, rosto, paleta, gate) | [`PIXEL_ART_STYLE_BIBLE.md`](PIXEL_ART_STYLE_BIBLE.md) | Production Bible §§5–12, 41–42, 49; Prompt Library §§2–14 |
+| **Style lock de personagem** (96×96, escala, rosto, paleta, gate) | [`PIXEL_ART_STYLE_BIBLE.md`](PIXEL_ART_STYLE_BIBLE.md) | Production Bible §§5–12, 41–42, 49; Prompt Library §§2–14; [`../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md`](../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md) |
 | **Hierarquia visual mundo vs personagem** (mundo rico, char simples) | [`PIXEL_ART_PRODUCTION_BIBLE.md`](PIXEL_ART_PRODUCTION_BIBLE.md) | Prompt Library §2; VISUAL_BIBLE (render/Y-sort) |
 | **Pipeline de produção / fases / quality gates de mapa** | [`PIXEL_ART_PRODUCTION_BIBLE.md`](PIXEL_ART_PRODUCTION_BIBLE.md) | Prompt Library §§94–97; World Production Guide (legado) |
 | **Prompts e chamadas PixelLab por categoria** | [`../guides/PIXELLAB_PROMPT_LIBRARY.md`](../guides/PIXELLAB_PROMPT_LIBRARY.md) | PIXELLAB_MCP.md; scripts em `scripts/tools/pixellab_*.py` |
@@ -36,32 +36,35 @@ Quando houver dúvida ou sobreposição, seguir nesta ordem:
 Cópias na raiz do repo (`HUNTER_ONLINE_PIXELART_PRODUCTION_BIBLE.md`,
 `HUNTER_ONLINE_PIXELLAB_PROMPT_LIBRARY.md`) são **stubs de ponte** para os
 caminhos canônicos acima — editar sempre o arquivo em `docs/`.
+Dumps antigos também em [`docs/archive/root-dumps/`](../archive/root-dumps/).
 
 ------------------------------------------------------------------------
 
 ## 3. UNIÃO DAS REGRAS (o que fica válido)
 
-### 3.1 Personagens — herda Style Lock antigo (inalterado)
+### 3.1 Personagens — Style Lock v2 (Quality Pass)
 
-Mantém-se tudo definido em `PIXEL_ART_STYLE_BIBLE.md`:
+Mantém-se tudo definido em `PIXEL_ART_STYLE_BIBLE.md` (**v2 — pixels dobrados**):
 
-- Frame **48×48**; personagem ~**20–22 px**; pés em **Y≈42**
-- Olhos 1×2 sem esclera; sem nariz/boca no idle
-- Flat/basic shading; ≤14 cores/frame; ≤22 na folha
+- Frame **96×96**; personagem ~**40–44 px**; pés em **Y≈84**
+- Chibi ~**2.5 cabeças**, tamanho uniforme no cast
+- Olhos em bloco 2×3/2×4 sem esclera; sem nariz/boca no idle
+- Flat/basic shading; ≤24 cores/frame; ≤36 na folha
 - Âncora: `assets/sprites/characters/player.png` / `assets/reference/player(3).png`
-- Rejeitar 68×68 / high detail / photographic
+- Rejeitar frame 48×48 novo, 128×128 de gameplay, high detail fotográfico
 
-A Production Bible **não substitui** esses números — ela só reforça que o
-personagem fica **simples** relativo ao mundo.
+A Production Bible **não substitui** esses números — ela reforça que o
+personagem fica **legível e reconhecível**, ainda abaixo da riqueza do mundo.
 
 **Pipeline híbrido para NPCs únicos (obrigatório):**
 
-1. `create_image_pixen` — identidade única (south)
-2. fit geométrico ~20px / pés Y≈42 (`pixellab_regen_main_npcs_hybrid_stylelock.py`)
-3. `create_character` mode=`v3` + `reference_image` = south fitted → 8 direções
+1. `create_image_pixen` — identidade única south em 96×96 (`medium detail`)
+2. fit geométrico ~42px / pés Y≈84 (`pixellab_regen_cast_v96_stylelock.py`)
+3. `create_character` mode=`v3` + `reference_image` = south fitted, `size: 96` → 8 direções
 
 Não usar `v3` + referência do **player** para NPCs únicos (clona o player).
-Não usar `standard`/`v3` sem fit (sai ~34–44px e quebra o Style Lock).
+Não usar `standard`/`v3` sem fit (escala irregular quebra o Style Lock).
+Roteiro saga a saga: [`../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md`](../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md).
 
 ### 3.2 Mundo — herda Production Bible nova + referência visual
 

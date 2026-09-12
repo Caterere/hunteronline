@@ -21,7 +21,16 @@ enum VisualShape {
 	RING,         # 7. Ondas de choque circulares concêntricas
 	LINE,         # 8. Linha de traço tático
 	AURA,         # 9. Chama / Miasma pulsante envolvente
-	PARTICLES     # 10. Enxame de orbes cintilantes
+	PARTICLES,    # 10. Enxame de orbes cintilantes
+	# Formas anime-específicas (canônicas)
+	FIST,         # 11. Punho Ko / Jajanken Pedra / Remote Punch
+	CHAIN,        # 12. Correntes Kurapika
+	GUM,          # 13. Bungee Gum (Hisoka)
+	NEEDLE,       # 14. Agulhas Illumi
+	BOOK,         # 15. Bandit's Secret (Chrollo)
+	SUN,          # 16. Rising Sun (Feitan)
+	DRAGON,       # 17. Dragon Head / Dive (Zeno)
+	SMOKE         # 18. Deep Purple (Morel)
 }
 
 # Paleta Canônica Pré-definida

@@ -67,9 +67,14 @@ func _on_party_dados_atualizados(membros: Array) -> void:
 			hbox_top.add_child(lbl_crown)
 
 		var lbl_nome := Label.new()
-		lbl_nome.text = "%s (Nv.%d)" % [m.get("name", "Hunter"), m.get("level", 1)]
+		var downed: bool = bool(m.get("is_downed", false)) or int(m.get("hp", 1)) <= 0
+		if downed:
+			lbl_nome.text = "%s (DESMAIADO)" % m.get("name", "Hunter")
+			lbl_nome.add_theme_color_override("font_color", Color(1.0, 0.35, 0.35))
+		else:
+			lbl_nome.text = "%s (Nv.%d)" % [m.get("name", "Hunter"), m.get("level", 1)]
+			lbl_nome.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 		lbl_nome.add_theme_font_size_override("font_size", 4)
-		lbl_nome.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 		hbox_top.add_child(lbl_nome)
 		vbox.add_child(hbox_top)
 

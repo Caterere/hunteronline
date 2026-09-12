@@ -32,6 +32,7 @@ var snapshot_delta: bool = true # envia só mudanças vs último snapshot do pee
 var snapshot_send_hz: float = 10.0 # cap de envio (ticks de jogo podem ser 20)
 var snapshot_compress: bool = true # comprime snapshots full / grandes
 var snapshot_compress_min_bytes: int = 256
+var snapshot_binary: bool = true # PREREQ-1: empacota snapshot via NetworkProtocol binário
 var enable_master_announce: bool = false
 var master_registry_host: String = "127.0.0.1"
 var master_registry_port: int = 7780
@@ -59,6 +60,7 @@ func to_dict() -> Dictionary:
 		"snapshot_send_hz": snapshot_send_hz,
 		"snapshot_compress": snapshot_compress,
 		"snapshot_compress_min_bytes": snapshot_compress_min_bytes,
+		"snapshot_binary": snapshot_binary,
 		"enable_master_announce": enable_master_announce,
 		"master_registry_host": master_registry_host,
 		"master_registry_port": master_registry_port,
@@ -88,6 +90,7 @@ static func from_dict(d: Dictionary) -> ServerConfig:
 	cfg.snapshot_send_hz = float(d.get("snapshot_send_hz", 10.0))
 	cfg.snapshot_compress = bool(d.get("snapshot_compress", true))
 	cfg.snapshot_compress_min_bytes = int(d.get("snapshot_compress_min_bytes", 256))
+	cfg.snapshot_binary = bool(d.get("snapshot_binary", true))
 	cfg.enable_master_announce = bool(d.get("enable_master_announce", false))
 	cfg.master_registry_host = str(d.get("master_registry_host", "127.0.0.1"))
 	cfg.master_registry_port = int(d.get("master_registry_port", 7780))
@@ -167,6 +170,8 @@ func apply_cmdline_args() -> void:
 			snapshot_send_hz = float(args[i + 1])
 		elif arg == "--no-snapshot-compress":
 			snapshot_compress = false
+		elif arg == "--no-snapshot-binary":
+			snapshot_binary = false
 		elif arg == "--full-snapshots":
 			snapshot_delta = false
 		elif arg == "--master-announce":

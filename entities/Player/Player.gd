@@ -29,6 +29,8 @@ var _attack_lunge_current_speed: float = 0.0
 @export_category("Objects")
 @export var _animation_tree: AnimationTree = null
 var controles_travados: bool = false
+var _esta_desmaiado: bool = false
+var _indicador_desmaio: Node2D = null
 
 # Camera & Screen Shake (Fase 1: Juice & Game Feel)
 var _camera: Camera2D = null
@@ -80,6 +82,7 @@ func _ready() -> void:
 
 	add_to_group("player")
 	_aplicar_customizacao_visual()
+	_garantir_indicador_desmaio()
 
 	# Restaurar posição salva se estiver carregando save ou posicionar no SpawnPoint
 	if PlayerData.posicao_salva != Vector2.ZERO:
@@ -100,34 +103,110 @@ func travar_controles(travar: bool = true) -> void:
 	controles_travados = travar
 	if travar:
 		velocity = Vector2.ZERO
-		if _state_machine != null:
+		# Em desmaio a animação "death" manda; não forçar idle aqui.
+		if not _esta_desmaiado and _state_machine != null:
 			_state_machine.travel("idle")
 
 
+func tocar_animacao_morte() -> void:
+	_esta_desmaiado = true
+	velocity = Vector2.ZERO
+	controles_travados = true
+	var played := false
+	if _animation_tree != null:
+		_animation_tree.active = true
+	if _state_machine != null:
+		_state_machine.travel("death")
+		played = true
+	var anim_player := get_node_or_null("Animation") as AnimationPlayer
+	if anim_player != null and anim_player.has_animation("death"):
+		# Garante frames mesmo se a transição do tree falhar sem edges explícitos
+		anim_player.play("death")
+		played = true
+	if not played:
+		var spr := get_node_or_null("Sprite2D") as Sprite2D
+		if spr != null:
+			spr.frame = 59
+	_garantir_indicador_desmaio()
+	if _indicador_desmaio != null and _indicador_desmaio.has_method("show_self_downed"):
+		_indicador_desmaio.call("show_self_downed")
+
+
+func limpar_estado_desmaio() -> void:
+	_esta_desmaiado = false
+	if _indicador_desmaio != null and _indicador_desmaio.has_method("hide_prompt"):
+		_indicador_desmaio.call("hide_prompt")
+
+
 func reviver(pos_respawn: Vector2 = Vector2.ZERO) -> void:
+	limpar_estado_desmaio()
 	travar_controles(false)
 	if combat_system != null:
 		combat_system.reviver()
 	if pos_respawn != Vector2.ZERO:
 		global_position = pos_respawn
+	if _animation_tree != null:
+		_animation_tree.active = true
 	if _state_machine != null:
 		_state_machine.travel("idle")
 	_aplicar_hit_flash()
 
 
+func _garantir_indicador_desmaio() -> void:
+	if _indicador_desmaio != null and is_instance_valid(_indicador_desmaio):
+		return
+	_indicador_desmaio = get_node_or_null("DownedReviveIndicator") as Node2D
+	if _indicador_desmaio != null:
+		return
+	var script_res = load("res://entities/Player/components/DownedReviveIndicator.gd")
+	if script_res == null:
+		return
+	_indicador_desmaio = script_res.new() as Node2D
+	_indicador_desmaio.name = "DownedReviveIndicator"
+	add_child(_indicador_desmaio)
+
+
 func _aplicar_customizacao_visual() -> void:
+	# NOTA CHIBI: player.png ainda é 48×48 (legado). NPCs quality-pack são 96×96 (~64px corpo).
+	# Regenerar player no Style Lock v2 é P0 de arte — escala 2× quebra AnimationPlayer (position tracks).
 	var sprite := get_node_or_null("Sprite2D") as Sprite2D
 	if sprite != null and PlayerData.character_colors.has("roupa"):
-		# Aplicar Shader de troca de paleta de cor
 		var shader := load("res://assets/shaders/character_color_customizer.gdshader") as Shader
 		if shader != null:
 			var mat := ShaderMaterial.new()
 			mat.shader = shader
 			var cor_cabelo: Color = PlayerData.character_colors.get("cabelo", Color.BLACK)
 			var cor_roupa: Color = PlayerData.character_colors.get("roupa", Color.GREEN)
+			var cor_olhos: Color = PlayerData.character_colors.get("olhos", Color(0.15, 0.45, 0.85, 1.0))
 			mat.set_shader_parameter("hair_custom_color", cor_cabelo)
 			mat.set_shader_parameter("clothes_custom_color", cor_roupa)
+			mat.set_shader_parameter("eyes_custom_color", cor_olhos)
+			mat.set_shader_parameter("enable_eye_tint", 1.0)
+			# Cabelos claros (Killua / loiros) precisam do modo light_hair
+			var luminancia: float = (cor_cabelo.r + cor_cabelo.g + cor_cabelo.b) / 3.0
+			mat.set_shader_parameter("light_hair_mode", 1.0 if luminancia > 0.55 else 0.0)
 			sprite.material = mat
+
+	_atualizar_overlay_aparencia()
+
+
+func _atualizar_overlay_aparencia() -> void:
+	var HairStyleOverlay = load("res://entities/character_creator/HairStyleOverlay.gd")
+	if HairStyleOverlay == null:
+		return
+	var overlay := get_node_or_null("HairStyleOverlay") as Node2D
+	if overlay == null:
+		overlay = HairStyleOverlay.new()
+		overlay.name = "HairStyleOverlay"
+		overlay.z_index = 2
+		add_child(overlay)
+	if overlay.has_method("configurar"):
+		overlay.configurar(
+			str(PlayerData.character_colors.get("hair_id", "hair_gon_01")),
+			PlayerData.character_colors.get("cabelo", Color(0.1, 0.1, 0.12, 1.0)),
+			PlayerData.character_colors.get("olhos", Color(0.15, 0.45, 0.85, 1.0)),
+			true
+		)
 
 
 
@@ -474,7 +553,7 @@ func _atualizar_attack_cooldown() -> void:
 
 func _animate() -> void:
 
-	if _is_attacking:
+	if _is_attacking or _esta_desmaiado:
 		return
 
 
@@ -523,3 +602,80 @@ func sincronizar_progresso() -> void:
 	var xp_sys = get_node_or_null("XPSystem") as XPSystem
 	if xp_sys != null and xp_sys.has_method("sincronizar_com_player_data"):
 		xp_sys.sincronizar_com_player_data()
+
+
+# ============================================================
+# CÂMERA & GAME FEEL (Fase J / polish MMORPG 2D)
+# ============================================================
+
+func configurar_limites_camera(limites: Rect2) -> void:
+	if _camera == null:
+		_camera = get_node_or_null("Camera2D") as Camera2D
+	if _camera == null:
+		return
+	_camera.limit_left = int(limites.position.x)
+	_camera.limit_top = int(limites.position.y)
+	_camera.limit_right = int(limites.position.x + limites.size.x)
+	_camera.limit_bottom = int(limites.position.y + limites.size.y)
+	_camera.limit_enabled = true
+
+
+func definir_zoom_camera(zoom: Vector2) -> void:
+	if _camera == null:
+		_camera = get_node_or_null("Camera2D") as Camera2D
+	if _camera == null:
+		return
+	_camera.zoom = zoom
+
+
+func _spawn_afterimage(tint: Color = Color(0.45, 0.85, 1.0, 0.45), lifetime: float = 0.22) -> void:
+	## Trail de velocidade (Godspeed / dash) — sprite fantasma curto.
+	var src: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
+	if src == null or src.texture == null:
+		return
+	var ghost := Sprite2D.new()
+	ghost.texture = src.texture
+	ghost.hframes = src.hframes
+	ghost.vframes = src.vframes
+	ghost.frame = src.frame
+	ghost.flip_h = src.flip_h
+	ghost.modulate = tint
+	ghost.z_index = z_index - 1
+	ghost.global_position = global_position
+	ghost.scale = scale
+	var parent_n: Node = get_parent()
+	if parent_n == null:
+		return
+	parent_n.add_child(ghost)
+	var tw := ghost.create_tween()
+	tw.tween_property(ghost, "modulate:a", 0.0, lifetime)
+	tw.tween_callback(ghost.queue_free)
+
+
+func _obter_tipo_chao() -> String:
+	## Classificação simples de superfície sob os pés (áudio de passo / poeira).
+	var space := get_world_2d().direct_space_state
+	if space == null:
+		return "default"
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = global_position + Vector2(0, 8)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	query.collision_mask = 1
+	var hits: Array = space.intersect_point(query, 4)
+	for hit in hits:
+		var collider = hit.get("collider")
+		if collider == null:
+			continue
+		var n := str(collider.name).to_lower()
+		if "water" in n or "agua" in n or "rio" in n:
+			return "water"
+		if "sand" in n or "areia" in n:
+			return "sand"
+		if "grass" in n or "grama" in n or "floresta" in n:
+			return "grass"
+		if "stone" in n or "pedra" in n or "rock" in n or "dungeon" in n:
+			return "stone"
+		if "wood" in n or "madeira" in n or "floor" in n:
+			return "wood"
+	return "default"

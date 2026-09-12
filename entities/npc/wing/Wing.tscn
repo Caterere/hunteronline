@@ -19,6 +19,7 @@ quest = ExtResource("3_qd8bb")
 
 [node name="Sprite2D" parent="." index="0"]
 position = Vector2(0, -17)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_3awom")
 hframes = 8
 vframes = 1

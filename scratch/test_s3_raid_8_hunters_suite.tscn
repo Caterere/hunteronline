@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_s3_raid_8_hunters_suite.gd" id="1"]
+
+[node name="TestS3Raid8Hunters" type="Node2D"]
+script = ExtResource("1")

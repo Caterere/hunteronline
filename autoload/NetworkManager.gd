@@ -55,6 +55,10 @@ var remote_players: Dictionary = {}
 var remote_enemies: Dictionary = {}
 # peer_id -> PlayerNetworkState
 var last_states: Dictionary = {}
+## PREREQ-2: peers desmaiados (visíveis para revive)
+var _downed_peers: Dictionary = {} # peer_id -> true
+var _revive_prompt_peer: int = -1
+var _local_revive_channeling: bool = false
 
 var _snapshot_timer: float = 0.0
 const SNAPSHOT_INTERVAL: float = 0.05 # 20 Hz
@@ -184,6 +188,11 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 		world_coordinator.player_died.connect(_on_server_player_died)
 	if not world_coordinator.player_respawned.is_connected(_on_server_player_respawned):
 		world_coordinator.player_respawned.connect(_on_server_player_respawned)
+	if world_coordinator.has_signal("ally_revive_started") and not world_coordinator.ally_revive_started.is_connected(_on_server_ally_revive_started):
+		world_coordinator.ally_revive_started.connect(_on_server_ally_revive_started)
+		world_coordinator.ally_revive_progress.connect(_on_server_ally_revive_progress)
+		world_coordinator.ally_revive_cancelled.connect(_on_server_ally_revive_cancelled)
+		world_coordinator.ally_revive_completed.connect(_on_server_ally_revive_completed)
 	world_coordinator.start_coordinator()
 	_seed_demo_enemies_if_needed()
 
@@ -549,6 +558,20 @@ func _physics_process(delta: float) -> void:
 		discovery_listener.update(delta)
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if is_offline_singleplayer() or is_dedicated_server():
+		return
+	if current_mode != NetworkMode.CLIENT_PEER:
+		return
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.keycode == KEY_E:
+			if _local_revive_channeling:
+				cancelar_revive_local()
+			else:
+				tentar_revive_aliado_proximo()
+			get_viewport().set_input_as_handled()
+
+
 func _atualizar_snapshot_bandwidth_janela(delta: float) -> void:
 	if _snapshot_packets_sent == 0 and _snapshot_bytes_sent == 0 and _snapshot_sec_timer <= 0.0:
 		return
@@ -801,56 +824,57 @@ func _on_server_snapshot_ready(_snapshot: Dictionary) -> void:
 
 
 func _enviar_snapshot_para_peer(peer_id: int, snap: Dictionary) -> void:
+	var use_binary: bool = server_config == null or bool(server_config.snapshot_binary)
 	var use_compress: bool = server_config != null and bool(server_config.snapshot_compress)
 	var min_bytes: int = int(server_config.snapshot_compress_min_bytes) if server_config != null else 256
 	var payload_size: int = 0
 	var raw_size: int = 0
 
-	if use_compress:
-		var raw: PackedByteArray = var_to_bytes(snap)
-		raw_size = raw.size()
-		_snapshot_bytes_raw += raw_size
-		_snapshot_bytes_raw_sec_acc += raw_size
-		if raw_size >= min_bytes:
-			var compressed: PackedByteArray = raw.compress(FileAccess.COMPRESSION_DEFLATE)
-			# Só envia comprimido se valer a pena
-			if compressed.size() > 0 and compressed.size() < raw_size:
-				payload_size = compressed.size()
-				_snapshot_bytes_sent += payload_size
-				_snapshot_bytes_sent_sec_acc += payload_size
-				_snapshot_packets_sent += 1
-				_snapshot_packets_sent_sec_acc += 1
-				_snapshot_compress_hits += 1
-				if peer_id > 0:
-					rpc_id(peer_id, "rpc_receber_snapshot_mundo_comprimido", compressed)
-				else:
-					rpc("rpc_receber_snapshot_mundo_comprimido", compressed)
-				return
-		_snapshot_compress_skips += 1
-		payload_size = raw_size
-		_snapshot_bytes_sent += payload_size
-		_snapshot_bytes_sent_sec_acc += payload_size
-		_snapshot_packets_sent += 1
-		_snapshot_packets_sent_sec_acc += 1
-		if peer_id > 0:
-			rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
-		else:
-			rpc("rpc_receber_snapshot_mundo", snap)
-		return
+	# PREREQ-1: empacota schema binário compacto (NetworkProtocol) antes de comprimir
+	var raw: PackedByteArray
+	var binary_mode := false
+	if use_binary:
+		raw = NetworkProtocol.pack_world_snapshot(snap)
+		binary_mode = not raw.is_empty()
+	if not binary_mode:
+		raw = var_to_bytes(snap)
 
-	raw_size = var_to_bytes(snap).size()
-	payload_size = raw_size
+	raw_size = raw.size()
 	_snapshot_bytes_raw += raw_size
 	_snapshot_bytes_raw_sec_acc += raw_size
+
+	if use_compress and raw_size >= min_bytes:
+		var compressed: PackedByteArray = raw.compress(FileAccess.COMPRESSION_DEFLATE)
+		if compressed.size() > 0 and compressed.size() < raw_size:
+			payload_size = compressed.size()
+			_snapshot_bytes_sent += payload_size
+			_snapshot_bytes_sent_sec_acc += payload_size
+			_snapshot_packets_sent += 1
+			_snapshot_packets_sent_sec_acc += 1
+			_snapshot_compress_hits += 1
+			var rpc_name := "rpc_receber_snapshot_mundo_binario_comprimido" if binary_mode else "rpc_receber_snapshot_mundo_comprimido"
+			if peer_id > 0:
+				rpc_id(peer_id, rpc_name, compressed)
+			else:
+				rpc(rpc_name, compressed)
+			return
+
+	_snapshot_compress_skips += 1
+	payload_size = raw_size
 	_snapshot_bytes_sent += payload_size
 	_snapshot_bytes_sent_sec_acc += payload_size
 	_snapshot_packets_sent += 1
 	_snapshot_packets_sent_sec_acc += 1
-	_snapshot_compress_skips += 1
-	if peer_id > 0:
-		rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
+	if binary_mode:
+		if peer_id > 0:
+			rpc_id(peer_id, "rpc_receber_snapshot_mundo_binario", raw)
+		else:
+			rpc("rpc_receber_snapshot_mundo_binario", raw)
 	else:
-		rpc("rpc_receber_snapshot_mundo", snap)
+		if peer_id > 0:
+			rpc_id(peer_id, "rpc_receber_snapshot_mundo", snap)
+		else:
+			rpc("rpc_receber_snapshot_mundo", snap)
 
 
 @rpc("authority", "call_local", "unreliable_ordered")
@@ -867,6 +891,37 @@ func rpc_receber_snapshot_mundo_comprimido(payload: PackedByteArray) -> void:
 	if snap is Dictionary:
 		_aplicar_snapshot_mundo(snap)
 
+
+
+
+@rpc("authority", "call_local", "unreliable_ordered")
+func rpc_receber_snapshot_mundo_binario(payload: PackedByteArray) -> void:
+	if payload.is_empty():
+		return
+	_snapshot_bytes_recv += payload.size()
+	_snapshot_packets_recv += 1
+	var snap: Dictionary = NetworkProtocol.unpack_world_snapshot(payload)
+	if snap.is_empty():
+		push_warning("[NetworkManager] Snapshot binário inválido")
+		return
+	_aplicar_snapshot_mundo(snap)
+
+
+@rpc("authority", "call_local", "unreliable_ordered")
+func rpc_receber_snapshot_mundo_binario_comprimido(payload: PackedByteArray) -> void:
+	if payload.is_empty():
+		return
+	_snapshot_bytes_recv += payload.size()
+	_snapshot_packets_recv += 1
+	var raw: PackedByteArray = payload.decompress_dynamic(-1, FileAccess.COMPRESSION_DEFLATE)
+	if raw.is_empty():
+		push_warning("[NetworkManager] Falha ao descomprimir snapshot binário")
+		return
+	var snap: Dictionary = NetworkProtocol.unpack_world_snapshot(raw)
+	if snap.is_empty():
+		push_warning("[NetworkManager] Snapshot binário descomprimido inválido")
+		return
+	_aplicar_snapshot_mundo(snap)
 
 @rpc("authority", "call_local", "unreliable_ordered")
 func rpc_receber_snapshot_mundo(snapshot: Dictionary) -> void:
@@ -1039,9 +1094,13 @@ func rpc_aplicar_dano_jogador(damage: int, source_net_id: int, hp_remaining: int
 func _on_server_player_died(peer_id: int, source_net_id: int) -> void:
 	if not is_dedicated_server():
 		return
+	var death_pos := Vector2.ZERO
+	if world_coordinator != null and world_coordinator.players.has(peer_id):
+		var p: Dictionary = world_coordinator.players[peer_id]
+		death_pos = p.get("downed_pos", p.get("position", Vector2.ZERO)) as Vector2
 	rpc_id(peer_id, "rpc_jogador_morreu", source_net_id)
-	# Notifica outros clientes (puppet some / fica caído)
-	rpc("rpc_notificar_jogador_estado", peer_id, true, Vector2.ZERO)
+	# Notifica outros clientes com posição do corpo (para prompt [E] e range)
+	rpc("rpc_notificar_jogador_estado", peer_id, true, death_pos)
 
 
 func _on_server_player_respawned(peer_id: int, spawn_pos: Vector2, hp: int, aura: float) -> void:
@@ -1072,14 +1131,16 @@ func rpc_jogador_morreu(source_net_id: int) -> void:
 	if EventBus != null:
 		EventBus.player_died.emit()
 	if EventBus != null and EventBus.has_method("emit_toast"):
-		EventBus.emit_toast("☠️ Você foi derrotado! Renascendo em breve... (src %d)" % source_net_id)
-	print("[NetworkManager] ☠️ Morte de rede confirmada (src %d)" % source_net_id)
+		EventBus.emit_toast("☠️ Você desmaiou! Aguarde revive aliado ([E]) ou renasça no spawn. (src %d)" % source_net_id)
+	print("[NetworkManager] ☠️ Morte/desmaio de rede confirmado (src %d)" % source_net_id)
 
 
 @rpc("authority", "call_remote", "reliable")
 func rpc_jogador_respawnou(spawn_pos: Vector2, hp: int, aura: float) -> void:
 	if is_dedicated_server():
 		return
+	_local_revive_channeling = false
+	_revive_prompt_peer = -1
 	if PlayerData != null:
 		PlayerData.attributes["vida"] = hp
 		PlayerData.attributes["aura"] = aura
@@ -1097,8 +1158,8 @@ func rpc_jogador_respawnou(spawn_pos: Vector2, hp: int, aura: float) -> void:
 			death_ui.visible = false
 			death_ui.queue_free()
 	if EventBus != null and EventBus.has_method("emit_toast"):
-		EventBus.emit_toast("✨ Renascido! HP/Aura restaurados.")
-	print("[NetworkManager] ✨ Respawn de rede em %s (HP %d)" % [str(spawn_pos), hp])
+		EventBus.emit_toast("✨ Em pé novamente! HP/Aura restaurados.")
+	print("[NetworkManager] ✨ Respawn/revive de rede em %s (HP %d)" % [str(spawn_pos), hp])
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -1113,11 +1174,19 @@ func rpc_solicitar_respawn() -> void:
 func rpc_notificar_jogador_estado(peer_id: int, is_dead: bool, pos: Vector2) -> void:
 	if peer_id == local_peer_id:
 		return
+	if is_dead:
+		_downed_peers[peer_id] = true
+	else:
+		_downed_peers.erase(peer_id)
 	var puppet = remote_players.get(peer_id, null)
 	if puppet == null or not is_instance_valid(puppet):
 		return
-	if is_dead:
+	if puppet.has_method("set_downed"):
+		puppet.set_downed(is_dead, pos)
+	elif is_dead:
 		puppet.modulate = Color(0.5, 0.5, 0.5, 0.55)
+		if pos != Vector2.ZERO:
+			puppet.global_position = pos
 	else:
 		puppet.modulate = Color.WHITE
 		if pos != Vector2.ZERO:
@@ -1126,11 +1195,148 @@ func rpc_notificar_jogador_estado(peer_id: int, is_dead: bool, pos: Vector2) -> 
 				puppet.target_position = pos
 
 
-## Cliente pede respawn antecipado (botão Renascer).
+## Cliente pede respawn antecipado (botão Renascer / abandonar desmaio).
 func solicitar_respawn() -> void:
 	if current_mode != NetworkMode.CLIENT_PEER:
 		return
 	rpc_id(1, "rpc_solicitar_respawn")
+
+
+# ============================================================
+# PREREQ-2 — REVIVE DE ALIADOS
+# ============================================================
+
+
+func _on_server_ally_revive_started(reviver_id: int, target_id: int) -> void:
+	if not is_dedicated_server():
+		return
+	rpc("rpc_ally_revive_started", reviver_id, target_id)
+
+
+func _on_server_ally_revive_progress(reviver_id: int, target_id: int, progress_01: float) -> void:
+	if not is_dedicated_server():
+		return
+	rpc("rpc_ally_revive_progress", reviver_id, target_id, progress_01)
+
+
+func _on_server_ally_revive_cancelled(reviver_id: int, target_id: int, reason: String) -> void:
+	if not is_dedicated_server():
+		return
+	rpc("rpc_ally_revive_cancelled", reviver_id, target_id, reason)
+
+
+func _on_server_ally_revive_completed(target_id: int, pos: Vector2, hp: int, aura: float) -> void:
+	if not is_dedicated_server():
+		return
+	# player_respawned já notifica restauração; este RPC é feedback explícito de revive
+	rpc("rpc_ally_revive_completed", target_id, pos, hp, aura)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_solicitar_revive_aliado(target_peer_id: int) -> void:
+	if not is_dedicated_server() or world_coordinator == null:
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	var result: Dictionary = world_coordinator.begin_ally_revive(sender_id, target_peer_id)
+	if not bool(result.get("ok", false)):
+		rpc_id(sender_id, "rpc_ally_revive_rejected", target_peer_id, str(result.get("reason", "fail")))
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func rpc_cancelar_revive_aliado() -> void:
+	if not is_dedicated_server() or world_coordinator == null:
+		return
+	var sender_id: int = multiplayer.get_remote_sender_id()
+	world_coordinator.cancel_ally_revive_by_reviver(sender_id, "cancelled")
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_ally_revive_started(reviver_id: int, target_id: int) -> void:
+	if is_dedicated_server():
+		return
+	if reviver_id == local_peer_id:
+		_local_revive_channeling = true
+		_revive_prompt_peer = target_id
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("💉 Canalizando revive... (3s)")
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_ally_revive_progress(reviver_id: int, target_id: int, progress_01: float) -> void:
+	if is_dedicated_server():
+		return
+	if reviver_id == local_peer_id or target_id == local_peer_id:
+		# HUD leve via toast a cada ~33%
+		if EventBus != null and EventBus.has_method("emit_toast") and int(progress_01 * 100.0) % 34 == 0:
+			EventBus.emit_toast("💉 Revive %d%%" % int(progress_01 * 100.0))
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_ally_revive_cancelled(reviver_id: int, _target_id: int, reason: String) -> void:
+	if is_dedicated_server():
+		return
+	if reviver_id == local_peer_id:
+		_local_revive_channeling = false
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("💉 Revive cancelado (%s)" % reason)
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_ally_revive_completed(target_id: int, _pos: Vector2, _hp: int, _aura: float) -> void:
+	if is_dedicated_server():
+		return
+	_local_revive_channeling = false
+	_downed_peers.erase(target_id)
+	if PartyManager != null and PartyManager.has_method("definir_membro_desmaiado"):
+		PartyManager.definir_membro_desmaiado(target_id, false)
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("✨ Aliado revivido!" if target_id != local_peer_id else "✨ Você foi revivido por um aliado!")
+
+
+@rpc("authority", "call_remote", "reliable")
+func rpc_ally_revive_rejected(_target_id: int, reason: String) -> void:
+	if is_dedicated_server():
+		return
+	_local_revive_channeling = false
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("💉 Não foi possível reviver (%s)" % reason)
+
+
+## Cliente: tenta reviver o aliado caído mais próximo (tecla E / interact).
+func tentar_revive_aliado_proximo() -> void:
+	if current_mode != NetworkMode.CLIENT_PEER:
+		return
+	if _local_revive_channeling:
+		return
+	var player = GameManager.active_player if GameManager != null else null
+	if player == null or not is_instance_valid(player):
+		return
+	var best_id: int = -1
+	var best_dist: float = 72.0
+	var origin: Vector2 = player.global_position
+	for pid in _downed_peers.keys():
+		var puppet = remote_players.get(int(pid), null)
+		if puppet == null or not is_instance_valid(puppet):
+			continue
+		var d: float = origin.distance_to(puppet.global_position)
+		if d <= best_dist:
+			best_dist = d
+			best_id = int(pid)
+	if best_id < 0:
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("💉 Nenhum aliado caído por perto")
+		return
+	_revive_prompt_peer = best_id
+	rpc_id(1, "rpc_solicitar_revive_aliado", best_id)
+
+
+func cancelar_revive_local() -> void:
+	if current_mode != NetworkMode.CLIENT_PEER:
+		return
+	if not _local_revive_channeling:
+		return
+	rpc_id(1, "rpc_cancelar_revive_aliado")
+	_local_revive_channeling = false
 
 
 @rpc("authority", "call_remote", "reliable")

@@ -26,6 +26,9 @@ var _marcos_notificados: Dictionary = {
 
 func _ready() -> void:
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.KUKUROO)
+	WorldDensityKit.attach(self, WorldDensityKit.KitKind.FLORESTA)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
+	WorldPolishKit.attach(self, WorldPolishKit.KitKind.FLORESTA)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco2()
 	_configurar_inimigos()

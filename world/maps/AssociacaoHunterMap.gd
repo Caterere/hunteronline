@@ -27,6 +27,11 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
+	# Densidade visual MMORPG 2D (reusa kits da Estrada — campus urbano da Associação)
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ESTRADA)
+	WorldDensityKit.attach(self, WorldDensityKit.KitKind.ESTRADA)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.ESTRADA)
+	WorldPolishKit.attach(self, WorldPolishKit.KitKind.ESTRADA)
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 

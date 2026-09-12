@@ -43,7 +43,7 @@ func _ready() -> void:
 	# 3. TESTE RELATIONSHIP SYSTEM: CONSULTA E MUTAÇÃO
 	print("\n[TESTE 3/8] RelationshipSystem: Alteração e Limites...")
 	assert(RelationshipSystem != null, "RelationshipSystem deve estar ativo no Autoload")
-	RelationshipSystem.alterar_relacionamento("ferreiro_padokia", 30.0, 20.0, 0.0, "Missão de entrega concluída")
+	RelationshipSystem.alterar_relacionamento("ferreiro_padokia", 30.0, 20.0, 0.0, 0.0, 0.0, "Missão de entrega concluída")
 	assert(RelationshipSystem.obter_confianca("ferreiro_padokia") == 80.0, "Confiança do Ferreiro deve subir para 80")
 	assert(RelationshipSystem.pode_revelar_segredo("ferreiro_padokia") == true, "Ferreiro deve estar apto a revelar segredos (trust >= 75)")
 	assert(RelationshipSystem.pode_oferecer_missao("ferreiro_padokia") == true, "Ferreiro deve oferecer missão exclusiva (trust >= 60)")
@@ -71,17 +71,18 @@ func _ready() -> void:
 
 	# 6. TESTE PERSISTÊNCIA MULTI-SLOT EM JSON
 	print("\n[TESTE 6/8] Persistência Multi-Slot em JSON...")
-	RelationshipSystem.alterar_relacionamento("wing", -20.0, 0.0, 0.0, "Teste Save")
+	RelationshipSystem.alterar_relacionamento("wing", -20.0, 0.0, 0.0, 0.0, 0.0, "Teste Save")
 	var salvou = SaveManager.salvar_jogo(77)
 	assert(salvou, "SaveManager deve salvar no Slot 77")
 	
 	# Alterar em memória
-	RelationshipSystem.alterar_relacionamento("wing", +40.0, 0.0, 0.0, "Mudança pós save")
+	RelationshipSystem.alterar_relacionamento("wing", +40.0, 0.0, 0.0, 0.0, 0.0, "Mudança pós save")
 	
 	# Carregar Slot 77
 	var carregou = SaveManager.carregar_jogo(77)
 	assert(carregou, "SaveManager deve carregar Slot 77")
-	assert(RelationshipSystem.obter_confianca("wing") == 60.0, "Confiança de Wing (60.0) deve ser restaurada do JSON")
+	# Wing começa em 85; após -20 no save, load deve restaurar 65 (não o +40 pós-save).
+	assert(RelationshipSystem.obter_confianca("wing") == 65.0, "Confiança de Wing (65.0) deve ser restaurada do JSON")
 	SaveManager.deletar_save(77)
 	print("  ✅ [PASS] Estado social e histórico de relacionamentos persistidos em JSON.")
 	passed_tests += 1
@@ -95,7 +96,7 @@ func _ready() -> void:
 	npc_dummy.add_child(npc_comp)
 	add_child(npc_dummy)
 	
-	RelationshipSystem.alterar_relacionamento("cidadao_teste_medo", -30.0, 0.0, +80.0, "Ameaça grave")
+	RelationshipSystem.alterar_relacionamento("cidadao_teste_medo", -30.0, 0.0, +80.0, 0.0, 0.0, "Ameaça grave")
 	var fala_medo = npc_comp.obter_dialogo_reativo()
 	assert("não me machuque" in fala_medo or "socorro" in fala_medo or "Fique longe" in fala_medo, "NPC intimidado deve tremer e suplicar")
 	print("  ✅ [PASS] NPC reage com temor imediato quando o medo ultrapassa 70.")
@@ -103,7 +104,7 @@ func _ready() -> void:
 
 	# 8. TESTE REVELAÇÃO DE SEGREDO POR ALTA CONFIANÇA
 	print("\n[TESTE 8/8] Revelação de Segredo por Alta Confiança...")
-	RelationshipSystem.alterar_relacionamento("cidadao_teste_medo", +90.0, +50.0, -80.0, "Resgate heróico")
+	RelationshipSystem.alterar_relacionamento("cidadao_teste_medo", +90.0, +50.0, -80.0, 0.0, 0.0, "Resgate heróico")
 	var fala_segredo = npc_comp.obter_dialogo_reativo()
 	assert("confiar em você" in fala_segredo or "jazidas escondidas" in fala_segredo, "NPC com confiança >= 75 deve revelar segredos")
 	

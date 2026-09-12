@@ -1,0 +1,36 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://entities/npc/antokiba/AntokibaDuelBoard.gd" id="1"]
+[ext_resource type="Texture2D" path="res://assets/sprites/characters/npc_vendedor_mercador_8dir.png" id="2_tex"]
+[ext_resource type="Script" path="res://entities/components/InteractionComponent.gd" id="3_int"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 5.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 28.0
+
+[node name="AntokibaDuelBoard" type="CharacterBody2D"]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1")
+npc_name = "Quadro de Antokiba"
+fala_padrao = "Quer um duelo de cartas? Mostre seu Book — as regras de Antokiba valem aqui!"
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -18)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_tex")
+hframes = 8
+vframes = 1
+modulate = Color(0.55, 0.95, 0.7, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -2)
+shape = SubResource("CircleShape2D_body")
+
+[node name="InteractionComponent" type="Area2D" parent="."]
+script = ExtResource("3_int")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="InteractionComponent"]
+shape = SubResource("CircleShape2D_interact")

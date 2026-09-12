@@ -191,8 +191,16 @@ func _atualizar_dados_alvo() -> void:
 	elif "name" in current_target:
 		t_name = current_target.name
 
-	var is_boss: bool = (enemy_sys != null and ("is_boss" in enemy_sys and enemy_sys.is_boss)) or (enemy_data != null and ("is_boss" in enemy_data and enemy_data.is_boss))
-	var is_elite: bool = (enemy_data != null and ("is_elite" in enemy_data and enemy_data.is_elite)) or ("is_elite" in current_target and current_target.is_elite)
+	var is_boss: bool = false
+	if enemy_sys != null:
+		is_boss = enemy_sys.get("is_boss") == true
+	if not is_boss and enemy_data != null:
+		is_boss = enemy_data.get("is_boss") == true
+	var is_elite: bool = false
+	if enemy_data != null:
+		is_elite = enemy_data.get("is_elite") == true
+	if not is_elite and current_target != null:
+		is_elite = current_target.get("is_elite") == true
 
 	# Vida
 	var cur_hp: float = 100.0

@@ -41,6 +41,7 @@ func _ready() -> void:
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.DUNGEON)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.DUNGEON)
 
 
 func _garantir_spawn_points() -> void:

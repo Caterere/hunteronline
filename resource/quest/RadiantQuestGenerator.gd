@@ -262,3 +262,157 @@ static func gerar_pool_radiant_quests(region_id: String, player_level: int = 1, 
 			pool.append(q)
 			
 	return pool
+
+
+# ------------------------------------------------------------
+# 4. CONTRATOS OFICIAIS DA ASSOCIAÇÃO (A5 — tiers B / A / S)
+# ------------------------------------------------------------
+# access_tier: "B" | "A" | "S"
+# seed: determinístico (dia/semana + slot) para rotação estável
+static func gerar_contrato_associacao(
+	region_id: String,
+	player_level: int,
+	access_tier: String,
+	seed: int,
+	is_star_hunter: bool = false,
+	contract_id: String = ""
+) -> Quest:
+	var templates: Array = REGION_TEMPLATES.get(region_id, REGION_TEMPLATES["vale_padokia"])
+	if templates.is_empty():
+		templates = REGION_TEMPLATES["vale_padokia"]
+
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed if seed != 0 else 1
+	var template: Dictionary = templates[rng.randi() % templates.size()]
+
+	var tier := access_tier.to_upper()
+	if tier != "B" and tier != "A" and tier != "S":
+		tier = "B"
+
+	var q: Quest
+	# Star Hunter e S-rank priorizam caça elite; B/A alternam caça/coleta pelo seed.
+	if is_star_hunter or tier == "S" or (seed % 2 == 0):
+		q = gerar_quest_caca(template, player_level, seed % 7)
+	else:
+		q = gerar_quest_coleta(template, player_level, seed % 5)
+
+	var mult_gold := 1.0
+	var mult_xp := 1.0
+	var rep_assoc := 25
+	var faction_xp := 40
+	match tier:
+		"A":
+			mult_gold = 1.75
+			mult_xp = 1.5
+			rep_assoc = 60
+			faction_xp = 90
+		"S":
+			mult_gold = 2.75
+			mult_xp = 2.25
+			rep_assoc = 120
+			faction_xp = 180
+		_:
+			mult_gold = 1.0
+			mult_xp = 1.0
+			rep_assoc = 25
+			faction_xp = 40
+
+	if is_star_hunter:
+		mult_gold *= 1.8
+		mult_xp *= 1.6
+		rep_assoc = int(rep_assoc * 2.5)
+		faction_xp = int(faction_xp * 2.5)
+		if not q.objectives.is_empty() and q.objectives[0] != null:
+			q.objectives[0].required_amount = maxi(q.objectives[0].required_amount + 4, 8)
+
+	q.reward_gold = int(q.reward_gold * mult_gold)
+	q.reward_xp = int(q.reward_xp * mult_xp)
+	q.min_level = maxi(q.min_level, _min_level_for_tier(tier, player_level))
+
+	var prefix := "⭐ STAR HUNTER" if is_star_hunter else ("📜 Contrato %s" % tier)
+	var base_name := q.quest_name
+	if ":" in base_name:
+		base_name = base_name.split(":", false, 1)[1].strip_edges()
+	q.quest_name = "%s: %s" % [prefix, base_name]
+	if is_star_hunter:
+		q.description = "Alvo semanal da Associação Hunter (Star Hunter). Requer patente ★+. %s" % q.description
+	else:
+		q.description = "Contrato oficial da Associação (acesso %s). %s" % [tier, q.description]
+
+	var mat_id := StringName(str(template.get("item_id", &"gosma_slime")))
+	var mat_qty := 1
+	match tier:
+		"A": mat_qty = 2
+		"S": mat_qty = 4
+		_: mat_qty = 1
+	if is_star_hunter:
+		mat_qty *= 2
+	var reward := QuestReward.new()
+	reward.type = QuestReward.Type.ITEM
+	reward.item_id = mat_id
+	reward.amount = mat_qty
+	var rewards: Array[QuestReward] = [reward]
+	q.reward_items = rewards
+
+	var cid := contract_id
+	if cid.is_empty():
+		cid = "assoc_%s_%d_%s" % [tier.to_lower(), seed, "star" if is_star_hunter else "daily"]
+
+	q.custom_data = {
+		"association_contract": true,
+		"access_tier": tier,
+		"is_star_hunter": is_star_hunter,
+		"contract_id": cid,
+		"reward_rep_associacao": rep_assoc,
+		"reward_faction_xp": faction_xp,
+		"region_id": region_id,
+		"seed": seed,
+	}
+	return q
+
+
+static func _min_level_for_tier(tier: String, player_level: int) -> int:
+	match tier:
+		"A": return maxi(3, player_level - 2)
+		"S": return maxi(6, player_level - 1)
+		_: return 1
+
+
+## Gera pool diário determinístico: slots tipicamente 2×B + 1×A + 1×S
+static func gerar_pool_contratos_associacao(
+	region_id: String,
+	player_level: int,
+	day_index: int,
+	quantidade: int = 4
+) -> Array[Quest]:
+	var tiers: Array[String] = []
+	match quantidade:
+		1:
+			tiers = ["B"]
+		2:
+			tiers = ["B", "A"]
+		3:
+			tiers = ["B", "A", "S"]
+		_:
+			tiers = ["B", "B", "A", "S"]
+			while tiers.size() < quantidade:
+				tiers.append("B")
+			tiers = tiers.slice(0, quantidade)
+
+	var pool: Array[Quest] = []
+	for i in range(tiers.size()):
+		var seed := day_index * 1000 + i * 17 + hash(region_id) % 997
+		var cid := "daily_%d_%s_%d" % [day_index, tiers[i].to_lower(), i]
+		pool.append(gerar_contrato_associacao(region_id, player_level, tiers[i], seed, false, cid))
+	return pool
+
+
+static func gerar_star_hunter_semanal(
+	region_id: String,
+	player_level: int,
+	week_index: int
+) -> Quest:
+	var seed := week_index * 7771 + hash(region_id) % 4099
+	var cid := "weekly_star_%d" % week_index
+	# Star Hunter oficial é acesso A (★+) com recompensas de elite
+	return gerar_contrato_associacao(region_id, player_level, "A", seed, true, cid)

@@ -167,20 +167,20 @@ func calcular_dano_detalhado(
 		if nen_sys != null and nen_sys.has_method("esta_em_zetsu") and nen_sys.esta_em_zetsu():
 			nen_sys.desativar_tecnica(NenSystem.Tecnica.ZETSU)
 
-	# Game Feel & Sensory Impact
+	# Game Feel & Sensory Impact (calibração HitStopManager / GAME_FEEL_BIBLE)
 	if EventBus != null and dano_final > 0.0:
 		if is_ko:
-			EventBus.emit_hitstop(0.10)
-			EventBus.emit_camera_shake(0.50, 0.25)
+			HitStopManager.aplicar_hitstop(HitStopManager.HitIntensity.HEAVY)
+			HitStopManager.aplicar_screen_shake(0.50)
 		elif is_weakness:
-			EventBus.emit_hitstop(0.08)
-			EventBus.emit_camera_shake(0.40, 0.20)
+			HitStopManager.aplicar_hitstop(HitStopManager.HitIntensity.MEDIUM)
+			HitStopManager.aplicar_screen_shake(0.40)
 		elif hatsu != null:
-			EventBus.emit_hitstop(0.09)
-			EventBus.emit_camera_shake(0.45, 0.25)
+			HitStopManager.aplicar_hitstop(HitStopManager.HitIntensity.HATSU)
+			HitStopManager.aplicar_screen_shake(0.45)
 		else:
-			EventBus.emit_hitstop(0.04)
-			EventBus.emit_camera_shake(0.20, 0.12)
+			HitStopManager.aplicar_hitstop(HitStopManager.HitIntensity.LIGHT)
+			HitStopManager.aplicar_screen_shake(0.20)
 
 	var dano_int := int(round(dano_final))
 	return {
@@ -318,6 +318,11 @@ func calcular_dano_jogador(
 		if nen_system.has_method("tecnica_ativa"):
 			if nen_system.tecnica_ativa(NenSystem.Tecnica.GYO):
 				dano_final *= 1.35
+			if nen_system.tecnica_ativa(NenSystem.Tecnica.KO):
+				var ko_mult: float = 1.75
+				if nen_system.has_method("aplicar_ko_no_ataque"):
+					ko_mult = maxf(1.75, float(nen_system.aplicar_ko_no_ataque()))
+				dano_final *= ko_mult
 			if nen_system.tecnica_ativa(NenSystem.Tecnica.ZETSU) and inimigo_alvo != null:
 				dano_final *= 3.0
 

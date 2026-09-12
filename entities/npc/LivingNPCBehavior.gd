@@ -49,6 +49,12 @@ const RUMORES_CIDADE := [
 @export var npc_cargo: String = ""
 @export var tipo_marcador: String = ""
 
+func _enter_tree() -> void:
+	# Conectar cedo: testes e spawns podem emitir fases no mesmo frame do add_child.
+	if EventBus != null and not EventBus.time_phase_changed.is_connected(_on_time_phase_changed):
+		EventBus.time_phase_changed.connect(_on_time_phase_changed)
+
+
 func _ready() -> void:
 	npc_body = get_parent() as CharacterBody2D
 	if npc_body != null:
@@ -168,9 +174,9 @@ func _ready() -> void:
 		npc_body.add_child.call_deferred(badge)
 		_aplicar_estilo_visual_modular(cargo_final, marcador_final)
 
-	if EventBus != null:
+	if EventBus != null and not EventBus.time_phase_changed.is_connected(_on_time_phase_changed):
 		EventBus.time_phase_changed.connect(_on_time_phase_changed)
-		if EventBus.has_signal("world_event_started"):
+		if EventBus.has_signal("world_event_started") and not EventBus.world_event_started.is_connected(_on_world_event_started):
 			EventBus.world_event_started.connect(_on_world_event_started)
 
 	if WorldStateManager != null:
@@ -292,7 +298,7 @@ func _on_time_phase_changed(nova_fase: String) -> void:
 					velocidade_andar = 14.0
 					pos_alvo = pos_inicial
 				else:
-					raio_patrulha = 25.0
+					raio_patrulha = 30.0
 					velocidade_andar = 16.0
 					pos_alvo = pos_inicial
 			"DAY":

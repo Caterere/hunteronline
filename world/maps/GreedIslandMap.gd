@@ -22,6 +22,10 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.FLORESTA)
+	WorldDensityKit.attach(self, WorldDensityKit.KitKind.FLORESTA)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
+	WorldPolishKit.attach(self, WorldPolishKit.KitKind.FLORESTA)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco5()
 	_configurar_inimigos()
@@ -97,13 +101,18 @@ func _popular_npcs_arco5() -> void:
 		battera.fala_padrao = "Estou investindo tudo o que tenho... por favor, tragam a carta de cura para salvar quem eu amo!"
 		add_child(battera)
 
-	# 2. Quadro de Antokiba (Objeto)
+	# 2. Quadro de Antokiba (duelo de cartas S4)
 	if get_node_or_null("Antokiba") == null:
-		var antokiba = scn_npc.instantiate()
+		var scn_antokiba = load("res://entities/npc/antokiba/AntokibaDuelBoard.tscn")
+		var antokiba
+		if scn_antokiba:
+			antokiba = scn_antokiba.instantiate()
+		else:
+			antokiba = scn_npc.instantiate()
+			antokiba.npc_name = "Quadro de Antokiba"
+			antokiba.fala_padrao = "Quer um duelo de cartas? Mostre seu Book — as regras de Antokiba valem aqui!"
 		antokiba.name = "Antokiba"
 		antokiba.position = Vector2(300, -50)
-		antokiba.npc_name = "Quadro de Antokiba"
-		antokiba.fala_padrao = "Regras de Greed Island: Colete 100 cartas de espaço designado para zerar o jogo. Use 'Book' para invocar o fichário."
 		add_child(antokiba)
 
 	# 3. Mestra Biscuit Krueger (Montanhas)

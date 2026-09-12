@@ -5,16 +5,17 @@ extends SceneTree
 # Baseado no Style Anchor Canônico: player(3).png / player.png
 # ==============================================================================
 
-const EXPECTED_FRAME_W = 48
-const EXPECTED_FRAME_H = 48
-const TARGET_FEET_Y = 42
+# Style Lock v2 (Quality Pack) — refs cast_quality_pack ~64px tall in 96 canvas
+const EXPECTED_FRAME_W = 96
+const EXPECTED_FRAME_H = 96
+const TARGET_FEET_Y = 84
 const TOLERANCE_FEET_Y = 2
-const MAX_IDLE_WIDTH = 18
-const MAX_IDLE_HEIGHT = 25
-const MIN_TOP_PADDING = 18
-const MIN_BOTTOM_PADDING = 3
-const MAX_COLORS_PER_FRAME = 14
-const MAX_COLORS_TOTAL_SHEET = 22
+const MAX_IDLE_WIDTH = 56
+const MAX_IDLE_HEIGHT = 74
+const MIN_TOP_PADDING = 8
+const MIN_BOTTOM_PADDING = 8
+const MAX_COLORS_PER_FRAME = 36
+const MAX_COLORS_TOTAL_SHEET = 56
 
 func validate_sprite(path: String) -> bool:
 	var real_path = ProjectSettings.globalize_path(path) if path.begins_with("res://") else path
@@ -34,14 +35,14 @@ func validate_sprite(path: String) -> bool:
 	var errors = []
 	var warnings = []
 
-	# 1. Canvas 48x48
+	# 1. Canvas 96x96 (Style Lock v2)
 	if total_w % EXPECTED_FRAME_W != 0 or total_h % EXPECTED_FRAME_H != 0:
-		errors.append("Dimensões não são múltiplos de 48x48 (Frame não canônico).")
+		errors.append("Dimensões não são múltiplos de 96x96 (Frame não canônico v2).")
 		pass_all = false
 
 	var cols = maxi(1, total_w / EXPECTED_FRAME_W)
 	var rows = maxi(1, total_h / EXPECTED_FRAME_H)
-	print(" Grid de frames: %d colunas x %d linhas (%d frames de 48x48)" % [cols, rows, cols * rows])
+	print(" Grid de frames: %d colunas x %d linhas (%d frames de 96x96)" % [cols, rows, cols * rows])
 
 	# 2. Transparência suave / anti-aliasing no corpo do sprite
 	var body_partial_alpha_count = 0

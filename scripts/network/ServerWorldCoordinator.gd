@@ -43,9 +43,22 @@ signal entity_died(net_id: int, killer_peer_id: int, rewards: Dictionary)
 signal player_damaged(peer_id: int, damage: int, source_net_id: int, hp_remaining: int, knockback_dir: Vector2)
 signal player_died(peer_id: int, source_net_id: int)
 signal player_respawned(peer_id: int, spawn_pos: Vector2, hp: int, aura: float)
+signal ally_revive_started(reviver_id: int, target_id: int)
+signal ally_revive_progress(reviver_id: int, target_id: int, progress_01: float)
+signal ally_revive_cancelled(reviver_id: int, target_id: int, reason: String)
+signal ally_revive_completed(target_id: int, pos: Vector2, hp: int, aura: float)
 
+## Solo / abandon: tempo até renascer no spawn. Em party o aliado pode reviver antes.
 const RESPAWN_DELAY_SEC: float = 3.5
+## Janela de desmaio (corpo no chão) antes do respawn forçado no spawn — permite revive.
+const DOWNED_TIMEOUT_SEC: float = 30.0
+const ALLY_REVIVE_CHANNEL_SEC: float = 3.0
+const ALLY_REVIVE_RANGE_PX: float = 72.0
+const ALLY_REVIVE_HP_RATIO: float = 0.35
 const DEFAULT_SPAWN_POS := Vector2(100, 100)
+
+## target_peer_id -> { "reviver_id": int, "elapsed": float }
+var _revive_channels: Dictionary = {}
 
 
 func _init(p_tick_rate: int = 20, p_map_path: String = "res://world/lobby.tscn") -> void:
@@ -150,9 +163,9 @@ func request_respawn(peer_id: int) -> bool:
 	var p = players[peer_id]
 	if not bool(p.get("is_dead", false)):
 		return false
-	# Permite respawn antecipado se já passou 1s (cliente clicou Renascer)
-	if float(p.get("respawn_timer", 0.0)) > (RESPAWN_DELAY_SEC - 1.0):
-		p["respawn_timer"] = 0.05
+	# Abandonar desmaio / renascer no spawn (cancela revive em andamento neste alvo)
+	_cancel_revive_targeting(peer_id, "abandoned")
+	p["respawn_timer"] = 0.05
 	return true
 
 
@@ -241,6 +254,9 @@ func _simulate_fixed_tick(dt: float) -> void:
 		p["velocity"] = intent * speed
 		p["position"] += p["velocity"] * dt
 
+	# 1b. Canalizações de revive aliado (PREREQ-2)
+	tick_ally_revive_channels(dt)
+
 	# 2. Simular IA de Inimigos
 	for eid in enemies.keys():
 		var e = enemies[eid]
@@ -324,6 +340,8 @@ func _aplicar_dano_em_jogador(peer_id: int, source_net_id: int, raw_damage: int,
 	var kb_dir: Vector2 = ((p["position"] as Vector2) - from_pos).normalized()
 	if kb_dir == Vector2.ZERO:
 		kb_dir = Vector2.RIGHT
+	# Dano interrompe canalização de revive do atacante/reviver
+	cancel_ally_revive_by_reviver(peer_id, "damaged")
 	player_damaged.emit(peer_id, dealt, source_net_id, hp, kb_dir)
 
 	if hp <= 0:
@@ -392,14 +410,18 @@ func _matar_jogador(peer_id: int, source_net_id: int) -> void:
 	p["hp"] = 0
 	p["velocity"] = Vector2.ZERO
 	p["input_intent"] = Vector2.ZERO
-	p["respawn_timer"] = RESPAWN_DELAY_SEC
+	# Corpo permanece no chão (desmaio) até revive aliado, abandonar, ou timeout.
+	p["downed_pos"] = p.get("position", DEFAULT_SPAWN_POS)
+	p["respawn_timer"] = DOWNED_TIMEOUT_SEC
+	_cancel_revive_targeting(peer_id, "target_died")
 	player_died.emit(peer_id, source_net_id)
-	print("[ServerWorldCoordinator] ☠️ Peer %d morreu (src %d). Respawn em %.1fs" % [peer_id, source_net_id, RESPAWN_DELAY_SEC])
+	print("[ServerWorldCoordinator] ☠️ Peer %d desmaiou (src %d). Revive aliado ou respawn em %.1fs" % [peer_id, source_net_id, DOWNED_TIMEOUT_SEC])
 
 
 func _respawn_player(peer_id: int) -> void:
 	if not players.has(peer_id):
 		return
+	_cancel_revive_targeting(peer_id, "target_respawned")
 	var p = players[peer_id]
 	var spawn: Vector2 = p.get("spawn_pos", DEFAULT_SPAWN_POS) as Vector2
 	p["is_dead"] = false
@@ -410,8 +432,129 @@ func _respawn_player(peer_id: int) -> void:
 	p["hp"] = int(p.get("hp_max", 100))
 	p["aura"] = float(p.get("aura_max", 100.0))
 	p["invuln_timer"] = 1.5
+	p.erase("downed_pos")
 	player_respawned.emit(peer_id, spawn, int(p["hp"]), float(p["aura"]))
 	print("[ServerWorldCoordinator] ✨ Peer %d respawnou em %s" % [peer_id, str(spawn)])
+
+
+# ============================================================
+# PREREQ-2 — REVIVE DE ALIADOS (canalização 3s)
+# ============================================================
+
+func begin_ally_revive(reviver_id: int, target_id: int) -> Dictionary:
+	if reviver_id == target_id:
+		return {"ok": false, "reason": "self"}
+	if not players.has(reviver_id) or not players.has(target_id):
+		return {"ok": false, "reason": "missing_peer"}
+	var reviver: Dictionary = players[reviver_id]
+	var target: Dictionary = players[target_id]
+	if bool(reviver.get("is_dead", false)):
+		return {"ok": false, "reason": "reviver_dead"}
+	if not bool(target.get("is_dead", false)):
+		return {"ok": false, "reason": "target_alive"}
+	# Já canalizando outro / este alvo
+	for tid in _revive_channels.keys():
+		var ch: Dictionary = _revive_channels[tid]
+		if int(ch.get("reviver_id", -1)) == reviver_id:
+			return {"ok": false, "reason": "already_channeling"}
+	if _revive_channels.has(target_id):
+		return {"ok": false, "reason": "target_busy"}
+	var rpos: Vector2 = reviver.get("position", Vector2.ZERO) as Vector2
+	var tpos: Vector2 = target.get("downed_pos", target.get("position", Vector2.ZERO)) as Vector2
+	if rpos.distance_to(tpos) > ALLY_REVIVE_RANGE_PX:
+		return {"ok": false, "reason": "out_of_range"}
+	_revive_channels[target_id] = {"reviver_id": reviver_id, "elapsed": 0.0}
+	# Congela o timer de respawn enquanto alguém tenta reviver
+	target["respawn_timer"] = maxf(float(target.get("respawn_timer", 0.0)), ALLY_REVIVE_CHANNEL_SEC + 0.5)
+	ally_revive_started.emit(reviver_id, target_id)
+	ally_revive_progress.emit(reviver_id, target_id, 0.0)
+	print("[ServerWorldCoordinator] 💉 Peer %d iniciou revive em %d" % [reviver_id, target_id])
+	return {"ok": true, "reason": ""}
+
+
+func cancel_ally_revive_by_reviver(reviver_id: int, reason: String = "cancelled") -> void:
+	var to_clear: Array = []
+	for tid in _revive_channels.keys():
+		if int(_revive_channels[tid].get("reviver_id", -1)) == reviver_id:
+			to_clear.append(tid)
+	for tid in to_clear:
+		_revive_channels.erase(tid)
+		ally_revive_cancelled.emit(reviver_id, int(tid), reason)
+
+
+func _cancel_revive_targeting(peer_id: int, reason: String) -> void:
+	## Cancela canais onde peer é reviver ou alvo.
+	cancel_ally_revive_by_reviver(peer_id, reason)
+	if _revive_channels.has(peer_id):
+		var ch: Dictionary = _revive_channels[peer_id]
+		var rid: int = int(ch.get("reviver_id", -1))
+		_revive_channels.erase(peer_id)
+		if rid > 0:
+			ally_revive_cancelled.emit(rid, peer_id, reason)
+
+
+func tick_ally_revive_channels(dt: float) -> void:
+	if _revive_channels.is_empty():
+		return
+	var done: Array = []
+	var fail: Array = []
+	for tid in _revive_channels.keys():
+		var ch: Dictionary = _revive_channels[tid]
+		var rid: int = int(ch.get("reviver_id", -1))
+		if not players.has(rid) or not players.has(tid):
+			fail.append({"tid": tid, "rid": rid, "reason": "missing_peer"})
+			continue
+		var reviver: Dictionary = players[rid]
+		var target: Dictionary = players[tid]
+		if bool(reviver.get("is_dead", false)):
+			fail.append({"tid": tid, "rid": rid, "reason": "reviver_dead"})
+			continue
+		if not bool(target.get("is_dead", false)):
+			fail.append({"tid": tid, "rid": rid, "reason": "target_alive"})
+			continue
+		var rpos: Vector2 = reviver.get("position", Vector2.ZERO) as Vector2
+		var tpos: Vector2 = target.get("downed_pos", target.get("position", Vector2.ZERO)) as Vector2
+		if rpos.distance_to(tpos) > ALLY_REVIVE_RANGE_PX * 1.25:
+			fail.append({"tid": tid, "rid": rid, "reason": "out_of_range"})
+			continue
+		ch["elapsed"] = float(ch.get("elapsed", 0.0)) + dt
+		var progress: float = clampf(float(ch["elapsed"]) / ALLY_REVIVE_CHANNEL_SEC, 0.0, 1.0)
+		ally_revive_progress.emit(rid, int(tid), progress)
+		if progress >= 1.0:
+			done.append(tid)
+	for item in fail:
+		_revive_channels.erase(item["tid"])
+		ally_revive_cancelled.emit(int(item["rid"]), int(item["tid"]), str(item["reason"]))
+	for tid2 in done:
+		_complete_ally_revive(int(tid2))
+
+
+func _complete_ally_revive(target_id: int) -> void:
+	if not players.has(target_id):
+		_revive_channels.erase(target_id)
+		return
+	var ch: Dictionary = _revive_channels.get(target_id, {})
+	var rid: int = int(ch.get("reviver_id", -1))
+	_revive_channels.erase(target_id)
+	var p: Dictionary = players[target_id]
+	var pos: Vector2 = p.get("downed_pos", p.get("position", DEFAULT_SPAWN_POS)) as Vector2
+	var hp_max: int = int(p.get("hp_max", 100))
+	var aura_max: float = float(p.get("aura_max", 100.0))
+	var hp: int = maxi(1, int(round(float(hp_max) * ALLY_REVIVE_HP_RATIO)))
+	var aura: float = aura_max * ALLY_REVIVE_HP_RATIO
+	p["is_dead"] = false
+	p["respawn_timer"] = 0.0
+	p["position"] = pos
+	p["velocity"] = Vector2.ZERO
+	p["input_intent"] = Vector2.ZERO
+	p["hp"] = hp
+	p["aura"] = aura
+	p["invuln_timer"] = 1.25
+	p.erase("downed_pos")
+	ally_revive_completed.emit(target_id, pos, hp, aura)
+	# Reutiliza sinal de respawn para clients já ligados (mesmo fluxo de restauração local)
+	player_respawned.emit(target_id, pos, hp, aura)
+	print("[ServerWorldCoordinator] 💉 Peer %d revivido por %d em %s (HP %d)" % [target_id, rid, str(pos), hp])
 
 
 func build_kill_rewards(enemy: Dictionary) -> Dictionary:

@@ -30,10 +30,13 @@ Ponto de entrada: **[docs/README.md](docs/README.md)**
 - **Guias de conteúdo:** `docs/guides/`
 - **Sistemas:** `docs/systems/`
 - **Multiplayer:** `docs/multiplayer/`
-- **Roadmap:** `docs/roadmap/`
-- **Auditorias históricas:** `docs/audits/`
+- **Roadmap:** `docs/roadmap/PRODUCTION_ROADMAP.md`
+- **Backlog MMO:** `docs/roadmap/MMO_FEATURES_BACKLOG.md`
+- **Auditorias históricas:** `docs/archive/audits/`
+- **Roadmap ativo:** `docs/roadmap/PRODUCTION_ROADMAP.md`
+- **Backlog MMO:** `docs/roadmap/MMO_FEATURES_BACKLOG.md`
 
-Bibles numeradas do agente: `.agent/docs/bibles/` (apontam para a mesma governança; SSOT de design é `docs/bibles/`).
+Bibles numeradas do agente: `.agent/docs/bibles/` (**pontes** para a SSOT; design canônico = `docs/bibles/`).
 
 ## Persistência
 
