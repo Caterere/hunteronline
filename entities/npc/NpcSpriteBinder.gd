@@ -27,7 +27,7 @@ static func aplicar(node: Node, preferred_ids: Array = []) -> void:
 		"biscuit": "npc_biscuit",
 		"bisky": "npc_biscuit",
 		"netero": "npc_netero",
-		"netero": "npc_netero",
+		"netero_presidente": "npc_netero",
 		"chrollo": "npc_chrollo",
 		"melody": "npc_melody",
 		"battera": "npc_battera",

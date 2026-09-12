@@ -139,7 +139,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(1.0, 1.0)
+				spr.scale = Vector2(0.45, 0.45)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(elena)
@@ -158,7 +158,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(1.0, 1.0)
+				spr.scale = Vector2(0.45, 0.45)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(instrutor)
@@ -177,7 +177,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(1.0, 1.0)
+				spr.scale = Vector2(0.45, 0.45)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(guia)
@@ -306,7 +306,7 @@ func _popular_distrito_mestres() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(1.0, 1.0)
+				spr.scale = Vector2(0.45, 0.45)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(zushi)
