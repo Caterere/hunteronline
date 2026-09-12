@@ -28,9 +28,20 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		var falas: Array[Dictionary] = []
 		if ja_e_gourmet:
 			var rank_nome = FactionManager.obter_nome_rank_atual() if FactionManager else "Cozinheiro"
+			var cook_line := "Continue caçando feras raras e colhendo temperos proibidos para preparar os Banquetes Mágicos que fortalecem o corpo e a aura!"
+			if GourmetCookingSystem != null:
+				if int(GourmetCookingSystem.pantry.get("carne_fera", 0)) < 2:
+					GourmetCookingSystem.pantry["carne_fera"] = int(GourmetCookingSystem.pantry.get("carne_fera", 0)) + 2
+				if int(GourmetCookingSystem.pantry.get("tempero_proibido", 0)) < 1:
+					GourmetCookingSystem.pantry["tempero_proibido"] = int(GourmetCookingSystem.pantry.get("tempero_proibido", 0)) + 1
+				var cooked: Dictionary = GourmetCookingSystem.cook("banquete_magico")
+				if bool(cooked.get("ok", false)):
+					cook_line = "Hah! Banquete Mágico no ponto. Buff temporário — sem atalho permanente. Writs diários renovam com o sol."
+				else:
+					cook_line = "Faltam ingredientes frescos. Colete na rota e volte; os writs diários estão no GourmetCookingSystem."
 			falas = [
 				{"falante": "Examinadora Menchi", "texto": "Excelente ver você na cozinha, meu caro Caçador Gourmet (%s)!" % rank_nome},
-				{"falante": "Examinadora Menchi", "texto": "Continue caçando feras raras e colhendo temperos proibidos para preparar os Banquetes Mágicos que fortalecem o corpo e a aura!"}
+				{"falante": "Examinadora Menchi", "texto": cook_line}
 			]
 		elif nivel_nen >= 2:
 			falas = [

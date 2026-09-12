@@ -66,6 +66,10 @@ NPCMemorySystem="*res://scripts/systems/npc/NPCMemorySystem.gd"
 LiveEventManager="*res://autoload/LiveEventManager.gd"
 CollectionManager="*res://scripts/systems/collections/CollectionManager.gd"
 TravelSystem="*res://scripts/systems/travel/TravelSystem.gd"
+DutyFinderSystem="*res://autoload/DutyFinderSystem.gd"
+GourmetCookingSystem="*res://autoload/GourmetCookingSystem.gd"
+TerritoryWarSystem="*res://autoload/TerritoryWarSystem.gd"
+SeasonPassSystem="*res://autoload/SeasonPassSystem.gd"
 
 [display]
 

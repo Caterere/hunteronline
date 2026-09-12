@@ -464,6 +464,9 @@ func _on_attack_hit(
 				enemy_system.aplicar_dano_defesa(def_max * pct, false)
 		elif is_heavy_attack and enemy_system.has_method("aplicar_dano_postura"):
 			enemy_system.aplicar_dano_postura(45.0)
+		if enemy_system.has_method("is_in_aerial_combo_window") and enemy_system.is_in_aerial_combo_window():
+			var bounces := int(enemy_system.wall_bounce_count) if "wall_bounce_count" in enemy_system else 0
+			dano = int(round(float(dano) * HitStopManager.aerial_combo_multiplier(true, bounces)))
 		enemy_system.take_damage(dano, ultima_direcao, knockback_val, owner_body, false)
 	elif alvo.has_method("receber_dano"):
 		alvo.receber_dano(dano, ultima_direcao, knockback_val, owner_body)

@@ -19,6 +19,7 @@ const MAX_PLAYER_LISTINGS := 12
 const ATTR_KEY := "auction_house"
 
 var listings: Dictionary = {} ## listing_id → Dictionary
+var _active_item_uids: Dictionary = {} ## item_uid → listing_id (anti-dupe)
 var pending_payouts: Dictionary = {} ## seller_id → Jenny
 var _next_id: int = 1
 var _seeded: bool = false
@@ -32,6 +33,7 @@ func _ready() -> void:
 func reset_for_tests() -> void:
 	listings.clear()
 	pending_payouts.clear()
+	_active_item_uids.clear()
 	_next_id = 1
 	_seeded = false
 	_ensure_seed_listings()
@@ -98,22 +100,41 @@ func _ensure_seed_listings() -> void:
 
 func _seed_row(seller_id: String, seller_name: String, item_id: String, qty: int, price: int, rarity: String) -> void:
 	var lid := _alloc_id()
+	var uid := _make_item_uid(item_id, seller_id)
 	listings[lid] = {
 		"listing_id": lid,
 		"seller_id": seller_id,
 		"seller_name": seller_name,
 		"seller_kind": "npc",
 		"item_id": item_id,
+		"item_uid": uid,
 		"qty": qty,
 		"price": price,
 		"fee_paid": 0,
 		"rarity": rarity,
+		"nen_tag": _item_nen_tag(item_id),
 		"created_day": _current_day(),
 		"status": "active",
 	}
+	_active_item_uids[uid] = lid
 
 
-func get_active_listings(filter_rarity: String = "", filter_query: String = "") -> Array:
+
+func _item_nen_tag(item_id: String) -> String:
+	if Economy != null and Economy.ITEM_CATALOGO.has(item_id):
+		var tag = Economy.ITEM_CATALOGO[item_id].get("nen_tag", "")
+		if str(tag).strip_edges() != "":
+			return str(tag)
+	if PlayerData != null and "afinidade_nen" in PlayerData:
+		return str(PlayerData.afinidade_nen)
+	return ""
+
+
+func _make_item_uid(item_id: String, seller_id: String) -> String:
+	return "%s::%s::%d" % [seller_id, item_id, Time.get_ticks_msec()]
+
+
+func get_active_listings(filter_rarity: String = "", filter_query: String = "", filter_nen: String = "") -> Array:
 	_ensure_seed_listings()
 	var out: Array = []
 	var q := filter_query.strip_edges().to_lower()
@@ -124,6 +145,8 @@ func get_active_listings(filter_rarity: String = "", filter_query: String = "") 
 		if str(row.get("status", "")) != "active":
 			continue
 		if not filter_rarity.is_empty() and str(row.get("rarity", "")) != filter_rarity:
+			continue
+		if not filter_nen.is_empty() and str(row.get("nen_tag", "")) != filter_nen:
 			continue
 		if not q.is_empty():
 			var hay := ("%s %s %s" % [
@@ -181,6 +204,14 @@ func list_item(item_id: String, qty: int, price: int) -> Dictionary:
 		return {"ok": false, "error": "item_vazio"}
 	if count_my_active() >= MAX_PLAYER_LISTINGS:
 		return {"ok": false, "error": "limite_anuncios"}
+	# Anti-dupe: same seller cannot re-list same item while active
+	var preferred_uid := "%s::%s" % [_player_id(), item_id]
+	for uid_key in _active_item_uids.keys():
+		if str(uid_key).begins_with(preferred_uid + "::") or str(uid_key) == preferred_uid:
+			var other_lid := str(_active_item_uids[uid_key])
+			if listings.has(other_lid) and str(listings[other_lid].get("status", "")) == "active":
+				return {"ok": false, "error": "item_uid_duplicado", "item_uid": str(uid_key)}
+
 	if PlayerData == null or not PlayerData.tem_item(StringName(item_id), qty):
 		return {"ok": false, "error": "sem_item"}
 	var fee := calc_listing_fee(price)
@@ -193,19 +224,23 @@ func list_item(item_id: String, qty: int, price: int) -> Dictionary:
 		return {"ok": false, "error": "escrow_falhou"}
 
 	var lid := _alloc_id()
+	var item_uid := _make_item_uid(item_id, _player_id())
 	listings[lid] = {
 		"listing_id": lid,
 		"seller_id": _player_id(),
 		"seller_name": _player_name(),
 		"seller_kind": "player",
 		"item_id": item_id,
+		"item_uid": item_uid,
 		"qty": qty,
 		"price": price,
 		"fee_paid": fee,
 		"rarity": _item_rarity(item_id),
+		"nen_tag": _item_nen_tag(item_id),
 		"created_day": _current_day(),
 		"status": "active",
 	}
+	_active_item_uids[item_uid] = lid
 	_mirror_attr()
 	listings_changed.emit()
 	listing_created.emit(lid)
@@ -236,6 +271,9 @@ func buy_listing(listing_id: String) -> Dictionary:
 		pending_payouts[seller_id] = int(pending_payouts.get(seller_id, 0)) + price
 	# NPC: Jenny afundada (taxa da casa / sindicato)
 
+	var sold_uid := str(row.get("item_uid", ""))
+	if not sold_uid.is_empty():
+		_active_item_uids.erase(sold_uid)
 	row["status"] = "sold"
 	row["buyer_id"] = _player_id()
 	row["buyer_name"] = _player_name()
@@ -264,6 +302,9 @@ func cancel_listing(listing_id: String) -> Dictionary:
 	var item_id := str(row.get("item_id", ""))
 	var qty := int(row.get("qty", 1))
 	PlayerData.adicionar_item(StringName(item_id), qty)
+	var cancel_uid := str(row.get("item_uid", ""))
+	if not cancel_uid.is_empty():
+		_active_item_uids.erase(cancel_uid)
 	row["status"] = "cancelled"
 	listings[listing_id] = row
 	_mirror_attr()

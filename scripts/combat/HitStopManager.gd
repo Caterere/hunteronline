@@ -71,3 +71,19 @@ static func calcular_knockback(origem: Vector2, destino: Vector2, intensidade: H
 	var base_force: float = float(KNOCKBACK_FORCE.get(intensidade, 200.0))
 	var forca_final: float = maxf(0.0, base_force * (1.0 - clampf(resistencia, 0.0, 0.95)))
 	return direcao * forca_final
+
+
+## Reflete knockback em parede (usado por EnemySystem wall bounce / aerial window).
+static func calcular_wall_bounce(velocity: Vector2, wall_normal: Vector2, restitution: float = 0.85) -> Vector2:
+	var n := wall_normal
+	if n == Vector2.ZERO:
+		n = -velocity.normalized() if velocity.length_squared() > 0.001 else Vector2.UP
+	var bounced := velocity.bounce(n) * clampf(restitution, 0.1, 1.2)
+	return bounced + n * 60.0
+
+
+## Bonus de dano em janela aérea pós wall-bounce (combo extension leve).
+static func aerial_combo_multiplier(in_aerial_window: bool, bounce_count: int = 0) -> float:
+	if not in_aerial_window:
+		return 1.0
+	return 1.08 + 0.02 * float(mini(3, bounce_count))

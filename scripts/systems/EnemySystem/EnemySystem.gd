@@ -151,6 +151,12 @@ var tex_walk_8x8: Texture2D = null
 
 var knockback_velocity: Vector2 = Vector2.ZERO
 var knockback_timer: float = 0.0
+## Wall bounce / aerial juggle window (top-down: bounce + brief open for combo)
+var wall_bounce_count: int = 0
+var aerial_combo_window: float = 0.0
+var is_airborne: bool = false
+signal wall_bounced(bounce_count: int, velocity: Vector2)
+signal aerial_window_opened(duration: float)
 
 
 # =========================================================
@@ -776,15 +782,52 @@ func _process_knockback(
 	if enemy_body == null:
 		return
 
-	if knockback_timer <= 0.0:
+	if aerial_combo_window > 0.0:
+		aerial_combo_window = maxf(0.0, aerial_combo_window - delta)
+		if aerial_combo_window <= 0.0:
+			is_airborne = false
+
+	if knockback_timer <= 0.0 and knockback_velocity.length_squared() < 4.0:
 		knockback_velocity = Vector2.ZERO
 		return
 
 	knockback_timer -= delta
+	# Apply physical knockback before decay so walls can intercept
+	enemy_body.velocity = knockback_velocity
+	enemy_body.move_and_slide()
+	if enemy_body.is_on_wall() and knockback_velocity.length() > 40.0:
+		_apply_wall_bounce()
 	knockback_velocity = knockback_velocity.lerp(
 		Vector2.ZERO,
 		12.0 * delta
 	)
+
+
+func _apply_wall_bounce() -> void:
+	if enemy_body == null:
+		return
+	var normal := enemy_body.get_wall_normal()
+	if normal == Vector2.ZERO:
+		normal = -knockback_velocity.normalized()
+	knockback_velocity = knockback_velocity.bounce(normal) * 0.85
+	# Slight "pop" so follow-ups read as aerial juggle in top-down
+	knockback_velocity += normal * 60.0
+	knockback_timer = maxf(knockback_timer, 0.18)
+	wall_bounce_count += 1
+	is_airborne = true
+	aerial_combo_window = 0.45
+	wall_bounced.emit(wall_bounce_count, knockback_velocity)
+	aerial_window_opened.emit(aerial_combo_window)
+
+
+func is_in_aerial_combo_window() -> bool:
+	return aerial_combo_window > 0.0
+
+
+func reset_wall_bounce_state() -> void:
+	wall_bounce_count = 0
+	aerial_combo_window = 0.0
+	is_airborne = false
 
 
 # =========================================================
