@@ -52,6 +52,16 @@ func _ready() -> void:
 	_test_11_server_enemy_ai_and_rewards()
 	_test_12_server_persistence_and_reconnect()
 	_test_13_single_player_autonomy()
+	_test_14_session_identity_and_peers_alias()
+	_test_15_config_discovery_and_fixed_tick()
+	_test_16_network_manager_puppet_spawn()
+	_test_17_enemy_proxy_and_server_combat()
+	_test_18_enemy_damage_and_rewards()
+	_test_19_nen_mitigation_death_respawn()
+	_test_20_server_list_and_interest_delta()
+	_test_21_master_registry_and_snapshot_bandwidth()
+	_test_22_snapshot_bandwidth_stress()
+	_test_23_chat_sanitize_and_layout()
 
 	_imprimir_resultado_final()
 
@@ -409,6 +419,566 @@ func _test_13_single_player_autonomy() -> void:
 		assert_test(nm.is_offline_singleplayer() == true, "NetworkManager em modo OFFLINE_SINGLEPLAYER")
 		assert_test(nm.is_server_authoritative() == false, "Single-player local assume autoridade direta")
 		assert_test(PlayerData != null, "PlayerData ativo independentemente de qualquer conexão")
+
+
+# ============================================================
+# TESTE 14: SESSION PEERS ALIAS + NICKNAME → NAME
+# ============================================================
+func _test_14_session_identity_and_peers_alias() -> void:
+	print("\n--- Teste 14: Session peers alias + nickname → name ---")
+	var session = NetworkSession.new()
+	session.adicionar_peer(7, {
+		"nickname": "Hisoka",
+		"character_id": "char_hisoka",
+		"attributes": {"vida": 220, "vida_max": 220, "nivel": 40}
+	})
+	assert_test(session.peers.size() == 1, "Alias peers aponta para connected_peers")
+	assert_test(session.connected_peers.size() == 1, "connected_peers populado")
+	assert_test(session.obter_peer_info(7).get("name") == "Hisoka", "nickname normalizado para name")
+	assert_test(session.obter_latencia(7) == 0, "obter_latencia disponível")
+	session.atualizar_latencia(7, 42)
+	assert_test(session.obter_latencia(7) == 42, "latência atualizada via API")
+
+
+# ============================================================
+# TESTE 15: CONFIG FILE + LAN DISCOVERY TOGGLE + TICK RATE
+# ============================================================
+func _test_15_config_discovery_and_fixed_tick() -> void:
+	print("\n--- Teste 15: Config JSON + discovery toggle + tick fixo ---")
+	var cfg = ServerConfigScript.load_from_file("res://config/server_config.json")
+	assert_test(cfg.port == 7777, "config/server_config.json carrega porta 7777")
+	assert_test(cfg.enable_lan_discovery == true, "LAN discovery habilitada por padrão no JSON")
+	assert_test(cfg.bind_address == "*", "bind_address preparado para LAN/VPS")
+
+	var cfg2 = ServerConfigScript.from_dict({
+		"server_name": "VPS Hunter",
+		"server_port": 9000,
+		"password": "secret",
+		"enable_lan_discovery": false,
+		"public_host": "hunter.example.com"
+	})
+	assert_test(cfg2.port == 9000, "compat server_port → port")
+	assert_test(cfg2.server_password == "secret", "compat password → server_password")
+	assert_test(cfg2.enable_lan_discovery == false, "VPS pode desligar discovery")
+	assert_test(cfg2.public_host == "hunter.example.com", "public_host gravado para host futuro")
+
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.start_coordinator()
+	coord.register_player(9, {"nickname": "Bisky", "attributes": {"vida": 100}}, Vector2(50, 50))
+	assert_test(coord.players[9]["name"] == "Bisky", "coordinator aceita nickname")
+	# 3 frames de ~16ms → pelo menos 1 tick fixo de 50ms
+	coord.tick(0.016)
+	coord.tick(0.016)
+	coord.tick(0.020)
+	assert_test(coord.current_tick >= 1, "accumulator gera tick fixo a ~20 TPS")
+	var pos_after = coord.get_player_position(9)
+	coord.update_player_intent(9, Vector2.RIGHT, Vector2.RIGHT, "TEN")
+	coord.tick(0.05)
+	assert_test(coord.get_player_position(9).x > pos_after.x, "movimento via intenção no tick fixo")
+	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 16: SPAWN DE PUPPET VIA NETWORKMANAGER
+# ============================================================
+func _test_16_network_manager_puppet_spawn() -> void:
+	print("\n--- Teste 16: Spawn de puppet via NetworkManager ---")
+	var nm = get_node_or_null("/root/NetworkManager")
+	assert_test(nm != null, "NetworkManager disponível")
+	if nm == null:
+		return
+	nm.desconectar()
+	nm.current_mode = nm.NetworkMode.CLIENT_PEER
+	nm.local_peer_id = 1
+	nm._spawn_puppet_for_peer(42, {"name": "Illumi", "spawn_pos": Vector2(200, 120)})
+	assert_test(nm.remote_players.has(42), "puppet registrado em remote_players")
+	var puppet = nm.obter_jogador_remoto(42)
+	assert_test(puppet != null and is_instance_valid(puppet), "puppet instanciado na cena")
+	if puppet != null:
+		assert_test(str(puppet.character_name) == "Illumi", "nameplate do puppet correto")
+	nm.remover_jogador_remoto(42)
+	nm.desconectar()
+	assert_test(nm.is_offline_singleplayer(), "volta a offline após limpeza")
+
+
+# ============================================================
+# TESTE 17: ENEMY PROXY + COMBATE AUTORITATIVO CONFIRMADO
+# ============================================================
+func _test_17_enemy_proxy_and_server_combat() -> void:
+	print("\n--- Teste 17: Enemy proxy + hits confirmados ---")
+	var nm = get_node_or_null("/root/NetworkManager")
+	assert_test(nm != null, "NetworkManager disponível para combate")
+	if nm == null:
+		return
+
+	nm.desconectar()
+	var cfg = ServerConfigScript.new()
+	cfg.port = 7798
+	cfg.enable_lan_discovery = false
+	cfg.server_name = "Combat Slice Test"
+	var err = nm.iniciar_servidor_dedicado(cfg)
+	assert_test(err == OK, "servidor dedicado para combate iniciado")
+	assert_test(nm.world_coordinator != null, "coordenador ativo")
+	assert_test(nm.world_coordinator.enemies.size() >= 2, "inimigos demo seedados no servidor")
+
+	# Snapshot deve incluir enemy_id
+	var snap = nm.world_coordinator.build_world_snapshot()
+	assert_test(snap["enemies"].size() >= 2, "snapshot contém inimigos vivos")
+	assert_test(snap["enemies"][0].has("enemy_id"), "snapshot inclui enemy_id")
+
+	# Simular cliente aplicando snapshot → proxies
+	nm.current_mode = nm.NetworkMode.CLIENT_PEER
+	nm.local_peer_id = 99
+	nm._sincronizar_inimigos_remotos(snap["enemies"])
+	assert_test(nm.remote_enemies.size() >= 2, "proxies de inimigos criados no cliente")
+
+	var first_id = int(snap["enemies"][0]["id"])
+	var proxy = nm.remote_enemies[first_id]
+	assert_test(proxy != null and proxy.is_in_group("enemy_proxies"), "proxy no grupo enemy_proxies")
+
+	# Combate autoritativo no coordenador
+	nm.world_coordinator.register_player(5, {"name": "Gon", "attributes": {"vida": 100}}, Vector2(180, 140))
+	var hits = nm.world_coordinator.apply_player_attack(5, Vector2(180, 140), Vector2.RIGHT, 80, 60.0, true)
+	assert_test(hits.size() >= 1, "ataque servidor gerou hits")
+	nm._on_combat_hits_confirmed(hits)
+	# Hit confirmado deve atualizar/despawnar proxy correspondente
+	var any_hit_applied := false
+	for h in hits:
+		var eid = int(h.get("net_id", -1))
+		if bool(h.get("is_dead", false)):
+			assert_test(not nm.remote_enemies.has(eid) or not is_instance_valid(nm.remote_enemies.get(eid)), "proxy morto removido")
+			any_hit_applied = true
+		elif nm.remote_enemies.has(eid):
+			assert_test(int(nm.remote_enemies[eid].hp) == int(h.get("hp_remaining", -1)), "HP do proxy sincronizado com hit")
+			any_hit_applied = true
+	assert_test(any_hit_applied, "feedback de hit aplicado no proxy")
+
+	nm.desconectar()
+	assert_test(nm.remote_enemies.is_empty(), "proxies limpos no disconnect")
+
+
+# ============================================================
+# TESTE 18: DANO INIMIGO→JOGADOR + RECOMPENSAS DE KILL
+# ============================================================
+func _test_18_enemy_damage_and_rewards() -> void:
+	print("\n--- Teste 18: Dano inimigo→jogador + recompensas ---")
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.start_coordinator()
+	coord.register_player(3, {"name": "Gon", "attributes": {"vida": 100, "vida_max": 100}}, Vector2(100, 100))
+
+	var damaged_events: Array = []
+	var reward_events: Array = []
+	coord.player_damaged.connect(func(pid, dmg, src, hp_left, _kb):
+		damaged_events.append({"pid": pid, "dmg": dmg, "src": src, "hp": hp_left})
+	)
+	coord.entity_died.connect(func(nid, killer, rewards):
+		reward_events.append({"nid": nid, "killer": killer, "rewards": rewards})
+	)
+
+	# Spawn inimigo em cima do jogador para forçar ATTACK
+	var eid = coord.spawn_enemy(&"lobo_nen", "Lobo de Nen", Vector2(110, 100), 80, 20, 5, false)
+	assert_test(coord.enemies.has(eid), "inimigo spawnado para teste de dano")
+
+	# Simular ~1s de ticks para cooldown de ataque
+	for i in range(25):
+		coord.tick(0.05)
+
+	assert_test(damaged_events.size() >= 1, "servidor emitiu player_damaged")
+	if damaged_events.size() >= 1:
+		assert_test(int(damaged_events[0]["pid"]) == 3, "dano direcionado ao peer correto")
+		assert_test(int(damaged_events[0]["hp"]) < 100, "HP do jogador no servidor reduziu")
+		var last_evt: Dictionary = damaged_events[damaged_events.size() - 1]
+		assert_test(int(coord.players[3]["hp"]) == int(last_evt["hp"]), "HP coordinator alinhado ao último evento")
+
+	# Matar inimigo e validar rewards
+	coord.players[3]["position"] = Vector2(110, 100)
+	var hits = coord.apply_player_attack(3, Vector2(110, 100), Vector2.RIGHT, 200, 80.0, true)
+	assert_test(hits.size() >= 1 and bool(hits[0].get("is_dead", false)), "inimigo morto no ataque")
+	assert_test(reward_events.size() >= 1, "entity_died emitido com recompensas")
+	if reward_events.size() >= 1:
+		var r: Dictionary = reward_events[0]["rewards"]
+		assert_test(int(r.get("xp", 0)) > 0, "recompensa inclui XP")
+		assert_test(int(r.get("gold", 0)) > 0, "recompensa inclui Jenny/gold")
+		assert_test(int(reward_events[0]["killer"]) == 3, "killer_peer_id correto")
+
+	# Proxy sprite mapping
+	var EnemyProxyScript = load("res://scripts/network/NetworkEnemyProxy.gd")
+	var pxy = EnemyProxyScript.new()
+	pxy.enemy_id = "fera_padokia"
+	pxy.display_name = "Fera"
+	add_child(pxy)
+	pxy._aplicar_sprite_por_id()
+	assert_test(pxy.sprite != null and pxy.sprite.texture != null, "proxy carrega sprite por enemy_id")
+	pxy.queue_free()
+
+	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 19: MITIGAÇÃO NEN + MORTE/RESPAWN
+# ============================================================
+func _test_19_nen_mitigation_death_respawn() -> void:
+	print("\n--- Teste 19: Mitigação Nen + morte/respawn ---")
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.start_coordinator()
+
+	var deaths: Array = []
+	var respawns: Array = []
+	coord.player_died.connect(func(pid, _src): deaths.append(pid))
+	coord.player_respawned.connect(func(pid, pos, hp, aura):
+		respawns.append({"pid": pid, "pos": pos, "hp": hp, "aura": aura})
+	)
+
+	coord.register_player(8, {
+		"name": "Kurapika",
+		"tecnica_nen_ativa": "KEN",
+		"attributes": {"vida": 100, "vida_max": 100, "aura": 100.0, "aura_max": 100.0, "defesa": 20, "nivel": 10}
+	}, Vector2(50, 50))
+
+	# KEN deve reduzir dano vs raw
+	var p = coord.players[8]
+	var raw := 40
+	var dealt_ken: int = coord._calcular_dano_sofrido_servidor(p, raw)
+	assert_test(dealt_ken < raw, "KEN mitiga dano bruto (%d < %d)" % [dealt_ken, raw])
+	assert_test(float(coord.players[8]["aura"]) < 100.0, "KEN consome aura ao mitigar")
+
+	# ZETSU aumenta dano
+	coord.players[8]["nen_tech"] = "ZETSU"
+	coord.players[8]["aura"] = 100.0
+	var dealt_zetsu: int = coord._calcular_dano_sofrido_servidor(coord.players[8], raw)
+	assert_test(dealt_zetsu > dealt_ken, "ZETSU sofre mais que KEN (%d > %d)" % [dealt_zetsu, dealt_ken])
+
+	# Morte + respawn automático
+	coord.players[8]["nen_tech"] = "TEN"
+	coord.players[8]["aura"] = 100.0
+	coord.players[8]["hp"] = 15
+	coord._aplicar_dano_em_jogador(8, 2000, 80, Vector2(40, 50))
+	assert_test(bool(coord.players[8]["is_dead"]) == true, "jogador marcado como morto")
+	assert_test(deaths.size() == 1, "player_died emitido")
+	assert_test(int(coord.players[8]["hp"]) == 0, "HP zerado na morte")
+
+	# Avançar tempo de respawn (~3.5s)
+	for i in range(80):
+		coord.tick(0.05)
+		if respawns.size() > 0:
+			break
+
+	assert_test(respawns.size() == 1, "player_respawned emitido após delay")
+	assert_test(bool(coord.players[8]["is_dead"]) == false, "jogador vivo após respawn")
+	assert_test(int(coord.players[8]["hp"]) == 100, "HP restaurado no respawn")
+	assert_test(coord.players[8]["position"] == Vector2(50, 50), "respawn na spawn_pos")
+	assert_test(float(coord.players[8]["invuln_timer"]) > 0.0, "invulnerabilidade pós-respawn")
+
+	# Respawn antecipado via request
+	coord.players[8]["hp"] = 1
+	coord._aplicar_dano_em_jogador(8, 2001, 999, Vector2(50, 50))
+	# Durante invuln não deve morrer — espera acabar
+	coord.players[8]["invuln_timer"] = 0.0
+	coord._aplicar_dano_em_jogador(8, 2001, 999, Vector2(50, 50))
+	assert_test(bool(coord.players[8]["is_dead"]) == true, "segunda morte ok")
+	coord.request_respawn(8)
+	# request reduz timer; força ticks
+	for i in range(30):
+		coord.tick(0.05)
+		if not bool(coord.players[8]["is_dead"]):
+			break
+	assert_test(bool(coord.players[8]["is_dead"]) == false, "request_respawn antecipa renascimento")
+
+	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 20: SERVER LIST + INTEREST / DELTA SNAPSHOTS
+# ============================================================
+func _test_20_server_list_and_interest_delta() -> void:
+	print("\n--- Teste 20: Server list + interest/delta snapshots ---")
+	var ServerListCatalogScript = load("res://scripts/network/ServerListCatalog.gd")
+	var servers: Array = ServerListCatalogScript.load_servers()
+	assert_test(servers.size() >= 1, "server_list.json carrega entradas")
+	assert_test(str(servers[0].get("host", "")).length() > 0, "entrada tem host")
+	var vps = ServerListCatalogScript.find_by_id("vps_placeholder")
+	assert_test(str(vps.get("host", "")) == "hunter.example.com", "DNS placeholder do VPS encontrado")
+
+	var cfg = ServerConfigScript.load_from_file("res://config/server_config.json")
+	assert_test(cfg.interest_radius >= 100.0, "interest_radius configurado")
+	assert_test(cfg.snapshot_delta == true, "snapshot_delta habilitado por padrão")
+
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.interest_radius_default = 120.0
+	coord.use_snapshot_delta = true
+	coord.start_coordinator()
+	coord.register_player(1, {"name": "Near", "attributes": {"vida": 100}}, Vector2(0, 0))
+	coord.register_player(2, {"name": "Far", "attributes": {"vida": 100}}, Vector2(500, 0))
+	var near_eid: int = coord.spawn_enemy(&"lobo_nen", "Near Wolf", Vector2(40, 0), 50, 10, 5)
+	var far_eid: int = coord.spawn_enemy(&"fera_padokia", "Far Beast", Vector2(480, 0), 50, 10, 5)
+
+	var full1: Dictionary = coord.build_interest_snapshot(1, 120.0, true)
+	assert_test(bool(full1.get("full", false)) == true, "primeiro snapshot é full")
+	assert_test((full1.get("players", []) as Array).size() == 1, "AoI: só peer local no raio 120")
+	assert_test((full1.get("enemies", []) as Array).size() == 1, "AoI: só inimigo perto")
+
+	# Segundo tick sem mudanças → delta vazio
+	var delta_empty: Dictionary = coord.build_interest_snapshot(1, 120.0, false)
+	assert_test(bool(delta_empty.get("full", true)) == false, "segundo snapshot é delta")
+	assert_test((delta_empty.get("players", []) as Array).is_empty(), "delta sem mudanças de players")
+	assert_test((delta_empty.get("enemies", []) as Array).is_empty(), "delta sem mudanças de enemies")
+
+	# Mover inimigo longe para perto → aparece no delta
+	coord.enemies[far_eid]["position"] = Vector2(30, 0)
+	var delta_new: Dictionary = coord.build_interest_snapshot(1, 120.0, false)
+	assert_test((delta_new.get("enemies", []) as Array).size() >= 1, "delta inclui inimigo que entrou no AoI")
+
+	# Afastar o inimigo original → removed_enemies
+	coord.enemies[near_eid]["position"] = Vector2(800, 0)
+	var delta_rem: Dictionary = coord.build_interest_snapshot(1, 120.0, false)
+	assert_test((delta_rem.get("removed_enemies", []) as Array).has(near_eid), "delta remove inimigo fora do AoI")
+
+	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 21: MASTER REGISTRY + SNAPSHOT HZ / COMPRESS
+# ============================================================
+func _test_21_master_registry_and_snapshot_bandwidth() -> void:
+	print("\n--- Teste 21: Master registry + snapshot hz/compress ---")
+	var MasterServerRegistryScript = load("res://scripts/network/MasterServerRegistry.gd")
+
+	var cfg = ServerConfigScript.load_from_file("res://config/server_config.json")
+	assert_test(cfg.snapshot_send_hz >= 1.0, "snapshot_send_hz configurado")
+	assert_test(cfg.snapshot_compress == true, "snapshot_compress habilitado por padrão")
+	assert_test(cfg.master_registry_port == 7780, "porta padrão do master registry")
+
+	var cfg2 = ServerConfigScript.from_dict({
+		"snapshot_send_hz": 5.0,
+		"snapshot_compress": false,
+		"enable_master_announce": true,
+		"master_registry_host": "10.0.0.2",
+		"master_registry_port": 7799
+	})
+	assert_test(cfg2.snapshot_send_hz == 5.0, "from_dict restaura snapshot_send_hz")
+	assert_test(cfg2.snapshot_compress == false, "from_dict restaura snapshot_compress")
+	assert_test(cfg2.enable_master_announce == true, "from_dict restaura enable_master_announce")
+	assert_test(cfg2.master_registry_host == "10.0.0.2", "from_dict restaura master_registry_host")
+	assert_test(cfg2.master_registry_port == 7799, "from_dict restaura master_registry_port")
+
+	# Compressão DEFLATE de snapshot grande
+	var big_snap := {
+		"full": true,
+		"tick": 42,
+		"players": [],
+		"enemies": []
+	}
+	for i in range(40):
+		big_snap["enemies"].append({
+			"id": i,
+			"enemy_id": "lobo_nen",
+			"name": "Enemy_%d_padding_xxxxxxxx" % i,
+			"position": Vector2(i * 10.0, i * 3.0),
+			"hp": 100,
+			"hp_max": 100
+		})
+	var raw: PackedByteArray = var_to_bytes(big_snap)
+	var compressed: PackedByteArray = raw.compress(FileAccess.COMPRESSION_DEFLATE)
+	assert_test(raw.size() >= 256, "snapshot de teste é grande o bastante")
+	assert_test(compressed.size() > 0 and compressed.size() < raw.size(), "DEFLATE reduz snapshot grande")
+	var restored = bytes_to_var(compressed.decompress_dynamic(-1, FileAccess.COMPRESSION_DEFLATE))
+	assert_test(restored is Dictionary and int(restored.get("tick", 0)) == 42, "roundtrip decompress preserva tick")
+	assert_test((restored.get("enemies", []) as Array).size() == 40, "roundtrip preserva enemies")
+
+	# Registry announce → query em loopback
+	var reg_port: int = 17780
+	var registry = MasterServerRegistryScript.new()
+	var err_reg: Error = registry.start_registry(reg_port)
+	assert_test(err_reg == OK, "registry UDP sobe na porta de teste")
+
+	var announcer = MasterServerRegistryScript.new()
+	var err_ann: Error = announcer.start_announce(
+		"127.0.0.1", reg_port, "Hunter Test LAN", "127.0.0.1", 7777, 2, 16, "Capital", "1.0.0"
+	)
+	assert_test(err_ann == OK, "announce inicia sem erro")
+
+	# Troca de pacotes (announce → registry)
+	for _i in range(8):
+		announcer.update(0.05)
+		registry.update(0.05)
+	var listed: Array = registry.get_server_list()
+	assert_test(listed.size() >= 1, "registry registrou servidor anunciado")
+	if listed.size() >= 1:
+		assert_test(str(listed[0].get("name", "")) == "Hunter Test LAN", "nome do servidor no registry")
+		assert_test(int(listed[0].get("players", -1)) == 2, "players no announce")
+
+	announcer.update_announce_players(5)
+	for _j in range(4):
+		announcer.update(0.05)
+		registry.update(0.05)
+	listed = registry.get_server_list()
+	if listed.size() >= 1:
+		assert_test(int(listed[0].get("players", -1)) == 5, "update_announce_players reflete no registry")
+
+	var querier = MasterServerRegistryScript.new()
+	var err_q: Error = querier.query_servers("127.0.0.1", reg_port)
+	assert_test(err_q == OK, "query inicia sem erro")
+	for _k in range(12):
+		querier.update(0.02)
+		registry.update(0.02)
+		if not querier.get_server_list().is_empty():
+			break
+	var got_list: Array = querier.get_server_list()
+	assert_test(got_list.size() >= 1, "QUERY retorna LIST com entradas")
+	if got_list.size() >= 1:
+		assert_test(str(got_list[0].get("host", "")) == "127.0.0.1", "ENTRY traz host")
+		assert_test(int(got_list[0].get("port", 0)) == 7777, "ENTRY traz porta do jogo")
+
+	querier.stop()
+	announcer.stop()
+	registry.stop()
+
+
+# ============================================================
+# TESTE 22: STRESS N PEERS + BANDWIDTH AoI/DELTA/COMPRESS
+# ============================================================
+func _test_22_snapshot_bandwidth_stress() -> void:
+	print("\n--- Teste 22: Stress N peers + bandwidth snapshots ---")
+	const PEER_COUNT := 8
+	const ENEMY_COUNT := 60
+	const AOI_RADIUS := 350.0
+	const SEND_HZ := 10.0
+
+	var coord = ServerWorldCoordinatorScript.new(20)
+	coord.interest_radius_default = AOI_RADIUS
+	coord.use_snapshot_delta = true
+	coord.start_coordinator()
+
+	# Peers espalhados: 0 perto da origem, demais em anel
+	for i in range(PEER_COUNT):
+		var angle := TAU * float(i) / float(PEER_COUNT)
+		var pos := Vector2(cos(angle), sin(angle)) * (40.0 if i == 0 else 900.0)
+		coord.register_player(i + 1, {
+			"name": "Hunter_%d" % (i + 1),
+			"attributes": {"vida": 100, "vida_max": 100, "nivel": 5}
+		}, pos)
+
+	# Inimigos: metade perto do peer 1, metade longe
+	for e in range(ENEMY_COUNT):
+		var near: bool = e < int(ENEMY_COUNT / 2)
+		var epos := Vector2(float(e % 10) * 25.0, float(e / 10) * 25.0)
+		if not near:
+			epos += Vector2(2000, 2000)
+		coord.spawn_enemy(&"lobo_nen", "Wolf_%d" % e, epos, 80, 12, 6)
+
+	var full: Dictionary = coord.build_world_snapshot()
+	var full_raw: PackedByteArray = var_to_bytes(full)
+	var full_comp: PackedByteArray = full_raw.compress(FileAccess.COMPRESSION_DEFLATE)
+	assert_test(full_raw.size() > 1000, "mundo cheio gera snapshot substancial (%d B)" % full_raw.size())
+	assert_test(full_comp.size() > 0 and full_comp.size() < full_raw.size(), "compressão reduz mundo cheio (%d→%d)" % [full_raw.size(), full_comp.size()])
+
+	var aoi_full: Dictionary = coord.build_interest_snapshot(1, AOI_RADIUS, true)
+	var aoi_raw: PackedByteArray = var_to_bytes(aoi_full)
+	assert_test(aoi_raw.size() < full_raw.size(), "AoI menor que mundo cheio (%d < %d)" % [aoi_raw.size(), full_raw.size()])
+	assert_test((aoi_full.get("enemies", []) as Array).size() <= int(ENEMY_COUNT / 2) + 2, "AoI limita inimigos distantes")
+	assert_test((aoi_full.get("players", []) as Array).size() <= 3, "AoI limita peers distantes")
+
+	# Deltas vazios após full
+	var empty_delta: Dictionary = coord.build_interest_snapshot(1, AOI_RADIUS, false)
+	var empty_raw: PackedByteArray = var_to_bytes(empty_delta)
+	assert_test(bool(empty_delta.get("full", true)) == false, "segundo snapshot é delta")
+	assert_test(empty_raw.size() < aoi_raw.size(), "delta vazio menor que full AoI")
+
+	# Cap de taxa: 20 ticks/s com send_hz 10 → ~10 envios
+	var min_interval_ms: float = 1000.0 / SEND_HZ
+	var last_send: float = -999999.0
+	var sends: int = 0
+	for tick_i in range(20):
+		var now_ms: float = float(tick_i) * 50.0
+		if now_ms - last_send >= min_interval_ms:
+			last_send = now_ms
+			sends += 1
+	assert_test(sends == 10, "cap 10 Hz em 20 ticks → 10 envios (obtido %d)" % sends)
+
+	# Estimativa de bandwidth: 8 peers * AoI comprimido * 10 Hz
+	var aoi_comp: PackedByteArray = aoi_raw.compress(FileAccess.COMPRESSION_DEFLATE)
+	var est_bytes_per_sec: int = aoi_comp.size() * PEER_COUNT * int(SEND_HZ)
+	var naive_bytes_per_sec: int = full_raw.size() * PEER_COUNT * 20
+	assert_test(est_bytes_per_sec < naive_bytes_per_sec, "AoI+compress+cap << full*20Hz (%d < %d B/s)" % [est_bytes_per_sec, naive_bytes_per_sec])
+	print("  📈 full=%dB aoi=%dB aoi_comp=%dB est=%.1fKB/s naive=%.1fKB/s (saving %.1fx)" % [
+		full_raw.size(), aoi_raw.size(), aoi_comp.size(),
+		float(est_bytes_per_sec) / 1024.0, float(naive_bytes_per_sec) / 1024.0,
+		float(naive_bytes_per_sec) / max(1.0, float(est_bytes_per_sec))
+	])
+
+	# Stats API do NetworkManager
+	NetworkManager.reset_snapshot_bandwidth_stats()
+	NetworkManager.server_config = ServerConfigScript.from_dict({
+		"snapshot_send_hz": SEND_HZ,
+		"snapshot_compress": true,
+		"snapshot_compress_min_bytes": 64
+	})
+	var stats0: Dictionary = NetworkManager.obter_snapshot_bandwidth_stats()
+	assert_test(int(stats0.get("bytes_sent_total", -1)) == 0, "reset zera bytes_sent_total")
+	assert_test(float(stats0.get("snapshot_send_hz", 0.0)) == SEND_HZ, "stats expõem snapshot_send_hz")
+	assert_test(bool(stats0.get("snapshot_compress", false)) == true, "stats expõem snapshot_compress")
+	# Simula contadores como após um envio comprimido
+	var ratio_probe: float = float(aoi_comp.size()) / float(aoi_raw.size())
+	assert_test(ratio_probe < 1.0, "ratio AoI comprimido < 1.0 (%.3f)" % ratio_probe)
+
+	coord.stop_coordinator()
+
+
+# ============================================================
+# TESTE 23: CHAT SANITIZE + LAYOUT (SEM 1 CHAR/LINHA)
+# ============================================================
+func _test_23_chat_sanitize_and_layout() -> void:
+	print("\n--- Teste 23: Chat sanitize + layout ---")
+	var ChatScript = load("res://ui/chat/MultiplayerChatHUD.gd")
+	assert_test(ChatScript != null, "MultiplayerChatHUD carrega")
+
+	var long_msg := ""
+	for i in range(200):
+		long_msg += "a"
+	var sanitized: String = ChatScript.sanitizar_mensagem(long_msg)
+	assert_test(sanitized.length() == 120, "limite de 120 caracteres aplicado")
+
+	var with_breaks: String = ChatScript.sanitizar_mensagem("ola\nmundo\r\t  caçador")
+	assert_test(not with_breaks.contains("\n"), "remove quebras de linha")
+	assert_test(with_breaks == "ola mundo caçador", "normaliza espaços")
+
+	var chat = ChatScript.new()
+	add_child(chat)
+
+	assert_test(chat.line_input != null and chat.line_input.max_length == 120, "LineEdit max_length=120")
+	assert_test(chat.vbox_log != null, "log container existe")
+	assert_test(chat.vbox_log.custom_minimum_size.x >= 100.0, "log tem largura mínima (evita 1 char/linha)")
+
+	chat.adicionar_mensagem("Gon", "local", "Vamos caçar juntos nesta tarde!")
+	assert_test(chat.vbox_log.get_child_count() == 1, "mensagem única no log")
+	var lbl: Label = chat.vbox_log.get_child(0) as Label
+	assert_test(lbl != null, "linha de chat é Label")
+	assert_test(lbl.custom_minimum_size.x >= 100.0, "label tem largura para autowrap por palavra")
+	assert_test(lbl.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "autowrap WORD_SMART ativo")
+	assert_test(lbl.text.contains("Vamos caçar juntos"), "texto completo na mesma mensagem")
+
+	# NetworkManager sanitize + sinal
+	var got: Dictionary = {"n": 0, "msg": ""}
+	var cb := func(autor: String, canal: String, msg: String):
+		got["n"] = int(got["n"]) + 1
+		got["msg"] = msg
+		got["autor"] = autor
+		got["canal"] = canal
+	NetworkManager.chat_message_received.connect(cb)
+	NetworkManager.enviar_mensagem_chat("geral", "  oi\npeers  ")
+	assert_test(int(got["n"]) == 1, "enviar_mensagem_chat emite sinal offline")
+	assert_test(str(got["msg"]) == "oi peers", "sanitize no NetworkManager")
+	assert_test(str(got["canal"]) == "geral", "canal preservado")
+	NetworkManager.chat_message_received.disconnect(cb)
+
+	# Truncate via NetworkManager
+	NetworkManager.chat_message_received.connect(cb)
+	got["n"] = 0
+	NetworkManager.enviar_mensagem_chat("local", long_msg)
+	assert_test(str(got["msg"]).length() == 120, "NetworkManager trunca em 120")
+	NetworkManager.chat_message_received.disconnect(cb)
+
+	chat.queue_free()
 
 
 func _imprimir_resultado_final() -> void:

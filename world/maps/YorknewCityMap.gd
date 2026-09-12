@@ -83,6 +83,20 @@ func _popular_npcs_arco4() -> void:
 		print("[YorknewCityMap] ERRO: NPC.tscn não encontrado!")
 		return
 
+	# 0. Leiloeiro do Underground (distrito do leilão)
+	if get_node_or_null("Leiloeiro") == null:
+		var scn_lei = load("res://entities/npc/leiloeiro/Leiloeiro.tscn")
+		var leiloeiro
+		if scn_lei:
+			leiloeiro = scn_lei.instantiate()
+		else:
+			leiloeiro = scn_npc.instantiate()
+			leiloeiro.npc_name = "Leiloeiro do Underground"
+			leiloeiro.fala_padrao = "Bem-vindo ao leilão de Yorknew. Escrow garantido pela casa — taxa de 5% na listagem."
+		leiloeiro.name = "Leiloeiro"
+		leiloeiro.position = Vector2(380, -40)
+		add_child(leiloeiro)
+
 	# 1. Leorio (Início da Cidade)
 	if get_node_or_null("Leorio") == null:
 		var leorio = scn_npc.instantiate()

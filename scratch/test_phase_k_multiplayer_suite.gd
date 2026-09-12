@@ -375,5 +375,12 @@ func _test_12_chat_and_social_messaging() -> void:
 
 	chat.adicionar_mensagem("Netero", "geral", "A gratidão é o golpe definitivo!")
 	assert_test(chat.vbox_log.get_child_count() == 1, "Mensagem adicionada com sucesso ao log")
+	var lbl: Label = chat.vbox_log.get_child(0) as Label
+	assert_test(lbl != null and lbl.autowrap_mode == TextServer.AUTOWRAP_WORD_SMART, "Autowrap por palavra (não por caractere)")
+	assert_test(chat.line_input.max_length == 120, "Limite de 120 caracteres no input")
+	var long_a: String = ""
+	for _i in range(200):
+		long_a += "a"
+	assert_test(chat.sanitizar_mensagem(long_a).length() == 120, "Sanitize trunca em 120")
 
 	chat.queue_free()

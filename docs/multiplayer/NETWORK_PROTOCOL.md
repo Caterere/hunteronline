@@ -123,7 +123,31 @@ O `ServerWorldCoordinator` no servidor consome essa intenção:
 
 ## 6. SNAPSHOTS DO ESTADO MUNDIAL (SERVIDOR -> CLIENTES)
 
-A cada tick de simulação (20 TPS / a cada 50ms), o servidor empacota o estado completo do mundo e envia a todos os caçadores:
+A cada tick de simulação (20 TPS / a cada 50ms), o servidor empacota o estado do mundo (AoI + delta opcional) e envia aos caçadores.
+
+### PREREQ-1 — Empacote binário compacto (`NetworkProtocol`, schema **HOS1**)
+
+Hot path padrão (`ServerConfig.snapshot_binary = true`):
+
+1. `NetworkProtocol.pack_world_snapshot(dict)` → `PackedByteArray`
+2. Opcional: DEFLATE se `snapshot_compress` e tamanho ≥ `snapshot_compress_min_bytes`
+3. RPC:
+   - `rpc_receber_snapshot_mundo_binario(payload)`
+   - `rpc_receber_snapshot_mundo_binario_comprimido(payload)`
+
+Layout (little-endian via `StreamPeerBuffer`):
+
+```text
+u32 magic="HOS1" | u8 ver=1 | u8 flags(full) | u32 tick | u32 ts_ms
+u16 player_count | player_entries...
+u16 enemy_count  | enemy_entries...
+u16 rem_players  | u32 ids...
+u16 rem_enemies  | u32 ids...
+```
+
+Posições/velocidades usam fixed-point ×10 (`i32`/`i16`). Facing é 8-way em `u8`.
+
+Fallback legado (dict / `var_to_bytes`):
 
 ### RPC: `rpc_receber_snapshot_mundo(snapshot_data: Dictionary)`
 - **Modo:** `UNRELIABLE_ORDERED`
@@ -131,42 +155,20 @@ A cada tick de simulação (20 TPS / a cada 50ms), o servidor empacota o estado 
 ```json
 {
   "tick": 19482,
-  "timestamp": 1772885002150,
-  "players": {
-    "1": {
-      "px": 340.5,
-      "py": 412.0,
-      "vx": 120.0,
-      "vy": -80.0,
-      "hp": 2400,
-      "max_hp": 2400,
-      "aura": 1180.0,
-      "nen": "REN",
-      "anim": "run"
-    },
-    "2": {
-      "px": 500.0,
-      "py": 415.0,
-      "vx": 0.0,
-      "vy": 0.0,
-      "hp": 1800,
-      "max_hp": 1800,
-      "aura": 900.0,
-      "nen": "TEN",
-      "anim": "idle"
-    }
-  },
-  "enemies": {
-    "slime_01": {
-      "px": 360.0,
-      "py": 410.0,
-      "hp": 45,
-      "target_peer": 1,
-      "state": "ATTACK"
-    }
-  }
+  "ts": 1772885002150,
+  "full": true,
+  "players": [
+    {"id": 1, "px": 340.5, "py": 412.0, "vx": 120.0, "vy": -80.0, "hp": 2400, "hp_max": 2400, "aura": 1180.0, "nen": "REN", "dead": false}
+  ],
+  "enemies": [
+    {"id": 10, "enemy_id": "slime", "name": "Slime", "px": 360.0, "py": 410.0, "hp": 45, "hp_max": 45, "state": "ATTACK", "boss": false}
+  ],
+  "removed_players": [],
+  "removed_enemies": []
 }
 ```
+
+Bench headless típico (8 players + 12 enemies): ~5500 B `var_to_bytes(dict)` → ~884 B HOS1 (~84% menor antes do DEFLATE).
 
 Nos clientes, os nós `NetworkPlayer` recebem o snapshot e executam **interpolação amortecida** entre o snapshot anterior e o atual, garantindo 60 FPS visuais sem solavancos.
 

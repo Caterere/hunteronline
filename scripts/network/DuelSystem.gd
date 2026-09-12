@@ -72,3 +72,11 @@ func encerrar_duelo() -> void:
 	state = DuelState.NONE
 	challenger_id = 0
 	target_id = 0
+
+
+## Se Arena ranqueada estiver ON, registra MMR cosmético (S2). Não altera HP/itens.
+func reportar_ranqueado(vencedor_foi_desafiante: bool, opponent_mmr: int = 1000, opponent_name: String = "Duelista") -> Dictionary:
+	var Ranked = load("res://scripts/systems/arena/ArenaRankedSeason.gd")
+	if Ranked == null:
+		return {"skipped": true, "reason": "no_ranked"}
+	return Ranked.report_duel_result(vencedor_foi_desafiante, opponent_mmr, opponent_name)

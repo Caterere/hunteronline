@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_prereq1_binary_networkprotocol_suite.gd" id="1"]
+
+[node name="TestPrereq1BinaryNetworkProtocol" type="Node2D"]
+script = ExtResource("1")

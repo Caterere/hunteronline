@@ -83,6 +83,10 @@ enum RequiresMode {
 @export var consequence_tags: Array[String] = []
 @export var optional_consequence_tags: Array[String] = []
 
+## Metadados runtime (contratos Associação A5, Star Hunter, tiers B/A/S).
+## Preenchido por geradores procedurais; não é @export.
+var custom_data: Dictionary = {}
+
 
 # =========================================================
 # FUNÇÕES
