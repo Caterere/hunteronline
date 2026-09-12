@@ -6,7 +6,7 @@
 **Primary visual target:** 2D top-down anime RPG/MMORPG\
 **Primary generation pipeline:** PixelLab + existing project assets +
 AI-assisted production\
-**Character frame standard:** 48×48 px\
+**Character frame standard:** 96×96 px (Style Lock v2 — corpo ~40–44 px)\
 **World target:** Rich environmental pixel art with readable, relatively
 small characters
 
