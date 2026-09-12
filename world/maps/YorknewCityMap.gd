@@ -23,6 +23,7 @@ var _marcos_notificados: Dictionary = {
 
 func _ready() -> void:
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.YORKNEW)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.YORKNEW)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco4()
 	_configurar_inimigos()

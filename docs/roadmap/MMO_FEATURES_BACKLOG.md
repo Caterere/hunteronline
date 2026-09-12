@@ -13,7 +13,7 @@ Estas duas fundações devem avançar **antes** de AH, ranked, raids 8 e matchma
 
 | ID | Pré-requisito | Status atual | Arquivos-alvo | Desbloqueia |
 | :--- | :--- | :--- | :--- | :--- |
-| **PREREQ-1** | **Sync binário via `NetworkProtocol`** | Parcial — opcodes + serialize dict existem; snapshots/RPC já rodando; empacote binário compacto ainda aberto | [`scripts/network/NetworkProtocol.gd`](../../scripts/network/NetworkProtocol.gd), [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`docs/multiplayer/NETWORK_PROTOCOL.md`](../multiplayer/NETWORK_PROTOCOL.md) | Leilão Yorknew, ranked Arena, Duty Finder, guild bank sync |
+| **PREREQ-1** | **Sync binário via `NetworkProtocol`** | `[IMPLEMENTED]` — opcodes + snapshots binários compactos + RPC; suite `scratch/test_prereq1_binary_networkprotocol_suite.tscn` 21/21 | [`scripts/network/NetworkProtocol.gd`](../../scripts/network/NetworkProtocol.gd), [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`docs/multiplayer/NETWORK_PROTOCOL.md`](../multiplayer/NETWORK_PROTOCOL.md) | Leilão Yorknew, ranked Arena, Duty Finder, guild bank sync |
 | **PREREQ-2** | **Revive de aliados em combate** (canalização 3s) | `[IMPLEMENTED]` — desmaio 30s + canal 3s + interrupt on hit + tecla E | [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`autoload/PartyManager.gd`](../../autoload/PartyManager.gd), [`ui/party/PartyHUD.gd`](../../ui/party/PartyHUD.gd) | Raids 8, world bosses co-op sérios, Blacklist open hunt |
 
 **Ordem mínima:** PREREQ-1 (banda/estabilidade) em paralelo com PREREQ-2 (gameplay co-op). Contratos rotativos (Tier A #5) podem avançar offline sem estes pré-requisitos.
@@ -39,41 +39,41 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `[IMPLEMENTED]` — listagens + taxa Jenny + UI Yorknew + escrow; suite `scratch/test_s1_yorknew_auction_suite.tscn` 38/38 |
 | **Inspiração** | Auction House (WoW/FFXIV) + Grand Exchange (OSRS) |
 | **Deps** | PREREQ-1; economia server-side estável |
 | **Reusar** | `autoload/Economy.gd`, `ui/Shop/ShopUI.gd`, `world/maps/YorknewCityMap.gd`, `scripts/network/*` |
-| **Tasks** | Listagens autoritativas no server · taxa Jenny · UI de leilão em Yorknew · escrow de item · filtros raridade/Nen · anti-duplicação por UID |
+| **Tasks** | ✅ Listagens autoritativas · ✅ taxa Jenny · ✅ UI de leilão · ✅ escrow · filtros raridade/Nen · anti-duplicação por UID |
 
 ### S2. Heaven’s Arena ranqueada + temporadas
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` (`[FUTURE]` em MULTIPLAYER_GAMEPLAY) |
+| **Status** | `[IMPLEMENTED]` — ELO/MMR + temporadas + leaderboard; suite `scratch/test_s2_heavens_arena_ranked_suite.tscn` 41/41 |
 | **Inspiração** | Arena ladders (WoW), ranked seasons (Blade & Soul / Lost Ark) |
 | **Deps** | PREREQ-1; duelos estáveis |
 | **Reusar** | `ui/Arena/HeavensArenaTowerUI.gd`, `scripts/systems/arena/ArenaGhostRegistry.gd`, `scripts/network/DuelSystem.gd` |
-| **Tasks** | ELO/MMR por andar · fila 1v1 · reset cosmético de temporada · leaderboard · recompensas cosméticas (sem power creep) |
+| **Tasks** | ✅ ELO/MMR por andar · ✅ fila 1v1 · ✅ temporada · ✅ leaderboard · recompensas cosméticas (sem power creep) |
 
 ### S3. Revive + Raids 8 hunters
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | Revive `IMPLEMENTED` · Raids `PLANNED` |
+| **Status** | Revive `[IMPLEMENTED]` · Raids `[IMPLEMENTED]` — suite `scratch/test_s3_raid_8_hunters_suite.tscn` 19/19 |
 | **Inspiração** | Alliance/raids (FFXIV/WoW), guardian raids (Lost Ark) |
 | **Deps** | **PREREQ-2** (obrigatório); party/threat/loot já existem |
 | **Reusar** | `autoload/PartyManager.gd`, `scripts/network/CoopDungeonInstance.gd`, `scripts/network/CoopWorldBossCoordinator.gd` |
-| **Tasks** | Canalização revive 3s · party até 8 só em instância raid · 1 raid vertical (Ruínas → depois Continente Negro) · enrage/fases |
+| **Tasks** | ✅ Canalização revive 3s · ✅ party até 8 em raid · ✅ 1 raid vertical (Ruínas) · ✅ enrage/fases |
 
 ### S4. Greed Island jogável (não só binder)
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` (mapa + binder existem) |
+| **Status** | `[IMPLEMENTED]` — catálogo 24 cartas + `CardDuelSystem` + `CardDuelUI` + Antokiba board |
 | **Inspiração** | Triple Triad / Mahjong (FFXIV), card PvP + mapa meta (GW2) |
 | **Deps** | Conteúdo de saga GI; ranked opcional depois |
-| **Reusar** | `ui/GreedIslandBinder/`, `resource/greed_island/`, `world/maps/GreedIslandMap.gd` |
-| **Tasks** | Duelo de cartas (subset 20–40) · “roubo” consentido · missões de caça a cartas · gate Hatsu do design |
+| **Reusar** | `scripts/systems/CardDuelSystem.gd`, `ui/GreedIsland/CardDuelUI.gd`, `resource/greed_island/` |
+| **Tasks** | ✅ Duelo de cartas (24) · binder SSOT · suite `scratch/test_s4_gi_card_duel_suite.tscn` |
 
 ---
 
@@ -93,21 +93,21 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `[IMPLEMENTED]` — cap 20, bank Jenny, GuildHallUI, `NenContractManager` (máx. 3 juramentos) |
 | **Inspiração** | Guilds + Free Companies (FFXIV) + syndicates (Warframe) |
 | **Deps** | PREREQ-1; chat multiplayer estável |
-| **Reusar** | `autoload/FactionManager.gd`, `autoload/ReputationSystem.gd`, `autoload/PartyManager.gd`, `ui/chat/`, `world/maps/PlayerHouse.gd` |
-| **Tasks** | Criar/convidar/kick · bank compartilhado · hall no hub/casa · perks cosméticos/sociais · `NenContractManager` (HATSU_CREATOR_BIBLE PLANNED) |
+| **Reusar** | `autoload/HunterGuildSystem.gd`, `autoload/NenContractManager.gd`, `ui/Guild/GuildHallUI.gd`, `autoload/PartyManager.gd` |
+| **Tasks** | ✅ Criar/convidar/kick · ✅ bank compartilhado · ✅ hall UI · ✅ `NenContractManager` · suite `scratch/test_a6_guilds_nen_contracts_suite.tscn` |
 
 ### A7. Caça Blacklist co-op (open hunt)
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `[IMPLEMENTED]` — open hunt S-rank rotativo + rumores/pistas + threat multi-party + loot por contribuição |
 | **Inspiração** | World bosses / rare elites (GW2, WoW) + wanted posters |
 | **Deps** | PREREQ-2 recomendado; world boss coordinator |
-| **Reusar** | `autoload/BountySystem.gd`, `ui/Bounties/`, `scripts/network/CoopWorldBossCoordinator.gd`, `autoload/RumorSystem.gd` |
-| **Tasks** | Alvos S-rank por evento · threat multi-party · loot por contribuição · pistas/rumores para localizar |
+| **Reusar** | `autoload/BlacklistOpenHuntSystem.gd`, `ui/Bounties/BlacklistHuntBoardUI.gd`, `scripts/network/CoopWorldBossCoordinator.gd`, `autoload/RumorSystem.gd` |
+| **Tasks** | ✅ Alvos S-rank rotativos · ✅ threat multi-party · ✅ loot por contribuição · ✅ pistas/rumores · suite `scratch/test_a7_blacklist_open_hunt_suite.tscn` |
 
 ### A8. Gourmet Hunter life skills
 
@@ -125,8 +125,8 @@ flowchart LR
 
 | ID | Sistema | Inspiração | Adaptação HxH | Deps | Nota |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | RelationshipSystem hoje é NPC |
-| B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | Master registry local já existe; falta fila de conteúdo |
+| B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | `[IMPLEMENTED]` — `AssociationMailSystem` + `HunterFriendsSystem` + UI; suite `scratch/test_b9_mail_friends_suite.tscn` 23/23 |
+| B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | `[IMPLEMENTED]` — `DutyFinderSystem` + stubs offline; suite `scratch/test_b10_duty_finder_suite.tscn` |
 | B11 | Territory wars | New World / GW2 WvW | Rotas Associação×Máfia×Salteadores | LiveEventManager | Expandir evento da ponte para meta semanal |
 | B12 | Mounts / dirigível | FFXIV mounts | Skins via `TravelSystem` | TravelSystem | Preferir viagem temática, não mount genérico |
 | B13 | Seasons / battle pass | Destiny / Lost Ark | Temporada de caçada + códex parcial | LIVE_OPS_CONTENT | Cosmético only |

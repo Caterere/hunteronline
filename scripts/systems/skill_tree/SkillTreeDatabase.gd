@@ -205,7 +205,7 @@ func _register_legacy_canonical_nodes() -> void:
 	var cond_bl := GameplayCondition.new()
 	cond_bl.condition_type = GameplayCondition.Type.PLAYER_HP_BELOW
 	cond_bl.threshold = 0.35
-	_add_node(SkillTreeNodeData.new(&"bloodied", "Fúria do Sangue", "HP abaixo de 35%: Força +20% e Resistência +15%", &"body", SkillTreeNodeData.NodeType.KEYSTONE, Vector2(200, -330), 1, 1, [&"ten_2"], [{"type": "stat_modifier", "stat": "forca", "mod_type": 1, "value_per_rank": 0.20}, {"type": "stat_modifier", "stat": "defesa", "mod_type": 1, "value_per_rank": 0.15}], [cond_bl], ["bloodied", "contextual", "keystone"]))
+	_add_node(SkillTreeNodeData.new(&"bloodied", "Bloodlust — Fúria do Sangue", "HP abaixo de 35%: Força +20% e Resistência +15%", &"body", SkillTreeNodeData.NodeType.KEYSTONE, Vector2(200, -330), 1, 1, [&"ten_2"], [{"type": "stat_modifier", "stat": "forca", "mod_type": 1, "value_per_rank": 0.20}, {"type": "stat_modifier", "stat": "defesa", "mod_type": 1, "value_per_rank": 0.15}], [cond_bl], ["bloodied", "bloodlust", "contextual", "keystone"]))
 
 	var cond_sr := GameplayCondition.new()
 	cond_sr.condition_type = GameplayCondition.Type.ENEMIES_NEARBY_AT_LEAST

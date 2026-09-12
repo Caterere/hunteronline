@@ -37,16 +37,17 @@ func _ready() -> void:
 	assert(cam.limit_bottom == 800, "Camera limit_bottom incorreto: %d" % cam.limit_bottom)
 	print("[PASS] Limites de câmera rigorosos configurados com sucesso: Left=-1180, Top=-880, Right=1680, Bottom=800.")
 
-	# 3. Verificar Colisões de Perímetro e Estruturas
+	# 3. Verificar colisões de perímetro; footprints de estrutura agora vivem nos TileMaps
+	#    (ColisoesEstruturasLobby foi removido de propósito — ver test_lobby_hitbox_connected_suite).
 	var limites = lobby.get_node_or_null("LimitesLobbyPerimetro") as StaticBody2D
 	assert(limites != null, "LimitesLobbyPerimetro não encontrado!")
 	assert(limites.collision_layer == 1, "LimitesLobbyPerimetro deve estar na layer 1")
 	print("[PASS] LimitesLobbyPerimetro validado (Layer 1, barreiras sólidas perimetrais contra vazio).")
 
-	var col_estruturas = lobby.get_node_or_null("ColisoesEstruturasLobby") as StaticBody2D
-	assert(col_estruturas != null, "ColisoesEstruturasLobby não encontrado!")
-	assert(col_estruturas.collision_layer == 1, "ColisoesEstruturasLobby deve estar na layer 1")
-	print("[PASS] ColisoesEstruturasLobby validado (Footprint da Associação, Castelo, Torre, Forja).")
+	assert(lobby.get_node_or_null("ColisoesEstruturasLobby") == null, "ColisoesEstruturasLobby legado não deve existir (colisão via TileMap)")
+	var estruturas_tm = lobby.get_node_or_null("Estruturas_TileMapLayer") as TileMapLayer
+	assert(estruturas_tm != null, "Estruturas_TileMapLayer não encontrado!")
+	print("[PASS] Colisão de estruturas via TileMap (sem StaticBody duplicado ColisoesEstruturasLobby).")
 
 	# 4. Verificar Colisão do Player com Cenário e NPCs
 	assert(player.collision_layer == 2, "Player deve estar na layer 2")

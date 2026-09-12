@@ -18,7 +18,8 @@ npc_name = "Vendedor"
 fala_padrao = "Bem-vindo à minha loja! Temos equipamentos e cosméticos."
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(0, -18)
+position = Vector2(0, -9.350)
+scale = Vector2(0.45, 0.45)
 texture = ExtResource("2_tex")
 hframes = 8
 vframes = 1

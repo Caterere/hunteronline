@@ -37,6 +37,10 @@ func _ready() -> void:
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.VALE)
+	# Props/polish extras além do atmosphere (clareiras, cercas, storytelling)
+	WorldDensityKit.attach(self, WorldDensityKit.KitKind.FLORESTA)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
+	WorldPolishKit.attach(self, WorldPolishKit.KitKind.FLORESTA)
 
 
 func _configurar_iluminacao_e_clima() -> void:

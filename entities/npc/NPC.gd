@@ -132,9 +132,9 @@ func _atualizar_animacao(dir: Vector2, andando: bool) -> void:
 				var dir_frame: int = posmod(int(round((90.0 - angle_deg) / 45.0)), 8)
 				spr.frame = dir_frame
 			if andando:
-				spr.position.y = -17.0 + (1.0 if int(Time.get_ticks_msec() / 150) % 2 == 0 else 0.0)
+				spr.position.y = -34.0 + (1.0 if int(Time.get_ticks_msec() / 150) % 2 == 0 else 0.0)
 			else:
-				spr.position.y = -17.0
+				spr.position.y = -34.0
 
 
 func _vincular_textura_npc() -> void:
@@ -144,7 +144,7 @@ func _vincular_textura_npc() -> void:
 
 	# Se já possui hframes == 8 e textura específica diferente do player, garante posição alinhada
 	if spr.hframes == 8 and spr.texture != null and not spr.texture.resource_path.ends_with("player.png"):
-		spr.position = Vector2(0, -17)
+		spr.position = Vector2(0, -34)
 		return
 
 	var n_low: String = npc_name.to_lower()
@@ -204,7 +204,7 @@ func _vincular_textura_npc() -> void:
 			spr.texture = load(tex_path)
 			spr.hframes = 8
 			spr.vframes = 1
-			spr.position = Vector2(0, -17)
+			spr.position = Vector2(0, -34)
 			spr.modulate = Color.WHITE
 
 

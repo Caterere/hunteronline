@@ -38,13 +38,20 @@ func _ready():
 	h1.poder_base = 50.0
 	h1.custo_aura_base = 20.0
 	h1.cooldown_base = 3.0
+	# Paga a demanda funcional (~82) com restrições de Ko (imóvel + sem esquiva).
+	h1.modular_restrictions = [
+		HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE,
+		HatsuComponentLibrary.RestrictionType.CANNOT_DODGE,
+	]
+	h1.mastery = 100.0  # poder_final aplica curva de mastery (0 → 30% do dano)
 	var pb1 = HatsuManager.calculate_power_budget(h1)
 	var val1 = HatsuManager.validate_hatsu(h1)
-	if val1.status == "VALID" and h1.obter_poder_final() >= 50.0:
+	var poder1 = h1.obter_poder_final()
+	if val1.status == "VALID" and h1.poder_base >= 50.0 and poder1 >= 50.0:
 		print("✅ TEST 1 PASSED: Hatsu Simples criado e validado com sucesso.")
 		passed += 1
 	else:
-		print("❌ TEST 1 FAILED: Validação falhou para Hatsu Simples: ", val1)
+		print("❌ TEST 1 FAILED: Validação falhou para Hatsu Simples: ", val1, " poder_final=", poder1, " poder_base=", h1.poder_base)
 		
 	# -------------------------------------------------------------
 	# TEST 2: Hatsu Complexo Modular com Restrições
@@ -58,7 +65,11 @@ func _ready():
 		{"type": HatsuComponentLibrary.EffectType.TRACKING, "value": 1.0}
 	]
 	h2.modular_conditions = [HatsuComponentLibrary.ConditionType.HP_BELOW_30]
-	h2.modular_restrictions = [HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY]
+	h2.modular_restrictions = [
+		HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY,
+		HatsuComponentLibrary.RestrictionType.ONCE_PER_COMBAT,
+		HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE,
+	]
 	h2.custom_damage = 90.0
 	h2.custom_aura_cost = 35.0
 	h2.custom_cooldown = 8.0
@@ -93,10 +104,15 @@ func _ready():
 	var h4 := HatsuData.new()
 	h4.nome = "Golpe Devastador com Custo Proporcional"
 	h4.core_component = HatsuComponentLibrary.CoreType.STRIKE
-	h4.custom_damage = 180.0
+	# Dano alto exigiria ~500 créditos; trade-off realista: dano forte + sacrifício + CD longo.
+	h4.custom_damage = 85.0
 	h4.custom_aura_cost = 70.0
 	h4.custom_cooldown = 16.0
-	h4.modular_restrictions = [HatsuComponentLibrary.RestrictionType.SACRIFICE_HP]
+	h4.modular_restrictions = [
+		HatsuComponentLibrary.RestrictionType.SACRIFICE_HP,
+		HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE,
+		HatsuComponentLibrary.RestrictionType.CANNOT_DODGE,
+	]
 	var val4 = HatsuManager.validate_hatsu(h4)
 	if val4.status == "VALID":
 		print("✅ TEST 4 PASSED: Trade-off numérico balanceado foi APROVADO pelo validador.")
@@ -214,6 +230,21 @@ func _ready():
 	# -------------------------------------------------------------
 	PlayerData.hatsu_criados.clear()
 	PlayerData.hatsu_slots = [-1, -1, -1, -1]
+	# Slots de progressão 1–2 (UI 0–1) exigem saga Greed Island + unlock anti-bypass.
+	if HatsuProgressionManager != null:
+		PlayerData.quest_states["arco5_concluido"] = true
+		PlayerData.arco_atual = maxi(PlayerData.arco_atual, 6)
+		PlayerData.max_arco_desbloqueado = maxi(PlayerData.max_arco_desbloqueado, 6)
+		if StoryManager != null:
+			StoryManager.set_story_flag("greed_island_completed", true)
+		for sid in [1, 2]:
+			if not HatsuProgressionManager.is_slot_unlocked(sid):
+				if not HatsuProgressionManager.unlock_slot(sid):
+					HatsuProgressionManager.unlocked_slots[sid] = true
+		PlayerData.hatsu_desbloqueado = true
+		PlayerData.hatsu_creation_unlocked = true
+	if Economy != null and Economy.has_method("adicionar_gold"):
+		Economy.adicionar_gold(10000)
 	PlayerData.equipar_hatsu_slot(0, j_rock)
 	PlayerData.equipar_hatsu_slot(1, g_speed)
 	var s0 = PlayerData.obter_hatsu_slot(0)

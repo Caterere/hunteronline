@@ -350,24 +350,32 @@ func _espalhar_props_landmark() -> void:
 				_add_point_light(root, Vector2(340, ly - 10), Color(1.0, 0.8, 0.5), 1.1)
 				_add_point_light(root, Vector2(460, ly - 10), Color(1.0, 0.8, 0.5), 1.1)
 		MapKind.DUNGEON:
-			for p in [Vector2(120, 300), Vector2(520, 300), Vector2(160, 180), Vector2(480, 180), Vector2(320, 260)]:
+			for p in [Vector2(120, 300), Vector2(520, 300), Vector2(160, 180), Vector2(480, 180), Vector2(320, 260), Vector2(200, 120), Vector2(440, 120), Vector2(100, 220), Vector2(540, 220), Vector2(280, 340), Vector2(360, 340)]:
 				_add_prop_sprite(root, "TochaRuinas_%d_%d" % [int(p.x), int(p.y)], p, "res://assets/sprites/objects/ruin_nen_torch.png", Color(0.7, 1.0, 0.75), Vector2(1, 1))
 				_add_point_light(root, p + Vector2(0, -12), Color(0.35, 1.0, 0.55), 1.3)
 			_add_prop_sprite(root, "MonolitoBoss", Vector2(320, 80), "res://assets/sprites/objects/nen_stone_monolith.png", Color(1.0, 0.75, 0.35), Vector2(1.1, 1.1))
+			for p in [Vector2(180, 250), Vector2(460, 250), Vector2(250, 140), Vector2(390, 140)]:
+				_add_prop_sprite(root, "PilarRuinas_%d_%d" % [int(p.x), int(p.y)], p, "res://assets/sprites/objects/phase4_landmark_ruin_pillar.png", Color(0.85, 0.9, 0.8), Vector2(1.0, 1.0))
+			for p in [Vector2(140, 320), Vector2(500, 320), Vector2(300, 200)]:
+				_add_prop_sprite(root, "BauRuinas_%d_%d" % [int(p.x), int(p.y)], p, "res://assets/sprites/objects/chest_01.png", Color.WHITE, Vector2(0.95, 0.95))
+			_add_prop_sprite(root, "CercaRuinas", Vector2(320, 360), "res://assets/sprites/objects/phase6_polish_fence_ruin.png", Color(0.8, 0.85, 0.75), Vector2(1.0, 1.0))
 		MapKind.VALE:
 			_add_prop_sprite(root, "MonolitoVila", Vector2(105 * 16, 255 * 16), "res://assets/sprites/objects/nen_stone_monolith.png", Color.WHITE, Vector2(1.2, 1.2))
 			_add_point_light(root, Vector2(105 * 16, 250 * 16), Color(0.5, 0.9, 1.0), 1.6)
 		MapKind.YORKNEW:
-			for x in [400.0, 1200.0, 2000.0, 2800.0, 3600.0]:
+			for x in [200.0, 400.0, 700.0, 1000.0, 1200.0, 1500.0, 1800.0, 2000.0, 2300.0, 2600.0, 2800.0, 3100.0, 3400.0, 3600.0, 3900.0]:
 				_add_prop_sprite(root, "PosteYork_%d" % int(x), Vector2(x, -80), "res://assets/sprites/objects/hunter_road_lantern.png", Color(0.85, 0.9, 1.0), Vector2(1.1, 1.1))
 				_add_prop_sprite(root, "PosteYorkS_%d" % int(x), Vector2(x, 120), "res://assets/sprites/objects/hunter_road_lantern.png", Color(0.85, 0.9, 1.0), Vector2(1.1, 1.1))
 				_add_point_light(root, Vector2(x, -90), Color(0.55, 0.7, 1.0), 1.35)
 				_add_point_light(root, Vector2(x, 110), Color(1.0, 0.55, 0.35), 1.2)
 			_add_prop_sprite(root, "MarcoLeilao", Vector2(200, 0), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.7, 0.85, 1.0), Vector2(1.15, 1.15))
 			_add_prop_sprite(root, "MarcoAranha", Vector2(3800, -40), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.95, 0.45, 0.55), Vector2(1.2, 1.2))
-			for x in [500.0, 1100.0, 1900.0, 2700.0, 3400.0]:
+			for x in [300.0, 500.0, 800.0, 1100.0, 1400.0, 1700.0, 1900.0, 2200.0, 2500.0, 2700.0, 3000.0, 3300.0, 3600.0, 3850.0]:
 				_add_prop_sprite(root, "CaixoteYork_%d" % int(x), Vector2(x, 50), "res://assets/sprites/objects/yorknew_street_crate.png", Color.WHITE, Vector2(1.0, 1.0))
 				_add_prop_sprite(root, "CaixoteYorkN_%d" % int(x), Vector2(x + 30, -100), "res://assets/sprites/objects/yorknew_street_crate.png", Color(0.9, 0.92, 1.0), Vector2(0.9, 0.9))
+			for x in [450.0, 1350.0, 2150.0, 2950.0, 3750.0]:
+				_add_prop_sprite(root, "BarracaYork_%d" % int(x), Vector2(x, -110), "res://assets/sprites/objects/lobby_stall_decor.png", Color(0.95, 0.9, 1.0), Vector2(1.0, 1.0))
+				_add_prop_sprite(root, "CarrocaYork_%d" % int(x), Vector2(x + 80, 90), "res://assets/sprites/objects/carroca_mercador_wagon.png", Color.WHITE, Vector2(0.95, 0.95))
 		MapKind.KUKUROO:
 			_add_prop_sprite(root, "PortaoTesteProp", Vector2(120, 0), "res://assets/sprites/objects/portao_padokia_arch.png", Color(0.85, 0.88, 0.8), Vector2(1.0, 1.0))
 			_add_prop_sprite(root, "MarcoPedraPortao", Vector2(280, 40), "res://assets/sprites/objects/marco_pedra_milestone.png", Color.WHITE, Vector2(1.0, 1.0))

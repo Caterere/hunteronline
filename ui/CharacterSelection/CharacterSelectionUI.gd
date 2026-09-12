@@ -22,8 +22,16 @@ var slot_criacao_atual: int = 1
 var line_edit_nome: LineEdit
 var picker_cabelo: ColorPickerButton
 var picker_roupa: ColorPickerButton
+var picker_olhos: ColorPickerButton
+var lbl_estilo_cabelo: Label
+var hair_idx: int = 0
+var preview_sprite: Sprite2D
+var preview_overlay: Node2D
 var lbl_afinidade_nome: Label
 var lbl_afinidade_desc: Label
+
+const CharacterAssetDatabase = preload("res://entities/character_creator/CharacterAssetDatabase.gd")
+const HairStyleOverlayScript = preload("res://entities/character_creator/HairStyleOverlay.gd")
 
 var afinidade_sorteada: NenAffinityData.CategoriaAfinidade = NenAffinityData.CategoriaAfinidade.INTENSIFICACAO
 var _ja_carregando: bool = false
@@ -97,7 +105,7 @@ func _construir_ui() -> void:
 
 func _construir_painel_criacao() -> void:
 	panel_criacao = PanelContainer.new()
-	panel_criacao.custom_minimum_size = Vector2(230, 150)
+	panel_criacao.custom_minimum_size = Vector2(280, 168)
 	panel_criacao.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel_criacao.visible = false
 	panel_criacao.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_AURA_CYAN, 4))
@@ -142,24 +150,77 @@ func _construir_painel_criacao() -> void:
 	lbl_afinidade_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_afinidade_desc)
 	
-	# Personalização de Cores (Cabelo e Roupa)
+	# Preview + personalização (estilo/cor cabelo, olhos, roupa)
+	var hbox_preview := HBoxContainer.new()
+	hbox_preview.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_child(hbox_preview)
+
+	var preview_host := Control.new()
+	preview_host.custom_minimum_size = Vector2(48, 52)
+	hbox_preview.add_child(preview_host)
+
+	preview_sprite = Sprite2D.new()
+	preview_sprite.centered = true
+	preview_sprite.position = Vector2(24, 34)
+	var tex_player = load("res://assets/sprites/characters/player.png")
+	if tex_player != null:
+		preview_sprite.texture = tex_player
+		preview_sprite.hframes = 6
+		preview_sprite.vframes = 10
+		preview_sprite.frame = 0
+	preview_host.add_child(preview_sprite)
+
+	preview_overlay = HairStyleOverlayScript.new()
+	preview_overlay.position = Vector2(24, 34)
+	preview_host.add_child(preview_overlay)
+
+	var vbox_opts := VBoxContainer.new()
+	vbox_opts.add_theme_constant_override("separation", 2)
+	hbox_preview.add_child(vbox_opts)
+
+	var hbox_hair := HBoxContainer.new()
+	vbox_opts.add_child(hbox_hair)
+	var btn_hair_prev := Button.new()
+	btn_hair_prev.text = "<"
+	btn_hair_prev.add_theme_font_size_override("font_size", 5)
+	btn_hair_prev.pressed.connect(func(): _ciclar_estilo_cabelo(-1))
+	hbox_hair.add_child(btn_hair_prev)
+	lbl_estilo_cabelo = Label.new()
+	lbl_estilo_cabelo.custom_minimum_size = Vector2(110, 0)
+	lbl_estilo_cabelo.add_theme_font_size_override("font_size", 4)
+	lbl_estilo_cabelo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hbox_hair.add_child(lbl_estilo_cabelo)
+	var btn_hair_next := Button.new()
+	btn_hair_next.text = ">"
+	btn_hair_next.add_theme_font_size_override("font_size", 5)
+	btn_hair_next.pressed.connect(func(): _ciclar_estilo_cabelo(1))
+	hbox_hair.add_child(btn_hair_next)
+
 	var hbox_custom := HBoxContainer.new()
 	hbox_custom.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_child(hbox_custom)
+	vbox_opts.add_child(hbox_custom)
 
 	var lbl_cab := Label.new()
-	lbl_cab.text = "Cabelo:"
+	lbl_cab.text = "Cor:"
 	lbl_cab.add_theme_font_size_override("font_size", 5)
 	hbox_custom.add_child(lbl_cab)
 
 	picker_cabelo = ColorPickerButton.new()
-	picker_cabelo.custom_minimum_size = Vector2(24, 14)
-	picker_cabelo.color = Color(0.15, 0.15, 0.15, 1.0) # Preto
+	picker_cabelo.custom_minimum_size = Vector2(20, 12)
+	picker_cabelo.color = Color(0.15, 0.15, 0.15, 1.0)
+	picker_cabelo.color_changed.connect(func(_c): _atualizar_preview_criacao())
 	hbox_custom.add_child(picker_cabelo)
 
-	var spacer_c := Control.new()
-	spacer_c.custom_minimum_size = Vector2(12, 0)
-	hbox_custom.add_child(spacer_c)
+	var lbl_olh := Label.new()
+	lbl_olh.text = "Olhos:"
+	lbl_olh.add_theme_font_size_override("font_size", 5)
+	hbox_custom.add_child(lbl_olh)
+
+	picker_olhos = ColorPickerButton.new()
+	picker_olhos.custom_minimum_size = Vector2(20, 12)
+	picker_olhos.color = Color(0.15, 0.45, 0.85, 1.0)
+	picker_olhos.color_changed.connect(func(_c): _atualizar_preview_criacao())
+	hbox_custom.add_child(picker_olhos)
 
 	var lbl_rop := Label.new()
 	lbl_rop.text = "Roupa:"
@@ -167,9 +228,14 @@ func _construir_painel_criacao() -> void:
 	hbox_custom.add_child(lbl_rop)
 
 	picker_roupa = ColorPickerButton.new()
-	picker_roupa.custom_minimum_size = Vector2(24, 14)
-	picker_roupa.color = Color(0.2, 0.6, 0.3, 1.0) # Verde Hunter
+	picker_roupa.custom_minimum_size = Vector2(20, 12)
+	picker_roupa.color = Color(0.2, 0.6, 0.3, 1.0)
+	picker_roupa.color_changed.connect(func(_c): _atualizar_preview_criacao())
 	hbox_custom.add_child(picker_roupa)
+
+	hair_idx = 0
+	_atualizar_label_estilo_cabelo()
+	_atualizar_preview_criacao()
 
 	var hbox_btns := HBoxContainer.new()
 	vbox.add_child(hbox_btns)
@@ -195,6 +261,56 @@ func _construir_painel_criacao() -> void:
 	btn_confirmar.pressed.connect(_concluir_criacao_personagem)
 	hbox_btns.add_child(btn_confirmar)
 
+
+
+
+func _ciclar_estilo_cabelo(delta: int) -> void:
+	var estilos = CharacterAssetDatabase.HAIR_STYLES
+	if estilos.is_empty():
+		return
+	hair_idx = (hair_idx + delta) % estilos.size()
+	if hair_idx < 0:
+		hair_idx = estilos.size() - 1
+	var estilo: Dictionary = estilos[hair_idx]
+	if picker_cabelo != null and estilo.has("color"):
+		picker_cabelo.color = estilo["color"]
+	_atualizar_label_estilo_cabelo()
+	_atualizar_preview_criacao()
+
+
+func _atualizar_label_estilo_cabelo() -> void:
+	if lbl_estilo_cabelo == null:
+		return
+	var estilos = CharacterAssetDatabase.HAIR_STYLES
+	if estilos.is_empty():
+		lbl_estilo_cabelo.text = "Cabelo"
+		return
+	lbl_estilo_cabelo.text = str(estilos[hair_idx].get("name", "Cabelo"))
+
+
+func _atualizar_preview_criacao() -> void:
+	if preview_sprite == null:
+		return
+	var shader := load("res://assets/shaders/character_color_customizer.gdshader") as Shader
+	if shader != null and picker_cabelo != null and picker_roupa != null and picker_olhos != null:
+		var mat := ShaderMaterial.new()
+		mat.shader = shader
+		mat.set_shader_parameter("hair_custom_color", picker_cabelo.color)
+		mat.set_shader_parameter("clothes_custom_color", picker_roupa.color)
+		mat.set_shader_parameter("eyes_custom_color", picker_olhos.color)
+		mat.set_shader_parameter("enable_eye_tint", 1.0)
+		var lum: float = (picker_cabelo.color.r + picker_cabelo.color.g + picker_cabelo.color.b) / 3.0
+		mat.set_shader_parameter("light_hair_mode", 1.0 if lum > 0.55 else 0.0)
+		preview_sprite.material = mat
+	if preview_overlay != null and preview_overlay.has_method("configurar"):
+		var estilos = CharacterAssetDatabase.HAIR_STYLES
+		var hair_id: String = str(estilos[hair_idx]["id"]) if estilos.size() > 0 else "hair_gon_01"
+		preview_overlay.configurar(
+			hair_id,
+			picker_cabelo.color if picker_cabelo else Color.BLACK,
+			picker_olhos.color if picker_olhos else Color(0.15, 0.45, 0.85),
+			true
+		)
 
 func _atualizar_slots() -> void:
 	for child in panel_slots.get_children():
@@ -285,6 +401,15 @@ func _abrir_criacao_para_slot(slot_idx: int) -> void:
 		GameManager.set_flow_state(GameManager.GameFlowState.CHARACTER_CREATION)
 		GameManager.change_state(GameManager.GameState.CHARACTER_CREATION)
 	line_edit_nome.text = ""
+	hair_idx = 0
+	if picker_cabelo != null:
+		picker_cabelo.color = Color(0.15, 0.15, 0.15, 1.0)
+	if picker_olhos != null:
+		picker_olhos.color = Color(0.15, 0.45, 0.85, 1.0)
+	if picker_roupa != null:
+		picker_roupa.color = Color(0.2, 0.6, 0.3, 1.0)
+	_atualizar_label_estilo_cabelo()
+	_atualizar_preview_criacao()
 	_sortear_afinidade()
 	panel_criacao.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel_criacao.visible = true
@@ -314,9 +439,13 @@ func _concluir_criacao_personagem() -> void:
 	PlayerData.mapa_atual_salvo = "res://world/lobby.tscn"
 	PlayerData.posicao_salva = Vector2.ZERO
 	
-	if picker_cabelo != null and picker_roupa != null:
+	if picker_cabelo != null and picker_roupa != null and picker_olhos != null:
+		var estilos = CharacterAssetDatabase.HAIR_STYLES
+		var hair_id: String = str(estilos[hair_idx]["id"]) if estilos.size() > 0 else "hair_gon_01"
 		PlayerData.character_colors["cabelo"] = picker_cabelo.color
 		PlayerData.character_colors["roupa"] = picker_roupa.color
+		PlayerData.character_colors["olhos"] = picker_olhos.color
+		PlayerData.character_colors["hair_id"] = hair_id
 
 	PlayerData.attributes = {
 		"vida": 100, "vida_max": 100,
@@ -456,6 +585,8 @@ func _gerar_save_teste_lvl100() -> void:
 	
 	PlayerData.character_colors["cabelo"] = Color(1.0, 0.85, 0.2, 1.0)
 	PlayerData.character_colors["roupa"] = Color(0.12, 0.56, 1.0, 1.0)
+	PlayerData.character_colors["olhos"] = Color(0.2, 0.55, 0.95, 1.0)
+	PlayerData.character_colors["hair_id"] = "hair_killua_01"
 	
 	PlayerData.inventory = {
 		"item_licenca_hunter": 1,
