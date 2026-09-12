@@ -24,6 +24,8 @@ const PATH_TILESET = "res://world/tilesets/world_tileset.tres"
 
 var boss_node: Node = null
 var boss_derrotado: bool = false
+var _raid_bound: RaidInstance = null
+var _boss_es: Node = null
 
 
 func _ready() -> void:
@@ -38,9 +40,42 @@ func _ready() -> void:
 	_instanciar_boss_e_sentinelas()
 	_posicionar_player()
 	_configurar_audio_e_hud()
+	_bind_active_raid()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.DUNGEON)
+
+
+func _process(delta: float) -> void:
+	if _raid_bound != null and is_instance_valid(_raid_bound) and _raid_bound.has_method("tick_enrage"):
+		_raid_bound.tick_enrage(delta)
+
+
+func _bind_active_raid() -> void:
+	if not Engine.has_meta("active_raid_instance"):
+		return
+	var raid = Engine.get_meta("active_raid_instance")
+	if raid == null or not is_instance_valid(raid):
+		return
+	if not (raid is RaidInstance):
+		return
+	_raid_bound = raid as RaidInstance
+	if _boss_es != null and is_instance_valid(_boss_es) and _boss_es.has_signal("health_changed"):
+		if not _boss_es.health_changed.is_connected(_on_raid_boss_hp):
+			_boss_es.health_changed.connect(_on_raid_boss_hp)
+		# Sync initial ratio
+		var max_h := float(_boss_es.max_health) if "max_health" in _boss_es else 1.0
+		var cur_h := float(_boss_es.health) if "health" in _boss_es else max_h
+		_on_raid_boss_hp(int(cur_h), int(max_h))
+
+
+func _on_raid_boss_hp(current_health: int, max_health: int) -> void:
+	if _raid_bound == null or not is_instance_valid(_raid_bound):
+		return
+	var ratio := 1.0
+	if max_health > 0:
+		ratio = float(current_health) / float(max_health)
+	_raid_bound.update_boss_hp_ratio(ratio)
 
 
 func _garantir_spawn_points() -> void:
@@ -154,6 +189,7 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool) -> void:
 		if es:
 			if is_boss:
 				boss_node = enemy
+				_boss_es = es
 				es.is_boss = true
 				es.max_health = 600
 				es.health = 600
@@ -207,6 +243,20 @@ func _on_boss_derrotado(_enemy_type: StringName) -> void:
 	if EventBus != null:
 		EventBus.enemy_defeated.emit("guardiao_ancestral", 800, 600)
 		EventBus.emit_toast("🏆 CHEFE DERROTADO! Guardião Ancestral de Zaban", Color(1.0, 0.85, 0.2))
+
+	# Complete active raid instance when present
+	if _raid_bound != null and is_instance_valid(_raid_bound) and not _raid_bound.is_cleared:
+		_raid_bound.update_boss_hp_ratio(0.0)
+		_raid_bound.complete_raid()
+		if SeasonPassSystem != null and SeasonPassSystem.has_method("notify_raid_clear"):
+			SeasonPassSystem.notify_raid_clear()
+	elif Engine.has_meta("active_raid_instance"):
+		var raid = Engine.get_meta("active_raid_instance")
+		if raid != null and is_instance_valid(raid) and raid.has_method("complete_raid") and not bool(raid.is_cleared):
+			raid.update_boss_hp_ratio(0.0)
+			raid.complete_raid()
+			if SeasonPassSystem != null and SeasonPassSystem.has_method("notify_raid_clear"):
+				SeasonPassSystem.notify_raid_clear()
 		
 	# Spawna Baú Dourado no local do chefe
 	_spawna_bau_dourado(Vector2(320, 120))
