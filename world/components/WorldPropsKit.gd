@@ -99,6 +99,18 @@ func _layout_estrada(root: Node2D) -> void:
 	_add_prop(root, "P3FencePost_MidR", Vector2(490, 320), FENCE_POST, Vector2(0, -8), true)
 	_add_prop(root, "P3Sign_Camp", Vector2(350, 300), SIGN, Vector2(0, -18), true)
 
+	# Densidade MMORPG 2D (Maple/Tibia-like): acampamentos e marco de rota nos ombros
+	_add_prop(root, "P3Wagon_Camp", Vector2(270, 240), WAGON, Vector2(0, -12), true)
+	_add_prop(root, "P3Stall_Rest", Vector2(530, 300), STALL, Vector2(0, -14), true)
+	_add_prop(root, "P3RoadLantern_N", Vector2(400, 80), ROAD_LANTERN, Vector2(0, -18), false)
+	_add_prop(root, "P3RoadLantern_S", Vector2(400, 560), ROAD_LANTERN, Vector2(0, -18), false)
+	_add_prop(root, "P3Crate_StackA", Vector2(300, 160), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "P3Crate_StackB", Vector2(500, 160), YORK_CRATE, Vector2(0, -6), true)
+	_add_prop(root, "P3Barrel_Camp", Vector2(285, 250), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "P3Sign_Km", Vector2(450, 200), SIGN, Vector2(0, -18), true)
+	_add_prop(root, "P3FencePost_CurveL", Vector2(310, 450), FENCE_POST, Vector2(0, -8), true)
+	_add_prop(root, "P3FencePost_CurveR", Vector2(490, 450), FENCE_POST, Vector2(0, -8), true)
+
 
 func _layout_floresta(root: Node2D) -> void:
 	_add_prop(root, "P3FSign_Entrada", Vector2(400, 90), SIGN, Vector2(0, -18), true)
@@ -125,6 +137,19 @@ func _layout_floresta(root: Node2D) -> void:
 	_add_prop(root, "P3FLantern_5", Vector2(440, 300), LANTERN, Vector2(0, -18), true)
 	_add_prop(root, "P3FSign_Clareira", Vector2(360, 280), SIGN, Vector2(0, -18), true)
 
+	# Trilha densa: tochas de ruína, caixotes de acampamento e marco de perigo
+	_add_prop(root, "P3FTorch_0", Vector2(340, 200), TORCH, Vector2(0, -14), true)
+	_add_prop(root, "P3FTorch_1", Vector2(460, 200), TORCH, Vector2(0, -14), true)
+	_add_prop(root, "P3FTorch_2", Vector2(340, 400), TORCH, Vector2(0, -14), true)
+	_add_prop(root, "P3FTorch_3", Vector2(460, 400), TORCH, Vector2(0, -14), true)
+	_add_prop(root, "P3FChest_Cache", Vector2(400, 320), CHEST, Vector2(0, -8), true)
+	_add_prop(root, "P3FMonolith", Vector2(520, 300), MONOLITH, Vector2(0, -18), true)
+	_add_prop(root, "P3FCrate_Camp", Vector2(260, 320), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "P3FBarrel_Camp", Vector2(540, 320), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "P3FSign_Perigo", Vector2(440, 100), SIGN, Vector2(0, -18), true)
+	_add_prop(root, "P3FFencePost_N", Vector2(200, 100), FENCE_POST, Vector2(0, -8), true)
+	_add_prop(root, "P3FFencePost_S", Vector2(600, 520), FENCE_POST, Vector2(0, -8), true)
+
 
 func _layout_yorknew(root: Node2D) -> void:
 	# Avenida linear (~0..4000): calçada N/S com caixas, barris, barracas e postes.
@@ -150,6 +175,17 @@ func _layout_yorknew(root: Node2D) -> void:
 	_add_prop(root, "YkMarco_Ruas", Vector2(1600, -130), SIGN, Vector2(0, -18), true)
 	_add_prop(root, "YkMarco_Cem", Vector2(2700, -140), SIGN, Vector2(0, -18), true)
 	_add_prop(root, "YkMarco_Trupe", Vector2(3700, -130), SIGN, Vector2(0, -18), true)
+
+	# Calçada intermediária (props mid-block estilo cidade MMO 2D)
+	var mid_xs := [300.0, 900.0, 1500.0, 2100.0, 2700.0, 3300.0, 3900.0]
+	for i in mid_xs.size():
+		var mx: float = mid_xs[i]
+		_add_prop(root, "YkMidCrate_%d" % i, Vector2(mx, -70.0), CRATE, Vector2(0, -6), true)
+		_add_prop(root, "YkMidBarrel_%d" % i, Vector2(mx + 45.0, 70.0), BARREL, Vector2(0, -6), true)
+		if i % 2 == 0:
+			_add_prop(root, "YkMidStall_%d" % i, Vector2(mx - 40.0, 95.0), STALL, Vector2(0, -14), true)
+		if i % 3 == 0:
+			_add_prop(root, "YkMidWell_%d" % i, Vector2(mx + 80.0, -100.0), WELL, Vector2(0, -12), true)
 
 
 func _layout_arena(root: Node2D) -> void:
@@ -198,6 +234,11 @@ func _layout_casa(root: Node2D) -> void:
 	_add_prop(root, "CasaSign_Rules", Vector2(120, 44), SIGN, Vector2(0, -18), false)
 	_add_prop(root, "CasaCrate_C", Vector2(280, 56), CRATE, Vector2(0, -6), true)
 	_add_prop(root, "CasaBarrel_C", Vector2(52, 56), BARREL, Vector2(0, -6), true)
+	# Detalhe interior (mesa de craft / estoque) — circulação central preservada
+	_add_prop(root, "CasaCrate_D", Vector2(100, 170), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "CasaBarrel_D", Vector2(260, 170), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "CasaChest_Side", Vector2(180, 180), CHEST, Vector2(0, -8), true)
+	_add_prop(root, "CasaLantern_Door", Vector2(180, 28), LANTERN, Vector2(0, -14), false)
 
 
 func _add_prop(parent: Node2D, nome: String, pos: Vector2, tex_path: String, spr_off: Vector2, collide: bool) -> void:

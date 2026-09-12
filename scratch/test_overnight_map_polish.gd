@@ -10,12 +10,12 @@ func _run() -> void:
 	var failed := 0
 	print("=== TEST: overnight map polish ===")
 
-	failed += await _check_kit(WorldPropsKit.KitKind.ESTRADA, 20, "ESTRADA")
-	failed += await _check_kit(WorldPropsKit.KitKind.FLORESTA, 20, "FLORESTA")
-	failed += await _check_kit(WorldPropsKit.KitKind.YORKNEW, 40, "YORKNEW")
+	failed += await _check_kit(WorldPropsKit.KitKind.ESTRADA, 28, "ESTRADA")
+	failed += await _check_kit(WorldPropsKit.KitKind.FLORESTA, 28, "FLORESTA")
+	failed += await _check_kit(WorldPropsKit.KitKind.YORKNEW, 55, "YORKNEW")
 	failed += await _check_kit(WorldPropsKit.KitKind.ARENA, 25, "ARENA")
 	failed += await _check_kit(WorldPropsKit.KitKind.DUNGEON, 30, "DUNGEON")
-	failed += await _check_kit(WorldPropsKit.KitKind.CASA, 12, "CASA")
+	failed += await _check_kit(WorldPropsKit.KitKind.CASA, 16, "CASA")
 
 	var player_tex: Texture2D = load("res://assets/sprites/characters/player.png")
 	var gon_tex: Texture2D = load("res://assets/sprites/characters/npc_gon_8dir.png")

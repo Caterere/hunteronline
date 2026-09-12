@@ -7,6 +7,8 @@ extends Control
 @onready var body_lbl: RichTextLabel = $Panel/VBox/HBox/Detail/Body
 @onready var unread_lbl: Label = $Panel/VBox/Header/Unread
 
+var _selected_id: String = ""
+
 
 func _ready() -> void:
 	visible = false
