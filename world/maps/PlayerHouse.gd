@@ -32,6 +32,7 @@ func _ready() -> void:
 	print("[PlayerHouse] BEM-VINDO À SUA CASA / BASE DE CAÇADOR!")
 	print("=================================")
 	_criar_elementos_casa()
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.CASA)
 
 
 func _criar_elementos_casa() -> void:

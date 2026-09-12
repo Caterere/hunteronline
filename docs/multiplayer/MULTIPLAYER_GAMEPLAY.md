@@ -74,6 +74,7 @@ O multiplayer de Hunter Online foi construído para potencializar a fantasia do 
 | **Arena Ranqueada na Torre Celestial**| `[IMPLEMENTED]` | Temporadas 28d, MMR/Elo K=32 cosmético, soft reset, títulos — **S2** |
 | **Leilão de Yorknew (escrow)** | `[IMPLEMENTED]` | Listagens com taxa Jenny, seeds NPC e payouts — **S1** |
 | **Duelo de Cartas (Greed Island)** | `[IMPLEMENTED]` | Catálogo 24 cartas + `CardDuelSystem` jogável — **S4** |
-| **Guildas + Nen Contracts** | `[IMPLEMENTED]` | Cap 20, banco Jenny, juramentos Nen (máx. 3) — **A6** |
+| **Caça Blacklist co-op (open hunt)** | `[IMPLEMENTED]` | Alvos S-rank rotativos, rumores/pistas, threat multi-party, loot por contribuição — **A7** |
+| **Guildas de Caçadores + Nen Contracts** | `[IMPLEMENTED]` | Cap 20, banco Jenny, juramentos Nen (máx. 3) — **A6** |
 
 > Pré-requisitos e backlog priorizado: [`docs/roadmap/MMO_FEATURES_BACKLOG.md`](../roadmap/MMO_FEATURES_BACKLOG.md) (PREREQ-1 sync binário · PREREQ-2 revive aliado). A8 Gourmet fica para depois.

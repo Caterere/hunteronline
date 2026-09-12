@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_b10_duty_finder_suite.gd" id="1"]
+
+[node name="TestB10DutyFinderSuite" type="Node"]
+script = ExtResource("1")

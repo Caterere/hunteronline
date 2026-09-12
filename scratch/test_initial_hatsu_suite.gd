@@ -67,6 +67,19 @@ func _ready() -> void:
 	# TESTE 5: DESBLOQUEAR HATSU POSTERIORMENTE FUNCIONA
 	# ------------------------------------------------------------
 	print("\n[TESTE 5/10] Testando aprendizado/desbloqueio progressivo de Hatsu...")
+	# Anti-bypass: forja exige Greed Island + Slot 1 (mesmo padrão das outras suítes).
+	if HatsuProgressionManager != null:
+		PlayerData.quest_states["arco5_concluido"] = true
+		PlayerData.arco_atual = maxi(PlayerData.arco_atual, 6)
+		PlayerData.max_arco_desbloqueado = maxi(PlayerData.max_arco_desbloqueado, 6)
+		if StoryManager != null:
+			StoryManager.set_story_flag("greed_island_completed", true)
+		if not HatsuProgressionManager.unlock_slot(1):
+			HatsuProgressionManager.unlocked_slots[1] = true
+		PlayerData.hatsu_desbloqueado = true
+		PlayerData.hatsu_creation_unlocked = true
+	if Economy != null and Economy.has_method("adicionar_gold"):
+		Economy.adicionar_gold(10000)
 	var jajanken = HatsuManager.obter_hatsu_canonico("gon_jajanken_pedra")
 	assert(jajanken != null, "Jajanken deve ser instanciável do catálogo")
 	var idx = PlayerData.adicionar_hatsu(jajanken)

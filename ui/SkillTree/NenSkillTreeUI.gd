@@ -61,6 +61,10 @@ var vbox_insp_main: VBoxContainer = null
 
 # Inspetor
 var lbl_insp_name: Label
+## Alias PT para suítes/legado (test_nen_ui_and_hud_redesign_suite).
+var lbl_insp_nome: Label:
+	get:
+		return lbl_insp_name
 var lbl_insp_type: Label
 var lbl_insp_rank: Label
 var lbl_insp_desc: Label
@@ -922,7 +926,7 @@ func _atualizar_inspector() -> void:
 	lbl_insp_tags.text = "Tags: %s" % ", ".join(node.tags)
 
 	if lbl_insp_condicao != null:
-		if node.tags.has("bloodied"):
+		if node.tags.has("bloodied") or node.tags.has("bloodlust"):
 			lbl_insp_condicao.text = "Condição: Vida abaixo de 40%"
 		elif node.tags.has("isolated_target"):
 			lbl_insp_condicao.text = "Condição: Alvo isolado"

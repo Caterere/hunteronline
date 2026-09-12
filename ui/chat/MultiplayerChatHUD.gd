@@ -94,6 +94,9 @@ func _ready() -> void:
 	line_input.custom_minimum_size = Vector2(120, 16)
 	line_input.max_length = MAX_CHAT_CHARS
 	line_input.add_theme_font_size_override("font_size", 5)
+	# Fechado por padrão: não rouba WASD/números do player (bug clássico de MMO HUD).
+	line_input.focus_mode = Control.FOCUS_NONE
+	line_input.editable = false
 	line_input.text_submitted.connect(_on_mensagem_enviada)
 	line_input.text_changed.connect(_on_texto_alterado)
 	line_input.focus_entered.connect(_on_chat_focus_entered)
@@ -139,11 +142,26 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.keycode == KEY_ESCAPE and _chat_open:
 		_fechar_chat()
 		get_viewport().set_input_as_handled()
+	elif _chat_open and _eh_tecla_movimento(event.keycode):
+		# Movimento fecha o chat vazio (padrão MMO) e devolve o input ao player.
+		if line_input != null and line_input.text.strip_edges().is_empty():
+			_fechar_chat()
+			# Não marca handled → o mesmo keyframe ainda move o personagem.
+
+
+func _eh_tecla_movimento(keycode: int) -> bool:
+	return keycode in [
+		KEY_W, KEY_A, KEY_S, KEY_D,
+		KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT,
+	]
 
 
 func _abrir_chat() -> void:
-	if line_input != null:
-		line_input.grab_focus()
+	if line_input == null:
+		return
+	line_input.focus_mode = Control.FOCUS_ALL
+	line_input.editable = true
+	line_input.grab_focus()
 
 
 func _fechar_chat() -> void:
@@ -151,6 +169,10 @@ func _fechar_chat() -> void:
 		return
 	line_input.release_focus()
 	line_input.clear()
+	line_input.editable = false
+	line_input.focus_mode = Control.FOCUS_NONE
+	_chat_open = false
+	_fechar_contexto_chat()
 	_atualizar_contador()
 
 
@@ -164,6 +186,9 @@ func _on_chat_focus_entered() -> void:
 
 func _on_chat_focus_exited() -> void:
 	_chat_open = false
+	if line_input != null:
+		line_input.editable = false
+		line_input.focus_mode = Control.FOCUS_NONE
 	_fechar_contexto_chat()
 
 
@@ -198,9 +223,8 @@ func _atualizar_contador() -> void:
 
 func _on_mensagem_enviada(texto: String) -> void:
 	var limpo: String = sanitizar_mensagem(texto)
-	line_input.clear()
-	_atualizar_contador()
-	line_input.release_focus()
+	# Sempre fecha o campo após Enter (evita WASD/números vazarem no LineEdit).
+	_fechar_chat()
 	if limpo.is_empty():
 		return
 

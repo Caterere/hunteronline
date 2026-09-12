@@ -29,6 +29,8 @@ var _oponente_async_ativo: bool = false
 const InteractionComponent = preload("res://entities/components/InteractionComponent.gd")
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ARENA)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.ARENA)
 	if AudioManager != null:
 		AudioManager.tocar_musica("legend_of_the_martial_artist")
 

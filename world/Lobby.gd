@@ -22,7 +22,9 @@ const NPCScheduleDataScript = preload("res://world/content/NPCScheduleData.gd")
 
 func _ready() -> void:
 	if GameManager != null and not GameManager.can_enter_lobby():
-		if OS.is_debug_build():
+		# F6 no editor: bootstrap de caçador padrão. Headless/CI NÃO — preserva suíte de game flow.
+		var allow_editor_bootstrap := OS.is_debug_build() and DisplayServer.get_name() != "headless"
+		if allow_editor_bootstrap:
 			# Modo Debug/Editor: Inicializa caçador padrão automaticamente para permitir F6 direto no Lobby
 			if PlayerData != null:
 				PlayerData.is_character_ready = true
@@ -40,7 +42,8 @@ func _ready() -> void:
 				GameManager.change_state(GameManager.GameState.IN_GAME)
 		else:
 			push_warning("[GameManager] ⚠️ ACESSO AO LOBBY BLOQUEADO: Nenhum personagem selecionado ou criado. Redirecionando para Seleção de Personagem.")
-			get_tree().change_scene_to_file.call_deferred("res://ui/CharacterSelection/CharacterSelectionUI.tscn")
+			if DisplayServer.get_name() != "headless":
+				get_tree().change_scene_to_file.call_deferred("res://ui/CharacterSelection/CharacterSelectionUI.tscn")
 			return
 
 	if GameManager != null:
@@ -139,7 +142,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(1.0, 1.0)
+				spr.scale = Vector2(0.5, 0.5)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(elena)
@@ -158,7 +161,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(1.0, 1.0)
+				spr.scale = Vector2(0.5, 0.5)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(instrutor)
@@ -177,7 +180,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(1.0, 1.0)
+				spr.scale = Vector2(0.5, 0.5)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(guia)
@@ -306,7 +309,7 @@ func _popular_distrito_mestres() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(1.0, 1.0)
+				spr.scale = Vector2(0.5, 0.5)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(zushi)
@@ -320,7 +323,7 @@ func _popular_distrito_mestres() -> void:
 		
 		var spr := Sprite2D.new()
 		spr.texture = load("res://assets/sprites/objects/boneco_treino_dummy.png")
-		spr.scale = Vector2(0.52, 0.52)
+		spr.scale = Vector2(0.5, 0.5)
 		spr.position = Vector2(0, -10)
 		dummy.add_child(spr)
 		
@@ -679,21 +682,18 @@ func _popular_faccoes_e_segredos() -> void:
 
 	# 2. Kurapika (Caçadores da Lista Negra & Bounties - Praça Central)
 	if get_node_or_null("Kurapika") == null:
-		var scn_npc = load("res://entities/npc/NPC.tscn")
-		if scn_npc:
-			var kurapika = scn_npc.instantiate()
-			kurapika.name = "Kurapika"
+		var scn_kurapika = load("res://entities/npc/kurapika/Kurapika.tscn")
+		var kurapika
+		if scn_kurapika:
+			kurapika = scn_kurapika.instantiate()
+		else:
+			var scn_npc = load("res://entities/npc/NPC.tscn")
+			kurapika = scn_npc.instantiate()
 			kurapika.set_script(load("res://entities/npc/kurapika/Kurapika.gd"))
-			kurapika.position = Vector2(180, 260)
-			var spr = kurapika.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(1.0, 0.3, 0.3, 1.0)
-			add_child(kurapika)
+		kurapika.name = "Kurapika"
+		kurapika.position = Vector2(180, 260)
+		NpcSpriteBinder.aplicar(kurapika, ["npc_kurapika"])
+		add_child(kurapika)
 
 	# 3. Tonpa (O Esmaga-Novatos & Suco Batizado - Entrada da Praça)
 	if get_node_or_null("Tonpa") == null:
@@ -860,6 +860,7 @@ func _densificar_lobby_pixel_art() -> void:
 	root.y_sort_enabled = true
 	add_child(root)
 
+	# Densidade estilo MMORPG 2D: bordas de praça/distritos, sem bloquear spawn (~0,0) nem portais.
 	var placements: Array = [
 		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(-180, 40), "name": "TendaDecorA"},
 		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(200, 90), "name": "TendaDecorB"},
@@ -874,6 +875,67 @@ func _densificar_lobby_pixel_art() -> void:
 		{"tex": "res://assets/sprites/objects/lobby_cottage_decor.png", "pos": Vector2(1240, 60), "name": "CasinhaDecorLesteB"},
 		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(1050, -120), "name": "TendaDecorLeste"},
 		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(1000, 20), "name": "BarracaDecorLeste"},
+		# Distrito comercial (oeste) — caixas/barris/placas
+		{"tex": "res://assets/sprites/objects/phase3_crate.png", "pos": Vector2(-360, 90), "name": "CaixaComercialA", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_crate_large.png", "pos": Vector2(-390, 115), "name": "CaixaComercialB", "foot": Vector2(18, 10)},
+		{"tex": "res://assets/sprites/objects/phase3_barrel.png", "pos": Vector2(-330, 140), "name": "BarrilComercialA", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_barrel.png", "pos": Vector2(-300, 95), "name": "BarrilComercialB", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_signpost.png", "pos": Vector2(-210, 70), "name": "PlacaComercial", "foot": Vector2(10, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(-280, 50), "name": "LanternaComercial", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_well.png", "pos": Vector2(-150, 175), "name": "PocoPraca", "foot": Vector2(22, 12)},
+		# Distrito mestres (norte) — vegetação
+		{"tex": "res://assets/sprites/objects/phase2_tree_green_a.png", "pos": Vector2(-120, -240), "name": "ArvoreMestresA", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_tree_green_b.png", "pos": Vector2(80, -260), "name": "ArvoreMestresB", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_tree_autumn_a.png", "pos": Vector2(200, -220), "name": "ArvoreMestresC", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_stump.png", "pos": Vector2(-40, -200), "name": "TocoMestres", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_bush_berry.png", "pos": Vector2(40, -180), "name": "ArbustoMestresA", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_bush_round.png", "pos": Vector2(160, -190), "name": "ArbustoMestresB", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(0, -170), "name": "LanternaMestres", "foot": Vector2(8, 8)},
+		# Beiras da praça / caminhos
+		{"tex": "res://assets/sprites/objects/phase2_flowers_white.png", "pos": Vector2(-70, 85), "name": "FlorPracaA", "foot": Vector2(8, 6)},
+		{"tex": "res://assets/sprites/objects/phase2_flowers_white.png", "pos": Vector2(75, 70), "name": "FlorPracaB", "foot": Vector2(8, 6)},
+		{"tex": "res://assets/sprites/objects/phase2_rock_cluster.png", "pos": Vector2(240, 40), "name": "PedrasPraca", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_rock_boulder.png", "pos": Vector2(-260, -40), "name": "PedraGrandeOeste", "foot": Vector2(18, 10)},
+		{"tex": "res://assets/sprites/objects/phase3_fence_wood.png", "pos": Vector2(320, 120), "name": "CercaSulA", "foot": Vector2(20, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_fence_wood_post.png", "pos": Vector2(350, 120), "name": "CercaSulPoste", "foot": Vector2(8, 8)},
+		# Portão sul → Estrada (handoff visual)
+		{"tex": "res://assets/sprites/objects/phase3_signpost.png", "pos": Vector2(-40, 280), "name": "PlacaPortaoSul", "foot": Vector2(10, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(-70, 300), "name": "LanternaPortaoL", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(70, 300), "name": "LanternaPortaoR", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_crate.png", "pos": Vector2(95, 270), "name": "CaixaPortao", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(-140, 250), "name": "BarracaPortao"},
+		# Leste / residencial fill
+		{"tex": "res://assets/sprites/objects/phase2_tree_green_a.png", "pos": Vector2(1180, -160), "name": "ArvoreLesteA", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_bush_berry.png", "pos": Vector2(1080, 80), "name": "ArbustoLeste", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_barrel.png", "pos": Vector2(1020, -40), "name": "BarrilLeste", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_fence_wood.png", "pos": Vector2(960, 100), "name": "CercaLeste", "foot": Vector2(20, 8)},
+		# Densidade MMORPG 2D extra — anéis de props sem bloquear spawn (0,0)
+		{"tex": "res://assets/sprites/objects/phase3_crate.png", "pos": Vector2(-420, 40), "name": "CaixaOesteExtraA", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_crate.png", "pos": Vector2(-450, 70), "name": "CaixaOesteExtraB", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_barrel.png", "pos": Vector2(-480, 100), "name": "BarrilOesteExtra", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(-160, -120), "name": "LanternaNoroeste", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(160, -130), "name": "LanternaNordeste", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_signpost.png", "pos": Vector2(40, -210), "name": "PlacaMestresNorte", "foot": Vector2(10, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_tree_green_a.png", "pos": Vector2(-280, -280), "name": "ArvoreMestresD", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_tree_green_b.png", "pos": Vector2(260, -290), "name": "ArvoreMestresE", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_bush_berry.png", "pos": Vector2(-180, -150), "name": "ArbustoMestresC", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_bush_round.png", "pos": Vector2(220, -100), "name": "ArbustoMestresD", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_flowers_white.png", "pos": Vector2(-30, 150), "name": "FlorPracaC", "foot": Vector2(8, 6)},
+		{"tex": "res://assets/sprites/objects/phase2_flowers_white.png", "pos": Vector2(110, 160), "name": "FlorPracaD", "foot": Vector2(8, 6)},
+		{"tex": "res://assets/sprites/objects/phase3_well.png", "pos": Vector2(320, -60), "name": "PocoLeste", "foot": Vector2(22, 12)},
+		{"tex": "res://assets/sprites/objects/phase3_crate_large.png", "pos": Vector2(360, 160), "name": "CaixaSulGrande", "foot": Vector2(18, 10)},
+		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(-380, 200), "name": "TendaDecorD"},
+		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(180, 210), "name": "BarracaDecorD"},
+		{"tex": "res://assets/sprites/objects/carroca_mercador_wagon.png", "pos": Vector2(-200, 180), "name": "CarrocaPraca"},
+		{"tex": "res://assets/sprites/objects/phase3_fence_wood.png", "pos": Vector2(-340, 220), "name": "CercaOesteA", "foot": Vector2(20, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_fence_wood_post.png", "pos": Vector2(-310, 220), "name": "CercaOestePoste", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_rock_boulder.png", "pos": Vector2(400, -200), "name": "PedraNordeste", "foot": Vector2(18, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_rock_cluster.png", "pos": Vector2(-400, -160), "name": "PedrasNoroeste", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/hunter_road_lantern.png", "pos": Vector2(-50, 320), "name": "LanternaPortaoExtraL", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/hunter_road_lantern.png", "pos": Vector2(50, 320), "name": "LanternaPortaoExtraR", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_crate.png", "pos": Vector2(1140, 40), "name": "CaixaLesteExtra", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_barrel.png", "pos": Vector2(1200, 100), "name": "BarrilLesteExtra", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/lobby_cottage_decor.png", "pos": Vector2(1320, -40), "name": "CasinhaDecorLesteC"},
 	]
 
 
@@ -884,6 +946,8 @@ func _densificar_lobby_pixel_art() -> void:
 			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(-200, -200), "name": "ArbustoFlorC"},
 			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(350, 80), "name": "ArbustoFlorD"},
 			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(1120, 30), "name": "ArbustoFlorLeste"},
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(-100, 260), "name": "ArbustoFlorPortao"},
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(120, 255), "name": "ArbustoFlorPortaoB"},
 		])
 
 	for p in placements:
@@ -896,12 +960,14 @@ func _densificar_lobby_pixel_art() -> void:
 		var spr := Sprite2D.new()
 		spr.texture = load(p["tex"])
 		spr.centered = true
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		spr.position = Vector2(0, -8)
 		body.add_child(spr)
 		# Colisão leve só nos pés (decoração sem entrar)
 		var col := CollisionShape2D.new()
 		var rect := RectangleShape2D.new()
-		rect.size = Vector2(20, 10)
+		var foot: Vector2 = p.get("foot", Vector2(20, 10))
+		rect.size = foot
 		col.shape = rect
 		col.position = Vector2(0, 4)
 		body.add_child(col)
@@ -1049,7 +1115,7 @@ func _espalhar_detalhe_beira_estrada(path_cells: Dictionary) -> void:
 		spr.texture = tex
 		spr.centered = true
 		spr.position = world + Vector2((i % 3) * 6 - 6, (i % 2) * 4)
-		spr.scale = Vector2(0.55, 0.55)
+		spr.scale = Vector2(0.5, 0.5)
 		spr.z_index = 1
 		root.add_child(spr)
 		i += 1

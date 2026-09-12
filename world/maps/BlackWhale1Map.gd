@@ -22,6 +22,8 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.DUNGEON)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.DUNGEON)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco9()
 	_configurar_inimigos()
@@ -101,6 +103,7 @@ func _popular_npcs_arco9() -> void:
 		kurapika.position = Vector2(150, -60)
 		kurapika.npc_name = "Kurapika"
 		kurapika.fala_padrao = "Meu Emperor Time está ativo. Protegerei o bebê Woble a qualquer custo enquanto monitoro os príncipes com o Stealth Dolphin."
+		NpcSpriteBinder.aplicar(kurapika, ["npc_kurapika"])
 		add_child(kurapika)
 
 	# 2. Rainha Oito & Príncipe Woble

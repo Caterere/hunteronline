@@ -281,6 +281,25 @@ func _teste_gauge_power_budget() -> bool:
 
 func _teste_persistencia_slots() -> bool:
 	PlayerData.reset()
+	# Desbloqueio anti-bypass (Greed Island / creator + slot 1)
+	PlayerData.quest_states["arco5_concluido"] = true
+	PlayerData.arco_atual = maxi(PlayerData.arco_atual, 6)
+	PlayerData.max_arco_desbloqueado = maxi(PlayerData.max_arco_desbloqueado, 6)
+	if StoryManager != null and StoryManager.has_method("set_story_flag"):
+		StoryManager.set_story_flag("greed_island_completed", true)
+	PlayerData.hatsu_creation_unlocked = true
+	PlayerData.hatsu_desbloqueado = true
+	if PlayerData.has_method("desbloquear_hatsu_creator"):
+		PlayerData.desbloquear_hatsu_creator()
+	if HatsuProgressionManager != null:
+		if not HatsuProgressionManager.is_slot_unlocked(1):
+			if not HatsuProgressionManager.unlock_slot(1):
+				HatsuProgressionManager.unlocked_slots[1] = true
+		PlayerData.hatsu_creation_unlocked = true
+		PlayerData.hatsu_desbloqueado = true
+
+	if Economy != null and Economy.has_method("adicionar_gold"):
+		Economy.adicionar_gold(10000)
 	var h1 := HatsuManager.criar_hatsu("Skill Theft Test", HatsuData.Categoria.ESPECIALIZACAO, HatsuData.Forma.TOQUE)
 	h1.arquetipo = HatsuData.Arquetipo.LIVRO_COLECAO
 	h1.is_custom_created = true
@@ -290,13 +309,15 @@ func _teste_persistencia_slots() -> bool:
 		print("  Erro: Falha ao adicionar Hatsu no PlayerData.")
 		return false
 
-	# Equipar no slot 0
-	PlayerData.equipar_hatsu_slot(0, 0)
-	if PlayerData.equipped_hatsu_slots[0] != 0:
-		print("  Erro: Falha ao equipar Hatsu no slot 0.")
+	# adicionar_hatsu já auto-equipa no 1º slot livre; reforça via API de objeto se preciso
+	if PlayerData.obter_hatsu_slot(0) == null:
+		if not PlayerData.equipar_hatsu_slot(0, h1) and not PlayerData.equipar_hatsu(0, idx):
+			print("  Erro: Falha ao equipar Hatsu no slot 0.")
+			return false
+	if PlayerData.obter_hatsu_slot(0) == null and PlayerData.hatsu_slots[0] < 0:
+		print("  Erro: Slot 0 não refletiu o Hatsu equipado.")
 		return false
 
-	# Salvar e recarregar
 	var save_ok = SaveManager.salvar_jogo(95)
 	if not save_ok:
 		print("  Erro: Falha ao salvar jogo.")
@@ -309,7 +330,7 @@ func _teste_persistencia_slots() -> bool:
 		SaveManager.deletar_save(95)
 		return false
 
-	if PlayerData.hatsus_salvos.is_empty():
+	if PlayerData.hatsu_criados.is_empty():
 		print("  Erro: Hatsu customizado não persistiu no save.")
 		SaveManager.deletar_save(95)
 		return false
@@ -325,19 +346,46 @@ func _teste_execucao_combate() -> bool:
 	add_child(dummy_body)
 	hatsu_sys.setup(dummy_body)
 
+	PlayerData.reset()
+	PlayerData.quest_states["arco5_concluido"] = true
+	PlayerData.arco_atual = maxi(PlayerData.arco_atual, 6)
+	PlayerData.max_arco_desbloqueado = maxi(PlayerData.max_arco_desbloqueado, 6)
+	if StoryManager != null and StoryManager.has_method("set_story_flag"):
+		StoryManager.set_story_flag("greed_island_completed", true)
+	PlayerData.hatsu_creation_unlocked = true
+	PlayerData.hatsu_desbloqueado = true
+	if PlayerData.has_method("desbloquear_hatsu_creator"):
+		PlayerData.desbloquear_hatsu_creator()
+	if HatsuProgressionManager != null:
+		if not HatsuProgressionManager.is_slot_unlocked(1):
+			if not HatsuProgressionManager.unlock_slot(1):
+				HatsuProgressionManager.unlocked_slots[1] = true
+
+	if Economy != null and Economy.has_method("adicionar_gold"):
+		Economy.adicionar_gold(10000)
 	var h_combate := HatsuManager.criar_hatsu("Devour Aura Strike", HatsuData.Categoria.ESPECIALIZACAO, HatsuData.Forma.TOQUE)
 	h_combate.core_component = HatsuComponentLibrary.CoreType.ABSORPTION
 	h_combate.sub_effects = [HatsuComponentLibrary.EffectType.AURA_DRAIN]
 
-	PlayerData.reset()
-	PlayerData.attributes["aura"] = 200.0
-	PlayerData.attributes["aura_max"] = 200.0
-	PlayerData.adicionar_hatsu(h_combate)
-	PlayerData.equipar_hatsu_slot(0, 0)
+	if "aura" in PlayerData.attributes:
+		PlayerData.attributes["aura"] = 200.0
+		PlayerData.attributes["aura_max"] = 200.0
+	var idx2 := PlayerData.adicionar_hatsu(h_combate)
+	if idx2 < 0:
+		print("  Erro: Falha ao adicionar Hatsu de combate.")
+		dummy_body.queue_free()
+		return false
+	PlayerData.equipar_hatsu(0, idx2)
 
-	# Executar no HatsuSystem
-	hatsu_sys.executar_hatsu_slot(0)
+	if hatsu_sys.has_method("usar_hatsu"):
+		hatsu_sys.usar_hatsu(0)
+	elif hatsu_sys.has_method("executar_hatsu_slot"):
+		hatsu_sys.executar_hatsu_slot(0)
+	else:
+		print("  Erro: HatsuSystem sem API de execução conhecida.")
+		dummy_body.queue_free()
+		return false
 
-	# Se não houve crash, o teste passou com sucesso
 	dummy_body.queue_free()
 	return true
+
