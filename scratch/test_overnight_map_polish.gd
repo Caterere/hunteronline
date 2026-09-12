@@ -15,6 +15,7 @@ func _run() -> void:
 	failed += await _check_kit(WorldPropsKit.KitKind.YORKNEW, 40, "YORKNEW")
 	failed += await _check_kit(WorldPropsKit.KitKind.ARENA, 25, "ARENA")
 	failed += await _check_kit(WorldPropsKit.KitKind.DUNGEON, 30, "DUNGEON")
+	failed += await _check_kit(WorldPropsKit.KitKind.CASA, 12, "CASA")
 
 	var player_tex: Texture2D = load("res://assets/sprites/characters/player.png")
 	var gon_tex: Texture2D = load("res://assets/sprites/characters/npc_gon_8dir.png")

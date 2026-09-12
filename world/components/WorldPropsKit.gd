@@ -4,7 +4,7 @@ extends Node2D
 ## Hunter Online — Phase 3 props (Prompt Library §30–36 / ART_PIPELINE_CANON).
 ## Fences, signs, crates, barrel, well, lantern along Estrada / Floresta / Yorknew / Arena.
 
-enum KitKind { ESTRADA, FLORESTA, YORKNEW, ARENA, DUNGEON }
+enum KitKind { ESTRADA, FLORESTA, YORKNEW, ARENA, DUNGEON, CASA }
 
 const FENCE := "res://assets/sprites/objects/phase3_fence_wood.png"
 const FENCE_POST := "res://assets/sprites/objects/phase3_fence_wood_post.png"
@@ -62,6 +62,8 @@ func _espalhar_props() -> void:
 			_layout_arena(root)
 		KitKind.DUNGEON:
 			_layout_dungeon(root)
+		KitKind.CASA:
+			_layout_casa(root)
 
 
 func _layout_estrada(root: Node2D) -> void:
@@ -177,6 +179,25 @@ func _layout_dungeon(root: Node2D) -> void:
 			_add_prop(root, "DgChest_%d" % i, Vector2(x + 20.0, -55), CHEST, Vector2(0, -8), true)
 	_add_prop(root, "DgMonolith_Boss", Vector2(960, -40), MONOLITH, Vector2(0, -18), true)
 	_add_prop(root, "DgSign_Warn", Vector2(280, -110), SIGN, Vector2(0, -18), true)
+
+
+func _layout_casa(root: Node2D) -> void:
+	# Interior de base de caçador (MMORPG 2D): cantos ocupados, centro livre p/ circulação.
+	_add_prop(root, "CasaLantern_NW", Vector2(48, 36), LANTERN, Vector2(0, -14), false)
+	_add_prop(root, "CasaLantern_NE", Vector2(312, 36), LANTERN, Vector2(0, -14), false)
+	_add_prop(root, "CasaLantern_SW", Vector2(48, 188), LANTERN, Vector2(0, -14), false)
+	_add_prop(root, "CasaLantern_SE", Vector2(312, 188), LANTERN, Vector2(0, -14), false)
+	_add_prop(root, "CasaCrate_A", Vector2(64, 96), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "CasaCrate_B", Vector2(86, 108), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "CasaCrateL", Vector2(290, 100), CRATE_L, Vector2(0, -6), true)
+	_add_prop(root, "CasaBarrel_A", Vector2(70, 160), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "CasaBarrel_B", Vector2(300, 160), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "CasaChest", Vector2(200, 52), CHEST, Vector2(0, -8), true)
+	_add_prop(root, "CasaDummy", Vector2(240, 150), DUMMY, Vector2(0, -10), true)
+	_add_prop(root, "CasaTrainPost", Vector2(160, 150), TRAIN_POST, Vector2(0, -16), true)
+	_add_prop(root, "CasaSign_Rules", Vector2(120, 44), SIGN, Vector2(0, -18), false)
+	_add_prop(root, "CasaCrate_C", Vector2(280, 56), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "CasaBarrel_C", Vector2(52, 56), BARREL, Vector2(0, -6), true)
 
 
 func _add_prop(parent: Node2D, nome: String, pos: Vector2, tex_path: String, spr_off: Vector2, collide: bool) -> void:
