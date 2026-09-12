@@ -180,6 +180,24 @@ func _ready() -> void:
 	# -------------------------------------------------------------
 	var hatsu_sys := HatsuSystem.new()
 	add_child(hatsu_sys)
+	# Slot UI 0 == progressão 1 (anti-bypass exige saga Greed Island + unlock_slot).
+	if HatsuProgressionManager != null and not HatsuProgressionManager.is_slot_unlocked(1):
+		PlayerData.quest_states["arco5_concluido"] = true
+		PlayerData.arco_atual = maxi(PlayerData.arco_atual, 6)
+		PlayerData.max_arco_desbloqueado = maxi(PlayerData.max_arco_desbloqueado, 6)
+		if StoryManager != null:
+			StoryManager.set_story_flag("greed_island_completed", true)
+		var unlocked := HatsuProgressionManager.unlock_slot(1)
+		if not unlocked:
+			# Fallback explícito para ambiente de teste se can_unlock ainda falhar.
+			HatsuProgressionManager.unlocked_slots[1] = true
+			PlayerData.hatsu_desbloqueado = true
+			PlayerData.hatsu_creation_unlocked = true
+	# Forjar/equipar Hatsu cobra Jenny — provisiona saldo de teste.
+	if Economy != null and Economy.has_method("adicionar_gold"):
+		Economy.adicionar_gold(10000)
+	elif "jenny" in PlayerData:
+		PlayerData.jenny = maxi(int(PlayerData.jenny), 10000)
 	PlayerData.equipar_hatsu_slot(0, h1)
 	var s0 = PlayerData.obter_hatsu_slot(0)
 	var sys_visual_ok = (s0 != null and s0.obter_visual_profile() != null)
