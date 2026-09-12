@@ -295,7 +295,8 @@ func criar_hatsu(
 	storage_duration_type: String = "PERMANENT",
 	storage_usage_rule: String = "OPEN_BOOK",
 	steal_conditions: Array = [],
-	steal_target_type: String = "ANY"
+	steal_target_type: String = "ANY",
+	custom_damage: float = 0.0
 ) -> HatsuData:
 
 	var hatsu := HatsuData.new()
@@ -361,6 +362,10 @@ func criar_hatsu(
 
 	hatsu.condicoes = typed_condicoes
 	_configurar_stats_base(hatsu)
+	# Força livre do criador (slider) — não trava teto por tipo; créditos/juramentos equilibram
+	if custom_damage > 0.0:
+		hatsu.custom_damage = custom_damage
+		hatsu.poder_base = maxf(hatsu.poder_base, custom_damage * 0.35)
 	_configurar_arquetipo_padrao(hatsu)
 
 	# Cores por Elemento ou Customizadas
@@ -1330,9 +1335,10 @@ func execute_absorption_devour(
 	var boss_mult: float = 2.5 if is_boss else 1.0
 	var rate: float = hatsu.absorption_rate if hatsu.absorption_rate > 0.0 else 0.05
 
-	# 3. Ganho base proporcional ao nível e tipo do alvo
+	# 3. Ganho base proporcional ao nível, tipo do alvo e afinidade Nen (HxH)
+	var nen_eff: float = clampf(float(_player_context.get("nen_efficiency", 1.0)), 0.4, 1.0)
 	var base_stat_pool: float = float(enemy_level * 10) if target_stat == "aura_max" else float(enemy_level * 2)
-	var stat_gain: int = max(1, int(round(base_stat_pool * rate * diminishing_mult * boss_mult)))
+	var stat_gain: int = max(1, int(round(base_stat_pool * rate * diminishing_mult * boss_mult * nen_eff)))
 
 	# 4. Registrar absorção permanente no PlayerData
 	registry[enemy_id] = times_absorbed + 1

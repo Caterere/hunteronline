@@ -8,16 +8,11 @@ extends CanvasLayer
 # Interface de criação de Hatsu com sistema modular de Vow & Limitation.
 # Ajustada estritamente para viewport 320x180 (Painel 304x168 centralizado).
 #
-# FLUXO EM 9 ETAPAS COM EQUILÍBRIO DE LIMITAÇÃO:
-# 1. Tipo de Nen (Reforço, Emissão, Transmutação, Conjuração, Manipulação, Especialização, Outro / Especial)
-# 2. Conceito / Preset (Biblioteca com 15 Conceitos Temáticos ou Criar do Zero)
-# 3. Nome & Identidade Visual
-# 4. Efeito Principal & Funcionamento (Parâmetros específicos do conceito)
-# 5. Efeitos Secundários & Modificadores
-# 6. Condições de Ativação & Cadeia de Preparação (Preparation Chain)
-# 7. Juramentos & Restrições (Vows & Limitations + IA de Nen)
-# 8. Custos, Alcance & Consumo
-# 9. Resumo, Auditoria de Créditos & Forjar Hatsu
+# FLUXO EM 3 ATOS (10 etapas sob o capô) — tema HunterUIStyle:
+# ATO I IDENTIDADE: 1 Tipo · 2 Conceito · 3 Nome
+# ATO II PODER: 4 Funcionamento · 5 Efeitos · 6 Força (+ eixos aura/CD/setup + preview)
+# ATO III PREÇO: 7 Condições · 8 Restrições/Juramentos · 9 Custos · 10 Resumo/Forja
+# Glossário HxH: Condição ≠ Restrição ≠ Juramento. Softcaps por modo. Morphs/gems/tags.
 #
 # ============================================================
 
@@ -25,15 +20,16 @@ signal hatsu_criado(hatsu: HatsuData)
 signal menu_fechado
 
 enum Etapa {
-	TIPO_NEN,            # 1/9
-	CONCEITO,            # 2/9
-	NOME,                # 3/9
-	FUNCIONAMENTO,       # 4/9
-	EFEITOS_SECUNDARIOS, # 5/9
-	CONDICOES,           # 6/9
-	RESTRICOES,          # 7/9
-	CUSTOS,              # 8/9
-	RESUMO               # 9/9
+	TIPO_NEN,            # 1/10
+	CONCEITO,            # 2/10
+	NOME,                # 3/10
+	FUNCIONAMENTO,       # 4/10
+	EFEITOS_SECUNDARIOS, # 5/10
+	PODER,               # 6/10 — força livre ANTES de juramentos/condições
+	CONDICOES,           # 7/10
+	RESTRICOES,          # 8/10
+	CUSTOS,              # 9/10
+	RESUMO               # 10/10
 }
 
 var etapa_atual: Etapa = Etapa.TIPO_NEN
@@ -50,6 +46,7 @@ var sel_alvo: HatsuData.Alvo = HatsuData.Alvo.INIMIGO_UNICO
 var sel_alcance: HatsuData.AlcanceTipo = HatsuData.AlcanceTipo.MEDIO
 var sel_consumo: HatsuData.ConsumoDesejado = HatsuData.ConsumoDesejado.MEDIO
 var sel_efeitos_secundarios: Array = []
+var sel_efeitos_preset_travados: Array = []
 var sel_condicoes: Array = []
 var sel_restricoes: Array = []
 var sel_preparation_steps: Array = []
@@ -60,6 +57,16 @@ var sel_estilo_visual: HatsuData.EstiloVisual = HatsuData.EstiloVisual.PURO_PULS
 var custom_vow_input: String = ""
 var sel_opcoes_preset: Dictionary = {}
 var sel_opcoes_preset_escolhidas: Dictionary = {}
+var sel_custom_damage: float = 40.0 ## força escolhida no slider (antes dos votos)
+var sel_power_tier_label: String = "Médio"
+var sel_composition: Dictionary = {}
+var sel_support_modifiers: Array = []
+var sel_playstyle_tags: Array = []
+var sel_bilateral_rules: Array = []
+var sel_active_morph: int = -1
+var sel_game_mode: int = 0 ## HatsuModeRules.GameMode.OPEN_WORLD
+var lbl_ato: Label
+var lbl_glossario: Label
 
 # Parâmetros Especializados de Storage & Roubo de Hatsu
 var sel_is_storage_hatsu: bool = false
@@ -141,8 +148,15 @@ func abrir() -> void:
 	sel_alcance = HatsuData.AlcanceTipo.MEDIO
 	sel_consumo = HatsuData.ConsumoDesejado.MEDIO
 	sel_efeitos_secundarios.clear()
+	sel_efeitos_preset_travados.clear()
 	sel_condicoes.clear()
 	sel_restricoes.clear()
+	sel_composition = {}
+	sel_support_modifiers.clear()
+	sel_playstyle_tags.clear()
+	sel_bilateral_rules.clear()
+	sel_active_morph = -1
+	sel_game_mode = 0
 	sel_preparation_steps.clear()
 	sel_opcoes_preset.clear()
 	sel_opcoes_preset_escolhidas.clear()
@@ -160,10 +174,16 @@ func fechar() -> void:
 	menu_fechado.emit()
 
 
-func _ir_para_etapa(nova_etapa: Etapa) -> void:
-	if etapa_atual == Etapa.NOME and line_edit_nome != null and not line_edit_nome.text.is_empty():
-		sel_nome = line_edit_nome.text
-	etapa_atual = nova_etapa
+func _ir_para_etapa(alvo: Etapa) -> void:
+	# Persistir nome ao sair da etapa (tabs / Voltar / Avançar)
+	if etapa_atual == Etapa.NOME and line_edit_nome != null and is_instance_valid(line_edit_nome):
+		var txt := line_edit_nome.text.strip_edges()
+		if not txt.is_empty():
+			sel_nome = txt
+	# Livre para voltar; avançar só até a próxima (evita pular votos sem ver a força)
+	if int(alvo) > int(etapa_atual) + 1:
+		alvo = (int(etapa_atual) + 1) as Etapa
+	etapa_atual = alvo
 	_atualizar_etapa()
 
 
@@ -181,24 +201,15 @@ func _construir_ui() -> void:
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_child(bg)
 
+	var center := CenterContainer.new()
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(center)
+
 	panel_main = PanelContainer.new()
 	panel_main.custom_minimum_size = Vector2(304, 168)
 	panel_main.size = Vector2(304, 168)
-	panel_main.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.08, 0.12, 0.98)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.border_color = Color(0.3, 0.6, 0.9, 1.0)
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_right = 4
-	style.corner_radius_bottom_left = 4
-	panel_main.add_theme_stylebox_override("panel", style)
-	root.add_child(panel_main)
+	panel_main.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
+	center.add_child(panel_main)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 4)
@@ -223,15 +234,15 @@ func _construir_ui() -> void:
 	vbox_content.add_child(hbox_hdr)
 
 	lbl_titulo = Label.new()
-	lbl_titulo.add_theme_font_size_override("font_size", 4)
-	lbl_titulo.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	lbl_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl_titulo.text = "⚡ FORJADOR DE HATSU"
+	lbl_titulo.text = "📜 FORJA DE HATSU"
+	HunterUIStyle.aplicar_fonte_titulo(lbl_titulo, HunterUIStyle.FONT_SIZE_HEADING, HunterUIStyle.COLOR_TEXT_GOLD)
 	hbox_hdr.add_child(lbl_titulo)
 
 	btn_fechar = Button.new()
 	btn_fechar.text = "✖ Sair"
 	btn_fechar.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_fechar, HunterUIStyle.COLOR_BORDER_GOLD)
 	btn_fechar.pressed.connect(fechar)
 	hbox_hdr.add_child(btn_fechar)
 
@@ -271,18 +282,21 @@ func _construir_ui() -> void:
 	btn_salvar_rascunho = Button.new()
 	btn_salvar_rascunho.text = "💾 Rascunho"
 	btn_salvar_rascunho.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_salvar_rascunho, HunterUIStyle.COLOR_BORDER_GREEN)
 	btn_salvar_rascunho.pressed.connect(func(): _finalizar_criacao(true))
 	hbox_nav.add_child(btn_salvar_rascunho)
 
 	btn_anterior = Button.new()
 	btn_anterior.text = "< Voltar"
 	btn_anterior.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_anterior, HunterUIStyle.COLOR_BORDER_GREEN)
 	btn_anterior.pressed.connect(_on_voltar_pressed)
 	hbox_nav.add_child(btn_anterior)
 
 	btn_proximo = Button.new()
 	btn_proximo.text = "Avançar >"
 	btn_proximo.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_proximo, HunterUIStyle.COLOR_BORDER_GOLD)
 	btn_proximo.pressed.connect(_on_avancar_pressed)
 	hbox_nav.add_child(btn_proximo)
 
@@ -295,7 +309,7 @@ func _construir_barra_abas() -> void:
 	hbox_tabs.add_theme_constant_override("separation", 1)
 	vbox_content.add_child(hbox_tabs)
 
-	var nomes_abas = ["1.Tipo", "2.Conceito", "3.Nome", "4.Função", "5.Efeitos", "6.Cond.", "7.Votos", "8.Custos", "9.Resumo"]
+	var nomes_abas = ["1.Tipo", "2.Conceito", "3.Nome", "4.Função", "5.Efeitos", "6.Força", "7.Cond.", "8.Votos", "9.Custos", "10.Resumo"]
 	tab_buttons.clear()
 
 	for i in range(nomes_abas.size()):
@@ -303,27 +317,29 @@ func _construir_barra_abas() -> void:
 		btn_tab.text = nomes_abas[i]
 		btn_tab.add_theme_font_size_override("font_size", 3)
 		btn_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		HunterUIStyle.aplicar_estilo_botao(btn_tab, HunterUIStyle.COLOR_BORDER_GREEN)
 		var etapa_alvo = i as Etapa
 		btn_tab.pressed.connect(func(): _ir_para_etapa(etapa_alvo))
 		hbox_tabs.add_child(btn_tab)
 		tab_buttons.append(btn_tab)
 
 
+	lbl_ato = Label.new()
+	lbl_ato.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_fonte_licenca(lbl_ato, 8, HunterUIStyle.COLOR_TEXT_GOLD)
+	vbox_content.add_child(lbl_ato)
+
+	lbl_glossario = Label.new()
+	lbl_glossario.add_theme_font_size_override("font_size", 3)
+	lbl_glossario.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	HunterUIStyle.aplicar_fonte_pixel(lbl_glossario, HunterUIStyle.FONT_SIZE_MICRO, HunterUIStyle.COLOR_TEXT_SECONDARY)
+	vbox_content.add_child(lbl_glossario)
+
+
 func _construir_gauge(parent: Control) -> void:
 	panel_gauge = PanelContainer.new()
 	panel_gauge.custom_minimum_size = Vector2(95, 162)
-	var st_g := StyleBoxFlat.new()
-	st_g.bg_color = Color(0.09, 0.11, 0.16, 0.95)
-	st_g.border_width_left = 1
-	st_g.border_width_top = 1
-	st_g.border_width_right = 1
-	st_g.border_width_bottom = 1
-	st_g.border_color = Color(0.4, 0.7, 0.4, 1.0)
-	st_g.corner_radius_top_left = 3
-	st_g.corner_radius_top_right = 3
-	st_g.corner_radius_bottom_right = 3
-	st_g.corner_radius_bottom_left = 3
-	panel_gauge.add_theme_stylebox_override("panel", st_g)
+	panel_gauge.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GREEN, 3))
 	parent.add_child(panel_gauge)
 
 	var m := MarginContainer.new()
@@ -384,6 +400,7 @@ func _atualizar_etapa() -> void:
 	btn_anterior.visible = (etapa_atual != Etapa.TIPO_NEN)
 	btn_proximo.text = "Avançar >"
 	btn_proximo.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	_atualizar_banner_ato()
 
 	# Atualizar estilo da barra de abas
 	for i in range(tab_buttons.size()):
@@ -397,47 +414,52 @@ func _atualizar_etapa() -> void:
 
 	match etapa_atual:
 		Etapa.TIPO_NEN:
-			lbl_titulo.text = "1/9: Tipo de Hatsu"
+			lbl_titulo.text = "1/10: Tipo de Hatsu"
 			lbl_desc.text = "Escolha sua afinidade de Nen ou acesse o catálogo especial:"
 			_montar_etapa_tipo_nen()
 
 		Etapa.CONCEITO:
-			lbl_titulo.text = "2/9: Conceito Principal / Preset"
+			lbl_titulo.text = "2/10: Conceito Principal / Preset"
 			lbl_desc.text = "Defina O QUE seu Hatsu fará logo no início da criação:"
 			_montar_etapa_conceito()
 
 		Etapa.NOME:
-			lbl_titulo.text = "3/9: Nome & Identidade Visual"
+			lbl_titulo.text = "3/10: Nome & Identidade Visual"
 			lbl_desc.text = "Como se chamará sua técnica especial de Hatsu?"
 			_montar_etapa_nome()
 
 		Etapa.FUNCIONAMENTO:
-			lbl_titulo.text = "4/9: Efeito Principal & Funcionamento"
+			lbl_titulo.text = "4/10: Efeito Principal & Funcionamento"
 			lbl_desc.text = "Configure objetivo, alvo, forma e parâmetros do conceito:"
 			_montar_etapa_funcionamento()
 
 		Etapa.EFEITOS_SECUNDARIOS:
-			lbl_titulo.text = "5/9: Efeitos Secundários & Modificadores"
+			lbl_titulo.text = "5/10: Efeitos Secundários & Modificadores"
 			lbl_desc.text = "Adicione propriedades táticas acopláveis ao Hatsu:"
 			_montar_etapa_efeitos_secundarios()
 
+		Etapa.PODER:
+			lbl_titulo.text = "6/10: Nível de Força (livre)"
+			lbl_desc.text = "Arraste a barra: poder alto é permitido — mas exige mais condições/juramentos depois."
+			_montar_etapa_poder()
+
 		Etapa.CONDICOES:
-			lbl_titulo.text = "6/9: Condições Táticas & Preparação"
-			lbl_desc.text = "Pague pelo poder com condições de ativação e passos prévios:"
+			lbl_titulo.text = "7/10: Condições Táticas & Preparação"
+			lbl_desc.text = "Pague a demanda de créditos com condições de ativação e passos prévios:"
 			_montar_etapa_condicoes()
 
 		Etapa.RESTRICOES:
-			lbl_titulo.text = "7/9: Juramentos & Restrições (Vows)"
-			lbl_desc.text = "Pactos rígidos, limitações de combate e avaliação de Nen:"
+			lbl_titulo.text = "8/10: Juramentos & Restrições (Vows)"
+			lbl_desc.text = "Pactos rígidos: quanto maior a força, mais pesado o preço."
 			_montar_etapa_restricoes()
 
 		Etapa.CUSTOS:
-			lbl_titulo.text = "8/9: Custos, Alcance & Consumo"
+			lbl_titulo.text = "9/10: Custos, Alcance & Consumo"
 			lbl_desc.text = "Calibre consumo de aura, alcance e ritmo do Hatsu:"
 			_montar_etapa_custos()
 
 		Etapa.RESUMO:
-			lbl_titulo.text = "9/9: Resumo & Auditoria de Créditos"
+			lbl_titulo.text = "10/10: Resumo & Auditoria de Créditos"
 			lbl_desc.text = "Confira o balanço entre poder funcional e limitações:"
 			btn_proximo.text = "⚡ FORJAR HATSU!"
 			_montar_etapa_resumo()
@@ -483,22 +505,42 @@ func _montar_etapa_tipo_nen() -> void:
 # ============================================================
 
 func _montar_etapa_conceito() -> void:
-	var presets: Array[Dictionary] = []
-	if sel_tipo_especial:
-		presets = HatsuPresetLibrary.obter_presets_especiais()
-		presets.append(HatsuPresetLibrary.obter_preset(HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO))
-	else:
-		presets = HatsuPresetLibrary.obter_presets_por_categoria(sel_categoria)
-		presets.append(HatsuPresetLibrary.obter_preset(HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO))
+	var aff_natal: int = int(PlayerData.afinidade_nen)
+	var lbl_intro := Label.new()
+	lbl_intro.add_theme_font_size_override("font_size", 4)
+	lbl_intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_intro.add_theme_color_override("font_color", Color(0.55, 0.9, 1.0, 1.0))
+	lbl_intro.text = "Conceitos filtrados pelo tipo Nen escolhido. A %s natal ainda só muda eficiência em combate — o filtro evita misturar efeitos de outras categorias." % NenAffinityData.obter_nome_afinidade(aff_natal)
+	container_opcoes.add_child(lbl_intro)
 
+	var recomendados: Array[Dictionary] = []
+	if sel_tipo_especial:
+		recomendados = HatsuPresetLibrary.obter_presets_especiais()
+	else:
+		recomendados = HatsuPresetLibrary.obter_presets_por_categoria(sel_categoria)
+
+	var lbl_rec := Label.new()
+	lbl_rec.add_theme_font_size_override("font_size", 4)
+	lbl_rec.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1.0))
+	lbl_rec.text = "★ Conceitos deste tipo (outras categorias ficam bloqueadas por enquanto):"
+	container_opcoes.add_child(lbl_rec)
+	_adicionar_botoes_preset(recomendados, aff_natal)
+
+	_adicionar_botoes_preset([HatsuPresetLibrary.obter_preset(HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO)], aff_natal)
+
+
+func _adicionar_botoes_preset(presets: Array, aff_natal: int) -> void:
 	for p in presets:
+		var cat: HatsuData.Categoria = p["categoria"] as HatsuData.Categoria
+		var ef: float = NenAffinityData.calcular_eficiencia_categoria(aff_natal as NenAffinityData.CategoriaAfinidade, cat)
 		var btn := Button.new()
-		btn.text = p["nome"] + "\n  " + p["desc"]
+		btn.text = "%s [%d%%]\n  %s" % [p["nome"], int(ef * 100.0), p["desc"]]
 		btn.add_theme_font_size_override("font_size", 4)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		if p["id"] == sel_preset_id:
 			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
-
+		elif ef < 0.7:
+			btn.modulate = Color(1.0, 0.85, 0.65, 1.0)
 		btn.pressed.connect(func():
 			_aplicar_preset(p)
 			_on_avancar_pressed()
@@ -513,6 +555,7 @@ func _aplicar_preset(preset: Dictionary) -> void:
 	if preset["id"] == HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO:
 		sel_nome = "Nova Técnica"
 		sel_efeitos_secundarios.clear()
+		sel_efeitos_preset_travados.clear()
 		sel_condicoes.clear()
 		sel_restricoes.clear()
 		sel_preparation_steps.clear()
@@ -522,7 +565,7 @@ func _aplicar_preset(preset: Dictionary) -> void:
 		custom_vow_input = ""
 		return
 
-	sel_nome = preset["nome"].replace("🗡️ ", "").replace("🩸 ", "").replace("📖 ", "").replace("🪞 ", "").replace("📦 ", "").replace("🌀 ", "").replace("⛓️ ", "").replace("🤝 ", "").replace("📉 ", "").replace("⚡ ", "").replace("📐 ", "").replace("🎲 ", "").replace("🧪 ", "").replace("🌱 ", "")
+	sel_nome = str(preset.get("titulo_conceito", preset["nome"]))
 	sel_categoria = preset["categoria"]
 	sel_arquetipo = preset["arquetipo"]
 	sel_objetivo = preset["objetivo"]
@@ -530,6 +573,7 @@ func _aplicar_preset(preset: Dictionary) -> void:
 	sel_elemento = preset["elemento"]
 	sel_alvo = preset["alvo"]
 	sel_efeitos_secundarios = preset["efeitos_secundarios"].duplicate()
+	sel_efeitos_preset_travados = sel_efeitos_secundarios.duplicate()
 	sel_condicoes = preset["condicoes"].duplicate()
 	sel_restricoes = preset["restricoes"].duplicate()
 	sel_preparation_steps = preset.get("preparation_steps", []).duplicate(true)
@@ -581,6 +625,8 @@ func _montar_etapa_nome() -> void:
 		{"id": HatsuData.EstiloVisual.NEVOA_SOMBRIAS, "nome": "7. Névoa e Miasma Espectral", "cor": Color(0.4, 0.1, 0.5, 1.0)},
 		{"id": HatsuData.EstiloVisual.DRAGAO_SERPENTE, "nome": "8. Dragão / Serpente de Nen", "cor": Color(1.0, 0.8, 0.2, 1.0)}
 	]
+	estilos = HatsuCreationPolish.filtrar_catalogo(estilos, HatsuCreationPolish.estilos_visuais_permitidos(int(sel_categoria)))
+	sel_estilo_visual = HatsuCreationPolish.garantir_selecao_permitida(int(sel_estilo_visual), HatsuCreationPolish.estilos_visuais_permitidos(int(sel_categoria)), int(sel_estilo_visual)) as HatsuData.EstiloVisual
 
 	for est in estilos:
 		var btn := Button.new()
@@ -686,42 +732,63 @@ func _montar_etapa_funcionamento() -> void:
 			container_opcoes.add_child(btn)
 		return
 
-	# 1. Objetivo Principal
-	var lbl_obj := Label.new()
-	lbl_obj.text = "🎯 OBJETIVO PRINCIPAL DO HATSU:"
-	lbl_obj.add_theme_font_size_override("font_size", 4)
-	lbl_obj.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
-	container_opcoes.add_child(lbl_obj)
+	# Identidade já vem do conceito: se preset, só mostra resumo + micro-ajustes.
+	var trava := HatsuCreationPolish.preset_trava_identidade(int(sel_preset_id))
+	sel_objetivo = HatsuCreationPolish.garantir_selecao_permitida(int(sel_objetivo), HatsuCreationPolish.objetivos_permitidos(int(sel_categoria)), int(sel_objetivo)) as HatsuData.ObjetivoPrincipal
+	sel_forma = HatsuCreationPolish.garantir_selecao_permitida(int(sel_forma), HatsuCreationPolish.formas_permitidas(int(sel_categoria)), int(sel_forma)) as HatsuData.Forma
+	sel_alvo = HatsuCreationPolish.garantir_selecao_permitida(int(sel_alvo), HatsuCreationPolish.alvos_permitidos(int(sel_categoria), int(sel_objetivo)), int(sel_alvo)) as HatsuData.Alvo
 
-	var objetivos = [
-		{"id": HatsuData.ObjetivoPrincipal.DANO, "nome": "💥 Dano / Impacto Destrutivo", "desc": "Foco ofensivo em eliminar oponentes."},
-		{"id": HatsuData.ObjetivoPrincipal.DEFESA, "nome": "🛡️ Defesa / Barreira de Aura", "desc": "Criação de escudos, cúpulas e armaduras de Nen."},
-		{"id": HatsuData.ObjetivoPrincipal.CURA, "nome": "💖 Cura / Regeneração Celular", "desc": "Restauração de vitalidade e estancamento celular."},
-		{"id": HatsuData.ObjetivoPrincipal.MOBILIDADE, "nome": "🏃 Mobilidade / Aceleração", "desc": "Passos rápidos, teletransporte e esquiva com I-frames."},
-		{"id": HatsuData.ObjetivoPrincipal.CONTROLE, "nome": "⛓️ Controle / Imobilização", "desc": "Paralisia, selamento de Hatsu, Zetsu e desaceleração."},
-		{"id": HatsuData.ObjetivoPrincipal.SUPORTE, "nome": "🤝 Suporte / Concessão de Nen", "desc": "Buffs de equipe, transferência e acumulação de aura."}
-	]
-	for obj in objetivos:
-		var btn := Button.new()
-		var ativo: bool = (obj["id"] == sel_objetivo)
-		btn.text = ("✅ " if ativo else "⬜ ") + obj["nome"] + "\n  " + obj["desc"]
-		btn.add_theme_font_size_override("font_size", 4)
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if ativo:
-			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
-		btn.pressed.connect(func():
-			sel_objetivo = obj["id"]
-			_atualizar_etapa()
-		)
-		container_opcoes.add_child(btn)
+	if trava:
+		var lbl_lock := Label.new()
+		lbl_lock.add_theme_font_size_override("font_size", 4)
+		lbl_lock.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lbl_lock.add_theme_color_override("font_color", Color(0.45, 1.0, 0.7, 1.0))
+		lbl_lock.text = "🔒 Identidade do conceito travada: %s · alvo %s · forma %s.
+Só ajuste fino abaixo (sem repetir o efeito principal)." % [
+			_nome_objetivo(sel_objetivo), _nome_alvo(sel_alvo), _nome_forma(sel_forma)
+		]
+		container_opcoes.add_child(lbl_lock)
+		var sep_lock := HSeparator.new()
+		container_opcoes.add_child(sep_lock)
+	else:
+		# 1. Objetivo Principal (filtrado por categoria)
+		var lbl_obj := Label.new()
+		lbl_obj.text = "🎯 OBJETIVO (filtrado pelo tipo Nen):"
+		lbl_obj.add_theme_font_size_override("font_size", 4)
+		lbl_obj.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+		container_opcoes.add_child(lbl_obj)
 
-	var sep0 := HSeparator.new()
-	container_opcoes.add_child(sep0)
+		var objetivos = [
+			{"id": HatsuData.ObjetivoPrincipal.DANO, "nome": "💥 Dano / Impacto Destrutivo", "desc": "Foco ofensivo em eliminar oponentes."},
+			{"id": HatsuData.ObjetivoPrincipal.DEFESA, "nome": "🛡️ Defesa / Barreira de Aura", "desc": "Criação de escudos, cúpulas e armaduras de Nen."},
+			{"id": HatsuData.ObjetivoPrincipal.CURA, "nome": "💖 Cura / Regeneração Celular", "desc": "Restauração de vitalidade e estancamento celular."},
+			{"id": HatsuData.ObjetivoPrincipal.MOBILIDADE, "nome": "🏃 Mobilidade / Aceleração", "desc": "Passos rápidos, teletransporte e esquiva com I-frames."},
+			{"id": HatsuData.ObjetivoPrincipal.CONTROLE, "nome": "⛓️ Controle / Imobilização", "desc": "Paralisia, selamento de Hatsu, Zetsu e desaceleração."},
+			{"id": HatsuData.ObjetivoPrincipal.SUPORTE, "nome": "🤝 Suporte / Concessão de Nen", "desc": "Buffs de equipe, transferência e acumulação de aura."}
+		]
+		objetivos = HatsuCreationPolish.filtrar_catalogo(objetivos, HatsuCreationPolish.objetivos_permitidos(int(sel_categoria)))
+		for obj in objetivos:
+			var btn := Button.new()
+			var ativo: bool = (obj["id"] == sel_objetivo)
+			btn.text = ("✅ " if ativo else "⬜ ") + obj["nome"] + "\n  " + obj["desc"]
+			btn.add_theme_font_size_override("font_size", 4)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			if ativo:
+				btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
+			btn.pressed.connect(func():
+				sel_objetivo = obj["id"]
+				sel_alvo = HatsuCreationPolish.garantir_selecao_permitida(int(sel_alvo), HatsuCreationPolish.alvos_permitidos(int(sel_categoria), int(sel_objetivo)), int(sel_alvo)) as HatsuData.Alvo
+				_atualizar_etapa()
+			)
+			container_opcoes.add_child(btn)
+
+		var sep0 := HSeparator.new()
+		container_opcoes.add_child(sep0)
 
 	# 2. Parâmetros Específicos do Conceito (Interativos)
 	if not sel_opcoes_preset.is_empty():
 		var lbl_opt_hdr := Label.new()
-		lbl_opt_hdr.text = "⚙️ PARÂMETROS ESPECÍFICOS DO CONCEITO:"
+		lbl_opt_hdr.text = "⚙️ AJUSTE FINO DO CONCEITO:"
 		lbl_opt_hdr.add_theme_font_size_override("font_size", 4)
 		lbl_opt_hdr.add_theme_color_override("font_color", Color(0.4, 0.9, 1.0, 1.0))
 		container_opcoes.add_child(lbl_opt_hdr)
@@ -753,59 +820,64 @@ func _montar_etapa_funcionamento() -> void:
 		var sep := HSeparator.new()
 		container_opcoes.add_child(sep)
 
-	# 3. Alvo do Hatsu
-	var lbl_alvo := Label.new()
-	lbl_alvo.text = "🎯 Alvo do Hatsu:"
-	lbl_alvo.add_theme_font_size_override("font_size", 4)
-	container_opcoes.add_child(lbl_alvo)
+	if not trava:
+		# 3. Alvo do Hatsu (filtrado)
+		var lbl_alvo := Label.new()
+		lbl_alvo.text = "🎯 Alvo (filtrado):"
+		lbl_alvo.add_theme_font_size_override("font_size", 4)
+		container_opcoes.add_child(lbl_alvo)
 
-	var alvos = [
-		{"id": HatsuData.Alvo.INIMIGO_UNICO, "nome": "1. Inimigo Único (Foco)"},
-		{"id": HatsuData.Alvo.AREA, "nome": "2. Área / Múltiplos Inimigos (+25 Demanda)"},
-		{"id": HatsuData.Alvo.PROPRIO_USUARIO, "nome": "3. Próprio Usuário (Auto-alvo)"},
-		{"id": HatsuData.Alvo.ALIADO, "nome": "4. Aliado (Suporte)"}
-	]
-	for a in alvos:
-		var btn := Button.new()
-		var ativo: bool = (a["id"] == sel_alvo)
-		btn.text = ("✅ " if ativo else "⬜ ") + a["nome"]
-		btn.add_theme_font_size_override("font_size", 4)
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if ativo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
-		btn.pressed.connect(func():
-			sel_alvo = a["id"]
-			_atualizar_etapa()
-		)
-		container_opcoes.add_child(btn)
+		var alvos = [
+			{"id": HatsuData.Alvo.INIMIGO_UNICO, "nome": "1. Inimigo Único (Foco)"},
+			{"id": HatsuData.Alvo.AREA, "nome": "2. Área / Múltiplos Inimigos (+25 Demanda)"},
+			{"id": HatsuData.Alvo.PROPRIO_USUARIO, "nome": "3. Próprio Usuário (Auto-alvo)"},
+			{"id": HatsuData.Alvo.ALIADO, "nome": "4. Aliado (Suporte)"}
+		]
+		alvos = HatsuCreationPolish.filtrar_catalogo(alvos, HatsuCreationPolish.alvos_permitidos(int(sel_categoria), int(sel_objetivo)))
+		for a in alvos:
+			var btn := Button.new()
+			var ativo: bool = (a["id"] == sel_alvo)
+			btn.text = ("✅ " if ativo else "⬜ ") + a["nome"]
+			btn.add_theme_font_size_override("font_size", 4)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			if ativo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+			btn.pressed.connect(func():
+				sel_alvo = a["id"]
+				_atualizar_etapa()
+			)
+			container_opcoes.add_child(btn)
 
-	var sep2 := HSeparator.new()
-	container_opcoes.add_child(sep2)
+		var sep2 := HSeparator.new()
+		container_opcoes.add_child(sep2)
 
-	# 4. Forma de Liberação
-	var lbl_forma := Label.new()
-	lbl_forma.text = "✨ Forma de Liberação:"
-	lbl_forma.add_theme_font_size_override("font_size", 4)
-	container_opcoes.add_child(lbl_forma)
+		# 4. Forma de Liberação (filtrada)
+		var lbl_forma := Label.new()
+		lbl_forma.text = "✨ Forma (filtrada pelo tipo Nen):"
+		lbl_forma.add_theme_font_size_override("font_size", 4)
+		container_opcoes.add_child(lbl_forma)
 
-	var formas = [
-		{"id": HatsuData.Forma.TOQUE, "nome": "1. Toque Físico / Curto Alcance (Ko)"},
-		{"id": HatsuData.Forma.PROJETIL, "nome": "2. Projétil / Disparo à Distância"},
-		{"id": HatsuData.Forma.AREA, "nome": "3. Explosão / Cúpula em Área 360° (+30 Demanda)"},
-		{"id": HatsuData.Forma.PESSOAL, "nome": "4. Revestimento Corporal Pessoal"},
-		{"id": HatsuData.Forma.ZONA, "nome": "5. Domínio Territorial / Zona de En (+30 Demanda)"}
-	]
-	for f in formas:
-		var btn := Button.new()
-		var ativo: bool = (f["id"] == sel_forma)
-		btn.text = ("✅ " if ativo else "⬜ ") + f["nome"]
-		btn.add_theme_font_size_override("font_size", 4)
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if ativo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
-		btn.pressed.connect(func():
-			sel_forma = f["id"]
-			_atualizar_etapa()
-		)
-		container_opcoes.add_child(btn)
+		var formas = [
+			{"id": HatsuData.Forma.TOQUE, "nome": "1. Toque Físico / Curto Alcance (Ko)"},
+			{"id": HatsuData.Forma.PROJETIL, "nome": "2. Projétil / Disparo à Distância"},
+			{"id": HatsuData.Forma.AREA, "nome": "3. Explosão / Cúpula em Área 360° (+30 Demanda)"},
+			{"id": HatsuData.Forma.PESSOAL, "nome": "4. Revestimento Corporal Pessoal"},
+			{"id": HatsuData.Forma.ZONA, "nome": "5. Domínio Territorial / Zona de En (+30 Demanda)"}
+		]
+		formas = HatsuCreationPolish.filtrar_catalogo(formas, HatsuCreationPolish.formas_permitidas(int(sel_categoria)))
+		for f in formas:
+			var btn := Button.new()
+			var ativo: bool = (f["id"] == sel_forma)
+			btn.text = ("✅ " if ativo else "⬜ ") + f["nome"]
+			btn.add_theme_font_size_override("font_size", 4)
+			btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			if ativo: btn.modulate = Color(0.4, 0.9, 1.0, 1.0)
+			btn.pressed.connect(func():
+				sel_forma = f["id"]
+				_atualizar_etapa()
+			)
+			container_opcoes.add_child(btn)
+
+	_montar_bloco_composicao()
 
 
 # ============================================================
@@ -853,6 +925,14 @@ func _montar_etapa_efeitos_secundarios() -> void:
 			container_opcoes.add_child(btn)
 		return
 
+	if HatsuCreationPolish.preset_trava_identidade(int(sel_preset_id)) and not sel_efeitos_secundarios.is_empty():
+		var lbl_base := Label.new()
+		lbl_base.add_theme_font_size_override("font_size", 4)
+		lbl_base.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lbl_base.add_theme_color_override("font_color", Color(0.55, 0.95, 0.75, 1.0))
+		lbl_base.text = "🔒 Efeitos do conceito já aplicados. Só pode somar modificadores compatíveis com o tipo Nen."
+		container_opcoes.add_child(lbl_base)
+
 	var efeitos = [
 		{"id": HatsuComponentLibrary.EffectType.STUN, "nome": "⚡ Paralisia / Stun (+20 Demanda)", "desc": "Interrompe e imobiliza temporariamente o alvo."},
 		{"id": HatsuComponentLibrary.EffectType.KNOCKBACK, "nome": "💨 Impacto / Repulsão (+15 Demanda)", "desc": "Empurra inimigos com força cinética."},
@@ -863,8 +943,11 @@ func _montar_etapa_efeitos_secundarios() -> void:
 		{"id": HatsuComponentLibrary.EffectType.AREA_BURST, "nome": "💥 Detonação em Área (+25 Demanda)", "desc": "Explosão secundária ao impactar."},
 		{"id": HatsuComponentLibrary.EffectType.STAT_MOD, "nome": "📊 Modificador de Status (+20 Demanda)", "desc": "Aplica buffs ou debuffs em atributos vitais."},
 		{"id": HatsuComponentLibrary.EffectType.MOVEMENT_DASH, "nome": "🏃 Avanço Rápido (Dash) (+20 Demanda)", "desc": "Concede impulsão veloz e esquiva com I-frames."},
-		{"id": HatsuComponentLibrary.EffectType.DEVOUR_STATS, "nome": "🌀 Devour / Extração Vital (+35 Demanda)", "desc": "Absorve frações de atributos de oponentes derrotados."}
+		{"id": HatsuComponentLibrary.EffectType.DEVOUR_STATS, "nome": "🌀 Devour / Extração Vital (+35 Demanda)", "desc": "Absorve frações de atributos de oponentes derrotados."},
+		{"id": HatsuComponentLibrary.EffectType.SHIELD, "nome": "🛡️ Escudo de Aura (+18 Demanda)", "desc": "Camada temporária de Ten reforçado."},
+		{"id": HatsuComponentLibrary.EffectType.SLOW, "nome": "🐌 Lentidão (+15 Demanda)", "desc": "Reduz deslocamento do alvo."}
 	]
+	efeitos = HatsuCreationPolish.filtrar_catalogo(efeitos, HatsuCreationPolish.efeitos_secundarios_permitidos(int(sel_categoria)))
 
 	for ef in efeitos:
 		var btn := Button.new()
@@ -876,9 +959,13 @@ func _montar_etapa_efeitos_secundarios() -> void:
 			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
 
 		btn.pressed.connect(func():
+			if ef["id"] in sel_efeitos_preset_travados:
+				return # efeito do conceito: não remove
 			if ef["id"] in sel_efeitos_secundarios:
 				sel_efeitos_secundarios.erase(ef["id"])
 			else:
+				if sel_efeitos_secundarios.size() >= sel_efeitos_preset_travados.size() + 2:
+					return # no máximo 2 extras além do conceito
 				sel_efeitos_secundarios.append(ef["id"])
 			_atualizar_etapa()
 		)
@@ -886,7 +973,88 @@ func _montar_etapa_efeitos_secundarios() -> void:
 
 
 # ============================================================
-# ETAPA 6: CONDIÇÕES DE ATIVAÇÃO & PREPARAÇÃO
+# ETAPA 7: CONDIÇÕES DE ATIVAÇÃO & PREPARAÇÃO
+
+# ============================================================
+# ETAPA 6: NÍVEL DE FORÇA (SLIDER LIVRE)
+# ============================================================
+
+func _montar_etapa_poder() -> void:
+	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
+	var lbl_aff := Label.new()
+	lbl_aff.add_theme_font_size_override("font_size", 4)
+	lbl_aff.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var aff_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+	lbl_aff.text = "Afinidade natal: %s → eficiência neste Hatsu: %d%%.\nFora do tipo natal o efeito real cai (guia HxH). A força pedida ainda exige créditos." % [aff_nome, int(ef * 100.0)]
+	lbl_aff.add_theme_color_override("font_color", Color(0.55, 0.9, 1.0, 1.0))
+	container_opcoes.add_child(lbl_aff)
+
+	var lbl_val := Label.new()
+	lbl_val.name = "LblPowerValue"
+	lbl_val.add_theme_font_size_override("font_size", 5)
+	lbl_val.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	container_opcoes.add_child(lbl_val)
+
+	var slider := HSlider.new()
+	slider.min_value = 15.0
+	slider.max_value = 250.0
+	slider.step = 1.0
+	slider.value = clampf(sel_custom_damage, 15.0, 250.0)
+	slider.custom_minimum_size = Vector2(200, 14)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	container_opcoes.add_child(slider)
+
+	var lbl_tiers := Label.new()
+	lbl_tiers.add_theme_font_size_override("font_size", 3)
+	lbl_tiers.text = "15 Fraco · 40 Médio · 80 Forte · 140 Absurdo · 200+ Lendário (pagável só com votos pesados)"
+	lbl_tiers.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_tiers.add_theme_color_override("font_color", Color(0.85, 0.8, 0.55, 1.0))
+	container_opcoes.add_child(lbl_tiers)
+
+	var lbl_hint := Label.new()
+	lbl_hint.add_theme_font_size_override("font_size", 4)
+	lbl_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_hint.add_theme_color_override("font_color", Color(1.0, 0.75, 0.4, 1.0))
+	container_opcoes.add_child(lbl_hint)
+
+	var atualizar := func(v: float) -> void:
+		sel_custom_damage = v
+		if v < 30.0:
+			sel_power_tier_label = "Fraco"
+		elif v < 60.0:
+			sel_power_tier_label = "Médio"
+		elif v < 110.0:
+			sel_power_tier_label = "Forte"
+		elif v < 170.0:
+			sel_power_tier_label = "Absurdo"
+		else:
+			sel_power_tier_label = "Lendário"
+		var efetivo := int(v * ef)
+		lbl_val.text = "Força desejada: %d  (%s)  |  Efetivo c/ afinidade: ~%d" % [int(v), sel_power_tier_label, efetivo]
+		lbl_hint.text = "Nada é trancado por tipo: você pode mirar o topo. Nas próximas etapas pague a Demanda com condições/juramentos. Use < Voltar para recalibrar."
+		_atualizar_gauge()
+
+	slider.value_changed.connect(atualizar)
+	atualizar.call(slider.value)
+
+	# Atalhos rápidos
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 2)
+	container_opcoes.add_child(hbox)
+	for preset in [{"n": "40", "v": 40.0}, {"n": "80", "v": 80.0}, {"n": "140", "v": 140.0}, {"n": "220", "v": 220.0}]:
+		var b := Button.new()
+		b.text = preset["n"]
+		b.add_theme_font_size_override("font_size", 4)
+		var pv: float = float(preset["v"])
+		b.pressed.connect(func():
+			slider.value = pv
+		)
+		hbox.add_child(b)
+
+	_montar_eixos_e_preview()
+
+
+
 # ============================================================
 
 func _montar_etapa_condicoes() -> void:
@@ -972,7 +1140,7 @@ func _montar_etapa_condicoes() -> void:
 
 
 # ============================================================
-# ETAPA 7: JURAMENTOS & RESTRIÇÕES (VOWS)
+# ETAPA 8: JURAMENTOS & RESTRIÇÕES (VOWS)
 # ============================================================
 
 func _montar_etapa_restricoes() -> void:
@@ -1066,7 +1234,7 @@ func _montar_etapa_restricoes() -> void:
 
 
 # ============================================================
-# ETAPA 8: CUSTOS & ALCANCE
+# ETAPA 9: CUSTOS & ALCANCE
 # ============================================================
 
 func _montar_etapa_custos() -> void:
@@ -1119,7 +1287,7 @@ func _montar_etapa_custos() -> void:
 
 
 # ============================================================
-# ETAPA 9: RESUMO, AUDITORIA DE CRÉDITOS & CRIAÇÃO
+# ETAPA 10: RESUMO, AUDITORIA DE CRÉDITOS & CRIAÇÃO
 # ============================================================
 
 func _montar_etapa_resumo() -> void:
@@ -1129,7 +1297,8 @@ func _montar_etapa_resumo() -> void:
 		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
 		sel_preparation_steps, sel_efeitos_secundarios,
 		sel_restricoes, sel_opcoes_preset_escolhidas,
-		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target,
+		sel_custom_damage
 	)
 	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
 	var f_power := h_temp.calcular_functional_power()
@@ -1191,6 +1360,8 @@ func _montar_etapa_resumo() -> void:
 		btn_proximo.modulate = Color(0.4, 1.0, 0.6, 1.0)
 		btn_proximo.text = "⚡ FORJAR HATSU!"
 
+	_montar_extras_preco()
+
 
 # ============================================================
 # ATUALIZAÇÃO DO GAUGE DE EQUILÍBRIO (v1.6)
@@ -1202,14 +1373,7 @@ func _atualizar_gauge() -> void:
 	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
 	var compat_pct: int = int(ef * 100)
 
-	var h_temp := HatsuManager.criar_hatsu(
-		sel_nome, sel_categoria, sel_forma, sel_condicoes,
-		sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
-		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
-		sel_preparation_steps, sel_efeitos_secundarios,
-		sel_restricoes, sel_opcoes_preset_escolhidas,
-		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
-	)
+	var h_temp := _criar_hatsu_temporario_para_gauge()
 
 	var f_power: int = int(h_temp.calcular_functional_power())
 	var l_credits: int = int(h_temp.calcular_limitation_credits())
@@ -1224,7 +1388,7 @@ func _atualizar_gauge() -> void:
 
 	if equilibrado:
 		lbl_dica_dinamica.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1.0))
-		lbl_dica_dinamica.text = "✅ TÉCNICA 100%% EQUILIBRADA\nNecessários: %d cr | Pagos: %d cr\nDéficit: 0 cr\nPronto para forjar!" % [f_power, l_credits]
+		lbl_dica_dinamica.text = "✅ TÉCNICA 100%% EQUILIBRADA\nNecessários: %d cr | Pagos: %d cr\nForça pedida: %d (efetivo ~%d c/ afinidade %d%%)\nPronto para forjar!" % [f_power, l_credits, int(sel_custom_damage), int(sel_custom_damage * ef), compat_pct]
 	else:
 		lbl_dica_dinamica.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
 		lbl_dica_dinamica.text = "⚠️ DÉFICIT DE %d CRÉDITOS:\nNecessários: %d cr | Pagos: %d cr\nAdicione condições, restrições ou passos de preparação!" % [deficit, f_power, l_credits]
@@ -1262,10 +1426,12 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
 		sel_preparation_steps, sel_efeitos_secundarios,
 		sel_restricoes, sel_opcoes_preset_escolhidas,
-		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target,
+		sel_custom_damage
 	)
 
 	novo_hatsu.is_custom_created = true
+	_aplicar_polish_em_hatsu(novo_hatsu)
 	novo_hatsu.is_draft = is_draft
 	novo_hatsu.hatsu_version = 2
 	novo_hatsu.creator_id = str(PlayerData.nome_personagem)
@@ -1343,3 +1509,306 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 		print("[HatsuCreationUI] ⚡ Novo Hatsu v1.6 forjado com sucesso! Slot index: ", index, " | Demanda: ", novo_hatsu.functional_power, " | Créditos: ", novo_hatsu.limitation_credits)
 
 	fechar()
+
+
+func _atualizar_banner_ato() -> void:
+	var ato: HatsuCreationPolish.AtoUI = HatsuCreationPolish.obter_ato_da_etapa(int(etapa_atual))
+	if lbl_ato != null:
+		lbl_ato.text = "%s — %s" % [HatsuCreationPolish.obter_nome_ato(ato), HatsuCreationPolish.obter_desc_ato(ato)]
+		HunterUIStyle.aplicar_fonte_licenca(lbl_ato, HunterUIStyle.FONT_SIZE_SMALL, HunterUIStyle.COLOR_TEXT_GOLD)
+	if lbl_glossario != null:
+		match etapa_atual:
+			Etapa.CONDICOES:
+				lbl_glossario.text = HatsuCreationPolish.glossario_condicao() + "  |  " + HatsuCreationPolish.glossario_preparacao()
+			Etapa.RESTRICOES:
+				lbl_glossario.text = HatsuCreationPolish.glossario_restricao() + "  |  " + HatsuCreationPolish.glossario_juramento()
+			Etapa.PODER:
+				lbl_glossario.text = "Força livre. Aura × CD × Setup sobem juntos. Preview = efetivo com afinidade."
+			Etapa.RESUMO:
+				lbl_glossario.text = "Confira o preço. Déficit bloqueia forja. Morphs/gems/tags ficam no Hatsu."
+			_:
+				lbl_glossario.text = "Condição ≠ Restrição ≠ Juramento. Afinidade corta efetivo, não o pedido."
+		HunterUIStyle.aplicar_fonte_pixel(lbl_glossario, HunterUIStyle.FONT_SIZE_MICRO, HunterUIStyle.COLOR_TEXT_MUTED)
+
+
+func _label_info(texto: String, cor: Color = HunterUIStyle.COLOR_TEXT_SECONDARY, size: int = HunterUIStyle.FONT_SIZE_MICRO) -> Label:
+	var lbl := Label.new()
+	lbl.text = texto
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	HunterUIStyle.aplicar_fonte_pixel(lbl, size, cor)
+	container_opcoes.add_child(lbl)
+	return lbl
+
+
+func _themed_button(texto: String, borda: Color = HunterUIStyle.COLOR_BORDER_GREEN) -> Button:
+	var btn := Button.new()
+	btn.text = texto
+	btn.add_theme_font_size_override("font_size", 3)
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	HunterUIStyle.aplicar_estilo_botao(btn, borda)
+	return btn
+
+
+func _aplicar_polish_em_hatsu(h: HatsuData) -> void:
+	if h == null:
+		return
+	h.composition_data = sel_composition.duplicate(true)
+	h.support_modifiers = sel_support_modifiers.duplicate()
+	h.playstyle_tags = sel_playstyle_tags.duplicate()
+	h.bilateral_rules = sel_bilateral_rules.duplicate(true)
+	h.active_morph = sel_active_morph
+	h.set_meta("playstyle_tags", sel_playstyle_tags.duplicate())
+	h.set_meta("composition", sel_composition.duplicate(true))
+	h.set_meta("support_modifiers", sel_support_modifiers.duplicate())
+	if sel_active_morph >= 0:
+		HatsuMorphLibrary.aplicar_morph(h, sel_active_morph)
+	h.calcular_functional_power()
+	h.calcular_limitation_credits()
+	var extra: float = h.credito_extra_composicao()
+	h.available_credits += extra
+	h.credit_deficit = maxf(0.0, h.required_credits - h.available_credits)
+
+
+func _criar_hatsu_temporario_para_gauge() -> HatsuData:
+	var h := HatsuManager.criar_hatsu(
+		sel_nome, sel_categoria, sel_forma, sel_condicoes,
+		sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
+		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
+		sel_preparation_steps, sel_efeitos_secundarios,
+		sel_restricoes, sel_opcoes_preset_escolhidas,
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target,
+		sel_custom_damage
+	)
+	_aplicar_polish_em_hatsu(h)
+	return h
+
+
+func _montar_eixos_e_preview() -> void:
+	var eixos: Dictionary = HatsuCreationPolish.calcular_eixos_custo(sel_custom_damage, int(sel_consumo))
+	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
+	var h_tmp := _criar_hatsu_temporario_para_gauge()
+	var deficit: float = h_tmp.credit_deficit if h_tmp else 0.0
+	var vow_risk: float = 0.12 * float(sel_restricoes.size()) + (0.2 if not custom_vow_input.strip_edges().is_empty() else 0.0)
+	var prev: Dictionary = HatsuCreationPolish.gerar_preview_combate(sel_custom_damage, ef, eixos, deficit, vow_risk)
+
+	_label_info("AURA %.0f  ·  CD %.1fs  ·  SETUP %.2fs  (%s)" % [
+		float(eixos.get("aura_cost", 0.0)), float(eixos.get("cooldown", 0.0)), float(eixos.get("setup_time", 0.0)), str(eixos.get("tier", ""))
+	], HunterUIStyle.COLOR_TEXT_PRIMARY, HunterUIStyle.FONT_SIZE_SMALL)
+
+	var bars := [
+		["Aura", float(eixos.get("aura_cost", 0.0)) / 95.0, HunterUIStyle.COLOR_AURA_BAR],
+		["CD", float(eixos.get("cooldown", 0.0)) / 22.0, HunterUIStyle.COLOR_GOLD],
+		["Setup", float(eixos.get("setup_time", 0.0)) / 3.2, HunterUIStyle.COLOR_REN]
+	]
+	for item in bars:
+		var row := HBoxContainer.new()
+		container_opcoes.add_child(row)
+		var lb := Label.new()
+		lb.custom_minimum_size = Vector2(28, 0)
+		lb.text = str(item[0])
+		HunterUIStyle.aplicar_fonte_pixel(lb, HunterUIStyle.FONT_SIZE_MICRO, HunterUIStyle.COLOR_TEXT_MUTED)
+		row.add_child(lb)
+		var bar := ProgressBar.new()
+		bar.custom_minimum_size = Vector2(140, 8)
+		bar.max_value = 1.0
+		bar.value = clampf(float(item[1]), 0.0, 1.0)
+		bar.show_percentage = false
+		HunterUIStyle.aplicar_estilo_progress_bar(bar, item[2])
+		row.add_child(bar)
+
+	_label_info("PREVIEW  pedido %d → efetivo %d (%d%% aff) | uptime %d%% | DPS~%.1f | risco: %s" % [
+		int(prev.get("dano_pedido", 0)), int(prev.get("dano_efetivo", 0)), int(prev.get("eficiencia_pct", 0)),
+		int(prev.get("uptime_pct", 0)), float(prev.get("dps_efetivo", 0.0)), str(prev.get("risco_texto", ""))
+	], HunterUIStyle.COLOR_TEXT_CYAN, HunterUIStyle.FONT_SIZE_MICRO)
+
+	var camada: Dictionary = HatsuCreationPolish.camada_atual(0.0)
+	_label_info("Pós-forja: nasce em '%s' (~30%%). Uso desbloqueia camadas até Transcendência." % str(camada.get("nome", "Despertar")), HunterUIStyle.COLOR_TEXT_SECONDARY)
+
+
+func _montar_bloco_composicao() -> void:
+	var data: Dictionary = HatsuCreationPolish.obter_composicao_por_categoria(int(sel_categoria))
+	_label_info(str(data.get("titulo", "Composição modular")), HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	if str(data.get("hint", "")) != "":
+		_label_info(str(data["hint"]))
+	var modo := str(data.get("modo", "single"))
+	if modo == "slider_pair":
+		var range_v: float = float(sel_composition.get("range", 0.5))
+		_label_info("Alcance %.0f%%  ↔  Densidade %.0f%%" % [range_v * 100.0, (1.0 - range_v) * 100.0])
+		var sl := HSlider.new()
+		sl.min_value = 0.0
+		sl.max_value = 1.0
+		sl.step = 0.05
+		sl.value = range_v
+		sl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sl.value_changed.connect(func(v: float):
+			sel_composition["range"] = v
+			sel_composition["density"] = 1.0 - v
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(sl)
+		return
+
+	var max_pick: int = 2 if modo == "dual" else 1
+	for op in data.get("opcoes", []):
+		var oid := str(op.get("id", ""))
+		var selected := false
+		if modo == "dual":
+			selected = oid in sel_composition.get("properties", [])
+		elif modo == "clarity":
+			selected = str(sel_composition.get("clarity_id", "")) == oid
+		else:
+			selected = str(sel_composition.get("focus_id", "")) == oid
+		var btn := _themed_button(("%s %s — %s" % ["✅" if selected else "⬜", str(op.get("nome", "")), str(op.get("desc", ""))]))
+		var captured: Dictionary = op.duplicate(true)
+		btn.pressed.connect(func():
+			if modo == "dual":
+				var props2: Array = sel_composition.get("properties", []).duplicate()
+				var cid := str(captured.get("id", ""))
+				if cid in props2:
+					props2.erase(cid)
+				elif props2.size() < max_pick:
+					props2.append(cid)
+				sel_composition["properties"] = props2
+			elif modo == "clarity":
+				sel_composition["clarity_id"] = str(captured.get("id", ""))
+				sel_composition["clarity"] = float(captured.get("valor", 0.85))
+			else:
+				sel_composition["focus_id"] = str(captured.get("id", ""))
+				sel_composition["focus_name"] = str(captured.get("nome", ""))
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(btn)
+
+
+func _montar_extras_preco() -> void:
+	_label_info("Playstyle tags (soft — guia o catálogo)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 2)
+	container_opcoes.add_child(row)
+	for tag in HatsuCreationPolish.obter_tags_playstyle():
+		var tid: Variant = tag["id"]
+		var on: bool = (tid in sel_playstyle_tags) or (int(tid) in sel_playstyle_tags)
+		var b := _themed_button(("%s%s" % ["•" if on else "", str(tag["nome"])]))
+		var capt: Variant = tid
+		b.pressed.connect(func():
+			if capt in sel_playstyle_tags:
+				sel_playstyle_tags.erase(capt)
+			elif sel_playstyle_tags.size() < 3:
+				sel_playstyle_tags.append(capt)
+			_atualizar_etapa()
+		)
+		row.add_child(b)
+
+	_label_info("Modificadores de Nen (máx. 2 gems)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	for mod in HatsuCreationPolish.obter_support_modifiers():
+		var mid: Variant = mod["id"]
+		var on2: bool = (mid in sel_support_modifiers) or (int(mid) in sel_support_modifiers)
+		var bm := _themed_button(("%s %s (+%.0f cr) — %s" % ["✅" if on2 else "⬜", str(mod["nome"]), float(mod["credito"]), str(mod["desc"])]), HunterUIStyle.COLOR_BORDER_GOLD)
+		var cm: Variant = mid
+		bm.pressed.connect(func():
+			if cm in sel_support_modifiers:
+				sel_support_modifiers.erase(cm)
+			elif sel_support_modifiers.size() < 2:
+				sel_support_modifiers.append(cm)
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(bm)
+
+	_label_info("Condição bilateral (estilo Chain Jail)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	var bilaterals := [
+		{"self_rule": "requires_chain", "target_rule": "specific_faction", "faction": "phantom_troupe", "label": "Só vs Facção X + corrente", "credit": 45.0, "bonus": 0.5},
+		{"self_rule": "", "target_rule": "marked_only", "label": "Só alvo marcado", "credit": 30.0, "bonus": 0.25},
+		{"self_rule": "", "target_rule": "first_attacker", "label": "Só quem atacou primeiro", "credit": 28.0, "bonus": 0.2}
+	]
+	for rule in bilaterals:
+		var active := false
+		for r in sel_bilateral_rules:
+			if str(r.get("label", "")) == str(rule["label"]):
+				active = true
+				break
+		var br := _themed_button(("%s %s (+%.0f cr)" % ["✅" if active else "⬜", str(rule["label"]), float(rule["credit"])]))
+		var cr: Dictionary = rule.duplicate(true)
+		br.pressed.connect(func():
+			var found := -1
+			for i in range(sel_bilateral_rules.size()):
+				if str(sel_bilateral_rules[i].get("label", "")) == str(cr["label"]):
+					found = i
+					break
+			if found >= 0:
+				sel_bilateral_rules.remove_at(found)
+			else:
+				sel_bilateral_rules.append(cr)
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(br)
+
+	_label_info("Morphs / loadouts (ESO) — mastery 60+", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	for morph in HatsuMorphLibrary.obter_morphs_padrao():
+		var onm: bool = sel_active_morph == int(morph["id"])
+		var bmo := _themed_button(("%s %s — %s" % ["✅" if onm else "⬜", str(morph["nome"]), str(morph["desc"])]), HunterUIStyle.COLOR_BORDER_GOLD)
+		var mid2 := int(morph["id"])
+		bmo.pressed.connect(func():
+			sel_active_morph = -1 if sel_active_morph == mid2 else mid2
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(bmo)
+
+	_label_info("Softcap por modo (fairness)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	for mode in [HatsuModeRules.GameMode.OPEN_WORLD, HatsuModeRules.GameMode.RANKED_PVP, HatsuModeRules.GameMode.RAID]:
+		var rules: Dictionary = HatsuModeRules.obter_regras(mode)
+		var bm2 := _themed_button(("%s %s — %s" % ["✅" if sel_game_mode == int(mode) else "⬜", str(rules["nome"]), str(rules["desc"])]))
+		var cm2 := int(mode)
+		bm2.pressed.connect(func():
+			sel_game_mode = cm2
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(bm2)
+
+	var tmp_mode := _criar_hatsu_temporario_para_gauge()
+	if tmp_mode != null:
+		var mode_check: Dictionary = HatsuModeRules.validar_hatsu_no_modo(tmp_mode, sel_game_mode as HatsuModeRules.GameMode)
+		if bool(mode_check.get("ok", false)):
+			_label_info("✅ Válido no modo selecionado", HunterUIStyle.COLOR_TEXT_PRIMARY)
+		else:
+			_label_info("❌ " + ", ".join(mode_check.get("reasons", [])), Color(0.85, 0.25, 0.2))
+
+	var btn_gal := _themed_button("📤 Publicar conceito na Galeria (rate limit 3/h)", HunterUIStyle.COLOR_BORDER_GOLD)
+	btn_gal.pressed.connect(func():
+		var tmp := _criar_hatsu_temporario_para_gauge()
+		if tmp == null:
+			return
+		var res: Dictionary = HatsuBuildGallery.publicar_conceito(tmp)
+		_label_info("✅ Conceito publicado (poder max NÃO é copiado)" if bool(res.get("ok", false)) else ("❌ " + str(res.get("reason", "?"))), HunterUIStyle.COLOR_TEXT_PRIMARY)
+	)
+	container_opcoes.add_child(btn_gal)
+	_label_info("Exorcismo/anti-Hatsu: kits Básico / Avançado / Caçador de Hatsu em combate.", HunterUIStyle.COLOR_TEXT_MUTED)
+
+
+func _nome_objetivo(o: HatsuData.ObjetivoPrincipal) -> String:
+	match o:
+		HatsuData.ObjetivoPrincipal.DANO: return "Dano"
+		HatsuData.ObjetivoPrincipal.DEFESA: return "Defesa"
+		HatsuData.ObjetivoPrincipal.CURA: return "Cura"
+		HatsuData.ObjetivoPrincipal.MOBILIDADE: return "Mobilidade"
+		HatsuData.ObjetivoPrincipal.SUPORTE: return "Suporte"
+		HatsuData.ObjetivoPrincipal.CONTROLE: return "Controle"
+	return "?"
+
+
+func _nome_alvo(a: HatsuData.Alvo) -> String:
+	match a:
+		HatsuData.Alvo.INIMIGO_UNICO: return "Inimigo único"
+		HatsuData.Alvo.AREA: return "Área"
+		HatsuData.Alvo.PROPRIO_USUARIO: return "Próprio usuário"
+		HatsuData.Alvo.ALIADO: return "Aliado"
+	return "?"
+
+
+func _nome_forma(f: HatsuData.Forma) -> String:
+	match f:
+		HatsuData.Forma.PROJETIL: return "Projétil"
+		HatsuData.Forma.AREA: return "Área"
+		HatsuData.Forma.PESSOAL: return "Pessoal"
+		HatsuData.Forma.TOQUE: return "Toque"
+		HatsuData.Forma.ZONA: return "Zona"
+	return "?"

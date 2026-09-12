@@ -300,6 +300,18 @@ var alvo_marcado_ref: Node = null
 @export var is_draft: bool = false
 @export var parametros_conceito: Dictionary = {}
 
+# --- POLISH PACK: composição, bilaterais, morphs, gems, galeria ---
+@export var composition_data: Dictionary = {} ## props A+B, clarity, range/density, etc.
+@export var support_modifiers: Array = [] ## até 2 SupportModifier
+@export var playstyle_tags: Array = [] ## PlaystyleTag ids
+@export var bilateral_rules: Array = [] ## [{"self_rule":Str,"target_rule":Str,"bonus":float,"label":Str}]
+@export var active_morph: int = -1 ## HatsuMorphLibrary.MorphId ou -1
+@export var vow_integrity: float = 1.0 ## 1.0 intacto; dilui com exorcismo/quebra
+@export var permanent_power_penalty: float = 0.0 ## perda permanente ao quebrar juramento
+@export var growth_layer_unlocked: int = 1 ## 1..6 fantasy layers
+@export var gallery_shareable: bool = true
+
+
 # Mecânica de Armazenamento e Roubo Real de Hatsu (Skill Hunter / Storage)
 @export var is_storage_hatsu: bool = false
 @export var storage_capacity: int = 3
@@ -1034,6 +1046,84 @@ func obter_multiplicador_mastery() -> float:
 	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
 	var initial_ratio: float = HatsuConfig.INITIAL_POWER_RATIO if "INITIAL_POWER_RATIO" in HatsuConfig else 0.30
 	return initial_ratio + (1.0 - initial_ratio) * ratio
+
+
+
+
+# ============================================================
+# POLISH PACK HELPERS
+# ============================================================
+
+func obter_camada_crescimento() -> Dictionary:
+	return HatsuCreationPolish.camada_atual(mastery)
+
+
+func desbloquear_camadas_por_mastery() -> void:
+	var camada: Dictionary = obter_camada_crescimento()
+	growth_layer_unlocked = maxi(growth_layer_unlocked, int(camada.get("rank", 1)))
+
+
+func obter_multiplicador_morph_dano() -> float:
+	if has_meta("morph_damage_mult"):
+		return float(get_meta("morph_damage_mult"))
+	return 1.0
+
+
+func obter_poder_com_penalidade() -> float:
+	var base: float = obter_poder_final()
+	var mult: float = clampf(vow_integrity, 0.4, 1.0) * (1.0 - clampf(permanent_power_penalty, 0.0, 0.85))
+	return base * mult * obter_multiplicador_morph_dano()
+
+
+func possui_regra_bilateral() -> bool:
+	return not bilateral_rules.is_empty()
+
+
+func validar_regra_bilateral(self_ctx: Dictionary, target_ctx: Dictionary) -> Dictionary:
+	if bilateral_rules.is_empty():
+		return {"ok": true}
+	for rule in bilateral_rules:
+		var self_rule := str(rule.get("self_rule", ""))
+		var target_rule := str(rule.get("target_rule", ""))
+		if self_rule == "requires_chain" and not bool(self_ctx.get("has_chain", false)):
+			return {"ok": false, "reason": "Condição bilateral: requer corrente/vínculo ativo."}
+		if target_rule == "specific_faction":
+			var need := str(rule.get("faction", ""))
+			if need != "" and str(target_ctx.get("faction", "")) != need:
+				return {"ok": false, "reason": "Só funciona contra facção: %s" % need}
+		if target_rule == "marked_only" and not bool(target_ctx.get("marked", false)):
+			return {"ok": false, "reason": "Alvo precisa estar marcado."}
+		if target_rule == "first_attacker" and not bool(target_ctx.get("is_first_attacker", false)):
+			return {"ok": false, "reason": "Só contra quem atacou primeiro."}
+	return {"ok": true}
+
+
+func credito_extra_composicao() -> float:
+	var extra := 0.0
+	extra += HatsuCreationPolish.credito_modifiers(support_modifiers)
+	var clarity: float = float(composition_data.get("clarity", 0.0))
+	if clarity >= 1.0:
+		extra += 20.0
+	elif clarity >= 0.85:
+		extra += 10.0
+	var props: Array = composition_data.get("properties", [])
+	extra += float(props.size()) * 12.0
+	for rule in bilateral_rules:
+		extra += float(rule.get("credit", 35.0))
+	return extra
+
+
+func aplicar_quebra_juramento(severidade: float = 0.25) -> Dictionary:
+	## Punicao viva: Zetsu externo + perda permanente de poder.
+	severidade = clampf(severidade, 0.1, 0.6)
+	permanent_power_penalty = clampf(permanent_power_penalty + severidade, 0.0, 0.85)
+	vow_integrity = clampf(vow_integrity - severidade * 0.5, 0.35, 1.0)
+	return {
+		"permanent_power_penalty": permanent_power_penalty,
+		"vow_integrity": vow_integrity,
+		"zetsu_seconds": lerpf(8.0, 30.0, severidade / 0.6),
+		"message": "Juramento quebrado! Poder permanente -%d%%" % int(severidade * 100.0)
+	}
 
 
 func obter_reducao_custo_mastery() -> float:
