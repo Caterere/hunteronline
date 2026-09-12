@@ -103,6 +103,7 @@ func _popular_npcs_arco9() -> void:
 		kurapika.position = Vector2(150, -60)
 		kurapika.npc_name = "Kurapika"
 		kurapika.fala_padrao = "Meu Emperor Time está ativo. Protegerei o bebê Woble a qualquer custo enquanto monitoro os príncipes com o Stealth Dolphin."
+		NpcSpriteBinder.aplicar(kurapika, ["npc_kurapika"])
 		add_child(kurapika)
 
 	# 2. Rainha Oito & Príncipe Woble

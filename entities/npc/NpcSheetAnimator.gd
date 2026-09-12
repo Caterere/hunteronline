@@ -108,7 +108,8 @@ func _aplicar_folha(moving: bool) -> void:
 	var rows: int = walk_rows if moving and walk_tex != null else idle_rows
 	sprite.hframes = cols
 	sprite.vframes = max(rows, 1)
-	sprite.position = Vector2(0, -34)
+	# Mantém escala mundana = player (96px arte ≠ 96px no mundo)
+	NpcSpriteBinder.aplicar_escala_mundo_player(sprite)
 	_aplicar_frame()
 
 

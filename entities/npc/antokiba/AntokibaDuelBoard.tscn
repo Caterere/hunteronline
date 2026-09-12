@@ -19,6 +19,7 @@ fala_padrao = "Quer um duelo de cartas? Mostre seu Book — as regras de Antokib
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(0, -18)
+scale = Vector2(0.5, 0.5)
 texture = ExtResource("2_tex")
 hframes = 8
 vframes = 1

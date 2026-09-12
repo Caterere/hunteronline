@@ -131,10 +131,11 @@ func _atualizar_animacao(dir: Vector2, andando: bool) -> void:
 				var angle_deg: float = rad_to_deg(dir.angle())
 				var dir_frame: int = posmod(int(round((90.0 - angle_deg) / 45.0)), 8)
 				spr.frame = dir_frame
+			var base_y: float = NpcSpriteBinder.PLAYER_SPRITE_Y
 			if andando:
-				spr.position.y = -34.0 + (1.0 if int(Time.get_ticks_msec() / 150) % 2 == 0 else 0.0)
+				spr.position.y = base_y + (1.0 if int(Time.get_ticks_msec() / 150) % 2 == 0 else 0.0)
 			else:
-				spr.position.y = -34.0
+				spr.position.y = base_y
 
 
 func _vincular_textura_npc() -> void:
@@ -142,9 +143,9 @@ func _vincular_textura_npc() -> void:
 	if spr == null:
 		return
 
-	# Se já possui hframes == 8 e textura específica diferente do player, garante posição alinhada
+	# Se já possui hframes == 8 e textura específica diferente do player, alinha escala ao player
 	if spr.hframes == 8 and spr.texture != null and not spr.texture.resource_path.ends_with("player.png"):
-		spr.position = Vector2(0, -34)
+		NpcSpriteBinder.aplicar_escala_mundo_player(spr)
 		return
 
 	var n_low: String = npc_name.to_lower()
@@ -204,8 +205,8 @@ func _vincular_textura_npc() -> void:
 			spr.texture = load(tex_path)
 			spr.hframes = 8
 			spr.vframes = 1
-			spr.position = Vector2(0, -34)
 			spr.modulate = Color.WHITE
+			NpcSpriteBinder.aplicar_escala_mundo_player(spr)
 
 
 

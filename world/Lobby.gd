@@ -142,7 +142,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(0.45, 0.45)
+				spr.scale = Vector2(0.5, 0.5)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(elena)
@@ -161,7 +161,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(0.45, 0.45)
+				spr.scale = Vector2(0.5, 0.5)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(instrutor)
@@ -180,7 +180,7 @@ func _popular_praca_central() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(0.45, 0.45)
+				spr.scale = Vector2(0.5, 0.5)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(guia)
@@ -309,7 +309,7 @@ func _popular_distrito_mestres() -> void:
 				spr.hframes = 8
 				spr.vframes = 1
 				spr.frame = 0
-				spr.scale = Vector2(0.45, 0.45)
+				spr.scale = Vector2(0.5, 0.5)
 				spr.position = Vector2(0, -18)
 				spr.modulate = Color.WHITE
 			add_child(zushi)
@@ -323,7 +323,7 @@ func _popular_distrito_mestres() -> void:
 		
 		var spr := Sprite2D.new()
 		spr.texture = load("res://assets/sprites/objects/boneco_treino_dummy.png")
-		spr.scale = Vector2(0.52, 0.52)
+		spr.scale = Vector2(0.5, 0.5)
 		spr.position = Vector2(0, -10)
 		dummy.add_child(spr)
 		
@@ -682,21 +682,18 @@ func _popular_faccoes_e_segredos() -> void:
 
 	# 2. Kurapika (Caçadores da Lista Negra & Bounties - Praça Central)
 	if get_node_or_null("Kurapika") == null:
-		var scn_npc = load("res://entities/npc/NPC.tscn")
-		if scn_npc:
-			var kurapika = scn_npc.instantiate()
-			kurapika.name = "Kurapika"
+		var scn_kurapika = load("res://entities/npc/kurapika/Kurapika.tscn")
+		var kurapika
+		if scn_kurapika:
+			kurapika = scn_kurapika.instantiate()
+		else:
+			var scn_npc = load("res://entities/npc/NPC.tscn")
+			kurapika = scn_npc.instantiate()
 			kurapika.set_script(load("res://entities/npc/kurapika/Kurapika.gd"))
-			kurapika.position = Vector2(180, 260)
-			var spr = kurapika.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				spr.texture = load("res://assets/sprites/characters/player.png")
-				spr.hframes = 6
-				spr.vframes = 10
-				spr.frame = 0
-				spr.position = Vector2(0, -17)
-				spr.modulate = Color(1.0, 0.3, 0.3, 1.0)
-			add_child(kurapika)
+		kurapika.name = "Kurapika"
+		kurapika.position = Vector2(180, 260)
+		NpcSpriteBinder.aplicar(kurapika, ["npc_kurapika"])
+		add_child(kurapika)
 
 	# 3. Tonpa (O Esmaga-Novatos & Suco Batizado - Entrada da Praça)
 	if get_node_or_null("Tonpa") == null:
@@ -1118,7 +1115,7 @@ func _espalhar_detalhe_beira_estrada(path_cells: Dictionary) -> void:
 		spr.texture = tex
 		spr.centered = true
 		spr.position = world + Vector2((i % 3) * 6 - 6, (i % 2) * 4)
-		spr.scale = Vector2(0.55, 0.55)
+		spr.scale = Vector2(0.5, 0.5)
 		spr.z_index = 1
 		root.add_child(spr)
 		i += 1
