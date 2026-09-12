@@ -93,11 +93,11 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `[IMPLEMENTED]` — cap 20, bank Jenny, GuildHallUI, `NenContractManager` (máx. 3 juramentos) |
 | **Inspiração** | Guilds + Free Companies (FFXIV) + syndicates (Warframe) |
 | **Deps** | PREREQ-1; chat multiplayer estável |
-| **Reusar** | `autoload/FactionManager.gd`, `autoload/ReputationSystem.gd`, `autoload/PartyManager.gd`, `ui/chat/`, `world/maps/PlayerHouse.gd` |
-| **Tasks** | Criar/convidar/kick · bank compartilhado · hall no hub/casa · perks cosméticos/sociais · `NenContractManager` (HATSU_CREATOR_BIBLE PLANNED) |
+| **Reusar** | `autoload/HunterGuildSystem.gd`, `autoload/NenContractManager.gd`, `ui/Guild/GuildHallUI.gd`, `autoload/PartyManager.gd` |
+| **Tasks** | ✅ Criar/convidar/kick · ✅ bank compartilhado · ✅ hall UI · ✅ `NenContractManager` · suite `scratch/test_a6_guilds_nen_contracts_suite.tscn` |
 
 ### A7. Caça Blacklist co-op (open hunt)
 
