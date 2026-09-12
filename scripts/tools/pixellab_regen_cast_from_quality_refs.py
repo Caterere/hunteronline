@@ -443,9 +443,12 @@ def main() -> int:
         "created_at": time.time(),
         "characters": [],
     }
-    if args.reuse_meta and OUT_META.exists():
+    # Always merge prior meta so --only batches do not wipe other character_ids
+    if OUT_META.exists():
         try:
-            meta = json.loads(OUT_META.read_text(encoding="utf-8"))
+            prior = json.loads(OUT_META.read_text(encoding="utf-8"))
+            if isinstance(prior.get("characters"), list):
+                meta["characters"] = prior["characters"]
         except Exception:
             pass
     existing = {
