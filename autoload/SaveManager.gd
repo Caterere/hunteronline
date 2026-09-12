@@ -106,6 +106,14 @@ func obter_resumo_slot(slot: int) -> Dictionary:
 	return {"existe": true, "valido": false, "motivo_invalido": "JSON Corrompido"}
 
 
+
+func _serializar_story_sincronizado() -> Dictionary:
+	if StoryManager == null:
+		return {}
+	if StoryManager.has_method("_sincronizar_com_player_data"):
+		StoryManager._sincronizar_com_player_data()
+	return StoryManager.serializar()
+
 func salvar_jogo(slot: int = -1) -> bool:
 	if slot <= 0:
 		slot = PlayerData.slot_ativo if PlayerData.slot_ativo > 0 else current_slot
@@ -168,7 +176,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"timestamp": Time.get_datetime_string_from_system(),
 		"mapa_atual": cena_atual,
 		"posicao_player": pos_array,
-		"story_data": StoryManager.serializar() if StoryManager != null else {},
+		"story_data": _serializar_story_sincronizado(),
 		"nome_personagem": PlayerData.nome_personagem,
 		"afinidade_nen": int(PlayerData.afinidade_nen),
 		"dificuldade": int(PlayerData.dificuldade),
@@ -397,12 +405,19 @@ func carregar_jogo(slot: int = -1) -> bool:
 	PlayerData.tutorial_concluido = bool(data.get("tutorial_concluido", false))
 	PlayerData.tutorial_data = (data.get("tutorial_data", {}) as Dictionary).duplicate(true)
 
+	var arco_ssot := int(data.get("arco_atual", PlayerData.arco_atual))
+	var etapa_ssot := int(data.get("etapa_quest_arco", PlayerData.etapa_quest_arco))
+	var max_arco_ssot := int(data.get("max_arco_desbloqueado", PlayerData.max_arco_desbloqueado))
 	if data.has("story_data") and data["story_data"] is Dictionary and StoryManager != null:
 		StoryManager.deserializar(data["story_data"])
-	elif StoryManager != null:
-		StoryManager.current_saga = PlayerData.arco_atual
-		StoryManager.current_chapter = PlayerData.etapa_quest_arco
-		StoryManager.max_saga_unlocked = PlayerData.max_arco_desbloqueado
+	# PlayerData arco/etapa do save é SSOT (deserializar não pode sobrescrever com story_data stale)
+	PlayerData.arco_atual = arco_ssot
+	PlayerData.etapa_quest_arco = etapa_ssot
+	PlayerData.max_arco_desbloqueado = max_arco_ssot
+	if StoryManager != null:
+		StoryManager.current_saga = arco_ssot
+		StoryManager.current_chapter = etapa_ssot
+		StoryManager.max_saga_unlocked = max(StoryManager.max_saga_unlocked, max_arco_ssot)
 
 	PlayerData.conhecimentos_desbloqueados.clear()
 	for cd in data.get("conhecimentos_desbloqueados", []):
