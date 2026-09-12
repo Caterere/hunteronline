@@ -8,17 +8,11 @@ extends CanvasLayer
 # Interface de criação de Hatsu com sistema modular de Vow & Limitation.
 # Ajustada estritamente para viewport 320x180 (Painel 304x168 centralizado).
 #
-# FLUXO EM 10 ETAPAS COM EQUILÍBRIO DE LIMITAÇÃO:
-# 1. Tipo de Nen (Reforço, Emissão, Transmutação, Conjuração, Manipulação, Especialização, Outro / Especial)
-# 2. Conceito / Preset (Biblioteca com 30+ Conceitos Temáticos ou Criar do Zero)
-# 3. Nome & Identidade Visual
-# 4. Efeito Principal & Funcionamento (Parâmetros específicos do conceito)
-# 5. Efeitos Secundários & Modificadores
-# 6. Nível de Força (slider livre — demanda de créditos sobe com o poder)
-# 7. Condições de Ativação & Cadeia de Preparação (Preparation Chain)
-# 8. Juramentos & Restrições (Vows & Limitations + IA de Nen)
-# 9. Custos, Alcance & Consumo
-# 10. Resumo, Auditoria de Créditos & Forjar Hatsu
+# FLUXO EM 3 ATOS (10 etapas sob o capô) — tema HunterUIStyle:
+# ATO I IDENTIDADE: 1 Tipo · 2 Conceito · 3 Nome
+# ATO II PODER: 4 Funcionamento · 5 Efeitos · 6 Força (+ eixos aura/CD/setup + preview)
+# ATO III PREÇO: 7 Condições · 8 Restrições/Juramentos · 9 Custos · 10 Resumo/Forja
+# Glossário HxH: Condição ≠ Restrição ≠ Juramento. Softcaps por modo. Morphs/gems/tags.
 #
 # ============================================================
 
@@ -64,6 +58,14 @@ var sel_opcoes_preset: Dictionary = {}
 var sel_opcoes_preset_escolhidas: Dictionary = {}
 var sel_custom_damage: float = 40.0 ## força escolhida no slider (antes dos votos)
 var sel_power_tier_label: String = "Médio"
+var sel_composition: Dictionary = {}
+var sel_support_modifiers: Array = []
+var sel_playstyle_tags: Array = []
+var sel_bilateral_rules: Array = []
+var sel_active_morph: int = -1
+var sel_game_mode: int = 0 ## HatsuModeRules.GameMode.OPEN_WORLD
+var lbl_ato: Label
+var lbl_glossario: Label
 
 # Parâmetros Especializados de Storage & Roubo de Hatsu
 var sel_is_storage_hatsu: bool = false
@@ -147,6 +149,12 @@ func abrir() -> void:
 	sel_efeitos_secundarios.clear()
 	sel_condicoes.clear()
 	sel_restricoes.clear()
+	sel_composition = {}
+	sel_support_modifiers.clear()
+	sel_playstyle_tags.clear()
+	sel_bilateral_rules.clear()
+	sel_active_morph = -1
+	sel_game_mode = 0
 	sel_preparation_steps.clear()
 	sel_opcoes_preset.clear()
 	sel_opcoes_preset_escolhidas.clear()
@@ -195,19 +203,7 @@ func _construir_ui() -> void:
 	panel_main.custom_minimum_size = Vector2(304, 168)
 	panel_main.size = Vector2(304, 168)
 	panel_main.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.08, 0.12, 0.98)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.border_color = Color(0.3, 0.6, 0.9, 1.0)
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_right = 4
-	style.corner_radius_bottom_left = 4
-	panel_main.add_theme_stylebox_override("panel", style)
+	panel_main.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
 	root.add_child(panel_main)
 
 	var margin := MarginContainer.new()
@@ -233,15 +229,15 @@ func _construir_ui() -> void:
 	vbox_content.add_child(hbox_hdr)
 
 	lbl_titulo = Label.new()
-	lbl_titulo.add_theme_font_size_override("font_size", 4)
-	lbl_titulo.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
 	lbl_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl_titulo.text = "⚡ FORJADOR DE HATSU"
+	lbl_titulo.text = "📜 FORJA DE HATSU"
+	HunterUIStyle.aplicar_fonte_titulo(lbl_titulo, HunterUIStyle.FONT_SIZE_HEADING, HunterUIStyle.COLOR_TEXT_GOLD)
 	hbox_hdr.add_child(lbl_titulo)
 
 	btn_fechar = Button.new()
 	btn_fechar.text = "✖ Sair"
 	btn_fechar.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_fechar, HunterUIStyle.COLOR_BORDER_GOLD)
 	btn_fechar.pressed.connect(fechar)
 	hbox_hdr.add_child(btn_fechar)
 
@@ -281,18 +277,21 @@ func _construir_ui() -> void:
 	btn_salvar_rascunho = Button.new()
 	btn_salvar_rascunho.text = "💾 Rascunho"
 	btn_salvar_rascunho.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_salvar_rascunho, HunterUIStyle.COLOR_BORDER_GREEN)
 	btn_salvar_rascunho.pressed.connect(func(): _finalizar_criacao(true))
 	hbox_nav.add_child(btn_salvar_rascunho)
 
 	btn_anterior = Button.new()
 	btn_anterior.text = "< Voltar"
 	btn_anterior.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_anterior, HunterUIStyle.COLOR_BORDER_GREEN)
 	btn_anterior.pressed.connect(_on_voltar_pressed)
 	hbox_nav.add_child(btn_anterior)
 
 	btn_proximo = Button.new()
 	btn_proximo.text = "Avançar >"
 	btn_proximo.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_proximo, HunterUIStyle.COLOR_BORDER_GOLD)
 	btn_proximo.pressed.connect(_on_avancar_pressed)
 	hbox_nav.add_child(btn_proximo)
 
@@ -313,27 +312,29 @@ func _construir_barra_abas() -> void:
 		btn_tab.text = nomes_abas[i]
 		btn_tab.add_theme_font_size_override("font_size", 3)
 		btn_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		HunterUIStyle.aplicar_estilo_botao(btn_tab, HunterUIStyle.COLOR_BORDER_GREEN)
 		var etapa_alvo = i as Etapa
 		btn_tab.pressed.connect(func(): _ir_para_etapa(etapa_alvo))
 		hbox_tabs.add_child(btn_tab)
 		tab_buttons.append(btn_tab)
 
 
+	lbl_ato = Label.new()
+	lbl_ato.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_fonte_licenca(lbl_ato, 8, HunterUIStyle.COLOR_TEXT_GOLD)
+	vbox_content.add_child(lbl_ato)
+
+	lbl_glossario = Label.new()
+	lbl_glossario.add_theme_font_size_override("font_size", 3)
+	lbl_glossario.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	HunterUIStyle.aplicar_fonte_pixel(lbl_glossario, HunterUIStyle.FONT_SIZE_MICRO, HunterUIStyle.COLOR_TEXT_SECONDARY)
+	vbox_content.add_child(lbl_glossario)
+
+
 func _construir_gauge(parent: Control) -> void:
 	panel_gauge = PanelContainer.new()
 	panel_gauge.custom_minimum_size = Vector2(95, 162)
-	var st_g := StyleBoxFlat.new()
-	st_g.bg_color = Color(0.09, 0.11, 0.16, 0.95)
-	st_g.border_width_left = 1
-	st_g.border_width_top = 1
-	st_g.border_width_right = 1
-	st_g.border_width_bottom = 1
-	st_g.border_color = Color(0.4, 0.7, 0.4, 1.0)
-	st_g.corner_radius_top_left = 3
-	st_g.corner_radius_top_right = 3
-	st_g.corner_radius_bottom_right = 3
-	st_g.corner_radius_bottom_left = 3
-	panel_gauge.add_theme_stylebox_override("panel", st_g)
+	panel_gauge.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_GREEN, 3))
 	parent.add_child(panel_gauge)
 
 	var m := MarginContainer.new()
@@ -394,6 +395,7 @@ func _atualizar_etapa() -> void:
 	btn_anterior.visible = (etapa_atual != Etapa.TIPO_NEN)
 	btn_proximo.text = "Avançar >"
 	btn_proximo.modulate = Color(1.0, 1.0, 1.0, 1.0)
+	_atualizar_banner_ato()
 
 	# Atualizar estilo da barra de abas
 	for i in range(tab_buttons.size()):
@@ -852,6 +854,8 @@ func _montar_etapa_funcionamento() -> void:
 		)
 		container_opcoes.add_child(btn)
 
+	_montar_bloco_composicao()
+
 
 # ============================================================
 # ETAPA 5: EFEITOS SECUNDÁRIOS & MODIFICADORES
@@ -1008,6 +1012,9 @@ func _montar_etapa_poder() -> void:
 			slider.value = pv
 		)
 		hbox.add_child(b)
+
+	_montar_eixos_e_preview()
+
 
 
 # ============================================================
@@ -1315,6 +1322,8 @@ func _montar_etapa_resumo() -> void:
 		btn_proximo.modulate = Color(0.4, 1.0, 0.6, 1.0)
 		btn_proximo.text = "⚡ FORJAR HATSU!"
 
+	_montar_extras_preco()
+
 
 # ============================================================
 # ATUALIZAÇÃO DO GAUGE DE EQUILÍBRIO (v1.6)
@@ -1326,15 +1335,7 @@ func _atualizar_gauge() -> void:
 	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
 	var compat_pct: int = int(ef * 100)
 
-	var h_temp := HatsuManager.criar_hatsu(
-		sel_nome, sel_categoria, sel_forma, sel_condicoes,
-		sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
-		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
-		sel_preparation_steps, sel_efeitos_secundarios,
-		sel_restricoes, sel_opcoes_preset_escolhidas,
-		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target,
-		sel_custom_damage
-	)
+	var h_temp := _criar_hatsu_temporario_para_gauge()
 
 	var f_power: int = int(h_temp.calcular_functional_power())
 	var l_credits: int = int(h_temp.calcular_limitation_credits())
@@ -1392,6 +1393,7 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 	)
 
 	novo_hatsu.is_custom_created = true
+	_aplicar_polish_em_hatsu(novo_hatsu)
 	novo_hatsu.is_draft = is_draft
 	novo_hatsu.hatsu_version = 2
 	novo_hatsu.creator_id = str(PlayerData.nome_personagem)
@@ -1469,3 +1471,276 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 		print("[HatsuCreationUI] ⚡ Novo Hatsu v1.6 forjado com sucesso! Slot index: ", index, " | Demanda: ", novo_hatsu.functional_power, " | Créditos: ", novo_hatsu.limitation_credits)
 
 	fechar()
+
+
+func _atualizar_banner_ato() -> void:
+	var ato: HatsuCreationPolish.AtoUI = HatsuCreationPolish.obter_ato_da_etapa(int(etapa_atual))
+	if lbl_ato != null:
+		lbl_ato.text = "%s — %s" % [HatsuCreationPolish.obter_nome_ato(ato), HatsuCreationPolish.obter_desc_ato(ato)]
+		HunterUIStyle.aplicar_fonte_licenca(lbl_ato, HunterUIStyle.FONT_SIZE_SMALL, HunterUIStyle.COLOR_TEXT_GOLD)
+	if lbl_glossario != null:
+		match etapa_atual:
+			Etapa.CONDICOES:
+				lbl_glossario.text = HatsuCreationPolish.glossario_condicao() + "  |  " + HatsuCreationPolish.glossario_preparacao()
+			Etapa.RESTRICOES:
+				lbl_glossario.text = HatsuCreationPolish.glossario_restricao() + "  |  " + HatsuCreationPolish.glossario_juramento()
+			Etapa.PODER:
+				lbl_glossario.text = "Força livre. Aura × CD × Setup sobem juntos. Preview = efetivo com afinidade."
+			Etapa.RESUMO:
+				lbl_glossario.text = "Confira o preço. Déficit bloqueia forja. Morphs/gems/tags ficam no Hatsu."
+			_:
+				lbl_glossario.text = "Condição ≠ Restrição ≠ Juramento. Afinidade corta efetivo, não o pedido."
+		HunterUIStyle.aplicar_fonte_pixel(lbl_glossario, HunterUIStyle.FONT_SIZE_MICRO, HunterUIStyle.COLOR_TEXT_MUTED)
+
+
+func _label_info(texto: String, cor: Color = HunterUIStyle.COLOR_TEXT_SECONDARY, size: int = HunterUIStyle.FONT_SIZE_MICRO) -> Label:
+	var lbl := Label.new()
+	lbl.text = texto
+	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	HunterUIStyle.aplicar_fonte_pixel(lbl, size, cor)
+	container_opcoes.add_child(lbl)
+	return lbl
+
+
+func _themed_button(texto: String, borda: Color = HunterUIStyle.COLOR_BORDER_GREEN) -> Button:
+	var btn := Button.new()
+	btn.text = texto
+	btn.add_theme_font_size_override("font_size", 3)
+	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	HunterUIStyle.aplicar_estilo_botao(btn, borda)
+	return btn
+
+
+func _aplicar_polish_em_hatsu(h: HatsuData) -> void:
+	if h == null:
+		return
+	h.composition_data = sel_composition.duplicate(true)
+	h.support_modifiers = sel_support_modifiers.duplicate()
+	h.playstyle_tags = sel_playstyle_tags.duplicate()
+	h.bilateral_rules = sel_bilateral_rules.duplicate(true)
+	h.active_morph = sel_active_morph
+	h.set_meta("playstyle_tags", sel_playstyle_tags.duplicate())
+	h.set_meta("composition", sel_composition.duplicate(true))
+	h.set_meta("support_modifiers", sel_support_modifiers.duplicate())
+	if sel_active_morph >= 0:
+		HatsuMorphLibrary.aplicar_morph(h, sel_active_morph)
+	h.calcular_functional_power()
+	h.calcular_limitation_credits()
+	var extra: float = h.credito_extra_composicao()
+	h.available_credits += extra
+	h.credit_deficit = maxf(0.0, h.required_credits - h.available_credits)
+
+
+func _criar_hatsu_temporario_para_gauge() -> HatsuData:
+	var h := HatsuManager.criar_hatsu(
+		sel_nome, sel_categoria, sel_forma, sel_condicoes,
+		sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
+		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
+		sel_preparation_steps, sel_efeitos_secundarios,
+		sel_restricoes, sel_opcoes_preset_escolhidas,
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target,
+		sel_custom_damage
+	)
+	_aplicar_polish_em_hatsu(h)
+	return h
+
+
+func _montar_eixos_e_preview() -> void:
+	var eixos: Dictionary = HatsuCreationPolish.calcular_eixos_custo(sel_custom_damage, int(sel_consumo))
+	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
+	var h_tmp := _criar_hatsu_temporario_para_gauge()
+	var deficit: float = h_tmp.credit_deficit if h_tmp else 0.0
+	var vow_risk: float = 0.12 * float(sel_restricoes.size()) + (0.2 if not custom_vow_input.strip_edges().is_empty() else 0.0)
+	var prev: Dictionary = HatsuCreationPolish.gerar_preview_combate(sel_custom_damage, ef, eixos, deficit, vow_risk)
+
+	_label_info("AURA %.0f  ·  CD %.1fs  ·  SETUP %.2fs  (%s)" % [
+		float(eixos.get("aura_cost", 0.0)), float(eixos.get("cooldown", 0.0)), float(eixos.get("setup_time", 0.0)), str(eixos.get("tier", ""))
+	], HunterUIStyle.COLOR_TEXT_PRIMARY, HunterUIStyle.FONT_SIZE_SMALL)
+
+	var bars := [
+		["Aura", float(eixos.get("aura_cost", 0.0)) / 95.0, HunterUIStyle.COLOR_AURA_BAR],
+		["CD", float(eixos.get("cooldown", 0.0)) / 22.0, HunterUIStyle.COLOR_GOLD],
+		["Setup", float(eixos.get("setup_time", 0.0)) / 3.2, HunterUIStyle.COLOR_REN]
+	]
+	for item in bars:
+		var row := HBoxContainer.new()
+		container_opcoes.add_child(row)
+		var lb := Label.new()
+		lb.custom_minimum_size = Vector2(28, 0)
+		lb.text = str(item[0])
+		HunterUIStyle.aplicar_fonte_pixel(lb, HunterUIStyle.FONT_SIZE_MICRO, HunterUIStyle.COLOR_TEXT_MUTED)
+		row.add_child(lb)
+		var bar := ProgressBar.new()
+		bar.custom_minimum_size = Vector2(140, 8)
+		bar.max_value = 1.0
+		bar.value = clampf(float(item[1]), 0.0, 1.0)
+		bar.show_percentage = false
+		HunterUIStyle.aplicar_estilo_progress_bar(bar, item[2])
+		row.add_child(bar)
+
+	_label_info("PREVIEW  pedido %d → efetivo %d (%d%% aff) | uptime %d%% | DPS~%.1f | risco: %s" % [
+		int(prev.get("dano_pedido", 0)), int(prev.get("dano_efetivo", 0)), int(prev.get("eficiencia_pct", 0)),
+		int(prev.get("uptime_pct", 0)), float(prev.get("dps_efetivo", 0.0)), str(prev.get("risco_texto", ""))
+	], HunterUIStyle.COLOR_TEXT_CYAN, HunterUIStyle.FONT_SIZE_MICRO)
+
+	var camada: Dictionary = HatsuCreationPolish.camada_atual(0.0)
+	_label_info("Pós-forja: nasce em '%s' (~30%%). Uso desbloqueia camadas até Transcendência." % str(camada.get("nome", "Despertar")), HunterUIStyle.COLOR_TEXT_SECONDARY)
+
+
+func _montar_bloco_composicao() -> void:
+	var data: Dictionary = HatsuCreationPolish.obter_composicao_por_categoria(int(sel_categoria))
+	_label_info(str(data.get("titulo", "Composição modular")), HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	if str(data.get("hint", "")) != "":
+		_label_info(str(data["hint"]))
+	var modo := str(data.get("modo", "single"))
+	if modo == "slider_pair":
+		var range_v: float = float(sel_composition.get("range", 0.5))
+		_label_info("Alcance %.0f%%  ↔  Densidade %.0f%%" % [range_v * 100.0, (1.0 - range_v) * 100.0])
+		var sl := HSlider.new()
+		sl.min_value = 0.0
+		sl.max_value = 1.0
+		sl.step = 0.05
+		sl.value = range_v
+		sl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sl.value_changed.connect(func(v: float):
+			sel_composition["range"] = v
+			sel_composition["density"] = 1.0 - v
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(sl)
+		return
+
+	var max_pick: int = 2 if modo == "dual" else 1
+	for op in data.get("opcoes", []):
+		var oid := str(op.get("id", ""))
+		var selected := false
+		if modo == "dual":
+			selected = oid in sel_composition.get("properties", [])
+		elif modo == "clarity":
+			selected = str(sel_composition.get("clarity_id", "")) == oid
+		else:
+			selected = str(sel_composition.get("focus_id", "")) == oid
+		var btn := _themed_button(("%s %s — %s" % ["✅" if selected else "⬜", str(op.get("nome", "")), str(op.get("desc", ""))]))
+		var captured: Dictionary = op.duplicate(true)
+		btn.pressed.connect(func():
+			if modo == "dual":
+				var props2: Array = sel_composition.get("properties", []).duplicate()
+				var cid := str(captured.get("id", ""))
+				if cid in props2:
+					props2.erase(cid)
+				elif props2.size() < max_pick:
+					props2.append(cid)
+				sel_composition["properties"] = props2
+			elif modo == "clarity":
+				sel_composition["clarity_id"] = str(captured.get("id", ""))
+				sel_composition["clarity"] = float(captured.get("valor", 0.85))
+			else:
+				sel_composition["focus_id"] = str(captured.get("id", ""))
+				sel_composition["focus_name"] = str(captured.get("nome", ""))
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(btn)
+
+
+func _montar_extras_preco() -> void:
+	_label_info("Playstyle tags (soft — guia o catálogo)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 2)
+	container_opcoes.add_child(row)
+	for tag in HatsuCreationPolish.obter_tags_playstyle():
+		var tid = tag["id"]
+		var on := tid in sel_playstyle_tags or int(tid) in sel_playstyle_tags
+		var b := _themed_button(("%s%s" % ["•" if on else "", str(tag["nome"])]))
+		var capt = tid
+		b.pressed.connect(func():
+			if capt in sel_playstyle_tags:
+				sel_playstyle_tags.erase(capt)
+			elif sel_playstyle_tags.size() < 3:
+				sel_playstyle_tags.append(capt)
+			_atualizar_etapa()
+		)
+		row.add_child(b)
+
+	_label_info("Modificadores de Nen (máx. 2 gems)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	for mod in HatsuCreationPolish.obter_support_modifiers():
+		var mid = mod["id"]
+		var on2 := mid in sel_support_modifiers or int(mid) in sel_support_modifiers
+		var bm := _themed_button(("%s %s (+%.0f cr) — %s" % ["✅" if on2 else "⬜", str(mod["nome"]), float(mod["credito"]), str(mod["desc"])]), HunterUIStyle.COLOR_BORDER_GOLD)
+		var cm = mid
+		bm.pressed.connect(func():
+			if cm in sel_support_modifiers:
+				sel_support_modifiers.erase(cm)
+			elif sel_support_modifiers.size() < 2:
+				sel_support_modifiers.append(cm)
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(bm)
+
+	_label_info("Condição bilateral (estilo Chain Jail)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	var bilaterals := [
+		{"self_rule": "requires_chain", "target_rule": "specific_faction", "faction": "phantom_troupe", "label": "Só vs Facção X + corrente", "credit": 45.0, "bonus": 0.5},
+		{"self_rule": "", "target_rule": "marked_only", "label": "Só alvo marcado", "credit": 30.0, "bonus": 0.25},
+		{"self_rule": "", "target_rule": "first_attacker", "label": "Só quem atacou primeiro", "credit": 28.0, "bonus": 0.2}
+	]
+	for rule in bilaterals:
+		var active := false
+		for r in sel_bilateral_rules:
+			if str(r.get("label", "")) == str(rule["label"]):
+				active = true
+				break
+		var br := _themed_button(("%s %s (+%.0f cr)" % ["✅" if active else "⬜", str(rule["label"]), float(rule["credit"])]))
+		var cr: Dictionary = rule.duplicate(true)
+		br.pressed.connect(func():
+			var found := -1
+			for i in range(sel_bilateral_rules.size()):
+				if str(sel_bilateral_rules[i].get("label", "")) == str(cr["label"]):
+					found = i
+					break
+			if found >= 0:
+				sel_bilateral_rules.remove_at(found)
+			else:
+				sel_bilateral_rules.append(cr)
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(br)
+
+	_label_info("Morphs / loadouts (ESO) — mastery 60+", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	for morph in HatsuMorphLibrary.obter_morphs_padrao():
+		var onm := sel_active_morph == int(morph["id"])
+		var bmo := _themed_button(("%s %s — %s" % ["✅" if onm else "⬜", str(morph["nome"]), str(morph["desc"])]), HunterUIStyle.COLOR_BORDER_GOLD)
+		var mid2 := int(morph["id"])
+		bmo.pressed.connect(func():
+			sel_active_morph = -1 if sel_active_morph == mid2 else mid2
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(bmo)
+
+	_label_info("Softcap por modo (fairness)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
+	for mode in [HatsuModeRules.GameMode.OPEN_WORLD, HatsuModeRules.GameMode.RANKED_PVP, HatsuModeRules.GameMode.RAID]:
+		var rules: Dictionary = HatsuModeRules.obter_regras(mode)
+		var bm2 := _themed_button(("%s %s — %s" % ["✅" if sel_game_mode == int(mode) else "⬜", str(rules["nome"]), str(rules["desc"])]))
+		var cm2 := int(mode)
+		bm2.pressed.connect(func():
+			sel_game_mode = cm2
+			_atualizar_etapa()
+		)
+		container_opcoes.add_child(bm2)
+
+	var tmp_mode := _criar_hatsu_temporario_para_gauge()
+	if tmp_mode != null:
+		var mode_check: Dictionary = HatsuModeRules.validar_hatsu_no_modo(tmp_mode, sel_game_mode as HatsuModeRules.GameMode)
+		if bool(mode_check.get("ok", false)):
+			_label_info("✅ Válido no modo selecionado", HunterUIStyle.COLOR_TEXT_PRIMARY)
+		else:
+			_label_info("❌ " + ", ".join(mode_check.get("reasons", [])), Color(0.85, 0.25, 0.2))
+
+	var btn_gal := _themed_button("📤 Publicar conceito na Galeria (rate limit 3/h)", HunterUIStyle.COLOR_BORDER_GOLD)
+	btn_gal.pressed.connect(func():
+		var tmp := _criar_hatsu_temporario_para_gauge()
+		if tmp == null:
+			return
+		var res: Dictionary = HatsuBuildGallery.publicar_conceito(tmp)
+		_label_info("✅ Conceito publicado (poder max NÃO é copiado)" if bool(res.get("ok", false)) else ("❌ " + str(res.get("reason", "?"))), HunterUIStyle.COLOR_TEXT_PRIMARY)
+	)
+	container_opcoes.add_child(btn_gal)
+	_label_info("Exorcismo/anti-Hatsu: kits Básico / Avançado / Caçador de Hatsu em combate.", HunterUIStyle.COLOR_TEXT_MUTED)

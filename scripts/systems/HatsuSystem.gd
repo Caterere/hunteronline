@@ -639,6 +639,76 @@ func usar_hatsu(slot_index: int) -> bool:
 	return true
 
 
+
+# ============================================================
+# POLISH: voto vivo, bilaterais, exorcismo, mastery layers
+# ============================================================
+
+func quebrar_juramento_hatsu(hatsu: HatsuData, severidade: float = 0.25, motivo: String = "") -> Dictionary:
+	if hatsu == null:
+		return {"ok": false, "reason": "Hatsu nulo"}
+	var res: Dictionary = hatsu.aplicar_quebra_juramento(severidade)
+	zetsu_forcado_timer = maxf(zetsu_forcado_timer, float(res.get("zetsu_seconds", 12.0)))
+	if combat_system != null and combat_system.has_method("_mostrar_texto_flutuante"):
+		combat_system._mostrar_texto_flutuante("⛓️ JURAMENTO QUEBRADO!", Color(1.0, 0.25, 0.2))
+		if motivo != "":
+			combat_system._mostrar_texto_flutuante(motivo, Color(1.0, 0.6, 0.3))
+	print("[Hatsu Vow LIVE] Quebra: ", res)
+	return {"ok": true, "result": res}
+
+
+func verificar_restricoes_vivas(hatsu: HatsuData, ctx: Dictionary = {}) -> Dictionary:
+	## Retorna ok=false se o jogador estiver violando uma restrição ativa.
+	if hatsu == null:
+		return {"ok": true}
+	for r in hatsu.modular_restrictions:
+		var rt := int(r)
+		if rt == int(HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE):
+			if bool(ctx.get("is_moving", false)) and bool(ctx.get("hatsu_channeling", false)):
+				return {"ok": false, "breach": true, "restriction": rt, "severity": 0.2, "reason": "Moveu-se durante uso imóvel"}
+		if rt == int(HatsuComponentLibrary.RestrictionType.CANNOT_DODGE):
+			if bool(ctx.get("dodged_during_effect", false)):
+				return {"ok": false, "breach": true, "restriction": rt, "severity": 0.25, "reason": "Esquivou sob restrição"}
+		if rt == int(HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU):
+			if bool(ctx.get("used_other_hatsu", false)):
+				return {"ok": false, "breach": true, "restriction": rt, "severity": 0.3, "reason": "Usou outro Hatsu sob restrição"}
+		if rt == int(HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY):
+			if bool(ctx.get("must_announce", false)) and not bool(ctx.get("announced", false)):
+				return {"ok": false, "breach": true, "restriction": rt, "severity": 0.15, "reason": "Não anunciou a habilidade"}
+	return {"ok": true}
+
+
+func processar_violacao_se_houver(hatsu: HatsuData, ctx: Dictionary = {}) -> void:
+	var check: Dictionary = verificar_restricoes_vivas(hatsu, ctx)
+	if bool(check.get("breach", false)):
+		quebrar_juramento_hatsu(hatsu, float(check.get("severity", 0.25)), str(check.get("reason", "")))
+
+
+func pode_ativar_com_bilateral(hatsu: HatsuData, self_ctx: Dictionary, target_ctx: Dictionary) -> Dictionary:
+	if hatsu == null:
+		return {"ok": false, "reason": "Hatsu nulo"}
+	return hatsu.validar_regra_bilateral(self_ctx, target_ctx)
+
+
+func executar_exorcismo(tier: int, alvo: Node) -> Dictionary:
+	var res: Dictionary = HatsuExorcismSystem.executar(tier, owner_body, alvo)
+	if bool(res.get("ok", false)) and PlayerData != null:
+		var cost: float = float(res.get("aura_cost", 0.0))
+		if "aura" in PlayerData.attributes:
+			PlayerData.attributes["aura"] = maxf(0.0, float(PlayerData.attributes["aura"]) - cost)
+	if combat_system != null and combat_system.has_method("_mostrar_texto_flutuante") and bool(res.get("ok", false)):
+		combat_system._mostrar_texto_flutuante("✝️ %s" % str(res.get("kit", "Exorcismo")), Color(0.85, 0.9, 1.0))
+	return res
+
+
+func registrar_uso_para_crescimento(hatsu: HatsuData, xp: float = 1.5) -> void:
+	if hatsu == null:
+		return
+	hatsu.mastery = clampf(hatsu.mastery + xp, 0.0, 100.0)
+	hatsu.desbloquear_camadas_por_mastery()
+
+
+
 func _aplicar_efeitos_juramentos(hatsu: HatsuData) -> void:
 	for cond in hatsu.condicoes:
 		match cond:
@@ -871,7 +941,7 @@ func _executar_arsenal_roleta(hatsu: HatsuData, eficiencia: float) -> void:
 
 	ComicBalloon.mostrar(owner_body, "🎲 Sorteou: %s!" % arma_nome, 2.0, -38.0)
 
-	var dano_calculado: int = int(hatsu.obter_poder_final() * dano_mult * eficiencia)
+	var dano_calculado: int = int(hatsu.obter_poder_com_penalidade() * dano_mult * eficiencia)
 	var tipo_arma: String = sorteada.get("tipo", "TOQUE")
 
 	match tipo_arma:
@@ -1028,7 +1098,7 @@ func _executar_territorio_en(hatsu: HatsuData, eficiencia: float) -> void:
 	if owner_body == null: return
 
 	var fx := HatsuTerritoryZoneNode.new()
-	fx.setup(hatsu.territorio_raio, hatsu.cor_aura, 7.0, hatsu.territorio_regra, owner_body, hatsu.obter_poder_final() * eficiencia)
+	fx.setup(hatsu.territorio_raio, hatsu.cor_aura, 7.0, hatsu.territorio_regra, owner_body, hatsu.obter_poder_com_penalidade() * eficiencia)
 	fx.global_position = owner_body.global_position
 	owner_body.get_parent().add_child(fx)
 
@@ -1046,7 +1116,7 @@ func _executar_marca_tag(hatsu: HatsuData, eficiencia: float) -> void:
 			combat_system._mostrar_texto_flutuante("🎯 MARCA %d/%d!" % [hatsu.marca_toques_atual, hatsu.marca_toques_max], Color(1.0, 0.8, 0.2))
 	else:
 		hatsu.marca_toques_atual = 0
-		var dano_detonacao: int = int(hatsu.obter_poder_final() * 2.2 * eficiencia)
+		var dano_detonacao: int = int(hatsu.obter_poder_com_penalidade() * 2.2 * eficiencia)
 		var fx := HatsuAreaExplosionNode.new()
 		fx.setup(90.0, Color(1.0, 0.2, 0.1, 0.95))
 		owner_body.add_child(fx)
@@ -1064,7 +1134,7 @@ func _executar_troca_recursos(hatsu: HatsuData, eficiencia: float) -> void:
 	var auto_dano: int = max(1, int(hp_max * 0.25))
 	PlayerData.attributes["vida"] = max(1, hp_atual - auto_dano)
 
-	var dano_troca: int = int(hatsu.obter_poder_final() * 2.0 * eficiencia)
+	var dano_troca: int = int(hatsu.obter_poder_com_penalidade() * 2.0 * eficiencia)
 	_aplicar_dano_area_imediato(hatsu, dano_troca, 85.0)
 
 	if combat_system != null:
@@ -1167,7 +1237,7 @@ func _executar_defesa(hatsu: HatsuData, eficiencia: float) -> void:
 	if owner_body == null:
 		return
 
-	var poder: float = hatsu.obter_poder_final()
+	var poder: float = hatsu.obter_poder_com_penalidade()
 	var valor_escudo: float = (hatsu.escudo_base if hatsu.escudo_base > 0.0 else poder * 1.5) * eficiencia
 	
 	if HatsuData.Condicao.NAO_VIOLENCIA in hatsu.condicoes:
@@ -1202,7 +1272,7 @@ func _executar_cura(hatsu: HatsuData, eficiencia: float) -> void:
 	if owner_body == null:
 		return
 
-	var poder: float = hatsu.obter_poder_final()
+	var poder: float = hatsu.obter_poder_com_penalidade()
 	var valor_cura: int = max(10, int((hatsu.cura_base if hatsu.cura_base > 0.0 else poder * 1.2) * eficiencia))
 
 	var hp_atual: int = int(PlayerData.attributes.get("vida", 100))
@@ -1382,7 +1452,7 @@ func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 # ============================================================
 
 func _calcular_dano_hatsu(hatsu: HatsuData, eficiencia: float, inimigo_alvo: Node = null) -> int:
-	var poder_base: float = hatsu.obter_poder_final()
+	var poder_base: float = hatsu.obter_poder_com_penalidade()
 	var forca: float = float(PlayerData.attributes.get("forca", 10))
 	var nivel_nen: int = int(PlayerData.attributes.get("nivel_nen", 0))
 	var aura_max: float = float(PlayerData.attributes.get("aura_max", 100.0))
