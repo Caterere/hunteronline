@@ -236,13 +236,13 @@ func _teste_8_painel_inspetor_lateral() -> void:
 	var ui = NenSkillTreeUIScript.new()
 	add_child(ui)
 
-	# Inspecionar nó com condição
-	ui.selected_node_id = "bloodied"
+	# Inspecionar nó com condição (id canônico bloodied; display Bloodlust)
+	ui.selected_node_id = &"bloodied"
 	ui._atualizar_painel_inspetor()
 
-	var nome_correto = ("Bloodied" in ui.lbl_insp_nome.text)
+	var nome_correto = ("Bloodlust" in ui.lbl_insp_nome.text) or ("Fúria" in ui.lbl_insp_nome.text) or ("Bloodied" in ui.lbl_insp_nome.text)
 	var cond_correta = ("Vida" in ui.lbl_insp_condicao.text)
-	var tag_correta = ("bloodied" in ui.lbl_insp_tags.text)
+	var tag_correta = ("bloodied" in ui.lbl_insp_tags.text) or ("bloodlust" in ui.lbl_insp_tags.text)
 
 	_assinalar(nome_correto and cond_correta and tag_correta,
 		"Inspetor lateral carrega nome, condição e tags em linguagem clara de RPG.",

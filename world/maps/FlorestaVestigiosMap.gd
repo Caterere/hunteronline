@@ -448,7 +448,7 @@ func _instanciar_feras_selvagens() -> void:
 	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
 	if enemy_scn:
 		var mobs_data = [
-			{"name": "FeraSombra1", "pos": Vector2(240, 200), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0)},
+			{"name": "FeraSombra1", "pos": Vector2(240, 200), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 100.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0)},
 			{"name": "FeraSombra2", "pos": Vector2(560, 420), "id": &"lobo_sombras", "label": "Besta de Sombra Voraz", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0)},
 			{"name": "FeraSombra3", "pos": Vector2(200, 480), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE},
 			{"name": "FeraSombra4", "pos": Vector2(600, 180), "id": &"fera_alada", "label": "Fera Alada Emboscadora", "def": 95.0, "role": "ambusher", "tint": Color.WHITE},

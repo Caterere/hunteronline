@@ -23,6 +23,7 @@ var _marcos_notificados: Dictionary = {
 
 func _ready() -> void:
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.YORKNEW)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.YORKNEW)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco4()
 	_configurar_inimigos()
@@ -121,6 +122,7 @@ func _popular_npcs_arco4() -> void:
 		kurapika.position = Vector2(300, -50)
 		kurapika.npc_name = "Kurapika"
 		kurapika.fala_padrao = "Não importa o que aconteça, vou recuperar os olhos dos meus irmãos... e as Aranhas pagarão com a vida."
+		NpcSpriteBinder.aplicar(kurapika, ["npc_kurapika"])
 		add_child(kurapika)
 
 	# 3. Melody

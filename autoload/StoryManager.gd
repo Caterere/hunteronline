@@ -316,6 +316,8 @@ func pode_atravessar_gate(required_arc: int, required_stage_min: int = 1, requir
 
 func obter_pendencias_gate(required_arc: int, required_stage_min: int = 1, required_all_stages: bool = false) -> Array[String]:
 	var pendencias: Array[String] = []
+	# PlayerData é a fonte de verdade quando o progresso foi alterado fora do StoryManager.
+	_sincronizar_com_player_data()
 
 	# Se o jogador já está em um arco superior, a passagem de arcos anteriores está liberada
 	if current_saga > required_arc:

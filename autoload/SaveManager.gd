@@ -106,6 +106,14 @@ func obter_resumo_slot(slot: int) -> Dictionary:
 	return {"existe": true, "valido": false, "motivo_invalido": "JSON Corrompido"}
 
 
+
+func _serializar_story_sincronizado() -> Dictionary:
+	if StoryManager == null:
+		return {}
+	if StoryManager.has_method("_sincronizar_com_player_data"):
+		StoryManager._sincronizar_com_player_data()
+	return StoryManager.serializar()
+
 func salvar_jogo(slot: int = -1) -> bool:
 	if slot <= 0:
 		slot = PlayerData.slot_ativo if PlayerData.slot_ativo > 0 else current_slot
@@ -138,6 +146,8 @@ func salvar_jogo(slot: int = -1) -> bool:
 
 	var col_cab = [PlayerData.character_colors["cabelo"].r, PlayerData.character_colors["cabelo"].g, PlayerData.character_colors["cabelo"].b, PlayerData.character_colors["cabelo"].a] if PlayerData.character_colors.has("cabelo") else [0.15, 0.15, 0.15, 1.0]
 	var col_roup = [PlayerData.character_colors["roupa"].r, PlayerData.character_colors["roupa"].g, PlayerData.character_colors["roupa"].b, PlayerData.character_colors["roupa"].a] if PlayerData.character_colors.has("roupa") else [0.2, 0.6, 0.3, 1.0]
+	var col_olhos = [PlayerData.character_colors["olhos"].r, PlayerData.character_colors["olhos"].g, PlayerData.character_colors["olhos"].b, PlayerData.character_colors["olhos"].a] if PlayerData.character_colors.has("olhos") else [0.15, 0.45, 0.85, 1.0]
+	var hair_id_save: String = str(PlayerData.character_colors.get("hair_id", "hair_gon_01"))
 
 	var hatsus_serialized: Array = []
 	for h in PlayerData.hatsu_criados:
@@ -166,7 +176,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"timestamp": Time.get_datetime_string_from_system(),
 		"mapa_atual": cena_atual,
 		"posicao_player": pos_array,
-		"story_data": StoryManager.serializar() if StoryManager != null else {},
+		"story_data": _serializar_story_sincronizado(),
 		"nome_personagem": PlayerData.nome_personagem,
 		"afinidade_nen": int(PlayerData.afinidade_nen),
 		"dificuldade": int(PlayerData.dificuldade),
@@ -190,8 +200,11 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"character_colors": {
 			"cabelo": col_cab,
 			"roupa": col_roup,
+			"olhos": col_olhos,
+			"hair_id": hair_id_save,
 			"cabelo_html": PlayerData.character_colors["cabelo"].to_html() if PlayerData.character_colors.has("cabelo") else "262626",
-			"roupa_html": PlayerData.character_colors["roupa"].to_html() if PlayerData.character_colors.has("roupa") else "33994c"
+			"roupa_html": PlayerData.character_colors["roupa"].to_html() if PlayerData.character_colors.has("roupa") else "33994c",
+			"olhos_html": PlayerData.character_colors["olhos"].to_html() if PlayerData.character_colors.has("olhos") else "2673d9"
 		},
 		"attributes": PlayerData.attributes.duplicate(),
 		"inventory": PlayerData.inventory.duplicate(),
@@ -219,12 +232,16 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"regiao_atual": String(WorldProgressionManager.regiao_atual_id) if WorldProgressionManager != null else "lobby",
 		"regioes_desbloqueadas": WorldProgressionManager.regioes_desbloqueadas.map(func(r): return String(r)) if WorldProgressionManager != null else ["lobby"],
 		"relationship_data": RelationshipSystem.salvar_dados() if RelationshipSystem != null else {},
+		"association_mail_data": AssociationMailSystem.salvar_dados() if AssociationMailSystem != null else {},
+		"hunter_friends_data": HunterFriendsSystem.salvar_dados() if HunterFriendsSystem != null else {},
+		"duty_finder_data": DutyFinderSystem.salvar_dados() if DutyFinderSystem != null else {},
 		"rumor_data": RumorSystem.salvar_dados() if RumorSystem != null else {},
 		"world_events_data": WorldEventManager.salvar_dados() if WorldEventManager != null else {},
 		"bounty_data": BountySystem.salvar_dados() if BountySystem != null else {},
 		"auction_data": AuctionHouse.salvar_dados() if AuctionHouse != null else {},
 		"guild_data": HunterGuildSystem.salvar_dados() if HunterGuildSystem != null else {},
 		"nen_contract_data": NenContractManager.salvar_dados() if NenContractManager != null else {},
+		"blacklist_hunt_data": BlacklistOpenHuntSystem.salvar_dados() if BlacklistOpenHuntSystem != null else {},
 		"secret_bosses_data": SecretBossManager.salvar_dados() if SecretBossManager != null else {},
 		"time_data": {
 			"hour": TimeManager.current_hour,
@@ -391,12 +408,19 @@ func carregar_jogo(slot: int = -1) -> bool:
 	PlayerData.tutorial_concluido = bool(data.get("tutorial_concluido", false))
 	PlayerData.tutorial_data = (data.get("tutorial_data", {}) as Dictionary).duplicate(true)
 
+	var arco_ssot := int(data.get("arco_atual", PlayerData.arco_atual))
+	var etapa_ssot := int(data.get("etapa_quest_arco", PlayerData.etapa_quest_arco))
+	var max_arco_ssot := int(data.get("max_arco_desbloqueado", PlayerData.max_arco_desbloqueado))
 	if data.has("story_data") and data["story_data"] is Dictionary and StoryManager != null:
 		StoryManager.deserializar(data["story_data"])
-	elif StoryManager != null:
-		StoryManager.current_saga = PlayerData.arco_atual
-		StoryManager.current_chapter = PlayerData.etapa_quest_arco
-		StoryManager.max_saga_unlocked = PlayerData.max_arco_desbloqueado
+	# PlayerData arco/etapa do save é SSOT (deserializar não pode sobrescrever com story_data stale)
+	PlayerData.arco_atual = arco_ssot
+	PlayerData.etapa_quest_arco = etapa_ssot
+	PlayerData.max_arco_desbloqueado = max_arco_ssot
+	if StoryManager != null:
+		StoryManager.current_saga = arco_ssot
+		StoryManager.current_chapter = etapa_ssot
+		StoryManager.max_saga_unlocked = max(StoryManager.max_saga_unlocked, max_arco_ssot)
 
 	PlayerData.conhecimentos_desbloqueados.clear()
 	for cd in data.get("conhecimentos_desbloqueados", []):
@@ -440,6 +464,22 @@ func carregar_jogo(slot: int = -1) -> bool:
 		elif colors.has("roupa_html"):
 			PlayerData.character_colors["roupa"] = Color.html(colors["roupa_html"])
 
+		if colors.has("olhos"):
+			var o = colors["olhos"]
+			if o is Array and o.size() >= 4:
+				PlayerData.character_colors["olhos"] = Color(o[0], o[1], o[2], o[3])
+			elif o is String:
+				PlayerData.character_colors["olhos"] = Color.html(o)
+		elif colors.has("olhos_html"):
+			PlayerData.character_colors["olhos"] = Color.html(colors["olhos_html"])
+		else:
+			PlayerData.character_colors["olhos"] = Color(0.15, 0.45, 0.85, 1.0)
+
+		if colors.has("hair_id"):
+			PlayerData.character_colors["hair_id"] = str(colors["hair_id"])
+		else:
+			PlayerData.character_colors["hair_id"] = "hair_gon_01"
+
 	# Atributos com sanitização e defaults seguros
 	var attrs_padrao: Dictionary = {
 		"vida": 100,
@@ -457,14 +497,23 @@ func carregar_jogo(slot: int = -1) -> bool:
 	if data.has("attributes") and data["attributes"] is Dictionary:
 		for k in attrs_padrao.keys():
 			PlayerData.attributes[k] = data["attributes"].get(k, attrs_padrao[k])
+		# Preservar chaves extras (gold, flags de sistema, etc.)
+		for k in data["attributes"].keys():
+			if not attrs_padrao.has(k):
+				PlayerData.attributes[k] = data["attributes"][k]
 	else:
 		PlayerData.attributes = attrs_padrao.duplicate()
 
-	# Garantir que vida e nivel estão dentro dos limites válidos (1 a MAX_LEVEL)
+	# Garantir que nivel está dentro dos limites válidos; recalcular derivados
+	# SEM perder HP/aura correntes do save (GAME_FLOW / persistência).
 	PlayerData.attributes["nivel"] = clamp(int(PlayerData.attributes.get("nivel", 1)), ProgressionConfig.BASE_LEVEL, ProgressionConfig.MAX_LEVEL)
+	var saved_vida: int = int(PlayerData.attributes.get("vida", 100))
+	var saved_aura: float = float(PlayerData.attributes.get("aura", 0.0))
 	PlayerData.recalcular_todos_atributos()
-	var raw_vida = int(PlayerData.attributes.get("vida", 100))
-	PlayerData.attributes["vida"] = clamp(raw_vida, 1, PlayerData.attributes["vida_max"])
+	var vida_max: int = max(1, int(PlayerData.attributes.get("vida_max", 100)))
+	var aura_max: float = max(0.0, float(PlayerData.attributes.get("aura_max", 0.0)))
+	PlayerData.attributes["vida"] = clamp(saved_vida, 1, vida_max)
+	PlayerData.attributes["aura"] = clamp(saved_aura, 0.0, aura_max)
 
 	# Inventário
 	if data.has("inventory"):
@@ -606,6 +655,12 @@ func carregar_jogo(slot: int = -1) -> bool:
 	# Matriz de Relacionamentos e Rumores
 	if RelationshipSystem != null:
 		RelationshipSystem.carregar_dados(data.get("relationship_data", {}))
+	if AssociationMailSystem != null:
+		AssociationMailSystem.carregar_dados(data.get("association_mail_data", {}))
+	if HunterFriendsSystem != null:
+		HunterFriendsSystem.carregar_dados(data.get("hunter_friends_data", {}))
+	if DutyFinderSystem != null:
+		DutyFinderSystem.carregar_dados(data.get("duty_finder_data", {}))
 	if RumorSystem != null:
 		RumorSystem.carregar_dados(data.get("rumor_data", {}))
 	if WorldEventManager != null:
@@ -618,6 +673,8 @@ func carregar_jogo(slot: int = -1) -> bool:
 		HunterGuildSystem.carregar_dados(data.get("guild_data", {}))
 	if NenContractManager != null:
 		NenContractManager.carregar_dados(data.get("nen_contract_data", {}))
+	if BlacklistOpenHuntSystem != null:
+		BlacklistOpenHuntSystem.carregar_dados(data.get("blacklist_hunt_data", {}))
 	if SecretBossManager != null and data.has("secret_bosses_data"):
 		SecretBossManager.carregar_dados(data.get("secret_bosses_data", {}))
 
@@ -651,6 +708,20 @@ func carregar_jogo(slot: int = -1) -> bool:
 		PlayerData.is_character_ready = true
 	if GameManager != null:
 		GameManager.set_flow_state(GameManager.GameFlowState.SAVE_LOADED)
+
+	# Reaplicar HP/aura salvos no final — títulos/skill tree/equip podem ter recalculado max.
+	if PlayerData != null and PlayerData.attributes != null:
+		var vmax: int = max(1, int(PlayerData.attributes.get("vida_max", 100)))
+		var amax: float = max(0.0, float(PlayerData.attributes.get("aura_max", 0.0)))
+		# Preferir valores capturados do JSON; se ausentes, manter atual.
+		if typeof(saved_vida) == TYPE_INT:
+			PlayerData.attributes["vida"] = clamp(saved_vida, 1, max(vmax, saved_vida))
+			# Se o save tinha HP > max legado, expandir max para não truncar progresso.
+			if saved_vida > vmax:
+				PlayerData.attributes["vida_max"] = saved_vida
+				PlayerData.attributes["vida"] = saved_vida
+		if typeof(saved_aura) == TYPE_FLOAT or typeof(saved_aura) == TYPE_INT:
+			PlayerData.attributes["aura"] = clamp(float(saved_aura), 0.0, max(amax, float(saved_aura)))
 
 	if get_tree() != null:
 		var ply = get_tree().get_first_node_in_group("player")

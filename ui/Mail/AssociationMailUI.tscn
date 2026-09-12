@@ -1,0 +1,79 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://ui/Mail/AssociationMailUI.gd" id="1"]
+
+[node name="AssociationMailUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Correio da Associação"
+
+[node name="Unread" type="Label" parent="Panel/VBox/Header"]
+layout_mode = 2
+text = "Não lidos: 0"
+
+[node name="CloseBtn" type="Button" parent="Panel/VBox/Header"]
+layout_mode = 2
+text = "X"
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="InboxList" type="ItemList" parent="Panel/VBox/HBox"]
+custom_minimum_size = Vector2(240, 280)
+layout_mode = 2
+
+[node name="Detail" type="VBoxContainer" parent="Panel/VBox/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Subject" type="Label" parent="Panel/VBox/HBox/Detail"]
+layout_mode = 2
+text = "Selecione uma mensagem"
+
+[node name="Body" type="RichTextLabel" parent="Panel/VBox/HBox/Detail"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+fit_content = true
+
+[node name="Actions" type="HBoxContainer" parent="Panel/VBox/HBox/Detail"]
+layout_mode = 2
+
+[node name="ClaimBtn" type="Button" parent="Panel/VBox/HBox/Detail/Actions"]
+layout_mode = 2
+text = "Reivindicar anexos"
+
+[node name="DeleteBtn" type="Button" parent="Panel/VBox/HBox/Detail/Actions"]
+layout_mode = 2
+text = "Apagar"

@@ -46,7 +46,7 @@ static func criar_gyo(
 	spr.frame = 0
 	spr.position = Vector2(0, -8)
 	spr.modulate = Color(cor.r, cor.g, cor.b, 0.55)
-	spr.scale = Vector2(0.55, 0.55)
+	spr.scale = Vector2(0.5, 0.5) # 96px art → mesma altura mundana do player (48px)
 	gyo.add_child(spr)
 
 	parent.add_child(gyo)

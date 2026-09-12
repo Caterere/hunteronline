@@ -224,9 +224,12 @@ func sincronizar_com_player_data() -> void:
 	if PlayerData.character_colors.has("roupa"):
 		appearance.shirt_color = PlayerData.character_colors["roupa"]
 		appearance.pants_color = PlayerData.character_colors["roupa"].darkened(0.2)
+	if PlayerData.character_colors.has("olhos"):
+		appearance.eyes_color = PlayerData.character_colors["olhos"]
+	if PlayerData.character_colors.has("hair_id"):
+		appearance.hair_id = str(PlayerData.character_colors["hair_id"])
 
 	atualizar_aparencia_completa()
-
 
 func aplicar_preset(nome: String) -> void:
 	var res := CharacterAssetDatabase.obter_preset(nome)

@@ -34,6 +34,8 @@ var panel_derrota: PanelContainer
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ARENA)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.ARENA)
 	pq_id = PlayerData.missao_paralela_ativa_id
 	if pq_id <= 0:
 		pq_id = 1

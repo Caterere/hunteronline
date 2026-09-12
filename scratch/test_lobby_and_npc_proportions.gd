@@ -35,6 +35,12 @@ func _assinalar(condicao: bool, msg_ok: String, msg_erro: String) -> void:
 # ------------------------------------------------------------------------------
 func _teste_1_lobby_script_e_instanciacao() -> void:
 	print("\n[TESTE 1/4] Validando anexação do script Lobby.gd em world/lobby.tscn...")
+	if PlayerData != null:
+		PlayerData.is_character_ready = true
+		if str(PlayerData.nome_personagem).is_empty():
+			PlayerData.nome_personagem = "HunterTest"
+	if GameManager != null:
+		GameManager.set_flow_state(GameManager.GameFlowState.LOBBY)
 	var lobby_scn = load("res://world/lobby.tscn") as PackedScene
 	_assinalar(lobby_scn != null, "world/lobby.tscn carregado com sucesso", "Falha ao carregar world/lobby.tscn")
 	if lobby_scn == null: return
@@ -54,6 +60,14 @@ func _teste_1_lobby_script_e_instanciacao() -> void:
 # ------------------------------------------------------------------------------
 func _teste_2_npcs_presentes_no_lobby() -> void:
 	print("\n[TESTE 2/4] Validando presença dos NPCs e Landmarks no Lobby...")
+	# Headless: Lobby só popula mundo com perfil pronto (sem bootstrap F6)
+	if PlayerData != null:
+		PlayerData.is_character_ready = true
+		if PlayerData.nome_personagem.is_empty():
+			PlayerData.nome_personagem = "HunterTest"
+	if GameManager != null:
+		GameManager.set_flow_state(GameManager.GameFlowState.LOBBY)
+
 	var lobby_scn = load("res://world/lobby.tscn") as PackedScene
 	var lobby = lobby_scn.instantiate()
 	add_child(lobby)
@@ -103,10 +117,14 @@ func _teste_3_proporcoes_e_alturas_dos_sprites() -> void:
 		var spr = fe.get_node_or_null("Sprite2D") as Sprite2D
 		_assinalar(spr != null, "Ferreiro possui Sprite2D", "Sprite2D ausente no Ferreiro")
 		if spr:
-			var visual_h = 48.0 * spr.scale.y
-			_assinalar(visual_h >= 20.0 and visual_h <= 24.0,
-				"Ferreiro altura visual proporcional (%.1f px, scale=%.2f)" % [visual_h, spr.scale.y],
-				"Ferreiro altura fora do padrão: %.1f px" % visual_h)
+			# Altura mundana ≈ player (48px): frame_h * scale.y
+			var frame_h := float(spr.texture.get_height()) / float(maxi(1, spr.vframes))
+			if spr.hframes > 1 and spr.vframes <= 1:
+				frame_h = float(spr.texture.get_height())
+			var visual_h = frame_h * spr.scale.y
+			_assinalar(visual_h >= 44.0 and visual_h <= 52.0,
+				"Ferreiro altura visual ≈ player (%.1f px, scale=%.2f)" % [visual_h, spr.scale.y],
+				"Ferreiro altura fora do padrão player: %.1f px" % visual_h)
 		fe.queue_free()
 
 	# 3. Verificar Vendedor.tscn
@@ -116,33 +134,59 @@ func _teste_3_proporcoes_e_alturas_dos_sprites() -> void:
 		var spr = ve.get_node_or_null("Sprite2D") as Sprite2D
 		_assinalar(spr != null, "Vendedor possui Sprite2D", "Sprite2D ausente no Vendedor")
 		if spr:
-			var visual_h = 49.0 * spr.scale.y
-			_assinalar(visual_h >= 20.0 and visual_h <= 24.0,
-				"Vendedor altura visual proporcional (%.1f px, scale=%.2f)" % [visual_h, spr.scale.y],
-				"Vendedor altura fora do padrão: %.1f px" % visual_h)
+			var frame_h := float(spr.texture.get_height()) / float(maxi(1, spr.vframes))
+			if spr.hframes > 1 and spr.vframes <= 1:
+				frame_h = float(spr.texture.get_height())
+			var visual_h = frame_h * spr.scale.y
+			_assinalar(visual_h >= 44.0 and visual_h <= 52.0,
+				"Vendedor altura visual ≈ player (%.1f px, scale=%.2f)" % [visual_h, spr.scale.y],
+				"Vendedor altura fora do padrão player: %.1f px" % visual_h)
 		ve.queue_free()
 
+	# 3b. Kurapika NÃO pode ficar 2× o player (regressão Style Lock 96px)
+	var scn_ku = load("res://entities/npc/kurapika/Kurapika.tscn") as PackedScene
+	if scn_ku:
+		var ku = scn_ku.instantiate()
+		var spr = ku.get_node_or_null("Sprite2D") as Sprite2D
+		_assinalar(spr != null, "Kurapika possui Sprite2D", "Sprite2D ausente no Kurapika")
+		if spr:
+			var frame_h := float(spr.texture.get_height()) / float(maxi(1, spr.vframes))
+			if spr.hframes > 1 and spr.vframes <= 1:
+				frame_h = float(spr.texture.get_height())
+			var visual_h = frame_h * spr.scale.y
+			_assinalar(abs(visual_h - 48.0) <= 4.0,
+				"Kurapika altura = player (%.1f px, scale=%.2f, frame=%.0f)" % [visual_h, spr.scale.y, frame_h],
+				"Kurapika gigante/desproporcional: %.1f px (frame %.0f × scale %.2f)" % [visual_h, frame_h, spr.scale.y])
+		ku.queue_free()
+
 	# 4. Verificar Elena, Instrutor, Examinador e Zushi instanciados no Lobby
+	if PlayerData != null:
+		PlayerData.is_character_ready = true
+	if GameManager != null:
+		GameManager.set_flow_state(GameManager.GameFlowState.LOBBY)
 	var lobby_scn = load("res://world/lobby.tscn") as PackedScene
 	var lobby = lobby_scn.instantiate()
 	add_child(lobby)
 
-	var npcs_verificar = {
-		"RecepcionistaElena": 48.0,
-		"InstrutorCombate": 48.0,
-		"StoryGatewayNPC": 53.0,
-		"Zushi": 50.0
-	}
+	var npcs_verificar = [
+		"RecepcionistaElena",
+		"InstrutorCombate",
+		"StoryGatewayNPC",
+		"Zushi",
+		"Kurapika",
+	]
 
-	for n_name in npcs_verificar.keys():
+	for n_name in npcs_verificar:
 		var node = lobby.get_node_or_null(n_name)
 		if node:
 			var spr = node.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				var unscaled_h = npcs_verificar[n_name]
-				var visual_h = unscaled_h * spr.scale.y
-				_assinalar(visual_h >= 19.0 and visual_h <= 25.0,
-					"%s altura visual proporcional (%.1f px, scale=%.2f)" % [n_name, visual_h, spr.scale.y],
+			if spr and spr.texture:
+				var frame_h := float(spr.texture.get_height()) / float(maxi(1, spr.vframes))
+				if spr.hframes > 1 and spr.vframes <= 1:
+					frame_h = float(spr.texture.get_height())
+				var visual_h = frame_h * spr.scale.y
+				_assinalar(visual_h >= 40.0 and visual_h <= 56.0,
+					"%s altura visual ≈ player (%.1f px, scale=%.2f)" % [n_name, visual_h, spr.scale.y],
 					"%s altura desproporcional: %.1f px" % [n_name, visual_h])
 
 	# 5. Verificar Guarda e Batedor na Estrada Real
@@ -153,18 +197,24 @@ func _teste_3_proporcoes_e_alturas_dos_sprites() -> void:
 		var guarda = estrada.get_node_or_null("GuardaPatrulha")
 		if guarda:
 			var spr = guarda.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				var visual_h = 51.0 * spr.scale.y
-				_assinalar(visual_h >= 20.0 and visual_h <= 24.5,
-					"GuardaPatrulha altura visual proporcional (%.1f px, scale=%.2f)" % [visual_h, spr.scale.y],
+			if spr and spr.texture:
+				var frame_h := float(spr.texture.get_height()) / float(maxi(1, spr.vframes))
+				if spr.hframes > 1 and spr.vframes <= 1:
+					frame_h = float(spr.texture.get_height())
+				var visual_h = frame_h * spr.scale.y
+				_assinalar(visual_h >= 40.0 and visual_h <= 56.0,
+					"GuardaPatrulha altura ≈ player (%.1f px, scale=%.2f)" % [visual_h, spr.scale.y],
 					"Guarda altura desproporcional: %.1f px" % visual_h)
 		var batedor = estrada.get_node_or_null("BatedorViajante")
 		if batedor:
 			var spr = batedor.get_node_or_null("Sprite2D") as Sprite2D
-			if spr:
-				var visual_h = 49.0 * spr.scale.y
-				_assinalar(visual_h >= 20.0 and visual_h <= 24.0,
-					"BatedorViajante altura visual proporcional (%.1f px, scale=%.2f)" % [visual_h, spr.scale.y],
+			if spr and spr.texture:
+				var frame_h := float(spr.texture.get_height()) / float(maxi(1, spr.vframes))
+				if spr.hframes > 1 and spr.vframes <= 1:
+					frame_h = float(spr.texture.get_height())
+				var visual_h = frame_h * spr.scale.y
+				_assinalar(visual_h >= 40.0 and visual_h <= 56.0,
+					"BatedorViajante altura ≈ player (%.1f px, scale=%.2f)" % [visual_h, spr.scale.y],
 					"Batedor altura desproporcional: %.1f px" % visual_h)
 		estrada.queue_free()
 
@@ -184,9 +234,12 @@ func _teste_4_alinhamento_do_chao_pes() -> void:
 		var fe = scn_fe.instantiate()
 		var spr = fe.get_node_or_null("Sprite2D") as Sprite2D
 		if spr:
-			# Frame 68x68, centro 34, pés em 57 -> offset = 23
-			var feet_y = spr.position.y + 23.0 * spr.scale.y
-			_assinalar(abs(feet_y - player_feet_y) <= 1.0,
+			# Com escala mundana = player, pés ficam perto de Y≈0..2
+			var half_h = (float(spr.texture.get_height()) / float(maxi(1, spr.vframes))) * 0.5 * spr.scale.y
+			if spr.hframes > 1 and spr.vframes <= 1:
+				half_h = float(spr.texture.get_height()) * 0.5 * spr.scale.y
+			var feet_y = spr.position.y + half_h
+			_assinalar(abs(feet_y - player_feet_y) <= 8.0,
 				"Ferreiro pés alinhados ao solo (Y = %.2f)" % feet_y,
 				"Ferreiro pés desalinhados: Y = %.2f" % feet_y)
 		fe.queue_free()

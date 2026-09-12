@@ -41,6 +41,10 @@ var quest_hud: Control = null
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ESTRADA)
+	WorldDensityKit.attach(self, WorldDensityKit.KitKind.ESTRADA)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.ESTRADA)
+	WorldPolishKit.attach(self, WorldPolishKit.KitKind.ESTRADA)
 	print("\n============================================================")
 	print("🏛️ VERTICAL SLICE CANÔNICO: ZABAN & 287º EXAME HUNTER")
 	print("============================================================\n")

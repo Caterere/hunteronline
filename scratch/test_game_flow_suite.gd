@@ -161,12 +161,13 @@ func _ready() -> void:
 	# ------------------------------------------------------------
 	print("\n[TESTE 14/15] Testando restauração de estado após Load...")
 	PlayerData.nome_personagem = "Kurapika_Slot1"
+	PlayerData.attributes["vida_max"] = 200
 	PlayerData.attributes["vida"] = 150
 	SaveManager.salvar_jogo(1)
 	SaveManager.novo_jogo(1)
 	SaveManager.carregar_jogo(1)
 	assert(PlayerData.nome_personagem == "Kurapika_Slot1", "Nome restaurado")
-	assert(PlayerData.attributes["vida"] == 150, "Vida restaurada")
+	assert(int(PlayerData.attributes["vida"]) == 150, "Vida restaurada")
 	SaveManager.deletar_save(1)
 	print("  ✅ [PASS] Restauração completa de estado validada.")
 	passed_tests += 1

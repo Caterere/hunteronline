@@ -242,7 +242,7 @@ func _criar_elementos_interativos() -> void:
 		var spr := Sprite2D.new()
 		spr.name = "Sprite2D"
 		spr.texture = load("res://assets/sprites/objects/marco_pedra_milestone.png")
-		spr.scale = Vector2(0.52, 0.52)
+		spr.scale = Vector2(0.5, 0.5)
 		spr.position = Vector2(0, -11)
 		marco.add_child(spr)
 
@@ -329,7 +329,7 @@ func _criar_elementos_interativos() -> void:
 		spr.texture = load("res://assets/sprites/characters/npc_guarda_fronteira_8dir.png")
 		spr.hframes = 8
 		spr.frame = 0 # South
-		spr.scale = Vector2(1.0, 1.0)
+		spr.scale = Vector2(0.5, 0.5)
 		spr.position = Vector2(0, -18)
 		guarda.add_child(spr)
 
@@ -454,7 +454,7 @@ func _criar_elementos_interativos() -> void:
 		spr.texture = load("res://assets/sprites/characters/npc_viajante_scout_8dir.png")
 		spr.hframes = 8
 		spr.frame = 6 # West (olhando para a fogueira)
-		spr.scale = Vector2(1.0, 1.0)
+		spr.scale = Vector2(0.5, 0.5)
 		spr.position = Vector2(0, -18)
 		batedor.add_child(spr)
 

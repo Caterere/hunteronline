@@ -343,6 +343,35 @@ func _ready() -> void:
 		died.connect(QuestSystem.register_enemy_kill)
 
 
+## Pipeline de conteúdo: aplica EnemyData em runtime (Fase J / spawning dinâmico).
+func setup_from_data(data: EnemyData) -> void:
+	if data == null:
+		push_warning("EnemySystem.setup_from_data: data nulo")
+		return
+	enemy_data = data
+	enemy_id = data.enemy_id
+	enemy_name = data.enemy_name
+	if PlayerData != null and PlayerData.has_method("obter_multiplicador_dificuldade_inimigo"):
+		var mult: Dictionary = PlayerData.obter_multiplicador_dificuldade_inimigo()
+		max_health = int(float(data.max_health) * float(mult.get("hp", 1.0)))
+		strength = int(float(data.strength) * float(mult.get("dano", 1.0)))
+		defense = int(float(data.defense) * float(mult.get("defesa", 1.0)))
+	else:
+		max_health = data.max_health
+		strength = data.strength
+		defense = data.defense
+	health = max_health
+	xp_reward = data.xp_reward
+	is_boss = data.is_boss
+	if "battle_personality" in data:
+		battle_personality = data.battle_personality
+	if "knockback_resistance" in data:
+		knockback_resistance = data.knockback_resistance
+	if "hit_invulnerability_time" in data:
+		hit_invulnerability_time = data.hit_invulnerability_time
+	print("[EnemySystem] setup_from_data → %s (HP %d, boss=%s)" % [enemy_name, max_health, str(is_boss)])
+
+
 # =========================================================
 # PROCESSAMENTO
 # =========================================================

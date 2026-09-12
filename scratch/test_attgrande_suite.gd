@@ -31,8 +31,8 @@ func _ready() -> void:
 	_teste_2_status_menu_rpg_rebuild()
 	_teste_3_condition_tracker_ui()
 	_teste_4_damage_number_system()
-	_teste_5_target_hud_boss_phases()
-	_teste_6_npc_overhead_badges()
+	await _teste_5_target_hud_fases_de_chefe()
+	await _teste_6_npc_overhead_badges()
 	_teste_7_quest_hud_hierarquia()
 	_teste_8_save_load_roundtrip()
 
@@ -61,11 +61,11 @@ func _teste_1_design_system_e_tipografia() -> void:
 	print("\n[TESTE 1/8] Verificando Design System centralizado e paleta...")
 
 	var tipografia_ok := (
-		HunterUIStyle.FONT_SIZE_TITLE == 11
-		and HunterUIStyle.FONT_SIZE_HEADING == 9
+		HunterUIStyle.FONT_SIZE_TITLE == 13
+		and HunterUIStyle.FONT_SIZE_HEADING == 10
 		and HunterUIStyle.FONT_SIZE_BODY == 8
-		and HunterUIStyle.FONT_SIZE_NUMERIC == 10
-		and HunterUIStyle.FONT_SIZE_DAMAGE == 9
+		and HunterUIStyle.FONT_SIZE_NUMERIC == 11
+		and HunterUIStyle.FONT_SIZE_DAMAGE == 10
 	)
 
 	var cores_combate_ok := (
@@ -126,8 +126,8 @@ func _teste_2_status_menu_rpg_rebuild() -> void:
 		and status_menu.lbl_titulo_personagem != null
 	)
 
-	var sem_nen_lv := not "Nen Lv." in status_menu.aura_label.text
-	var tem_sp := "SP" in status_menu.aura_label.text
+	var sem_nen_lv: bool = not "Nen Lv." in status_menu.aura_label.text
+	var tem_sp: bool = "SP" in status_menu.aura_label.text
 
 	_assinalar(campos_ok and barras_ok and licenca_ok and sem_nen_lv and tem_sp,
 		"StatusMenu reconstruído como Tela de Personagem RPG autêntica com barras e Licença Hunter.",
@@ -152,13 +152,13 @@ func _teste_3_condition_tracker_ui() -> void:
 
 	tracker.rastrear_condicoes("⚡ GODSPEED", lista_teste)
 
-	var visivel_ok := tracker.visible
-	var titulo_ok := tracker.lbl_titulo.text == "⚡ GODSPEED"
-	var contador_ok := tracker.lbl_contador.text == "2 / 3 Atendidas"
-	var itens_ok := tracker.vbox_lista.get_child_count() == 3
+	var visivel_ok: bool = tracker.visible
+	var titulo_ok: bool = tracker.lbl_titulo.text == "⚡ GODSPEED"
+	var contador_ok: bool = tracker.lbl_contador.text == "2 / 3 Atendidas"
+	var itens_ok: bool = tracker.vbox_lista.get_child_count() == 3
 
 	tracker.limpar()
-	var limpar_ok := not tracker.visible
+	var limpar_ok: bool = not tracker.visible
 
 	_assinalar(visivel_ok and titulo_ok and contador_ok and itens_ok and limpar_ok,
 		"ConditionTrackerUI renderiza checkmarks ✓/○, metas e contagem dinamicamente.",
@@ -192,7 +192,7 @@ func _teste_4_damage_number_system() -> void:
 # ------------------------------------------------------------------------------
 # TESTE 5: TargetHUD com Fases de Boss e Elite
 # ------------------------------------------------------------------------------
-func _teste_5_target_hud_boss_phases() -> void:
+func _teste_5_target_hud_fases_de_chefe() -> void:
 	print("\n[TESTE 5/8] Testando TargetHUD com suporte a fases de chefes e elite...")
 	var target_hud = TargetHUD.new()
 	add_child(target_hud)
@@ -202,21 +202,23 @@ func _teste_5_target_hud_boss_phases() -> void:
 	dummy_boss.name = "Quimera Alpha"
 	var enemy_sys := EnemySystem.new()
 	enemy_sys.name = "EnemySystem"
-	enemy_sys.is_boss = true
-	enemy_sys.health = 50.0
-	enemy_sys.max_health = 100.0
 	dummy_boss.add_child(enemy_sys)
 	add_child(dummy_boss)
+	# _ready do EnemySystem sobrescreve stats — reaplica após entrar na árvore
+	enemy_sys.is_boss = true
+	enemy_sys.enemy_name = "Quimera Alpha"
+	enemy_sys.max_health = 100
+	enemy_sys.health = 50
 
 	target_hud.focar_alvo(dummy_boss)
 
-	var boss_focado := target_hud.visible
-	var tem_badge_fase := target_hud.lbl_boss_phase.visible
-	var texto_fase_ok := "FASE" in target_hud.lbl_boss_phase.text
-	var hp_texto_ok := "50 / 100" in target_hud.lbl_hp_val.text
+	var boss_focado: bool = target_hud.visible
+	var tem_badge_fase: bool = target_hud.lbl_boss_phase.visible
+	var texto_fase_ok: bool = "FASE" in target_hud.lbl_boss_phase.text
+	var hp_texto_ok: bool = "50 / 100" in target_hud.lbl_hp_val.text
 
 	target_hud.limpar_alvo()
-	var limpo_ok := not target_hud.visible
+	var limpo_ok: bool = not target_hud.visible
 
 	_assinalar(boss_focado and tem_badge_fase and texto_fase_ok and hp_texto_ok and limpo_ok,
 		"TargetHUD exibe fases de Boss, valores numéricos de HP e limpa o foco corretamente.",
@@ -237,6 +239,9 @@ func _teste_6_npc_overhead_badges() -> void:
 	living.npc_nome = "Wing"
 	dummy_npc.add_child(living)
 	add_child(dummy_npc)
+	# Badge é anexado via call_deferred — aguarda um frame.
+	await get_tree().process_frame
+	await get_tree().process_frame
 
 	var badge := dummy_npc.get_node_or_null("LivingNPCNameBadge")
 	var tem_badge := badge != null
@@ -264,9 +269,9 @@ func _teste_7_quest_hud_hierarquia() -> void:
 
 	quest_hud._atualizar_hud()
 
-	var texto_arco := quest_hud.lbl_arco.text
-	var sem_caracteres_corrompidos := not "ðŸ" in texto_arco and not "✓¨" in quest_hud.lbl_bussola.text
-	var tem_header_legivel := "ARCO" in texto_arco or "PRAÇA" in texto_arco
+	var texto_arco: String = quest_hud.lbl_arco.text
+	var sem_caracteres_corrompidos: bool = not "ðŸ" in texto_arco and not "✓¨" in quest_hud.lbl_bussola.text
+	var tem_header_legivel: bool = "ARCO" in texto_arco or "PRAÇA" in texto_arco
 
 	_assinalar(sem_caracteres_corrompidos and tem_header_legivel,
 		"QuestHUD exibe caracteres limpos, títulos de arco e hierarquia de objetivos de RPG.",

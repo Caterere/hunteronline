@@ -128,6 +128,7 @@ func _draw() -> void:
 	var s_color: Color = profile.secondary_color
 	var c_color: Color = profile.core_color
 	var g_color: Color = profile.glow_color
+	var glow_color: Color = g_color
 
 	# Cor do Halo com intensidade
 	var halo_color := Color(g_color.r, g_color.g, g_color.b, clamp(g_color.a * intensity * 0.5, 0.0, 1.0))
@@ -198,7 +199,103 @@ func _draw() -> void:
 			draw_polyline(cone_pts, body_color, 2.0 * v_scale)
 			draw_circle(Vector2.ZERO, 3.0 * v_scale, c_color)
 
-		VisualProfile.VisualShape.AURA, _:
+		VisualProfile.VisualShape.FIST:
+			# Punho Ko concentrado (Jajanken Pedra / Remote Punch)
+			var fist_pts := PackedVector2Array([
+				Vector2(-5, -8) * v_scale,
+				Vector2(6, -7) * v_scale,
+				Vector2(8, 2) * v_scale,
+				Vector2(4, 9) * v_scale,
+				Vector2(-6, 8) * v_scale,
+				Vector2(-8, 0) * v_scale
+			])
+			draw_circle(Vector2.ZERO, 11.0 * v_scale, halo_color)
+			draw_colored_polygon(fist_pts, body_color)
+			draw_circle(Vector2(1, -1) * v_scale, 2.5 * v_scale, c_color)
+
+		VisualProfile.VisualShape.CHAIN:
+			# Elos de corrente (Kurapika)
+			for i in range(5):
+				var ox: float = (i - 2) * 5.5 * v_scale
+				var oy: float = sin(time_alive * 10.0 + i) * 1.5 * v_scale
+				draw_arc(Vector2(ox, oy), 3.2 * v_scale, 0.0, TAU, 16, halo_color, 2.2 * v_scale)
+				draw_arc(Vector2(ox, oy), 2.4 * v_scale, 0.0, TAU, 16, body_color, 1.4 * v_scale)
+			draw_circle(Vector2(11 * v_scale, 0), 2.0 * v_scale, c_color)
+
+		VisualProfile.VisualShape.GUM:
+			# Fita elástica rosa (Bungee Gum)
+			var wave := sin(time_alive * 14.0) * 3.0 * v_scale
+			var gum_pts := PackedVector2Array([
+				Vector2(-14, -2) * v_scale,
+				Vector2(-4, -3 + wave * 0.3) * v_scale,
+				Vector2(4, 3 - wave * 0.3) * v_scale,
+				Vector2(14, 2) * v_scale,
+				Vector2(14, 5) * v_scale,
+				Vector2(4, 6 - wave * 0.2) * v_scale,
+				Vector2(-4, -0.5 + wave * 0.2) * v_scale,
+				Vector2(-14, 1) * v_scale
+			])
+			draw_colored_polygon(gum_pts, halo_color)
+			draw_colored_polygon(gum_pts, body_color)
+			draw_circle(Vector2(12 * v_scale, 2 * v_scale), 2.2 * v_scale, c_color)
+
+		VisualProfile.VisualShape.NEEDLE:
+			# Agulha fina (Illumi)
+			var tip := Vector2(14, 0) * v_scale
+			draw_line(Vector2(-10, 0) * v_scale, tip, halo_color, 3.5 * v_scale)
+			draw_line(Vector2(-10, 0) * v_scale, tip, body_color, 1.6 * v_scale)
+			draw_colored_polygon(PackedVector2Array([
+				tip,
+				Vector2(8, -2.5) * v_scale,
+				Vector2(8, 2.5) * v_scale
+			]), c_color)
+
+		VisualProfile.VisualShape.BOOK:
+			# Bandit's Secret — livro aberto
+			draw_rect(Rect2(Vector2(-8, -6) * v_scale, Vector2(16, 12) * v_scale), halo_color)
+			draw_rect(Rect2(Vector2(-7, -5) * v_scale, Vector2(7, 10) * v_scale), body_color)
+			draw_rect(Rect2(Vector2(0, -5) * v_scale, Vector2(7, 10) * v_scale), s_color)
+			draw_line(Vector2(0, -5) * v_scale, Vector2(0, 5) * v_scale, c_color, 1.2 * v_scale)
+			draw_circle(Vector2(0, 0), 2.0 * v_scale, glow_color)
+
+		VisualProfile.VisualShape.SUN:
+			# Rising Sun (Feitan)
+			var pulse_sun: float = 1.0 + sin(time_alive * 9.0) * 0.12
+			draw_circle(Vector2.ZERO, 12.0 * v_scale * pulse_sun, halo_color)
+			draw_circle(Vector2.ZERO, 7.5 * v_scale, body_color)
+			draw_circle(Vector2.ZERO, 3.5 * v_scale, c_color)
+			for i in range(8):
+				var ang: float = (TAU / 8.0) * i + time_alive * 2.0
+				var a := Vector2(cos(ang), sin(ang)) * 9.0 * v_scale
+				var b := Vector2(cos(ang), sin(ang)) * 15.0 * v_scale * pulse_sun
+				draw_line(a, b, s_color, 2.0 * v_scale)
+
+		VisualProfile.VisualShape.DRAGON:
+			# Cabeça de dragão estilizada (Zeno)
+			var head := PackedVector2Array([
+				Vector2(-10, -4) * v_scale,
+				Vector2(2, -8) * v_scale,
+				Vector2(12, 0) * v_scale,
+				Vector2(2, 8) * v_scale,
+				Vector2(-10, 4) * v_scale,
+				Vector2(-6, 0) * v_scale
+			])
+			draw_colored_polygon(head, halo_color)
+			draw_colored_polygon(head, body_color)
+			draw_circle(Vector2(4, -2) * v_scale, 1.8 * v_scale, c_color)
+			draw_line(Vector2(-8, 0) * v_scale, Vector2(-16, 0) * v_scale, body_color, 3.0 * v_scale)
+
+		VisualProfile.VisualShape.SMOKE:
+			# Fumaça Deep Purple
+			for i in range(5):
+				var ox: float = sin(time_alive * 3.0 + i * 1.3) * 6.0 * v_scale
+				var oy: float = cos(time_alive * 2.2 + i) * 4.0 * v_scale - i * 1.5
+				var r: float = (5.0 - i * 0.5) * v_scale
+				var smoke_c := Color(body_color.r, body_color.g, body_color.b, clamp(0.55 - i * 0.08, 0.15, 0.7))
+				draw_circle(Vector2(ox, oy), r, smoke_c)
+			draw_circle(Vector2.ZERO, 3.0 * v_scale, c_color)
+
+		VisualProfile.VisualShape.AURA, VisualProfile.VisualShape.PARTICLES, _:
 			# Miasma / Aura envolvente pulsante
 			var pulse: float = 1.0 + (sin(time_alive * 8.0) * 0.15)
 			draw_circle(Vector2.ZERO, 10.0 * v_scale * pulse, halo_color)
@@ -206,6 +303,8 @@ func _draw() -> void:
 			draw_circle(Vector2.ZERO, 3.0 * v_scale, c_color)
 
 
+# ============================================================
+# EFEITOS INSTANTÂNEOS DE CAST E IMPACTO (ESTÁTICOS)
 # ============================================================
 # EFEITOS INSTANTÂNEOS DE CAST E IMPACTO (ESTÁTICOS)
 # ============================================================
@@ -221,11 +320,40 @@ static func spawn_cast_effect(pos: Vector2, p: Resource, parent: Node) -> Node2D
 
 	var cor_glow: Color = p.glow_color
 	var cor_core: Color = p.core_color
+	var cor_prim: Color = p.primary_color
 	var v_scale: float = p.visual_scale
+	var kind: String = str(p.cast_effect)
 
 	fx.draw.connect(func():
-		fx.draw_circle(Vector2.ZERO, 14.0 * v_scale, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.6))
-		fx.draw_circle(Vector2.ZERO, 7.0 * v_scale, cor_core)
+		match kind:
+			"spark_burst":
+				for i in range(8):
+					var ang: float = (TAU / 8.0) * float(i)
+					var a := Vector2(cos(ang), sin(ang)) * 4.0 * v_scale
+					var b := Vector2(cos(ang), sin(ang)) * 16.0 * v_scale
+					fx.draw_line(a, b, cor_glow, 2.0 * v_scale)
+				fx.draw_circle(Vector2.ZERO, 5.0 * v_scale, cor_core)
+			"smoke":
+				for i in range(4):
+					var ox := sin(float(i) * 1.7) * 6.0 * v_scale
+					var oy := cos(float(i) * 1.3) * 4.0 * v_scale
+					fx.draw_circle(Vector2(ox, oy), (7.0 - float(i)) * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.35))
+			"ice_flash":
+				var pts := PackedVector2Array([
+					Vector2(0, -12) * v_scale, Vector2(5, -2) * v_scale,
+					Vector2(12, 0) * v_scale, Vector2(5, 2) * v_scale,
+					Vector2(0, 12) * v_scale, Vector2(-5, 2) * v_scale,
+					Vector2(-12, 0) * v_scale, Vector2(-5, -2) * v_scale
+				])
+				fx.draw_colored_polygon(pts, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.55))
+				fx.draw_circle(Vector2.ZERO, 4.0 * v_scale, cor_core)
+			"heal_pulse":
+				fx.draw_arc(Vector2.ZERO, 12.0 * v_scale, 0.0, TAU, 28, Color(0.4, 1.0, 0.5, 0.7), 3.0 * v_scale)
+				fx.draw_circle(Vector2.ZERO, 6.0 * v_scale, Color(0.7, 1.0, 0.8, 0.8))
+			_:
+				# aura_flash padrão
+				fx.draw_circle(Vector2.ZERO, 14.0 * v_scale, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.6))
+				fx.draw_circle(Vector2.ZERO, 7.0 * v_scale, cor_core)
 	)
 
 	parent.add_child(fx)
@@ -250,10 +378,42 @@ static func spawn_impact_effect(pos: Vector2, p: Resource, parent: Node) -> Node
 	var cor_prim: Color = p.primary_color
 	var cor_glow: Color = p.glow_color
 	var v_scale: float = p.visual_scale
+	var kind: String = str(p.impact_effect)
 
 	fx.draw.connect(func():
-		fx.draw_arc(Vector2.ZERO, 18.0 * v_scale, 0.0, TAU, 32, cor_glow, 3.0)
-		fx.draw_circle(Vector2.ZERO, 8.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.7))
+		match kind:
+			"spark_burst":
+				for i in range(10):
+					var ang: float = (TAU / 10.0) * float(i) + 0.2
+					var a := Vector2(cos(ang), sin(ang)) * 3.0 * v_scale
+					var b := Vector2(cos(ang), sin(ang)) * 20.0 * v_scale
+					fx.draw_line(a, b, cor_glow, 2.2 * v_scale)
+				fx.draw_circle(Vector2.ZERO, 6.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.75))
+			"smoke":
+				for i in range(5):
+					var ox := cos(float(i) * 1.1) * 8.0 * v_scale
+					var oy := sin(float(i) * 1.4) * 6.0 * v_scale
+					fx.draw_circle(Vector2(ox, oy), (9.0 - float(i)) * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.3))
+			"ice_shatter":
+				for i in range(6):
+					var ang: float = (TAU / 6.0) * float(i)
+					var tip := Vector2(cos(ang), sin(ang)) * 16.0 * v_scale
+					fx.draw_colored_polygon(PackedVector2Array([
+						tip * 0.2, tip, tip.rotated(0.25) * 0.55
+					]), Color(0.7, 0.9, 1.0, 0.8))
+			"slash_flash":
+				fx.draw_line(Vector2(-16, -10) * v_scale, Vector2(16, 10) * v_scale, cor_glow, 4.0 * v_scale)
+				fx.draw_line(Vector2(-14, -12) * v_scale, Vector2(14, 12) * v_scale, cor_prim, 2.0 * v_scale)
+			"bind_flash":
+				fx.draw_arc(Vector2.ZERO, 14.0 * v_scale, 0.0, TAU, 24, Color(0.9, 0.2, 1.0, 0.8), 3.0 * v_scale)
+				fx.draw_arc(Vector2.ZERO, 9.0 * v_scale, 0.0, TAU, 24, cor_glow, 2.0 * v_scale)
+			"heal_pulse":
+				fx.draw_arc(Vector2.ZERO, 16.0 * v_scale, 0.0, TAU, 28, Color(0.3, 1.0, 0.45, 0.75), 3.0 * v_scale)
+				fx.draw_circle(Vector2.ZERO, 7.0 * v_scale, Color(0.6, 1.0, 0.7, 0.7))
+			_:
+				# shockwave padrão
+				fx.draw_arc(Vector2.ZERO, 18.0 * v_scale, 0.0, TAU, 32, cor_glow, 3.0)
+				fx.draw_circle(Vector2.ZERO, 8.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.7))
 	)
 
 	parent.add_child(fx)

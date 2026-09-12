@@ -1378,6 +1378,9 @@ func to_dict() -> Dictionary:
 		"absorption_rate": absorption_rate,
 		"rollback_seconds": rollback_seconds,
 		"territory_rule_type": territory_rule_type,
+		"estilo_visual": int(estilo_visual),
+		"cor_aura": cor_aura.to_html(true),
+		"cor_aura_secundaria": cor_aura_secundaria.to_html(true),
 		"visual_profile": visual_profile.to_dict() if visual_profile != null else null,
 		# Hatsu Creator v1.5
 		"preparation_steps": preparation_steps.duplicate(true),
@@ -1407,18 +1410,10 @@ func to_dict() -> Dictionary:
 func obter_visual_profile() -> VisualProfile:
 	if visual_profile != null:
 		return visual_profile
-	var vp := VisualProfile.new()
-	vp.primary_color = cor_aura
-	vp.secondary_color = cor_aura_secundaria
-	vp.core_color = Color(1.0, 1.0, 1.0, 1.0)
-	vp.glow_color = cor_aura
-	vp.glow_intensity = 0.8
-	match forma:
-		Forma.PROJETIL: vp.shape = VisualProfile.VisualShape.SPHERE
-		Forma.AREA, Forma.ZONA: vp.shape = VisualProfile.VisualShape.RING
-		Forma.TOQUE: vp.shape = VisualProfile.VisualShape.BLADE
-		_: vp.shape = VisualProfile.VisualShape.SPHERE
-	return vp
+	# Fallback determinístico (preload evita ciclo class_name com o resolver)
+	var resolver = preload("res://resource/hatsu/HatsuVisualResolver.gd")
+	return resolver.build_for_hatsu(self)
+
 
 
 static func from_dict(data: Dictionary) -> HatsuData:
@@ -1567,8 +1562,16 @@ static func from_dict(data: Dictionary) -> HatsuData:
 	h.steal_target_type = str(data.get("steal_target_type", "ANY"))
 
 	# Perfil Visual Customizado
+	if data.has("estilo_visual"):
+		h.estilo_visual = int(data["estilo_visual"]) as EstiloVisual
+	if data.has("cor_aura"):
+		h.cor_aura = Color.html(str(data["cor_aura"]))
+	if data.has("cor_aura_secundaria"):
+		h.cor_aura_secundaria = Color.html(str(data["cor_aura_secundaria"]))
 	if data.has("visual_profile") and data["visual_profile"] is Dictionary:
 		h.visual_profile = VisualProfile.from_dict(data["visual_profile"])
+	elif h.visual_profile == null:
+		h.visual_profile = preload("res://resource/hatsu/HatsuVisualResolver.gd").build_for_hatsu(h)
 
 	# Auto-migração de Versão 1 para Versão 2 se necessário
 	if ver < 2:

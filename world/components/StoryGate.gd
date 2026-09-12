@@ -51,14 +51,17 @@ func get_unmet_requirements() -> Array[String]:
 	var pendencias: Array[String] = []
 
 	if StoryManager != null:
-		return StoryManager.obter_pendencias_gate(required_arc, required_stage_min, required_all_arc_stages)
+		# Sync + merge (não early-return): kills/custom ainda precisam ser avaliados.
+		if StoryManager.has_method("_sincronizar_com_player_data"):
+			StoryManager._sincronizar_com_player_data()
+		pendencias.append_array(StoryManager.obter_pendencias_gate(required_arc, required_stage_min, required_all_arc_stages))
 	elif PlayerData != null:
 		# Fallback legado
 		if PlayerData.arco_atual < required_arc:
 			pendencias.append("Necessário alcançar o Arco %d da História" % required_arc)
 			return pendencias
 		if PlayerData.arco_atual > required_arc:
-			return pendencias
+			pass  # arco superior libera etapa; kills/custom ainda valem
 		if required_all_arc_stages:
 			var total_etapas = CanonQuestCatalog.obter_total_quests_do_arco(required_arc)
 			if PlayerData.etapa_quest_arco < total_etapas:

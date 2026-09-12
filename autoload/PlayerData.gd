@@ -242,7 +242,9 @@ var is_character_ready: bool = false
 
 var character_colors: Dictionary = {
 	"cabelo": Color(0.15, 0.15, 0.15, 1.0),
-	"roupa": Color(0.2, 0.6, 0.3, 1.0)
+	"roupa": Color(0.2, 0.6, 0.3, 1.0),
+	"olhos": Color(0.15, 0.45, 0.85, 1.0),
+	"hair_id": "hair_gon_01"
 }
 
 func gerar_novo_character_id() -> String:
