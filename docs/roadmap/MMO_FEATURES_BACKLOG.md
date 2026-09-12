@@ -13,7 +13,7 @@ Estas duas fundações devem avançar **antes** de AH, ranked, raids 8 e matchma
 
 | ID | Pré-requisito | Status atual | Arquivos-alvo | Desbloqueia |
 | :--- | :--- | :--- | :--- | :--- |
-| **PREREQ-1** | **Sync binário via `NetworkProtocol`** | Parcial — opcodes + serialize dict existem; snapshots/RPC já rodando; empacote binário compacto ainda aberto | [`scripts/network/NetworkProtocol.gd`](../../scripts/network/NetworkProtocol.gd), [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`docs/multiplayer/NETWORK_PROTOCOL.md`](../multiplayer/NETWORK_PROTOCOL.md) | Leilão Yorknew, ranked Arena, Duty Finder, guild bank sync |
+| **PREREQ-1** | **Sync binário via `NetworkProtocol`** | `[IMPLEMENTED]` — opcodes + snapshots binários compactos + RPC; suite `scratch/test_prereq1_binary_networkprotocol_suite.tscn` 21/21 | [`scripts/network/NetworkProtocol.gd`](../../scripts/network/NetworkProtocol.gd), [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`docs/multiplayer/NETWORK_PROTOCOL.md`](../multiplayer/NETWORK_PROTOCOL.md) | Leilão Yorknew, ranked Arena, Duty Finder, guild bank sync |
 | **PREREQ-2** | **Revive de aliados em combate** (canalização 3s) | `[IMPLEMENTED]` — desmaio 30s + canal 3s + interrupt on hit + tecla E | [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`autoload/PartyManager.gd`](../../autoload/PartyManager.gd), [`ui/party/PartyHUD.gd`](../../ui/party/PartyHUD.gd) | Raids 8, world bosses co-op sérios, Blacklist open hunt |
 
 **Ordem mínima:** PREREQ-1 (banda/estabilidade) em paralelo com PREREQ-2 (gameplay co-op). Contratos rotativos (Tier A #5) podem avançar offline sem estes pré-requisitos.
@@ -39,31 +39,31 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `[IMPLEMENTED]` — listagens + taxa Jenny + UI Yorknew + escrow; suite `scratch/test_s1_yorknew_auction_suite.tscn` 38/38 |
 | **Inspiração** | Auction House (WoW/FFXIV) + Grand Exchange (OSRS) |
 | **Deps** | PREREQ-1; economia server-side estável |
 | **Reusar** | `autoload/Economy.gd`, `ui/Shop/ShopUI.gd`, `world/maps/YorknewCityMap.gd`, `scripts/network/*` |
-| **Tasks** | Listagens autoritativas no server · taxa Jenny · UI de leilão em Yorknew · escrow de item · filtros raridade/Nen · anti-duplicação por UID |
+| **Tasks** | ✅ Listagens autoritativas · ✅ taxa Jenny · ✅ UI de leilão · ✅ escrow · filtros raridade/Nen · anti-duplicação por UID |
 
 ### S2. Heaven’s Arena ranqueada + temporadas
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` (`[FUTURE]` em MULTIPLAYER_GAMEPLAY) |
+| **Status** | `[IMPLEMENTED]` — ELO/MMR + temporadas + leaderboard; suite `scratch/test_s2_heavens_arena_ranked_suite.tscn` 41/41 |
 | **Inspiração** | Arena ladders (WoW), ranked seasons (Blade & Soul / Lost Ark) |
 | **Deps** | PREREQ-1; duelos estáveis |
 | **Reusar** | `ui/Arena/HeavensArenaTowerUI.gd`, `scripts/systems/arena/ArenaGhostRegistry.gd`, `scripts/network/DuelSystem.gd` |
-| **Tasks** | ELO/MMR por andar · fila 1v1 · reset cosmético de temporada · leaderboard · recompensas cosméticas (sem power creep) |
+| **Tasks** | ✅ ELO/MMR por andar · ✅ fila 1v1 · ✅ temporada · ✅ leaderboard · recompensas cosméticas (sem power creep) |
 
 ### S3. Revive + Raids 8 hunters
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | Revive `IMPLEMENTED` · Raids `PLANNED` |
+| **Status** | Revive `[IMPLEMENTED]` · Raids `[IMPLEMENTED]` — suite `scratch/test_s3_raid_8_hunters_suite.tscn` 19/19 |
 | **Inspiração** | Alliance/raids (FFXIV/WoW), guardian raids (Lost Ark) |
 | **Deps** | **PREREQ-2** (obrigatório); party/threat/loot já existem |
 | **Reusar** | `autoload/PartyManager.gd`, `scripts/network/CoopDungeonInstance.gd`, `scripts/network/CoopWorldBossCoordinator.gd` |
-| **Tasks** | Canalização revive 3s · party até 8 só em instância raid · 1 raid vertical (Ruínas → depois Continente Negro) · enrage/fases |
+| **Tasks** | ✅ Canalização revive 3s · ✅ party até 8 em raid · ✅ 1 raid vertical (Ruínas) · ✅ enrage/fases |
 
 ### S4. Greed Island jogável (não só binder)
 

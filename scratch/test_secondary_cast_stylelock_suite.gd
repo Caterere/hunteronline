@@ -86,10 +86,12 @@ func _test_geometry() -> void:
 		if not ResourceLoader.exists(south_path):
 			continue
 		var tex: Texture2D = load(south_path)
-		_ok(tex != null and tex.get_width() == 48 and tex.get_height() == 48, "48x48 %s" % name)
+		# Style Lock v2: canvas 96×96 (legado 48×48 aposentado)
+		_ok(tex != null and tex.get_width() == 96 and tex.get_height() == 96, "96x96 %s" % name)
 		if tex == null:
 			continue
 		var img := tex.get_image()
 		var bb := _opaque_bbox(img)
-		_ok(bb.size.y >= 17 and bb.size.y <= 24, "%s height %d in 17..24" % [name, bb.size.y])
-		_ok(bb.position.y + bb.size.y - 1 >= 40 and bb.position.y + bb.size.y - 1 <= 44, "%s feetY %d in 40..44" % [name, bb.position.y + bb.size.y - 1])
+		var feet_y := bb.position.y + bb.size.y - 1
+		_ok(bb.size.y >= 34 and bb.size.y <= 72, "%s height %d in 34..72" % [name, bb.size.y])
+		_ok(feet_y >= 80 and feet_y <= 88, "%s feetY %d in 80..88" % [name, feet_y])
