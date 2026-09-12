@@ -125,7 +125,7 @@ flowchart LR
 
 | ID | Sistema | Inspiração | Adaptação HxH | Deps | Nota |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | RelationshipSystem hoje é NPC |
+| B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | `[IMPLEMENTED]` — `AssociationMailSystem` + `HunterFriendsSystem` + UI; suite `scratch/test_b9_mail_friends_suite.tscn` 23/23 |
 | B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | Master registry local já existe; falta fila de conteúdo |
 | B11 | Territory wars | New World / GW2 WvW | Rotas Associação×Máfia×Salteadores | LiveEventManager | Expandir evento da ponte para meta semanal |
 | B12 | Mounts / dirigível | FFXIV mounts | Skins via `TravelSystem` | TravelSystem | Preferir viagem temática, não mount genérico |

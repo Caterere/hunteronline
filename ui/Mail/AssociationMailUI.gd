@@ -2,18 +2,20 @@ extends Control
 
 # UI leve do Correio da Associação (B9)
 
-@onready var list: ItemList = $Panel/HBox/InboxList
-@onready var subject_lbl: Label = $Panel/HBox/Detail/Subject
-@onready var body_lbl: RichTextLabel = $Panel/HBox/Detail/Body
-@onready var unread_lbl: Label = $Panel/Header/Unread
-
-var _selected_id: String = ""
+@onready var list: ItemList = $Panel/VBox/HBox/InboxList
+@onready var subject_lbl: Label = $Panel/VBox/HBox/Detail/Subject
+@onready var body_lbl: RichTextLabel = $Panel/VBox/HBox/Detail/Body
+@onready var unread_lbl: Label = $Panel/VBox/Header/Unread
 
 
 func _ready() -> void:
 	visible = false
-	if AssociationMailSystem != null:
+	if AssociationMailSystem != null and not AssociationMailSystem.inbox_changed.is_connected(_refresh):
 		AssociationMailSystem.inbox_changed.connect(_refresh)
+	$Panel/VBox/Header/CloseBtn.pressed.connect(fechar)
+	$Panel/VBox/HBox/InboxList.item_selected.connect(_on_inbox_item_selected)
+	$Panel/VBox/HBox/Detail/Actions/ClaimBtn.pressed.connect(_on_claim_pressed)
+	$Panel/VBox/HBox/Detail/Actions/DeleteBtn.pressed.connect(_on_delete_pressed)
 	_refresh()
 
 
