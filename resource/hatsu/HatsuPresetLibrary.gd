@@ -32,7 +32,26 @@ enum PresetId {
 	CRIAR_REGRAS,
 	MANIPULAR_PROBABILIDADE,
 	TROCAR_PROPRIEDADES,
-	HATSU_EVOLUTIVO
+	HATSU_EVOLUTIVO,
+	# --- Expansão temática (inspiração anime; nomes originais do jogo) ---
+	SOCO_CARREGADO,
+	PALMA_CURATIVA,
+	CORPO_COLOSSAL,
+	PROJETIL_AURA,
+	DIVIDA_INTERESSE,
+	FUMACA_SOLDADOS,
+	MARCA_REMOTA,
+	GOMA_ELASTICA,
+	LAMINAS_DEDOS,
+	EXPLOSAO_DOR,
+	ESTATUA_ORACAO,
+	ASPIRADOR_NEN,
+	CARTAS_DESTINO,
+	FIOS_COSTURA,
+	AGULHAS_MARIONETE,
+	DISPOSITIVO_AUTO,
+	BALA_MEMORIA,
+	ORACAO_COMBATE
 }
 
 
@@ -412,7 +431,452 @@ static func obter_todos_presets() -> Array[Dictionary]:
 			"desc": "Técnica viva projetada para evoluir organicamente do nível 1 ao nível 100, expandindo seus efeitos."
 		},
 
-		# 15. CRIAR DO ZERO (Blank Canvas)
+
+		# 16. SOCO CARREGADO (Intensificação — impacto canalizado)
+		{
+			"id": PresetId.SOCO_CARREGADO,
+			"slug": "soco_carregado",
+			"nome": "👊 Soco Carregado",
+			"titulo_conceito": "Impacto Canalizado de Ko",
+			"categoria": HatsuData.Categoria.INTENSIFICACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.STRIKE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.TOQUE,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.KNOCKBACK],
+			"condicoes": [HatsuData.Condicao.PARADO_CANALIZACAO],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE],
+			"preparation_steps": [
+				{"id": "step_charge", "description": "Canalizar Ko no punho por 1.5s", "action_required": "CANALIZAR", "time_required": 1.5, "credit_value": 30.0}
+			],
+			"custom_vow_sugerido": "Permaneço imóvel enquanto concentro Ko no punho; se interrompido, perco o golpe.",
+			"opcoes_funcionamento": {
+				"carga": ["Curta (1s)", "Média (1.5s)", "Longa (3s — poder máximo)"],
+				"forma_golpe": ["Soco direto", "Palmada explosiva", "Cotovelada de curto alcance"]
+			},
+			"desc": "Concentra aura no punho e libera um impacto devastador. Quanto maior a força pedida, mais votos são necessários."
+		},
+
+		# 17. PALMA CURATIVA
+		{
+			"id": PresetId.PALMA_CURATIVA,
+			"slug": "palma_curativa",
+			"nome": "🤲 Palma Curativa",
+			"titulo_conceito": "Regeneração por Toque Intensificado",
+			"categoria": HatsuData.Categoria.INTENSIFICACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.STRIKE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.HEALING,
+			"objetivo": HatsuData.ObjetivoPrincipal.CURA,
+			"forma": HatsuData.Forma.TOQUE,
+			"alvo": HatsuData.Alvo.ALIADO,
+			"elemento": HatsuData.Elemento.LUZ,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.SHIELD],
+			"condicoes": [HatsuData.Condicao.CURTO_ALCANCE_EXTREMO],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.TOUCH_REQUIRED],
+			"custom_vow_sugerido": "Só curo quem tocar com a palma; em troca, minha aura é consumida no dobro.",
+			"opcoes_funcionamento": {
+				"foco": ["Cura rápida de combate", "Cura profunda fora de combate", "Escudo regenerativo curto"]
+			},
+			"desc": "Intensifica o fluxo vital por contato. Fora da afinidade natal a cura efetiva cai conforme o hexágono."
+		},
+
+		# 18. CORPO COLOSSAL
+		{
+			"id": PresetId.CORPO_COLOSSAL,
+			"slug": "corpo_colossal",
+			"nome": "🦍 Corpo Colossal",
+			"titulo_conceito": "Hipertrofia de Aura Corporal",
+			"categoria": HatsuData.Categoria.INTENSIFICACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.TRANSFORMATION,
+			"efeito_principal": HatsuComponentLibrary.EffectType.STAT_MOD,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PESSOAL,
+			"alvo": HatsuData.Alvo.PROPRIO_USUARIO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.DAMAGE, HatsuComponentLibrary.EffectType.KNOCKBACK],
+			"condicoes": [HatsuData.Condicao.AURA_MINIMA_50],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU],
+			"custom_vow_sugerido": "Enquanto o modo colossal estiver ativo, não posso usar outras técnicas de Nen.",
+			"opcoes_funcionamento": {
+				"escala": ["+40% massa", "+80% massa", "Forma extrema (+120%)"]
+			},
+			"desc": "Amplifica força e massa corporal com Nen. Poder absurdo exige restrições pesadas de crédito."
+		},
+
+		# 19. PROJÉTIL DE AURA
+		{
+			"id": PresetId.PROJETIL_AURA,
+			"slug": "projetil_aura",
+			"nome": "💥 Projétil de Aura",
+			"titulo_conceito": "Disparo de Emissão Concentrada",
+			"categoria": HatsuData.Categoria.EMISSAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.PROJECTILE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PROJETIL,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.KNOCKBACK],
+			"condicoes": [],
+			"restricoes": [],
+			"custom_vow_sugerido": "",
+			"opcoes_funcionamento": {
+				"formato": ["Esfera", "Lança", "Rajada em leque"]
+			},
+			"desc": "Emite aura condensada à distância. Emissores nativos mantêm 100%; conjuradores opostos sofrem 40%."
+		},
+
+		# 20. DÍVIDA & JUROS (estilo Hakoware temático)
+		{
+			"id": PresetId.DIVIDA_INTERESSE,
+			"slug": "divida_interesse",
+			"nome": "💳 Dívida & Juros",
+			"titulo_conceito": "Contrato de Aura com Juros Compostos",
+			"categoria": HatsuData.Categoria.EMISSAO,
+			"arquetipo": HatsuData.Arquetipo.CONTRATO_DUELO,
+			"core": HatsuComponentLibrary.CoreType.STRIKE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.AURA_DRAIN,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.TOQUE,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.STAT_MOD, HatsuComponentLibrary.EffectType.STUN],
+			"condicoes": [HatsuData.Condicao.CURTO_ALCANCE_EXTREMO],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY, HatsuComponentLibrary.RestrictionType.TOUCH_REQUIRED],
+			"preparation_steps": [
+				{"id": "step_contract", "description": "Declarar o contrato de dívida ao alvo", "action_required": "DECLARACAO", "time_required": 0.0, "credit_value": 35.0}
+			],
+			"custom_vow_sugerido": "Ao tocar o alvo, imponho uma dívida de aura que cresce com juros até a falência do Nen.",
+			"opcoes_funcionamento": {
+				"juros": ["Baixos (seguro)", "Médios", "Extremos (falência rápida)"],
+				"gatilho_falencia": ["Aura zerada", "HP crítico", "Tempo esgotado"]
+			},
+			"desc": "Emite um contrato de aura: o oponente acumula 'dívida' até colapsar. Força alta = votos duros."
+		},
+
+		# 21. FUMAÇA & SOLDADOS
+		{
+			"id": PresetId.FUMACA_SOLDADOS,
+			"slug": "fumaca_soldados",
+			"nome": "🌫️ Fumaça & Soldados",
+			"titulo_conceito": "Constructos de Fumaça Emitida",
+			"categoria": HatsuData.Categoria.EMISSAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.SUMMON,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.AREA,
+			"alvo": HatsuData.Alvo.AREA,
+			"elemento": HatsuData.Elemento.VENENO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.SLOW, HatsuComponentLibrary.EffectType.SHIELD],
+			"condicoes": [HatsuData.Condicao.PARADO_CANALIZACAO],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.IMMOBILE_DURING_USE],
+			"custom_vow_sugerido": "Preciso permanecer imóvel soprando fumaça para manter os soldados ativos.",
+			"opcoes_funcionamento": {
+				"quantidade": ["2 soldados", "4 soldados", "Nuvem densa (controle de área)"]
+			},
+			"desc": "Emite constructos semi-autônomos de fumaça. Controle e dano escalam com a força pedida."
+		},
+
+		# 22. MARCA REMOTA
+		{
+			"id": PresetId.MARCA_REMOTA,
+			"slug": "marca_remota",
+			"nome": "🏷️ Marca Remota",
+			"titulo_conceito": "Marcação & Detonação à Distância",
+			"categoria": HatsuData.Categoria.EMISSAO,
+			"arquetipo": HatsuData.Arquetipo.MARCA_TAG,
+			"core": HatsuComponentLibrary.CoreType.PROJECTILE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PROJETIL,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.TRACKING],
+			"condicoes": [],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.SINGLE_TARGET_LOCK],
+			"custom_vow_sugerido": "Só posso detonar marcas que eu mesmo apliquei; marcas erradas voltam contra mim.",
+			"opcoes_funcionamento": {
+				"modo": ["Detonação manual", "Contagem regressiva", "Gatilho por proximidade"]
+			},
+			"desc": "Planta marcas de aura e explode à distância. Ideal para caçadores de longo alcance."
+		},
+
+		# 23. GOMA ELÁSTICA
+		{
+			"id": PresetId.GOMA_ELASTICA,
+			"slug": "goma_elastica",
+			"nome": "🎴 Goma Elástica",
+			"titulo_conceito": "Aura com Elasticidade & Aderência",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.TRANSFORMATION,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.TOQUE,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.SLOW, HatsuComponentLibrary.EffectType.KNOCKBACK],
+			"condicoes": [],
+			"restricoes": [],
+			"custom_vow_sugerido": "Transmuto minha aura em goma adesiva: gruda, estica e rebate.",
+			"opcoes_funcionamento": {
+				"uso": ["Armadilha no chão", "Projétil retrátil", "Revestimento corporal"]
+			},
+			"desc": "Transmutação clássica de propriedades físicas. Força lendária ainda exige votos — nada é de graça."
+		},
+
+		# 24. LÂMINAS NOS DEDOS
+		{
+			"id": PresetId.LAMINAS_DEDOS,
+			"slug": "laminas_dedos",
+			"nome": "✂️ Lâminas nos Dedos",
+			"titulo_conceito": "Aura Afiada em Forma de Lâmina",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.STRIKE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.TOQUE,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.PIERCING],
+			"condicoes": [],
+			"restricoes": [],
+			"custom_vow_sugerido": "Transmuto os dedos em lâminas de aura: alto corte, baixo alcance.",
+			"opcoes_funcionamento": {
+				"perfil": ["Corte rápido", "Perfuração profunda", "Combo de fatiamento"]
+			},
+			"desc": "Transforma aura em fio cortante. Efetividade total só com afinidade de Transformação natal."
+		},
+
+		# 25. EXPLOSÃO DE DOR
+		{
+			"id": PresetId.EXPLOSAO_DOR,
+			"slug": "explosao_dor",
+			"nome": "🔥 Explosão de Dor",
+			"titulo_conceito": "Conversão de Dor em Rajada de Aura",
+			"categoria": HatsuData.Categoria.TRANSFORMACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.ZONE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.AREA,
+			"alvo": HatsuData.Alvo.AREA,
+			"elemento": HatsuData.Elemento.FOGO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.KNOCKBACK, HatsuComponentLibrary.EffectType.STUN],
+			"condicoes": [HatsuData.Condicao.HP_ABAIXO_50],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.SACRIFICE_HP],
+			"custom_vow_sugerido": "Só libero a explosão após acumular dor real; quanto mais ferido, mais devastador.",
+			"opcoes_funcionamento": {
+				"gatilho": ["HP < 50%", "HP < 30%", "Após receber 3 golpes"]
+			},
+			"desc": "Converte dano sofrido em detonação. Pedir força 200+ força votos extremos de sacrifício."
+		},
+
+		# 26. ESTÁTUA DE ORAÇÃO
+		{
+			"id": PresetId.ESTATUA_ORACAO,
+			"slug": "estatua_oracao",
+			"nome": "🙏 Estátua de Oração",
+			"titulo_conceito": "Conjuração Ritual de Estátua Multi-Braços",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.SUMMON,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PESSOAL,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.LUZ,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.STAT_MOD, HatsuComponentLibrary.EffectType.MOVEMENT_DASH],
+			"condicoes": [HatsuData.Condicao.PARADO_CANALIZACAO],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY],
+			"preparation_steps": [
+				{"id": "step_pray", "description": "Completar ciclo de gratidão/oração", "action_required": "ORACAO", "time_required": 1.0, "credit_value": 40.0}
+			],
+			"custom_vow_sugerido": "Só manifesto a estátua após o ritual de gratidão; sem oração, sem poder.",
+			"opcoes_funcionamento": {
+				"modo": ["Rajada de palmas", "Barreira de braços", "Combo ultrarrápido"]
+			},
+			"desc": "Conjura uma estátua ritual de Nen. Intensificadores nativos sofrem eficiência reduzida (hexágono)."
+		},
+
+		# 27. ASPIRADOR DE NEN
+		{
+			"id": PresetId.ASPIRADOR_NEN,
+			"slug": "aspirador_nen",
+			"nome": "🧹 Aspirador de Nen",
+			"titulo_conceito": "Objeto Conjurado que Consome Matéria/Aura",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.SUMMON,
+			"efeito_principal": HatsuComponentLibrary.EffectType.AURA_DRAIN,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.TOQUE,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.SOMBRA,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.SLOW],
+			"condicoes": [],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.CANNOT_USE_OTHER_HATSU],
+			"custom_vow_sugerido": "Enquanto o aspirador existir, não posso conjurar outro objeto.",
+			"opcoes_funcionamento": {
+				"alvo_consumo": ["Aura do oponente", "Projéteis inimigos", "Objetos do cenário"]
+			},
+			"desc": "Materializa um aparato que engole aura e matéria. Versátil, mas caro em créditos se forçado."
+		},
+
+		# 28. CARTAS DO DESTINO
+		{
+			"id": PresetId.CARTAS_DESTINO,
+			"slug": "cartas_destino",
+			"nome": "🃏 Cartas do Destino",
+			"titulo_conceito": "Baralho Conjurado de Efeitos Variados",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"arquetipo": HatsuData.Arquetipo.ARSENAL_ROLETA,
+			"core": HatsuComponentLibrary.CoreType.SUMMON,
+			"efeito_principal": HatsuComponentLibrary.EffectType.DAMAGE,
+			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"forma": HatsuData.Forma.PROJETIL,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.STUN, HatsuComponentLibrary.EffectType.SHIELD],
+			"condicoes": [],
+			"restricoes": [],
+			"custom_vow_sugerido": "Cada carta sorteada define o efeito; não posso escolher o resultado.",
+			"opcoes_funcionamento": {
+				"baralho": ["Ofensivo", "Suporte", "Misto (maior risco/recompensa)"]
+			},
+			"desc": "Conjura um baralho cujos efeitos mudam por carta. Liberdade total de força + votos."
+		},
+
+		# 29. FIOS DE COSTURA
+		{
+			"id": PresetId.FIOS_COSTURA,
+			"slug": "fios_costura",
+			"nome": "🧵 Fios de Costura",
+			"titulo_conceito": "Fios Conjurados de Sutura & Controle",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.SUMMON,
+			"efeito_principal": HatsuComponentLibrary.EffectType.HEALING,
+			"objetivo": HatsuData.ObjetivoPrincipal.SUPORTE,
+			"forma": HatsuData.Forma.TOQUE,
+			"alvo": HatsuData.Alvo.ALIADO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.STUN, HatsuComponentLibrary.EffectType.STAT_MOD],
+			"condicoes": [HatsuData.Condicao.CURTO_ALCANCE_EXTREMO],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.TOUCH_REQUIRED],
+			"custom_vow_sugerido": "Os fios só funcionam se eu suturar com as próprias mãos.",
+			"opcoes_funcionamento": {
+				"uso": ["Sutura de feridas", "Imobilizar alvo", "Reforçar tecido/armadura"]
+			},
+			"desc": "Conjura fios de Nen para curar ou prender. Eficácia plena para conjuradores nativos."
+		},
+
+		# 30. AGULHAS MARIONETE
+		{
+			"id": PresetId.AGULHAS_MARIONETE,
+			"slug": "agulhas_marionete",
+			"nome": "🪡 Agulhas Marionete",
+			"titulo_conceito": "Manipulação por Agulhas de Nen",
+			"categoria": HatsuData.Categoria.MANIPULACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.STRIKE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.STUN,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.PROJETIL,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.VENENO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.STAT_MOD, HatsuComponentLibrary.EffectType.SLOW],
+			"condicoes": [],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.SINGLE_TARGET_LOCK],
+			"custom_vow_sugerido": "Preciso cravar a agulha; sem contato inicial, o controle falha.",
+			"opcoes_funcionamento": {
+				"grau_controle": ["Lentidão", "Ações forçadas", "Marionete total (votos extremos)"]
+			},
+			"desc": "Manipula o alvo via agulhas. Controle total do mundo é possível — se você pagar os votos."
+		},
+
+		# 31. DISPOSITIVO AUTO
+		{
+			"id": PresetId.DISPOSITIVO_AUTO,
+			"slug": "dispositivo_auto",
+			"nome": "📱 Dispositivo Auto",
+			"titulo_conceito": "Manipulação Remota por Dispositivo",
+			"categoria": HatsuData.Categoria.MANIPULACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.PROJECTILE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.STAT_MOD,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
+			"forma": HatsuData.Forma.PROJETIL,
+			"alvo": HatsuData.Alvo.INIMIGO_UNICO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.TRACKING],
+			"condicoes": [],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY],
+			"custom_vow_sugerido": "O controle exige um dispositivo conjugado/emitido ativo; se destruído, perco o link.",
+			"opcoes_funcionamento": {
+				"modo": ["Aliado autopilotado", "Inimigo sob ordem", "Objeto do cenário"]
+			},
+			"desc": "Manipulação via aparelho remoto. Força alta sem restrições gera déficit de créditos."
+		},
+
+		# 32. BALA DE MEMÓRIA
+		{
+			"id": PresetId.BALA_MEMORIA,
+			"slug": "bala_memoria",
+			"nome": "🧠 Bala de Memória",
+			"titulo_conceito": "Extração & Disparo de Memórias",
+			"categoria": HatsuData.Categoria.ESPECIALIZACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.PROJECTILE,
+			"efeito_principal": HatsuComponentLibrary.EffectType.INFORMATION,
+			"objetivo": HatsuData.ObjetivoPrincipal.SUPORTE,
+			"forma": HatsuData.Forma.PROJETIL,
+			"alvo": HatsuData.Alvo.ALIADO,
+			"elemento": HatsuData.Elemento.NEN_PURO,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.STUN],
+			"condicoes": [HatsuData.Condicao.CURTO_ALCANCE_EXTREMO],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.TOUCH_REQUIRED, HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY],
+			"custom_vow_sugerido": "Só extraio memórias de quem tocar; transferir exige disparar a bala no receptor.",
+			"opcoes_funcionamento": {
+				"conteudo": ["Memória tática", "Segredo de Hatsu", "Emocão traumática (debuff)"]
+			},
+			"desc": "Especialização de informação: ler/transferir memórias. Fora do tipo natal = 40% de eficiência."
+		},
+
+		# 33. ORAÇÃO DE COMBATE
+		{
+			"id": PresetId.ORACAO_COMBATE,
+			"slug": "oracao_combate",
+			"nome": "⚔️ Oração de Combate",
+			"titulo_conceito": "Ritual que Acelera Reflexos & Golpes",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"arquetipo": HatsuData.Arquetipo.SIMPLES,
+			"core": HatsuComponentLibrary.CoreType.TRANSFORMATION,
+			"efeito_principal": HatsuComponentLibrary.EffectType.STAT_MOD,
+			"objetivo": HatsuData.ObjetivoPrincipal.MOBILIDADE,
+			"forma": HatsuData.Forma.PESSOAL,
+			"alvo": HatsuData.Alvo.PROPRIO_USUARIO,
+			"elemento": HatsuData.Elemento.LUZ,
+			"efeitos_secundarios": [HatsuComponentLibrary.EffectType.MOVEMENT_DASH, HatsuComponentLibrary.EffectType.DAMAGE],
+			"condicoes": [HatsuData.Condicao.PARADO_CANALIZACAO],
+			"restricoes": [HatsuComponentLibrary.RestrictionType.ANNOUNCE_ABILITY],
+			"custom_vow_sugerido": "Sem completar a oração, o modo de combate não ativa.",
+			"opcoes_funcionamento": {
+				"foco": ["Velocidade de ataque", "Esquiva", "Combo ritual"]
+			},
+			"desc": "Modo ritual de combate conjurado. Combine com o slider de força e pague com votos."
+		},
+
+
+		# 34. CRIAR DO ZERO (Blank Canvas)
 		{
 			"id": PresetId.CRIAR_DO_ZERO,
 			"slug": "criar_do_zero",
@@ -447,20 +911,26 @@ static func obter_presets_por_categoria(categoria: HatsuData.Categoria) -> Array
 	return lista
 
 
-static func obter_presets_especiais() -> Array[Dictionary]:
+static func obter_presets_exceto_categoria(categoria: HatsuData.Categoria) -> Array[Dictionary]:
+	## Catálogo amplo: todos os conceitos fora da categoria atual (com aviso de afinidade na UI).
 	var todos = obter_todos_presets()
 	var lista: Array[Dictionary] = []
 	for p in todos:
 		if p["id"] == PresetId.CRIAR_DO_ZERO:
 			continue
-		if p["categoria"] == HatsuData.Categoria.ESPECIALIZACAO or p["id"] in [
-			PresetId.ROUBAR_HABILIDADES, PresetId.DRENAR_NEN, PresetId.LIVRO_HABILIDADES,
-			PresetId.COPIAR_HATSU, PresetId.ARMAZENAR_HATSU, PresetId.ABSORVER_PODER,
-			PresetId.SELAR_HATSU, PresetId.TRANSFERIR_HATSU, PresetId.ROUBAR_ATRIBUTOS,
-			PresetId.TRANSFORMACAO_ESPECIAL, PresetId.CRIAR_REGRAS, PresetId.MANIPULAR_PROBABILIDADE,
-			PresetId.TROCAR_PROPRIEDADES, PresetId.HATSU_EVOLUTIVO
-		]:
+		if p["categoria"] != categoria:
 			lista.append(p)
+	return lista
+
+
+static func obter_presets_especiais() -> Array[Dictionary]:
+	## Modo Especial: mostra o catálogo completo (liberdade total; afinidade só afeta eficiência).
+	var todos = obter_todos_presets()
+	var lista: Array[Dictionary] = []
+	for p in todos:
+		if p["id"] == PresetId.CRIAR_DO_ZERO:
+			continue
+		lista.append(p)
 	return lista
 
 
