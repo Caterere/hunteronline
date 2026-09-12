@@ -1648,10 +1648,10 @@ func _montar_extras_preco() -> void:
 	row.add_theme_constant_override("separation", 2)
 	container_opcoes.add_child(row)
 	for tag in HatsuCreationPolish.obter_tags_playstyle():
-		var tid = tag["id"]
-		var on := tid in sel_playstyle_tags or int(tid) in sel_playstyle_tags
+		var tid: Variant = tag["id"]
+		var on: bool = (tid in sel_playstyle_tags) or (int(tid) in sel_playstyle_tags)
 		var b := _themed_button(("%s%s" % ["•" if on else "", str(tag["nome"])]))
-		var capt = tid
+		var capt: Variant = tid
 		b.pressed.connect(func():
 			if capt in sel_playstyle_tags:
 				sel_playstyle_tags.erase(capt)
@@ -1663,10 +1663,10 @@ func _montar_extras_preco() -> void:
 
 	_label_info("Modificadores de Nen (máx. 2 gems)", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
 	for mod in HatsuCreationPolish.obter_support_modifiers():
-		var mid = mod["id"]
-		var on2 := mid in sel_support_modifiers or int(mid) in sel_support_modifiers
+		var mid: Variant = mod["id"]
+		var on2: bool = (mid in sel_support_modifiers) or (int(mid) in sel_support_modifiers)
 		var bm := _themed_button(("%s %s (+%.0f cr) — %s" % ["✅" if on2 else "⬜", str(mod["nome"]), float(mod["credito"]), str(mod["desc"])]), HunterUIStyle.COLOR_BORDER_GOLD)
-		var cm = mid
+		var cm: Variant = mid
 		bm.pressed.connect(func():
 			if cm in sel_support_modifiers:
 				sel_support_modifiers.erase(cm)
@@ -1706,7 +1706,7 @@ func _montar_extras_preco() -> void:
 
 	_label_info("Morphs / loadouts (ESO) — mastery 60+", HunterUIStyle.COLOR_TEXT_GOLD, HunterUIStyle.FONT_SIZE_SMALL)
 	for morph in HatsuMorphLibrary.obter_morphs_padrao():
-		var onm := sel_active_morph == int(morph["id"])
+		var onm: bool = sel_active_morph == int(morph["id"])
 		var bmo := _themed_button(("%s %s — %s" % ["✅" if onm else "⬜", str(morph["nome"]), str(morph["desc"])]), HunterUIStyle.COLOR_BORDER_GOLD)
 		var mid2 := int(morph["id"])
 		bmo.pressed.connect(func():
