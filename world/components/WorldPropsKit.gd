@@ -61,14 +61,25 @@ func _layout_estrada(root: Node2D) -> void:
 	_add_prop(root, "P3Sign_Sul", Vector2(440, 520), SIGN, Vector2(0, -18), true)
 
 	_add_prop(root, "P3Barrel_0", Vector2(330, 280), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "P3Barrel_1", Vector2(325, 360), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "P3Barrel_2", Vector2(475, 340), BARREL, Vector2(0, -6), true)
 	_add_prop(root, "P3Crate_0", Vector2(470, 260), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "P3Crate_1", Vector2(325, 200), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "P3Crate_2", Vector2(480, 450), CRATE, Vector2(0, -6), true)
 	_add_prop(root, "P3CrateL_0", Vector2(470, 400), CRATE_L, Vector2(0, -6), true)
+	_add_prop(root, "P3CrateL_1", Vector2(320, 440), CRATE_L, Vector2(0, -6), true)
 	_add_prop(root, "P3Well_0", Vector2(520, 180), WELL, Vector2(0, -12), true)
+	_add_prop(root, "P3Well_1", Vector2(280, 500), WELL, Vector2(0, -12), true)
 
-	for i in 4:
-		var y := 140.0 + float(i) * 110.0
+	for i in 6:
+		var y := 120.0 + float(i) * 80.0
 		_add_prop(root, "P3LanternL_%d" % i, Vector2(300, y), LANTERN, Vector2(0, -18), true)
 		_add_prop(root, "P3LanternR_%d" % i, Vector2(500, y), LANTERN, Vector2(0, -18), true)
+
+	# Postes extras nas curvas / ombros (centro da estrada livre ~x400)
+	_add_prop(root, "P3FencePost_MidL", Vector2(310, 320), FENCE_POST, Vector2(0, -8), true)
+	_add_prop(root, "P3FencePost_MidR", Vector2(490, 320), FENCE_POST, Vector2(0, -8), true)
+	_add_prop(root, "P3Sign_Camp", Vector2(350, 300), SIGN, Vector2(0, -18), true)
 
 
 func _layout_floresta(root: Node2D) -> void:
@@ -82,12 +93,19 @@ func _layout_floresta(root: Node2D) -> void:
 		_add_prop(root, "P3FFenceR_%d" % i, Vector2(600, y), FENCE, Vector2(0, -8), true)
 
 	_add_prop(root, "P3FBarrel_0", Vector2(240, 220), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "P3FBarrel_1", Vector2(250, 380), BARREL, Vector2(0, -6), true)
+	_add_prop(root, "P3FBarrel_2", Vector2(550, 360), BARREL, Vector2(0, -6), true)
 	_add_prop(root, "P3FCrate_0", Vector2(560, 240), CRATE, Vector2(0, -6), true)
 	_add_prop(root, "P3FCrate_1", Vector2(560, 280), CRATE_L, Vector2(0, -6), true)
+	_add_prop(root, "P3FCrate_2", Vector2(240, 260), CRATE, Vector2(0, -6), true)
+	_add_prop(root, "P3FCrate_3", Vector2(230, 450), CRATE_L, Vector2(0, -6), true)
 	_add_prop(root, "P3FLantern_0", Vector2(320, 160), LANTERN, Vector2(0, -18), true)
 	_add_prop(root, "P3FLantern_1", Vector2(480, 160), LANTERN, Vector2(0, -18), true)
 	_add_prop(root, "P3FLantern_2", Vector2(320, 480), LANTERN, Vector2(0, -18), true)
 	_add_prop(root, "P3FLantern_3", Vector2(480, 480), LANTERN, Vector2(0, -18), true)
+	_add_prop(root, "P3FLantern_4", Vector2(360, 300), LANTERN, Vector2(0, -18), true)
+	_add_prop(root, "P3FLantern_5", Vector2(440, 300), LANTERN, Vector2(0, -18), true)
+	_add_prop(root, "P3FSign_Clareira", Vector2(360, 280), SIGN, Vector2(0, -18), true)
 
 
 func _add_prop(parent: Node2D, nome: String, pos: Vector2, tex_path: String, spr_off: Vector2, collide: bool) -> void:
