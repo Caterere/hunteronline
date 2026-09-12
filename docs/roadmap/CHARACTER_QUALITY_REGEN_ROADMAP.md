@@ -4,10 +4,17 @@
 > `assets/reference/cast_quality_pack/south_refs/` (fidelidade às refs do diretor)
 > via `scripts/tools/pixellab_regen_cast_from_quality_refs.py` (idle/walk/hit).
 > Corpo ~64px no frame 96×96.
+>
+> **Audit overnight (chibi):** o plano original continua **chibi ~2.5 cabeças**.
+> Cast priority (Gon/Killua/Kurapika/Leorio/Hisoka/Biscuit/Chrollo/Netero) já está
+> em **96×96**. O **player** (`assets/sprites/characters/player.png` = 288×480 →
+> frames **48×48**) ainda é **legado** — regenerar no Style Lock v2 é **P0 de arte**.
+> Não escalar 2× em runtime: quebra `AnimationPlayer` (position tracks).
+> Bloqueio atual: sem `PIXELLAB_API_KEY` no ambiente Cloud.
 
 
 > **Objetivo:** regenerar **todos** os personagens com Style Lock v2 (frame **96×96**,
-> corpo **~40–44 px**, chibi uniforme) via PixelLab MCP, para ficarem reconhecíveis.
+> corpo **~40–44 px** / Quality Pack ~60–68 px, chibi uniforme) via PixelLab MCP.
 > **SSOT de métricas:** [`../bibles/PIXEL_ART_STYLE_BIBLE.md`](../bibles/PIXEL_ART_STYLE_BIBLE.md)
 > **Script:** `scripts/tools/pixellab_regen_cast_v96_stylelock.py`
 
@@ -28,7 +35,7 @@
 
 | Saga | Foco | Status |
 | :--- | :--- | :--- |
-| **S0** | Âncora + hub (Elena, Wing, Satotz; player sheet TBD) | `DONE` (hub NPCs) |
+| **S0** | Âncora + hub (Elena, Wing, Satotz; **player sheet ainda 48px**) | `PARTIAL` (hub NPCs OK; **player P0**) |
 | **S1** | Main four (Gon, Killua, Kurapika, Leorio) + Hisoka + Netero + Chrollo | `DONE` |
 | **S2** | Hunter Exam secundários (Tonpa, Hanzo, Pokkle, Ponzu, Menchi, Buhara, Illumi, Bodorro, Nicol…) | `PENDING` |
 | **S3** | Zoldyck (Canary, Gotoh, Silva, mordomos ambient) | `PENDING` |

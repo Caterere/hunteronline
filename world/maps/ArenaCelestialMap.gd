@@ -24,6 +24,7 @@ var _marcos_notificados: Dictionary = {
 
 func _ready() -> void:
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ARENA)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.ARENA)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco3()
 	_garantir_objeto_teste_agua()
