@@ -3,30 +3,6 @@
   "created_at": 1789176501.2385452,
   "characters": [
     {
-      "ref": "biscuit",
-      "stem": "npc_biscuit",
-      "ok": true,
-      "character_id": "fd7a0372-9d22-4fdc-ac19-6f00b5aeca3a",
-      "anims": {},
-      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_biscuit_south_fitted.png"
-    },
-    {
-      "ref": "chrollo",
-      "stem": "npc_chrollo",
-      "ok": true,
-      "character_id": "9c9d014a-0b7b-4d12-a9a6-ef31fa7eeddd",
-      "anims": {},
-      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_chrollo_south_fitted.png"
-    },
-    {
-      "ref": "netero",
-      "stem": "npc_netero",
-      "ok": true,
-      "character_id": "6675e9ac-cd5d-4d76-88e6-d463a14769c3",
-      "anims": {},
-      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_netero_south_fitted.png"
-    },
-    {
       "ref": "gon",
       "stem": "npc_gon",
       "ok": true,
@@ -80,6 +56,42 @@
       "ok": true,
       "character_id": "d6377693-2437-448b-8da9-3dd73eb210ca",
       "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_hisoka_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "biscuit",
+      "stem": "npc_biscuit",
+      "ok": true,
+      "character_id": "fd7a0372-9d22-4fdc-ac19-6f00b5aeca3a",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_biscuit_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "chrollo",
+      "stem": "npc_chrollo",
+      "ok": true,
+      "character_id": "9c9d014a-0b7b-4d12-a9a6-ef31fa7eeddd",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_chrollo_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "netero",
+      "stem": "npc_netero",
+      "ok": true,
+      "character_id": "6675e9ac-cd5d-4d76-88e6-d463a14769c3",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_netero_south_fitted.png",
       "anims": {
         "idle_8xN": true,
         "walk_8xN": true,
