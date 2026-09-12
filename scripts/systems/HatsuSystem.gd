@@ -772,7 +772,7 @@ func _executar_por_objetivo(hatsu: HatsuData, eficiencia: float) -> void:
 			_executar_dano_categorizado(hatsu, eficiencia)
 
 
-func _executar_absorcao_ativa(hatsu: HatsuData, _eficiencia: float) -> void:
+func _executar_absorcao_ativa(hatsu: HatsuData, eficiencia: float) -> void:
 	if owner_body == null: return
 	var enemies = get_tree().get_nodes_in_group("enemies") if get_tree() else []
 	var menor_dist: float = 90.0
@@ -794,7 +794,7 @@ func _executar_absorcao_ativa(hatsu: HatsuData, _eficiencia: float) -> void:
 			e_info["is_boss"] = es.enemy_data.is_boss
 			e_info["name"] = es.enemy_data.enemy_name
 
-	var res = HatsuManager.execute_absorption_devour(hatsu, e_info)
+	var res = HatsuManager.execute_absorption_devour(hatsu, e_info, {"nen_efficiency": clampf(eficiencia, 0.4, 1.0)})
 	if combat_system != null:
 		combat_system._mostrar_texto_flutuante(res.get("mensagem", "Absorção executada!"), Color(0.85, 0.3, 1.0))
 
@@ -1223,7 +1223,7 @@ func _executar_cura(hatsu: HatsuData, eficiencia: float) -> void:
 # EXECUTOR DE MOBILIDADE (DASH SUPERSÔNICO & SHUNPO)
 # ============================================================
 
-func _executar_mobilidade(hatsu: HatsuData, _eficiencia: float) -> void:
+func _executar_mobilidade(hatsu: HatsuData, eficiencia: float) -> void:
 	if owner_body == null:
 		return
 
@@ -1233,20 +1233,21 @@ func _executar_mobilidade(hatsu: HatsuData, _eficiencia: float) -> void:
 	elif owner_body.velocity != Vector2.ZERO:
 		direcao = owner_body.velocity.normalized()
 
-	# Conceder I-frames e avanço veloz
+	var ef: float = clampf(eficiencia, 0.4, 1.0)
+	# Conceder I-frames e avanço veloz (alcance/velocidade escalam com afinidade HxH)
 	if combat_system != null:
 		combat_system.invulneravel = true
-		combat_system._mostrar_texto_flutuante("⚡ AVANÇO DE AURA!", hatsu.cor_aura)
+		combat_system._mostrar_texto_flutuante("⚡ AVANÇO DE AURA! (%d%%)" % int(ef * 100.0), hatsu.cor_aura)
 		var t := owner_body.get_tree().create_timer(0.35)
 		t.timeout.connect(func():
 			if combat_system != null and not combat_system.esquivando:
 				combat_system.invulneravel = false
 		)
 
-	var dist: float = hatsu.alcance
-	var vel: float = 480.0
+	var dist: float = hatsu.alcance * ef
+	var vel: float = 480.0 * lerpf(0.65, 1.0, ef)
 	var tween := owner_body.create_tween()
-	tween.tween_property(owner_body, "global_position", owner_body.global_position + (direcao * dist), dist / vel)
+	tween.tween_property(owner_body, "global_position", owner_body.global_position + (direcao * dist), dist / maxf(vel, 1.0))
 
 
 # ============================================================

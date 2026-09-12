@@ -8,16 +8,17 @@ extends CanvasLayer
 # Interface de criação de Hatsu com sistema modular de Vow & Limitation.
 # Ajustada estritamente para viewport 320x180 (Painel 304x168 centralizado).
 #
-# FLUXO EM 9 ETAPAS COM EQUILÍBRIO DE LIMITAÇÃO:
+# FLUXO EM 10 ETAPAS COM EQUILÍBRIO DE LIMITAÇÃO:
 # 1. Tipo de Nen (Reforço, Emissão, Transmutação, Conjuração, Manipulação, Especialização, Outro / Especial)
-# 2. Conceito / Preset (Biblioteca com 15 Conceitos Temáticos ou Criar do Zero)
+# 2. Conceito / Preset (Biblioteca com 30+ Conceitos Temáticos ou Criar do Zero)
 # 3. Nome & Identidade Visual
 # 4. Efeito Principal & Funcionamento (Parâmetros específicos do conceito)
 # 5. Efeitos Secundários & Modificadores
-# 6. Condições de Ativação & Cadeia de Preparação (Preparation Chain)
-# 7. Juramentos & Restrições (Vows & Limitations + IA de Nen)
-# 8. Custos, Alcance & Consumo
-# 9. Resumo, Auditoria de Créditos & Forjar Hatsu
+# 6. Nível de Força (slider livre — demanda de créditos sobe com o poder)
+# 7. Condições de Ativação & Cadeia de Preparação (Preparation Chain)
+# 8. Juramentos & Restrições (Vows & Limitations + IA de Nen)
+# 9. Custos, Alcance & Consumo
+# 10. Resumo, Auditoria de Créditos & Forjar Hatsu
 #
 # ============================================================
 
@@ -25,15 +26,16 @@ signal hatsu_criado(hatsu: HatsuData)
 signal menu_fechado
 
 enum Etapa {
-	TIPO_NEN,            # 1/9
-	CONCEITO,            # 2/9
-	NOME,                # 3/9
-	FUNCIONAMENTO,       # 4/9
-	EFEITOS_SECUNDARIOS, # 5/9
-	CONDICOES,           # 6/9
-	RESTRICOES,          # 7/9
-	CUSTOS,              # 8/9
-	RESUMO               # 9/9
+	TIPO_NEN,            # 1/10
+	CONCEITO,            # 2/10
+	NOME,                # 3/10
+	FUNCIONAMENTO,       # 4/10
+	EFEITOS_SECUNDARIOS, # 5/10
+	PODER,               # 6/10 — força livre ANTES de juramentos/condições
+	CONDICOES,           # 7/10
+	RESTRICOES,          # 8/10
+	CUSTOS,              # 9/10
+	RESUMO               # 10/10
 }
 
 var etapa_atual: Etapa = Etapa.TIPO_NEN
@@ -60,6 +62,8 @@ var sel_estilo_visual: HatsuData.EstiloVisual = HatsuData.EstiloVisual.PURO_PULS
 var custom_vow_input: String = ""
 var sel_opcoes_preset: Dictionary = {}
 var sel_opcoes_preset_escolhidas: Dictionary = {}
+var sel_custom_damage: float = 40.0 ## força escolhida no slider (antes dos votos)
+var sel_power_tier_label: String = "Médio"
 
 # Parâmetros Especializados de Storage & Roubo de Hatsu
 var sel_is_storage_hatsu: bool = false
@@ -160,10 +164,16 @@ func fechar() -> void:
 	menu_fechado.emit()
 
 
-func _ir_para_etapa(nova_etapa: Etapa) -> void:
-	if etapa_atual == Etapa.NOME and line_edit_nome != null and not line_edit_nome.text.is_empty():
-		sel_nome = line_edit_nome.text
-	etapa_atual = nova_etapa
+func _ir_para_etapa(alvo: Etapa) -> void:
+	# Persistir nome ao sair da etapa (tabs / Voltar / Avançar)
+	if etapa_atual == Etapa.NOME and line_edit_nome != null and is_instance_valid(line_edit_nome):
+		var txt := line_edit_nome.text.strip_edges()
+		if not txt.is_empty():
+			sel_nome = txt
+	# Livre para voltar; avançar só até a próxima (evita pular votos sem ver a força)
+	if int(alvo) > int(etapa_atual) + 1:
+		alvo = (int(etapa_atual) + 1) as Etapa
+	etapa_atual = alvo
 	_atualizar_etapa()
 
 
@@ -295,7 +305,7 @@ func _construir_barra_abas() -> void:
 	hbox_tabs.add_theme_constant_override("separation", 1)
 	vbox_content.add_child(hbox_tabs)
 
-	var nomes_abas = ["1.Tipo", "2.Conceito", "3.Nome", "4.Função", "5.Efeitos", "6.Cond.", "7.Votos", "8.Custos", "9.Resumo"]
+	var nomes_abas = ["1.Tipo", "2.Conceito", "3.Nome", "4.Função", "5.Efeitos", "6.Força", "7.Cond.", "8.Votos", "9.Custos", "10.Resumo"]
 	tab_buttons.clear()
 
 	for i in range(nomes_abas.size()):
@@ -397,47 +407,52 @@ func _atualizar_etapa() -> void:
 
 	match etapa_atual:
 		Etapa.TIPO_NEN:
-			lbl_titulo.text = "1/9: Tipo de Hatsu"
+			lbl_titulo.text = "1/10: Tipo de Hatsu"
 			lbl_desc.text = "Escolha sua afinidade de Nen ou acesse o catálogo especial:"
 			_montar_etapa_tipo_nen()
 
 		Etapa.CONCEITO:
-			lbl_titulo.text = "2/9: Conceito Principal / Preset"
+			lbl_titulo.text = "2/10: Conceito Principal / Preset"
 			lbl_desc.text = "Defina O QUE seu Hatsu fará logo no início da criação:"
 			_montar_etapa_conceito()
 
 		Etapa.NOME:
-			lbl_titulo.text = "3/9: Nome & Identidade Visual"
+			lbl_titulo.text = "3/10: Nome & Identidade Visual"
 			lbl_desc.text = "Como se chamará sua técnica especial de Hatsu?"
 			_montar_etapa_nome()
 
 		Etapa.FUNCIONAMENTO:
-			lbl_titulo.text = "4/9: Efeito Principal & Funcionamento"
+			lbl_titulo.text = "4/10: Efeito Principal & Funcionamento"
 			lbl_desc.text = "Configure objetivo, alvo, forma e parâmetros do conceito:"
 			_montar_etapa_funcionamento()
 
 		Etapa.EFEITOS_SECUNDARIOS:
-			lbl_titulo.text = "5/9: Efeitos Secundários & Modificadores"
+			lbl_titulo.text = "5/10: Efeitos Secundários & Modificadores"
 			lbl_desc.text = "Adicione propriedades táticas acopláveis ao Hatsu:"
 			_montar_etapa_efeitos_secundarios()
 
+		Etapa.PODER:
+			lbl_titulo.text = "6/10: Nível de Força (livre)"
+			lbl_desc.text = "Arraste a barra: poder alto é permitido — mas exige mais condições/juramentos depois."
+			_montar_etapa_poder()
+
 		Etapa.CONDICOES:
-			lbl_titulo.text = "6/9: Condições Táticas & Preparação"
-			lbl_desc.text = "Pague pelo poder com condições de ativação e passos prévios:"
+			lbl_titulo.text = "7/10: Condições Táticas & Preparação"
+			lbl_desc.text = "Pague a demanda de créditos com condições de ativação e passos prévios:"
 			_montar_etapa_condicoes()
 
 		Etapa.RESTRICOES:
-			lbl_titulo.text = "7/9: Juramentos & Restrições (Vows)"
-			lbl_desc.text = "Pactos rígidos, limitações de combate e avaliação de Nen:"
+			lbl_titulo.text = "8/10: Juramentos & Restrições (Vows)"
+			lbl_desc.text = "Pactos rígidos: quanto maior a força, mais pesado o preço."
 			_montar_etapa_restricoes()
 
 		Etapa.CUSTOS:
-			lbl_titulo.text = "8/9: Custos, Alcance & Consumo"
+			lbl_titulo.text = "9/10: Custos, Alcance & Consumo"
 			lbl_desc.text = "Calibre consumo de aura, alcance e ritmo do Hatsu:"
 			_montar_etapa_custos()
 
 		Etapa.RESUMO:
-			lbl_titulo.text = "9/9: Resumo & Auditoria de Créditos"
+			lbl_titulo.text = "10/10: Resumo & Auditoria de Créditos"
 			lbl_desc.text = "Confira o balanço entre poder funcional e limitações:"
 			btn_proximo.text = "⚡ FORJAR HATSU!"
 			_montar_etapa_resumo()
@@ -483,22 +498,52 @@ func _montar_etapa_tipo_nen() -> void:
 # ============================================================
 
 func _montar_etapa_conceito() -> void:
-	var presets: Array[Dictionary] = []
-	if sel_tipo_especial:
-		presets = HatsuPresetLibrary.obter_presets_especiais()
-		presets.append(HatsuPresetLibrary.obter_preset(HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO))
-	else:
-		presets = HatsuPresetLibrary.obter_presets_por_categoria(sel_categoria)
-		presets.append(HatsuPresetLibrary.obter_preset(HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO))
+	var aff_natal: int = int(PlayerData.afinidade_nen)
+	var lbl_intro := Label.new()
+	lbl_intro.add_theme_font_size_override("font_size", 4)
+	lbl_intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_intro.add_theme_color_override("font_color", Color(0.55, 0.9, 1.0, 1.0))
+	lbl_intro.text = "Catálogo livre: escolha qualquer conceito. A %s natal só muda a eficiência em combate (hexágono HxH) — não trava o poder máximo." % NenAffinityData.obter_nome_afinidade(aff_natal)
+	container_opcoes.add_child(lbl_intro)
 
+	var recomendados: Array[Dictionary] = []
+	var outros: Array[Dictionary] = []
+	if sel_tipo_especial:
+		recomendados = HatsuPresetLibrary.obter_presets_especiais()
+	else:
+		recomendados = HatsuPresetLibrary.obter_presets_por_categoria(sel_categoria)
+		outros = HatsuPresetLibrary.obter_presets_exceto_categoria(sel_categoria)
+
+	var lbl_rec := Label.new()
+	lbl_rec.add_theme_font_size_override("font_size", 4)
+	lbl_rec.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1.0))
+	lbl_rec.text = "★ Recomendados para o tipo escolhido:"
+	container_opcoes.add_child(lbl_rec)
+	_adicionar_botoes_preset(recomendados, aff_natal)
+
+	if not outros.is_empty():
+		var lbl_out := Label.new()
+		lbl_out.add_theme_font_size_override("font_size", 4)
+		lbl_out.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4, 1.0))
+		lbl_out.text = "✧ Inspiração ampla (outras categorias — eficiência pode cair):"
+		container_opcoes.add_child(lbl_out)
+		_adicionar_botoes_preset(outros, aff_natal)
+
+	_adicionar_botoes_preset([HatsuPresetLibrary.obter_preset(HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO)], aff_natal)
+
+
+func _adicionar_botoes_preset(presets: Array, aff_natal: int) -> void:
 	for p in presets:
+		var cat: HatsuData.Categoria = p["categoria"] as HatsuData.Categoria
+		var ef: float = NenAffinityData.calcular_eficiencia_categoria(aff_natal as NenAffinityData.CategoriaAfinidade, cat)
 		var btn := Button.new()
-		btn.text = p["nome"] + "\n  " + p["desc"]
+		btn.text = "%s [%d%%]\n  %s" % [p["nome"], int(ef * 100.0), p["desc"]]
 		btn.add_theme_font_size_override("font_size", 4)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		if p["id"] == sel_preset_id:
 			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
-
+		elif ef < 0.7:
+			btn.modulate = Color(1.0, 0.85, 0.65, 1.0)
 		btn.pressed.connect(func():
 			_aplicar_preset(p)
 			_on_avancar_pressed()
@@ -522,7 +567,7 @@ func _aplicar_preset(preset: Dictionary) -> void:
 		custom_vow_input = ""
 		return
 
-	sel_nome = preset["nome"].replace("🗡️ ", "").replace("🩸 ", "").replace("📖 ", "").replace("🪞 ", "").replace("📦 ", "").replace("🌀 ", "").replace("⛓️ ", "").replace("🤝 ", "").replace("📉 ", "").replace("⚡ ", "").replace("📐 ", "").replace("🎲 ", "").replace("🧪 ", "").replace("🌱 ", "")
+	sel_nome = str(preset.get("titulo_conceito", preset["nome"]))
 	sel_categoria = preset["categoria"]
 	sel_arquetipo = preset["arquetipo"]
 	sel_objetivo = preset["objetivo"]
@@ -886,7 +931,85 @@ func _montar_etapa_efeitos_secundarios() -> void:
 
 
 # ============================================================
-# ETAPA 6: CONDIÇÕES DE ATIVAÇÃO & PREPARAÇÃO
+# ETAPA 7: CONDIÇÕES DE ATIVAÇÃO & PREPARAÇÃO
+
+# ============================================================
+# ETAPA 6: NÍVEL DE FORÇA (SLIDER LIVRE)
+# ============================================================
+
+func _montar_etapa_poder() -> void:
+	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
+	var lbl_aff := Label.new()
+	lbl_aff.add_theme_font_size_override("font_size", 4)
+	lbl_aff.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var aff_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+	lbl_aff.text = "Afinidade natal: %s → eficiência neste Hatsu: %d%%.\nFora do tipo natal o efeito real cai (guia HxH). A força pedida ainda exige créditos." % [aff_nome, int(ef * 100.0)]
+	lbl_aff.add_theme_color_override("font_color", Color(0.55, 0.9, 1.0, 1.0))
+	container_opcoes.add_child(lbl_aff)
+
+	var lbl_val := Label.new()
+	lbl_val.name = "LblPowerValue"
+	lbl_val.add_theme_font_size_override("font_size", 5)
+	lbl_val.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	container_opcoes.add_child(lbl_val)
+
+	var slider := HSlider.new()
+	slider.min_value = 15.0
+	slider.max_value = 250.0
+	slider.step = 1.0
+	slider.value = clampf(sel_custom_damage, 15.0, 250.0)
+	slider.custom_minimum_size = Vector2(200, 14)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	container_opcoes.add_child(slider)
+
+	var lbl_tiers := Label.new()
+	lbl_tiers.add_theme_font_size_override("font_size", 3)
+	lbl_tiers.text = "15 Fraco · 40 Médio · 80 Forte · 140 Absurdo · 200+ Lendário (pagável só com votos pesados)"
+	lbl_tiers.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_tiers.add_theme_color_override("font_color", Color(0.85, 0.8, 0.55, 1.0))
+	container_opcoes.add_child(lbl_tiers)
+
+	var lbl_hint := Label.new()
+	lbl_hint.add_theme_font_size_override("font_size", 4)
+	lbl_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_hint.add_theme_color_override("font_color", Color(1.0, 0.75, 0.4, 1.0))
+	container_opcoes.add_child(lbl_hint)
+
+	var atualizar := func(v: float) -> void:
+		sel_custom_damage = v
+		if v < 30.0:
+			sel_power_tier_label = "Fraco"
+		elif v < 60.0:
+			sel_power_tier_label = "Médio"
+		elif v < 110.0:
+			sel_power_tier_label = "Forte"
+		elif v < 170.0:
+			sel_power_tier_label = "Absurdo"
+		else:
+			sel_power_tier_label = "Lendário"
+		var efetivo := int(v * ef)
+		lbl_val.text = "Força desejada: %d  (%s)  |  Efetivo c/ afinidade: ~%d" % [int(v), sel_power_tier_label, efetivo]
+		lbl_hint.text = "Nada é trancado por tipo: você pode mirar o topo. Nas próximas etapas pague a Demanda com condições/juramentos. Use < Voltar para recalibrar."
+		_atualizar_gauge()
+
+	slider.value_changed.connect(atualizar)
+	atualizar.call(slider.value)
+
+	# Atalhos rápidos
+	var hbox := HBoxContainer.new()
+	hbox.add_theme_constant_override("separation", 2)
+	container_opcoes.add_child(hbox)
+	for preset in [{"n": "40", "v": 40.0}, {"n": "80", "v": 80.0}, {"n": "140", "v": 140.0}, {"n": "220", "v": 220.0}]:
+		var b := Button.new()
+		b.text = preset["n"]
+		b.add_theme_font_size_override("font_size", 4)
+		var pv: float = float(preset["v"])
+		b.pressed.connect(func():
+			slider.value = pv
+		)
+		hbox.add_child(b)
+
+
 # ============================================================
 
 func _montar_etapa_condicoes() -> void:
@@ -972,7 +1095,7 @@ func _montar_etapa_condicoes() -> void:
 
 
 # ============================================================
-# ETAPA 7: JURAMENTOS & RESTRIÇÕES (VOWS)
+# ETAPA 8: JURAMENTOS & RESTRIÇÕES (VOWS)
 # ============================================================
 
 func _montar_etapa_restricoes() -> void:
@@ -1066,7 +1189,7 @@ func _montar_etapa_restricoes() -> void:
 
 
 # ============================================================
-# ETAPA 8: CUSTOS & ALCANCE
+# ETAPA 9: CUSTOS & ALCANCE
 # ============================================================
 
 func _montar_etapa_custos() -> void:
@@ -1119,7 +1242,7 @@ func _montar_etapa_custos() -> void:
 
 
 # ============================================================
-# ETAPA 9: RESUMO, AUDITORIA DE CRÉDITOS & CRIAÇÃO
+# ETAPA 10: RESUMO, AUDITORIA DE CRÉDITOS & CRIAÇÃO
 # ============================================================
 
 func _montar_etapa_resumo() -> void:
@@ -1129,7 +1252,8 @@ func _montar_etapa_resumo() -> void:
 		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
 		sel_preparation_steps, sel_efeitos_secundarios,
 		sel_restricoes, sel_opcoes_preset_escolhidas,
-		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target,
+		sel_custom_damage
 	)
 	var ef: float = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, sel_categoria)
 	var f_power := h_temp.calcular_functional_power()
@@ -1208,7 +1332,8 @@ func _atualizar_gauge() -> void:
 		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
 		sel_preparation_steps, sel_efeitos_secundarios,
 		sel_restricoes, sel_opcoes_preset_escolhidas,
-		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target,
+		sel_custom_damage
 	)
 
 	var f_power: int = int(h_temp.calcular_functional_power())
@@ -1224,7 +1349,7 @@ func _atualizar_gauge() -> void:
 
 	if equilibrado:
 		lbl_dica_dinamica.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1.0))
-		lbl_dica_dinamica.text = "✅ TÉCNICA 100%% EQUILIBRADA\nNecessários: %d cr | Pagos: %d cr\nDéficit: 0 cr\nPronto para forjar!" % [f_power, l_credits]
+		lbl_dica_dinamica.text = "✅ TÉCNICA 100%% EQUILIBRADA\nNecessários: %d cr | Pagos: %d cr\nForça pedida: %d (efetivo ~%d c/ afinidade %d%%)\nPronto para forjar!" % [f_power, l_credits, int(sel_custom_damage), int(sel_custom_damage * ef), compat_pct]
 	else:
 		lbl_dica_dinamica.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
 		lbl_dica_dinamica.text = "⚠️ DÉFICIT DE %d CRÉDITOS:\nNecessários: %d cr | Pagos: %d cr\nAdicione condições, restrições ou passos de preparação!" % [deficit, f_power, l_credits]
@@ -1262,7 +1387,8 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 		sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
 		sel_preparation_steps, sel_efeitos_secundarios,
 		sel_restricoes, sel_opcoes_preset_escolhidas,
-		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
+		sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target,
+		sel_custom_damage
 	)
 
 	novo_hatsu.is_custom_created = true
