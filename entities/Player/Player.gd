@@ -167,6 +167,8 @@ func _garantir_indicador_desmaio() -> void:
 
 
 func _aplicar_customizacao_visual() -> void:
+	# NOTA CHIBI: player.png ainda é 48×48 (legado). NPCs quality-pack são 96×96 (~64px corpo).
+	# Regenerar player no Style Lock v2 é P0 de arte — escala 2× quebra AnimationPlayer (position tracks).
 	var sprite := get_node_or_null("Sprite2D") as Sprite2D
 	if sprite != null and PlayerData.character_colors.has("roupa"):
 		var shader := load("res://assets/shaders/character_color_customizer.gdshader") as Shader

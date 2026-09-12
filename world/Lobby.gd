@@ -860,6 +860,7 @@ func _densificar_lobby_pixel_art() -> void:
 	root.y_sort_enabled = true
 	add_child(root)
 
+	# Densidade estilo MMORPG 2D: bordas de praça/distritos, sem bloquear spawn (~0,0) nem portais.
 	var placements: Array = [
 		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(-180, 40), "name": "TendaDecorA"},
 		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(200, 90), "name": "TendaDecorB"},
@@ -874,6 +875,40 @@ func _densificar_lobby_pixel_art() -> void:
 		{"tex": "res://assets/sprites/objects/lobby_cottage_decor.png", "pos": Vector2(1240, 60), "name": "CasinhaDecorLesteB"},
 		{"tex": "res://assets/sprites/objects/lobby_tent_decor.png", "pos": Vector2(1050, -120), "name": "TendaDecorLeste"},
 		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(1000, 20), "name": "BarracaDecorLeste"},
+		# Distrito comercial (oeste) — caixas/barris/placas
+		{"tex": "res://assets/sprites/objects/phase3_crate.png", "pos": Vector2(-360, 90), "name": "CaixaComercialA", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_crate_large.png", "pos": Vector2(-390, 115), "name": "CaixaComercialB", "foot": Vector2(18, 10)},
+		{"tex": "res://assets/sprites/objects/phase3_barrel.png", "pos": Vector2(-330, 140), "name": "BarrilComercialA", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_barrel.png", "pos": Vector2(-300, 95), "name": "BarrilComercialB", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_signpost.png", "pos": Vector2(-210, 70), "name": "PlacaComercial", "foot": Vector2(10, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(-280, 50), "name": "LanternaComercial", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_well.png", "pos": Vector2(-150, 175), "name": "PocoPraca", "foot": Vector2(22, 12)},
+		# Distrito mestres (norte) — vegetação
+		{"tex": "res://assets/sprites/objects/phase2_tree_green_a.png", "pos": Vector2(-120, -240), "name": "ArvoreMestresA", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_tree_green_b.png", "pos": Vector2(80, -260), "name": "ArvoreMestresB", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_tree_autumn_a.png", "pos": Vector2(200, -220), "name": "ArvoreMestresC", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_stump.png", "pos": Vector2(-40, -200), "name": "TocoMestres", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_bush_berry.png", "pos": Vector2(40, -180), "name": "ArbustoMestresA", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_bush_round.png", "pos": Vector2(160, -190), "name": "ArbustoMestresB", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(0, -170), "name": "LanternaMestres", "foot": Vector2(8, 8)},
+		# Beiras da praça / caminhos
+		{"tex": "res://assets/sprites/objects/phase2_flowers_white.png", "pos": Vector2(-70, 85), "name": "FlorPracaA", "foot": Vector2(8, 6)},
+		{"tex": "res://assets/sprites/objects/phase2_flowers_white.png", "pos": Vector2(75, 70), "name": "FlorPracaB", "foot": Vector2(8, 6)},
+		{"tex": "res://assets/sprites/objects/phase2_rock_cluster.png", "pos": Vector2(240, 40), "name": "PedrasPraca", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/phase2_rock_boulder.png", "pos": Vector2(-260, -40), "name": "PedraGrandeOeste", "foot": Vector2(18, 10)},
+		{"tex": "res://assets/sprites/objects/phase3_fence_wood.png", "pos": Vector2(320, 120), "name": "CercaSulA", "foot": Vector2(20, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_fence_wood_post.png", "pos": Vector2(350, 120), "name": "CercaSulPoste", "foot": Vector2(8, 8)},
+		# Portão sul → Estrada (handoff visual)
+		{"tex": "res://assets/sprites/objects/phase3_signpost.png", "pos": Vector2(-40, 280), "name": "PlacaPortaoSul", "foot": Vector2(10, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(-70, 300), "name": "LanternaPortaoL", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_lantern_post.png", "pos": Vector2(70, 300), "name": "LanternaPortaoR", "foot": Vector2(8, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_crate.png", "pos": Vector2(95, 270), "name": "CaixaPortao", "foot": Vector2(14, 8)},
+		{"tex": "res://assets/sprites/objects/lobby_stall_decor.png", "pos": Vector2(-140, 250), "name": "BarracaPortao"},
+		# Leste / residencial fill
+		{"tex": "res://assets/sprites/objects/phase2_tree_green_a.png", "pos": Vector2(1180, -160), "name": "ArvoreLesteA", "foot": Vector2(16, 10)},
+		{"tex": "res://assets/sprites/objects/phase2_bush_berry.png", "pos": Vector2(1080, 80), "name": "ArbustoLeste", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_barrel.png", "pos": Vector2(1020, -40), "name": "BarrilLeste", "foot": Vector2(12, 8)},
+		{"tex": "res://assets/sprites/objects/phase3_fence_wood.png", "pos": Vector2(960, 100), "name": "CercaLeste", "foot": Vector2(20, 8)},
 	]
 
 
@@ -884,6 +919,8 @@ func _densificar_lobby_pixel_art() -> void:
 			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(-200, -200), "name": "ArbustoFlorC"},
 			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(350, 80), "name": "ArbustoFlorD"},
 			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(1120, 30), "name": "ArbustoFlorLeste"},
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(-100, 260), "name": "ArbustoFlorPortao"},
+			{"tex": "res://assets/sprites/objects/lobby_bush_flowers_decor.png", "pos": Vector2(120, 255), "name": "ArbustoFlorPortaoB"},
 		])
 
 	for p in placements:
@@ -896,12 +933,14 @@ func _densificar_lobby_pixel_art() -> void:
 		var spr := Sprite2D.new()
 		spr.texture = load(p["tex"])
 		spr.centered = true
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		spr.position = Vector2(0, -8)
 		body.add_child(spr)
 		# Colisão leve só nos pés (decoração sem entrar)
 		var col := CollisionShape2D.new()
 		var rect := RectangleShape2D.new()
-		rect.size = Vector2(20, 10)
+		var foot: Vector2 = p.get("foot", Vector2(20, 10))
+		rect.size = foot
 		col.shape = rect
 		col.position = Vector2(0, 4)
 		body.add_child(col)
