@@ -1,0 +1,84 @@
+# CHARACTER QUALITY REGEN — Hunter Online
+
+> **Objetivo:** regenerar **todos** os personagens com Style Lock v2 (frame **96×96**,
+> corpo **~40–44 px**, chibi uniforme) via PixelLab MCP, para ficarem reconhecíveis.
+> **SSOT de métricas:** [`../bibles/PIXEL_ART_STYLE_BIBLE.md`](../bibles/PIXEL_ART_STYLE_BIBLE.md)
+> **Script:** `scripts/tools/pixellab_regen_cast_v96_stylelock.py`
+
+---
+
+## Regras de produção
+
+1. **Cast principal primeiro**, depois saga a saga (não misturar batches).
+2. Manter **mesmo tamanho chibi** entre todos (só silhueta/outfit muda).
+3. Backup do legado 48px em `assets/sprites/characters/_archive_48px/` antes de sobrescrever.
+4. Registrar IDs PixelLab em [`../systems/ASSET_REGISTRY.md`](../systems/ASSET_REGISTRY.md).
+5. Validar com `tools/validate_sprite_style.gd` após cada batch.
+6. Mundo/tiles **não** entram neste roteiro (só characters/NPCs/enemies humanoides).
+
+---
+
+## Status por saga
+
+| Saga | Foco | Status |
+| :--- | :--- | :--- |
+| **S0** | Âncora + hub (Elena, Wing, Satotz; player sheet TBD) | `DONE` (hub NPCs) |
+| **S1** | Main four (Gon, Killua, Kurapika, Leorio) + Hisoka + Netero + Chrollo | `DONE` |
+| **S2** | Hunter Exam secundários (Tonpa, Hanzo, Pokkle, Ponzu, Menchi, Buhara, Illumi, Bodorro, Nicol…) | `PENDING` |
+| **S3** | Zoldyck (Canary, Gotoh, Silva, mordomos ambient) | `PENDING` |
+| **S4** | Heaven’s Arena (Zushi, lutadores ambient) | `PENDING` |
+| **S5** | Yorknew (Chrollo, Melody, Battera, Tsezguerra, mafiosos) | `PENDING` |
+| **S6** | Greed Island (Biscuit, Razor, bombers) | `PENDING` |
+| **S7** | Chimera Ant / endgame (Netero, Meruem, formigas, guarda real) | `PENDING` |
+| **S8** | Generics / calibration leftovers | `PENDING` |
+
+---
+
+## S0 — Âncora + Hub
+
+| Asset | Personagem | Prioridade |
+| :--- | :--- | :--- |
+| `player.png` / `player_8dir` | Hunter jogador (style anchor) | P0 |
+| `npc_recepcionista_elena_8dir.png` | Elena | P0 |
+| `npc_instrutor_combate_8dir.png` | Wing | P0 |
+| `npc_examinador_oficial_8dir.png` | Satotz | P0 |
+
+## S1 — Principais da trama
+
+| Asset | Personagem | Prioridade |
+| :--- | :--- | :--- |
+| `npc_gon_8dir.png` | Gon | P0 |
+| `npc_killua_8dir.png` | Killua | P0 |
+| `npc_kurapika_8dir.png` | Kurapika | P0 |
+| `npc_leorio_8dir.png` | Leorio | P0 |
+| `npc_hisoka_8dir.png` | Hisoka | P0 |
+
+## S2+ — ver tabela de status (expandir conforme batch)
+
+Inimigos nomeados (`enemy_*_8dir.png`) seguem a **mesma métrica 96×96** quando a saga correspondente for regenerada.
+
+---
+
+## Pipeline por personagem
+
+```text
+create_image_pixen (96×96, medium detail, unique identity)
+        ↓
+fit_stylelock_v2 (~42px tall, feet Y=84, max width ~34)
+        ↓
+create_character mode=v3 + reference=fitted south, size=96
+        ↓
+download 8 rotations → sheet 768×96
+        ↓
+validate_sprite_style.gd → ASSET_REGISTRY
+```
+
+---
+
+## Critério de “pronto” por batch
+
+- [ ] Todos os assets do batch em 768×96 (ou player sheet equivalente)
+- [ ] Silhueta reconhecível em 1× no editor
+- [ ] Validator 100% no batch
+- [ ] Bind no jogo sem offset quebrado (pés / Y-sort)
+- [ ] Registry atualizado com PixelLab IDs

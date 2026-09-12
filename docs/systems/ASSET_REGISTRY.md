@@ -5,7 +5,9 @@ Este documento registra formalmente todos os assets permanentes gerados via Pixe
 
 > **Autoridade:** `docs/bibles/ART_PIPELINE_CANON.md`
 > **STYLE ANCHOR DE PERSONAGEM:** `res://assets/sprites/characters/player.png` / `assets/reference/player(3).png`
-> Personagens: 48×48, ~20–22 px, pés Y≈42 — `PIXEL_ART_STYLE_BIBLE.md`
+> Personagens (Style Lock **v2**): 96×96, ~40–44 px, pés Y≈84 — `PIXEL_ART_STYLE_BIBLE.md`  
+> Regeneração saga a saga: [`../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md`](../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md)  
+> Legado 48×48 arquivado em `assets/sprites/characters/_archive_48px/` durante o Quality Pass.
 > Mundo: densidade controlada — `PIXEL_ART_PRODUCTION_BIBLE.md` + `assets/reference/world_detail_grass_dirt_trees_ref.png`
 > Sprites legados 68×68 px: retificação futura.
 ---
@@ -953,3 +955,22 @@ Convertidos para TileSet Godot (corner-match, 2 terrenos) por `scratch/build_top
 - **Ruínas de Zaban** — id `76e7b45f-3a38-4832-9095-9e5c89bfcb81` — grama ↔ pedra ancestral com runas.
   - PNG: `assets/sprites/tilesets/pixellab/zaban_ruinas/zaban_ruinas_tileset.png` · TileSet: `world/tilesets/zaban_ruinas_tileset.tres`
 - Piso da Arena Celestial (Registro 75) agora é PINTADO em jogo por `ArenaCelestialMap._pintar_piso_arena()` (TileMapLayer z=-50).
+
+---
+
+## Quality Pass v2 — Cast S0/S1 (96×96 / 768×96 sheets)
+
+| Asset | PixelLab character_id | Status |
+| :--- | :--- | :--- |
+| `npc_recepcionista_elena_8dir.png` | `7b6be329-e52e-4e3f-9b7a-cfacdbcea43a` | OK h=42 |
+| `npc_instrutor_combate_8dir.png` | `deff0576-2111-4529-8edc-011e4e3cb318` | OK h=42 |
+| `npc_examinador_oficial_8dir.png` | `32213dc1-c912-4f7f-9efc-d02eb796d68c` | OK h=42 |
+| `npc_gon_8dir.png` | `27cad6d1-0409-4a1b-bb41-f3778b93c34e` | OK h=42 |
+| `npc_killua_8dir.png` | `808d8e82-d22d-43db-9763-7b510953bf99` | OK h=42 |
+| `npc_kurapika_8dir.png` | `c87bdc93-2322-4f1e-b477-d7a5241aed26` | OK h=42 |
+| `npc_leorio_8dir.png` | `4f08da4e-9204-4b71-803a-ff7849905179` | OK h=42 |
+| `npc_hisoka_8dir.png` | `3e89a696-efee-4e82-969a-7e20ed36da63` | OK h=42 |
+| `npc_netero_8dir.png` | `03cc5d83-87ef-418b-8527-d1324327ce6c` | OK h=42 |
+| `npc_chrollo_8dir.png` | `3728eb7f-47c4-49b0-84e5-f286ff9971c2` | OK h=41 |
+
+> Gerado via `scripts/tools/pixellab_regen_cast_v96_stylelock.py` · Style Lock v2.
