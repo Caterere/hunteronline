@@ -28,7 +28,7 @@ Quando houver dúvida ou sobreposição, seguir nesta ordem:
 | **Style lock de personagem** (48×48, escala, rosto, paleta, gate) | [`PIXEL_ART_STYLE_BIBLE.md`](PIXEL_ART_STYLE_BIBLE.md) | Production Bible §§5–12, 41–42, 49; Prompt Library §§2–14 |
 | **Hierarquia visual mundo vs personagem** (mundo rico, char simples) | [`PIXEL_ART_PRODUCTION_BIBLE.md`](PIXEL_ART_PRODUCTION_BIBLE.md) | Prompt Library §2; VISUAL_BIBLE (render/Y-sort) |
 | **Pipeline de produção / fases / quality gates de mapa** | [`PIXEL_ART_PRODUCTION_BIBLE.md`](PIXEL_ART_PRODUCTION_BIBLE.md) | Prompt Library §§94–97; World Production Guide (legado) |
-| **Prompts e chamadas PixelLab por categoria** | [`../guides/PIXELLAB_PROMPT_LIBRARY.md`](../guides/PIXELLAB_PROMPT_LIBRARY.md) | PIXELLAB_MCP.md; scripts em `scripts/tools/pixellab_*.py` |
+| **Prompts e chamadas PixelLab por categoria** | [`../guides/PIXELLAB_PROMPT_LIBRARY.md`](../guides/PIXELLAB_PROMPT_LIBRARY.md) | Fill-in copy-paste: [`../guides/PIXELLAB_PROMPT_TEMPLATE.md`](../guides/PIXELLAB_PROMPT_TEMPLATE.md); PIXELLAB_MCP.md; scripts em `scripts/tools/pixellab_*.py` |
 | **Registro de assets gerados** | [`../systems/ASSET_REGISTRY.md`](../systems/ASSET_REGISTRY.md) | Production Bible §74 |
 | **Render, Y-sort, game feel visual, resolução** | [`VISUAL_BIBLE.md`](VISUAL_BIBLE.md) | Production Bible §§37, 76–78 |
 | **Integração MCP / tokens / tools** | [`../systems/PIXELLAB_MCP.md`](../systems/PIXELLAB_MCP.md) | Prompt Library §1, §100 |
@@ -152,10 +152,12 @@ docs/bibles/PIXEL_ART_STYLE_BIBLE.md           ← personagens
 docs/bibles/PIXEL_ART_PRODUCTION_BIBLE.md      ← mundo + pipeline
 docs/bibles/VISUAL_BIBLE.md                    ← render / feel
 docs/guides/PIXELLAB_PROMPT_LIBRARY.md         ← prompts operacionais
+docs/guides/PIXELLAB_PROMPT_TEMPLATE.md        ← fill-in copy-paste (humano)
 docs/systems/ASSET_REGISTRY.md                 ← catálogo
 docs/systems/PIXELLAB_MCP.md                   ← MCP
 assets/reference/player(3).png                 ← âncora personagem
 assets/reference/world_detail_grass_dirt_trees_ref.png  ← âncora mundo
+gamestyle.png                                  ← densidade ambiental (ref visual)
 ```
 
 Stubs na raiz (não editar conteúdo longo neles):
@@ -163,4 +165,5 @@ Stubs na raiz (não editar conteúdo longo neles):
 ``` text
 HUNTER_ONLINE_PIXELART_PRODUCTION_BIBLE.md  → docs/bibles/PIXEL_ART_PRODUCTION_BIBLE.md
 HUNTER_ONLINE_PIXELLAB_PROMPT_LIBRARY.md    → docs/guides/PIXELLAB_PROMPT_LIBRARY.md
+HUNTER_ONLINE_PIXELLAB_PROMPT_TEMPLATE.md   → docs/guides/PIXELLAB_PROMPT_TEMPLATE.md
 ```
