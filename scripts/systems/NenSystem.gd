@@ -441,6 +441,10 @@ func sincronizar_nen_com_player_data() -> void:
 
 	PlayerData.attributes["aura"] = aura_atual
 
+	# Progressão de nível de Nen implica despertar formal (Wing / treino).
+	if nivel_nen > 0 and not PlayerData.despertou_nen:
+		PlayerData.despertou_nen = true
+
 	# --------------------------------------------------------
 	# Sincronizar Níveis e Desbloqueios das Técnicas (Ten, Ren, Gyo, Ko, etc.)
 	# --------------------------------------------------------
@@ -933,25 +937,26 @@ func tecnica_ativa(
 	tecnica: Tecnica
 ) -> bool:
 	# Zetsu instintivo pode estar ativo antes do despertar formal (stealth zones).
-	# Demais técnicas exigem Nen despertado.
+	# Demais técnicas exigem Nen despertado (ou nível de Nen já progressado).
 	if PlayerData == null:
 		return false
-	if tecnica != Tecnica.ZETSU and not PlayerData.despertou_nen:
+	var nen_despertado: bool = PlayerData.despertou_nen or int(PlayerData.attributes.get("nivel_nen", 0)) > 0
+	if tecnica != Tecnica.ZETSU and not nen_despertado:
 		return false
 
 	match tecnica:
 		Tecnica.TEN:
 			return bool(tecnicas.get(Tecnica.TEN, {}).get("ativo", false))
 		Tecnica.REN:
-			return bool(tecnicas.get(Tecnica.REN, {}).get("desbloqueada", true))
+			return bool(tecnicas.get(Tecnica.REN, {}).get("ativo", false))
 		Tecnica.SHU:
-			return bool(tecnicas.get(Tecnica.SHU, {}).get("desbloqueada", false))
+			return bool(tecnicas.get(Tecnica.SHU, {}).get("ativo", false))
 		Tecnica.KO:
-			return bool(tecnicas.get(Tecnica.KO, {}).get("desbloqueada", false))
+			return bool(tecnicas.get(Tecnica.KO, {}).get("ativo", false))
 		Tecnica.KEN:
-			return bool(tecnicas.get(Tecnica.KEN, {}).get("desbloqueada", false))
+			return bool(tecnicas.get(Tecnica.KEN, {}).get("ativo", false))
 		Tecnica.RYU:
-			return bool(tecnicas.get(Tecnica.RYU, {}).get("desbloqueada", false))
+			return bool(tecnicas.get(Tecnica.RYU, {}).get("ativo", false))
 		# Técnicas Ativas Especiais (consultam ActiveNenController):
 		Tecnica.ZETSU:
 			return active_controller.zetsu_ativo if active_controller != null else bool(tecnicas.get(Tecnica.ZETSU, {}).get("ativo", false))
@@ -1267,9 +1272,12 @@ func obter_bonus_ko() -> float:
 func aplicar_ten_no_dano(
 	dano: float
 ) -> float:
-	# TEN é passivo — aplica redução se nível >= 1 na Skill Tree
+	# TEN reduz dano enquanto estiver ativo (ou como baseline se já despertado com nível).
 	var nivel: int = obter_nivel_tecnica(Tecnica.TEN)
 	if nivel <= 0:
+		return dano
+	# Sem TEN conscientemente ativo, não aplica a mitigação completa (permite contrastar on/off).
+	if not bool(tecnicas.get(Tecnica.TEN, {}).get("ativo", false)):
 		return dano
 
 	var reducao: float = (

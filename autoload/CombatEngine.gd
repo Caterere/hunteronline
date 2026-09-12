@@ -318,6 +318,11 @@ func calcular_dano_jogador(
 		if nen_system.has_method("tecnica_ativa"):
 			if nen_system.tecnica_ativa(NenSystem.Tecnica.GYO):
 				dano_final *= 1.35
+			if nen_system.tecnica_ativa(NenSystem.Tecnica.KO):
+				var ko_mult: float = 1.75
+				if nen_system.has_method("aplicar_ko_no_ataque"):
+					ko_mult = maxf(1.75, float(nen_system.aplicar_ko_no_ataque()))
+				dano_final *= ko_mult
 			if nen_system.tecnica_ativa(NenSystem.Tecnica.ZETSU) and inimigo_alvo != null:
 				dano_final *= 3.0
 
