@@ -4,7 +4,7 @@ extends Node2D
 ## Hunter Online — Phase 3 props (Prompt Library §30–36 / ART_PIPELINE_CANON).
 ## Fences, signs, crates, barrel, well, lantern along Estrada / Floresta / Yorknew / Arena.
 
-enum KitKind { ESTRADA, FLORESTA, YORKNEW, ARENA }
+enum KitKind { ESTRADA, FLORESTA, YORKNEW, ARENA, DUNGEON }
 
 const FENCE := "res://assets/sprites/objects/phase3_fence_wood.png"
 const FENCE_POST := "res://assets/sprites/objects/phase3_fence_wood_post.png"
@@ -20,6 +20,10 @@ const WAGON := "res://assets/sprites/objects/carroca_mercador_wagon.png"
 const ROAD_LANTERN := "res://assets/sprites/objects/hunter_road_lantern.png"
 const TRAIN_POST := "res://assets/sprites/objects/arena_training_post.png"
 const DUMMY := "res://assets/sprites/objects/boneco_treino_dummy.png"
+const TORCH := "res://assets/sprites/objects/ruin_nen_torch.png"
+const PILLAR := "res://assets/sprites/objects/phase4_landmark_ruin_pillar.png"
+const CHEST := "res://assets/sprites/objects/chest_01.png"
+const MONOLITH := "res://assets/sprites/objects/nen_stone_monolith.png"
 
 @export var kit_kind: KitKind = KitKind.ESTRADA
 
@@ -56,6 +60,8 @@ func _espalhar_props() -> void:
 			_layout_yorknew(root)
 		KitKind.ARENA:
 			_layout_arena(root)
+		KitKind.DUNGEON:
+			_layout_dungeon(root)
 
 
 func _layout_estrada(root: Node2D) -> void:
@@ -155,6 +161,22 @@ func _layout_arena(root: Node2D) -> void:
 		_add_prop(root, "ArCrate_%d" % i, Vector2(x - 40.0, 70), CRATE, Vector2(0, -6), true)
 		_add_prop(root, "ArBarrel_%d" % i, Vector2(x + 140.0, 55), BARREL, Vector2(0, -6), true)
 		_add_prop(root, "ArLantern_%d" % i, Vector2(x + 30.0, -110), ROAD_LANTERN, Vector2(0, -18), true)
+
+
+func _layout_dungeon(root: Node2D) -> void:
+	# Corredor de ruínas / porão de navio: tochas, pilares, baús e caixotes.
+	for i in 10:
+		var x := 140.0 + float(i) * 180.0
+		_add_prop(root, "DgTorchN_%d" % i, Vector2(x, -80), TORCH, Vector2(0, -14), true)
+		_add_prop(root, "DgTorchS_%d" % i, Vector2(x + 50.0, 100), TORCH, Vector2(0, -14), true)
+		if i % 2 == 0:
+			_add_prop(root, "DgPillar_%d" % i, Vector2(x + 90.0, -30), PILLAR, Vector2(0, -20), true)
+		_add_prop(root, "DgCrate_%d" % i, Vector2(x - 35.0, 70), CRATE, Vector2(0, -6), true)
+		_add_prop(root, "DgBarrel_%d" % i, Vector2(x + 130.0, 55), BARREL, Vector2(0, -6), true)
+		if i % 3 == 0:
+			_add_prop(root, "DgChest_%d" % i, Vector2(x + 20.0, -55), CHEST, Vector2(0, -8), true)
+	_add_prop(root, "DgMonolith_Boss", Vector2(960, -40), MONOLITH, Vector2(0, -18), true)
+	_add_prop(root, "DgSign_Warn", Vector2(280, -110), SIGN, Vector2(0, -18), true)
 
 
 func _add_prop(parent: Node2D, nome: String, pos: Vector2, tex_path: String, spr_off: Vector2, collide: bool) -> void:

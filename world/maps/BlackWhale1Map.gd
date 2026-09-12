@@ -22,6 +22,8 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.DUNGEON)
+	WorldPropsKit.attach(self, WorldPropsKit.KitKind.DUNGEON)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco9()
 	_configurar_inimigos()

@@ -350,10 +350,15 @@ func _espalhar_props_landmark() -> void:
 				_add_point_light(root, Vector2(340, ly - 10), Color(1.0, 0.8, 0.5), 1.1)
 				_add_point_light(root, Vector2(460, ly - 10), Color(1.0, 0.8, 0.5), 1.1)
 		MapKind.DUNGEON:
-			for p in [Vector2(120, 300), Vector2(520, 300), Vector2(160, 180), Vector2(480, 180), Vector2(320, 260)]:
+			for p in [Vector2(120, 300), Vector2(520, 300), Vector2(160, 180), Vector2(480, 180), Vector2(320, 260), Vector2(200, 120), Vector2(440, 120), Vector2(100, 220), Vector2(540, 220), Vector2(280, 340), Vector2(360, 340)]:
 				_add_prop_sprite(root, "TochaRuinas_%d_%d" % [int(p.x), int(p.y)], p, "res://assets/sprites/objects/ruin_nen_torch.png", Color(0.7, 1.0, 0.75), Vector2(1, 1))
 				_add_point_light(root, p + Vector2(0, -12), Color(0.35, 1.0, 0.55), 1.3)
 			_add_prop_sprite(root, "MonolitoBoss", Vector2(320, 80), "res://assets/sprites/objects/nen_stone_monolith.png", Color(1.0, 0.75, 0.35), Vector2(1.1, 1.1))
+			for p in [Vector2(180, 250), Vector2(460, 250), Vector2(250, 140), Vector2(390, 140)]:
+				_add_prop_sprite(root, "PilarRuinas_%d_%d" % [int(p.x), int(p.y)], p, "res://assets/sprites/objects/phase4_landmark_ruin_pillar.png", Color(0.85, 0.9, 0.8), Vector2(1.0, 1.0))
+			for p in [Vector2(140, 320), Vector2(500, 320), Vector2(300, 200)]:
+				_add_prop_sprite(root, "BauRuinas_%d_%d" % [int(p.x), int(p.y)], p, "res://assets/sprites/objects/chest_01.png", Color.WHITE, Vector2(0.95, 0.95))
+			_add_prop_sprite(root, "CercaRuinas", Vector2(320, 360), "res://assets/sprites/objects/phase6_polish_fence_ruin.png", Color(0.8, 0.85, 0.75), Vector2(1.0, 1.0))
 		MapKind.VALE:
 			_add_prop_sprite(root, "MonolitoVila", Vector2(105 * 16, 255 * 16), "res://assets/sprites/objects/nen_stone_monolith.png", Color.WHITE, Vector2(1.2, 1.2))
 			_add_point_light(root, Vector2(105 * 16, 250 * 16), Color(0.5, 0.9, 1.0), 1.6)
