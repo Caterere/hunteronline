@@ -230,6 +230,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"auction_data": AuctionHouse.salvar_dados() if AuctionHouse != null else {},
 		"guild_data": HunterGuildSystem.salvar_dados() if HunterGuildSystem != null else {},
 		"nen_contract_data": NenContractManager.salvar_dados() if NenContractManager != null else {},
+		"blacklist_hunt_data": BlacklistOpenHuntSystem.salvar_dados() if BlacklistOpenHuntSystem != null else {},
 		"secret_bosses_data": SecretBossManager.salvar_dados() if SecretBossManager != null else {},
 		"time_data": {
 			"hour": TimeManager.current_hour,
@@ -639,6 +640,8 @@ func carregar_jogo(slot: int = -1) -> bool:
 		HunterGuildSystem.carregar_dados(data.get("guild_data", {}))
 	if NenContractManager != null:
 		NenContractManager.carregar_dados(data.get("nen_contract_data", {}))
+	if BlacklistOpenHuntSystem != null:
+		BlacklistOpenHuntSystem.carregar_dados(data.get("blacklist_hunt_data", {}))
 	if SecretBossManager != null and data.has("secret_bosses_data"):
 		SecretBossManager.carregar_dados(data.get("secret_bosses_data", {}))
 

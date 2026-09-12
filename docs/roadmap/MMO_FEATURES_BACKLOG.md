@@ -69,11 +69,11 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` (mapa + binder existem) |
+| **Status** | `[IMPLEMENTED]` — catálogo 24 cartas + `CardDuelSystem` + `CardDuelUI` + Antokiba board |
 | **Inspiração** | Triple Triad / Mahjong (FFXIV), card PvP + mapa meta (GW2) |
 | **Deps** | Conteúdo de saga GI; ranked opcional depois |
-| **Reusar** | `ui/GreedIslandBinder/`, `resource/greed_island/`, `world/maps/GreedIslandMap.gd` |
-| **Tasks** | Duelo de cartas (subset 20–40) · “roubo” consentido · missões de caça a cartas · gate Hatsu do design |
+| **Reusar** | `scripts/systems/CardDuelSystem.gd`, `ui/GreedIsland/CardDuelUI.gd`, `resource/greed_island/` |
+| **Tasks** | ✅ Duelo de cartas (24) · binder SSOT · suite `scratch/test_s4_gi_card_duel_suite.tscn` |
 
 ---
 
@@ -103,11 +103,11 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `[IMPLEMENTED]` — open hunt S-rank rotativo + rumores/pistas + threat multi-party + loot por contribuição |
 | **Inspiração** | World bosses / rare elites (GW2, WoW) + wanted posters |
 | **Deps** | PREREQ-2 recomendado; world boss coordinator |
-| **Reusar** | `autoload/BountySystem.gd`, `ui/Bounties/`, `scripts/network/CoopWorldBossCoordinator.gd`, `autoload/RumorSystem.gd` |
-| **Tasks** | Alvos S-rank por evento · threat multi-party · loot por contribuição · pistas/rumores para localizar |
+| **Reusar** | `autoload/BlacklistOpenHuntSystem.gd`, `ui/Bounties/BlacklistHuntBoardUI.gd`, `scripts/network/CoopWorldBossCoordinator.gd`, `autoload/RumorSystem.gd` |
+| **Tasks** | ✅ Alvos S-rank rotativos · ✅ threat multi-party · ✅ loot por contribuição · ✅ pistas/rumores · suite `scratch/test_a7_blacklist_open_hunt_suite.tscn` |
 
 ### A8. Gourmet Hunter life skills
 
