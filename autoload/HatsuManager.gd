@@ -572,6 +572,14 @@ func obter_hatsu_canonico(id_hatsu: String) -> HatsuData:
 			for c in info.get("condicoes", []):
 				typed_condicoes.append(c as HatsuData.Condicao)
 			h.condicoes = typed_condicoes
+
+			# Visual cosmético canônico (anime) — não altera balanceamento
+			var CanonHatsuVisualCatalog = load("res://resource/hatsu/CanonHatsuVisualCatalog.gd")
+			if CanonHatsuVisualCatalog != null and CanonHatsuVisualCatalog.has_method("obter_perfil"):
+				var vp_canon = CanonHatsuVisualCatalog.obter_perfil(id_hatsu)
+				if vp_canon != null:
+					h.visual_profile = vp_canon
+
 			return h
 	return null
 
