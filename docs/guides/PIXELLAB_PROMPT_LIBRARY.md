@@ -2,13 +2,17 @@
 
 **Companion to:** [`../bibles/PIXEL_ART_PRODUCTION_BIBLE.md`](../bibles/PIXEL_ART_PRODUCTION_BIBLE.md)  
 **Authority index:** [`../bibles/ART_PIPELINE_CANON.md`](../bibles/ART_PIPELINE_CANON.md)  
-**Character style lock:** [`../bibles/PIXEL_ART_STYLE_BIBLE.md`](../bibles/PIXEL_ART_STYLE_BIBLE.md)
+**Character style lock:** [`../bibles/PIXEL_ART_STYLE_BIBLE.md`](../bibles/PIXEL_ART_STYLE_BIBLE.md)  
+**Copy-paste fill-in (humano):** [`PIXELLAB_PROMPT_TEMPLATE.md`](PIXELLAB_PROMPT_TEMPLATE.md)
 
 Este arquivo contém prompts prontos para o agente usar com PixelLab.
 **Não redefine** Style Lock nem a hierarquia visual — só operacionaliza.
 
 A regra é: **não usar um prompt genérico para tudo**. Cada categoria
 possui objetivos, densidade, escala e validação próprios.
+
+Para uso manual rápido no PixelLab (colar + preencher `[COLCHETES]`),
+começar por [`PIXELLAB_PROMPT_TEMPLATE.md`](PIXELLAB_PROMPT_TEMPLATE.md).
 
 ------------------------------------------------------------------------
 
@@ -21,7 +25,8 @@ Antes de qualquer geração:
 3.  Procurar se o asset já existe.
 4.  Reutilizar ou criar variante antes de gerar do zero.
 5.  Escolher a chamada PixelLab adequada.
-6.  Usar os prompts abaixo como base.
+6.  Usar o [`PIXELLAB_PROMPT_TEMPLATE.md`](PIXELLAB_PROMPT_TEMPLATE.md) (fill-in)
+    ou os prompts abaixo como base.
 7.  Substituir os placeholders:
     -   `[REGION]`
     -   `[MATERIAL]`

@@ -1,0 +1,4 @@
+# HUNTER ONLINE — PIXELLAB PROMPT TEMPLATE
+
+> **Canonical path:**
+> [`docs/guides/PIXELLAB_PROMPT_TEMPLATE.md`](docs/guides/PIXELLAB_PROMPT_TEMPLATE.md)
