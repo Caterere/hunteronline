@@ -709,7 +709,8 @@ func _atualizar_header_e_gold() -> void:
 	var nome: String = PlayerData.nome_personagem if (PlayerData != null and not PlayerData.nome_personagem.is_empty()) else "Hunter"
 
 	if lbl_player_header:
-		lbl_player_header.text = "🔰 %s" % nome
+		# Cabeçalho MMORPG: nome + nível no mesmo label (suíte Nen HUD / legibilidade).
+		lbl_player_header.text = "🔰 %s  ·  Nv. %d" % [nome, nivel]
 
 	if lbl_player_level_badge:
 		lbl_player_level_badge.text = "★ Nv. %d" % nivel
