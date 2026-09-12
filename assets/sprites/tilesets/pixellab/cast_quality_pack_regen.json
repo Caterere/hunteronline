@@ -1,0 +1,102 @@
+{
+  "batch": "cast_quality_pack",
+  "created_at": 1789176501.2385452,
+  "characters": [
+    {
+      "ref": "gon",
+      "stem": "npc_gon",
+      "ok": true,
+      "character_id": "0189dd92-56f7-4e78-8599-e237a0b7212b",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_gon_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "killua",
+      "stem": "npc_killua",
+      "ok": true,
+      "character_id": "c7fee3f9-b93c-4b0d-862d-55eff3d5b0d4",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_killua_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "kurapika",
+      "stem": "npc_kurapika",
+      "ok": true,
+      "character_id": "46b0bd82-bca7-465f-8fbb-819dc67118e0",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_kurapika_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "leorio",
+      "stem": "npc_leorio",
+      "ok": true,
+      "character_id": "a0386544-99d7-4ff4-92d9-6a02f96f7760",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_leorio_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "hisoka",
+      "stem": "npc_hisoka",
+      "ok": true,
+      "character_id": "d6377693-2437-448b-8da9-3dd73eb210ca",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_hisoka_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "biscuit",
+      "stem": "npc_biscuit",
+      "ok": true,
+      "character_id": "fd7a0372-9d22-4fdc-ac19-6f00b5aeca3a",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_biscuit_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "chrollo",
+      "stem": "npc_chrollo",
+      "ok": true,
+      "character_id": "9c9d014a-0b7b-4d12-a9a6-ef31fa7eeddd",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_chrollo_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    },
+    {
+      "ref": "netero",
+      "stem": "npc_netero",
+      "ok": true,
+      "character_id": "6675e9ac-cd5d-4d76-88e6-d463a14769c3",
+      "fitted": "assets/sprites/tilesets/pixellab/quality_pack_fitted/npc_netero_south_fitted.png",
+      "anims": {
+        "idle_8xN": true,
+        "walk_8xN": true,
+        "hit_8xN": true
+      }
+    }
+  ]
+}

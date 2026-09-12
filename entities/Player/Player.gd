@@ -169,16 +169,42 @@ func _garantir_indicador_desmaio() -> void:
 func _aplicar_customizacao_visual() -> void:
 	var sprite := get_node_or_null("Sprite2D") as Sprite2D
 	if sprite != null and PlayerData.character_colors.has("roupa"):
-		# Aplicar Shader de troca de paleta de cor
 		var shader := load("res://assets/shaders/character_color_customizer.gdshader") as Shader
 		if shader != null:
 			var mat := ShaderMaterial.new()
 			mat.shader = shader
 			var cor_cabelo: Color = PlayerData.character_colors.get("cabelo", Color.BLACK)
 			var cor_roupa: Color = PlayerData.character_colors.get("roupa", Color.GREEN)
+			var cor_olhos: Color = PlayerData.character_colors.get("olhos", Color(0.15, 0.45, 0.85, 1.0))
 			mat.set_shader_parameter("hair_custom_color", cor_cabelo)
 			mat.set_shader_parameter("clothes_custom_color", cor_roupa)
+			mat.set_shader_parameter("eyes_custom_color", cor_olhos)
+			mat.set_shader_parameter("enable_eye_tint", 1.0)
+			# Cabelos claros (Killua / loiros) precisam do modo light_hair
+			var luminancia: float = (cor_cabelo.r + cor_cabelo.g + cor_cabelo.b) / 3.0
+			mat.set_shader_parameter("light_hair_mode", 1.0 if luminancia > 0.55 else 0.0)
 			sprite.material = mat
+
+	_atualizar_overlay_aparencia()
+
+
+func _atualizar_overlay_aparencia() -> void:
+	var HairStyleOverlay = load("res://entities/character_creator/HairStyleOverlay.gd")
+	if HairStyleOverlay == null:
+		return
+	var overlay := get_node_or_null("HairStyleOverlay") as Node2D
+	if overlay == null:
+		overlay = HairStyleOverlay.new()
+		overlay.name = "HairStyleOverlay"
+		overlay.z_index = 2
+		add_child(overlay)
+	if overlay.has_method("configurar"):
+		overlay.configurar(
+			str(PlayerData.character_colors.get("hair_id", "hair_gon_01")),
+			PlayerData.character_colors.get("cabelo", Color(0.1, 0.1, 0.12, 1.0)),
+			PlayerData.character_colors.get("olhos", Color(0.15, 0.45, 0.85, 1.0)),
+			true
+		)
 
 
 

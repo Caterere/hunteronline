@@ -138,6 +138,8 @@ func salvar_jogo(slot: int = -1) -> bool:
 
 	var col_cab = [PlayerData.character_colors["cabelo"].r, PlayerData.character_colors["cabelo"].g, PlayerData.character_colors["cabelo"].b, PlayerData.character_colors["cabelo"].a] if PlayerData.character_colors.has("cabelo") else [0.15, 0.15, 0.15, 1.0]
 	var col_roup = [PlayerData.character_colors["roupa"].r, PlayerData.character_colors["roupa"].g, PlayerData.character_colors["roupa"].b, PlayerData.character_colors["roupa"].a] if PlayerData.character_colors.has("roupa") else [0.2, 0.6, 0.3, 1.0]
+	var col_olhos = [PlayerData.character_colors["olhos"].r, PlayerData.character_colors["olhos"].g, PlayerData.character_colors["olhos"].b, PlayerData.character_colors["olhos"].a] if PlayerData.character_colors.has("olhos") else [0.15, 0.45, 0.85, 1.0]
+	var hair_id_save: String = str(PlayerData.character_colors.get("hair_id", "hair_gon_01"))
 
 	var hatsus_serialized: Array = []
 	for h in PlayerData.hatsu_criados:
@@ -190,8 +192,11 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"character_colors": {
 			"cabelo": col_cab,
 			"roupa": col_roup,
+			"olhos": col_olhos,
+			"hair_id": hair_id_save,
 			"cabelo_html": PlayerData.character_colors["cabelo"].to_html() if PlayerData.character_colors.has("cabelo") else "262626",
-			"roupa_html": PlayerData.character_colors["roupa"].to_html() if PlayerData.character_colors.has("roupa") else "33994c"
+			"roupa_html": PlayerData.character_colors["roupa"].to_html() if PlayerData.character_colors.has("roupa") else "33994c",
+			"olhos_html": PlayerData.character_colors["olhos"].to_html() if PlayerData.character_colors.has("olhos") else "2673d9"
 		},
 		"attributes": PlayerData.attributes.duplicate(),
 		"inventory": PlayerData.inventory.duplicate(),
@@ -439,6 +444,22 @@ func carregar_jogo(slot: int = -1) -> bool:
 				PlayerData.character_colors["roupa"] = Color.html(r)
 		elif colors.has("roupa_html"):
 			PlayerData.character_colors["roupa"] = Color.html(colors["roupa_html"])
+
+		if colors.has("olhos"):
+			var o = colors["olhos"]
+			if o is Array and o.size() >= 4:
+				PlayerData.character_colors["olhos"] = Color(o[0], o[1], o[2], o[3])
+			elif o is String:
+				PlayerData.character_colors["olhos"] = Color.html(o)
+		elif colors.has("olhos_html"):
+			PlayerData.character_colors["olhos"] = Color.html(colors["olhos_html"])
+		else:
+			PlayerData.character_colors["olhos"] = Color(0.15, 0.45, 0.85, 1.0)
+
+		if colors.has("hair_id"):
+			PlayerData.character_colors["hair_id"] = str(colors["hair_id"])
+		else:
+			PlayerData.character_colors["hair_id"] = "hair_gon_01"
 
 	# Atributos com sanitização e defaults seguros
 	var attrs_padrao: Dictionary = {

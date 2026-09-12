@@ -24,6 +24,10 @@ static func aplicar(node: Node, preferred_ids: Array = []) -> void:
 		"kurapika": "npc_kurapika",
 		"leorio": "npc_leorio",
 		"hisoka": "npc_hisoka",
+		"biscuit": "npc_biscuit",
+		"bisky": "npc_biscuit",
+		"netero": "npc_netero",
+		"netero": "npc_netero",
 		"chrollo": "npc_chrollo",
 		"melody": "npc_melody",
 		"battera": "npc_battera",
@@ -55,6 +59,19 @@ static func aplicar(node: Node, preferred_ids: Array = []) -> void:
 			spr.hframes = 8
 			spr.vframes = 1
 			spr.frame = 0
-			spr.position = Vector2(0, -17)
+			# Style Lock v2 (96px): feet near Y=84 → visual offset ~2× vs 48px lock
+			spr.position = Vector2(0, -34)
 			spr.modulate = Color.WHITE
+			# Anexar animador idle/walk se folhas quality-pack existirem
+			var idle_path := "res://assets/sprites/characters/%s_idle_8xN.png" % str(asset_id)
+			if ResourceLoader.exists(idle_path):
+				var existing := node.get_node_or_null("NpcSheetAnimator")
+				if existing == null:
+					var anim_script = load("res://entities/npc/NpcSheetAnimator.gd")
+					if anim_script != null:
+						var anim = anim_script.new()
+						anim.name = "NpcSheetAnimator"
+						node.add_child(anim)
+						if anim.has_method("setup"):
+							anim.setup(spr, str(asset_id), node)
 			return
