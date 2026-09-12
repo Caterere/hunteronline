@@ -217,21 +217,72 @@ def poll_char(mcp: MCP, character_id: str, timeout: int = 1200) -> dict:
     return last
 
 
-def wait_anims(mcp: MCP, character_id: str, timeout: int = 900) -> dict:
+def zip_has_anim_keys(zdata: bytes, keys: list[str]) -> bool:
+    try:
+        z = zipfile.ZipFile(io.BytesIO(zdata))
+    except Exception:
+        return False
+    names = [n.lower() for n in z.namelist()]
+    return any(any(k in n for k in keys) for n in names)
+
+
+def wait_for_animation(
+    mcp: MCP,
+    token: str,
+    character_id: str,
+    keys: list[str],
+    timeout: int = 900,
+) -> bytes | None:
+    """Poll until zip contains animation frames matching keys (slot-safe)."""
     t0 = time.time()
-    last = {"text": "", "images": [], "isError": True}
     while time.time() - t0 < timeout:
-        last = mcp.tool(
+        st = mcp.tool(
             "get_character", {"character_id": character_id, "include_preview": False}
         )
         print(
-            f"    anim[{int(time.time()-t0):3d}s] {last['text'][:140].replace(chr(10), ' ')}",
+            f"    anim[{int(time.time()-t0):3d}s] {st['text'][:140].replace(chr(10), ' ')}",
             flush=True,
         )
-        if not is_busy(last["text"]):
-            return last
-        time.sleep(10)
-    return last
+        zdata = download_zip(token, character_id)
+        if zdata and zip_has_anim_keys(zdata, keys):
+            # Prefer also not busy, but frames in zip are the source of truth
+            if not is_busy(st["text"]) or (time.time() - t0) > 45:
+                return zdata
+        time.sleep(12)
+    return download_zip(token, character_id)
+
+
+def queue_animation(mcp: MCP, character_id: str, template: str) -> bool:
+    """Submit one template animation; retry while job slots are full."""
+    for attempt in range(40):
+        ar = mcp.tool(
+            "animate_character",
+            {
+                "character_id": character_id,
+                "template_animation_id": template,
+                "animation_name": template,
+            },
+        )
+        text = ar["text"]
+        print(
+            f"    animate {template} try{attempt+1}: {text[:220].replace(chr(10), ' ')}",
+            flush=True,
+        )
+        low = text.lower()
+        if "need 8 job slots" in low or "only 0 available" in low or "8/8 used" in low:
+            time.sleep(20)
+            continue
+        if ar.get("isError") and "error" in low:
+            time.sleep(15)
+            continue
+        if "error" in low and "character" not in low[:30]:
+            # soft: still may have queued
+            if "animation" in low or "directions" in low or "group" in low:
+                return True
+            time.sleep(15)
+            continue
+        return True
+    return False
 
 
 def archive_existing(stem: str) -> None:
@@ -369,9 +420,16 @@ def main() -> int:
     ap.add_argument("--only", default="", help="comma-separated ref ids")
     ap.add_argument("--skip-anim", action="store_true")
     ap.add_argument("--reuse-meta", action="store_true")
+    ap.add_argument(
+        "--anims-only",
+        action="store_true",
+        help="Reuse character_id from meta; only (re)run animations",
+    )
     ap.add_argument("--fit-only", action="store_true")
     args = ap.parse_args()
     only = {s.strip() for s in args.only.split(",") if s.strip()}
+    if args.anims_only:
+        args.reuse_meta = True
 
     disk_refs = {
         p.name.replace("_south_ref.png", ""): p
@@ -445,12 +503,16 @@ def main() -> int:
         if ref_id not in fitted_map:
             continue
         print(f"\n=== {ref_id} -> {stem} ===", flush=True)
-        archive_existing(stem)
+        if not args.anims_only:
+            archive_existing(stem)
 
         cid = None
         if args.reuse_meta and ref_id in existing and existing[ref_id].get("character_id"):
             cid = existing[ref_id]["character_id"]
             print(f"    reuse character_id={cid}", flush=True)
+        elif args.anims_only:
+            print(f"    [skip] anims-only but no character_id in meta for {ref_id}", flush=True)
+            continue
         else:
             fitted = Image.open(fitted_map[ref_id]).convert("RGBA")
             buf = io.BytesIO()
@@ -510,34 +572,38 @@ def main() -> int:
                 continue
 
         ok_sheet = False
-        for _attempt in range(8):
-            zdata = download_zip(token, cid)
-            if zdata and export_rotations(zdata, stem):
-                ok_sheet = True
-                break
-            time.sleep(8)
+        if args.anims_only and (OUT_CHARS / f"{stem}_8dir.png").exists():
+            ok_sheet = True
+            print(f"    keep existing {stem}_8dir.png", flush=True)
+        else:
+            for _attempt in range(8):
+                zdata = download_zip(token, cid)
+                if zdata and export_rotations(zdata, stem):
+                    ok_sheet = True
+                    break
+                time.sleep(8)
 
         anim_ok: dict[str, bool] = {}
+        prev_anims = (existing.get(ref_id) or {}).get("anims") or {}
         if not args.skip_anim and ok_sheet:
-            for template, _suffix, _keys in ANIMATIONS:
-                ar = mcp.tool(
-                    "animate_character",
-                    {
-                        "character_id": cid,
-                        "template_animation_id": template,
-                        "animation_name": template,
-                    },
-                )
-                print(
-                    f"    animate {template}: {ar['text'][:200].replace(chr(10), ' ')}",
-                    flush=True,
-                )
-                time.sleep(1)
-            wait_anims(mcp, cid, timeout=900)
-            zdata = download_zip(token, cid)
-            if zdata:
-                for _template, suffix, keys in ANIMATIONS:
+            # One animation at a time (PixelLab has 8 concurrent job slots =
+            # exactly one 8-dir template). Wait for zip frames before next.
+            for template, suffix, keys in ANIMATIONS:
+                if args.anims_only and prev_anims.get(suffix):
+                    print(f"    skip {template} (already ok in meta)", flush=True)
+                    anim_ok[suffix] = True
+                    continue
+                ok_submit = queue_animation(mcp, cid, template)
+                if not ok_submit:
+                    print(f"    animate {template}: give up after retries", flush=True)
+                    anim_ok[suffix] = False
+                    continue
+                zdata = wait_for_animation(mcp, token, cid, keys, timeout=900)
+                if zdata:
                     anim_ok[suffix] = export_animation(zdata, stem, keys, suffix)
+                else:
+                    anim_ok[suffix] = False
+                time.sleep(5)
 
         entry = {
             "ref": ref_id,
