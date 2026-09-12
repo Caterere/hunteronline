@@ -942,7 +942,7 @@ func _montar_etapa_poder() -> void:
 	var lbl_aff := Label.new()
 	lbl_aff.add_theme_font_size_override("font_size", 4)
 	lbl_aff.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var aff_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen) if NenAffinityData.has_method("obter_nome_afinidade") else str(PlayerData.afinidade_nen)
+	var aff_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
 	lbl_aff.text = "Afinidade natal: %s → eficiência neste Hatsu: %d%%.\nFora do tipo natal o efeito real cai (guia HxH). A força pedida ainda exige créditos." % [aff_nome, int(ef * 100.0)]
 	lbl_aff.add_theme_color_override("font_color", Color(0.55, 0.9, 1.0, 1.0))
 	container_opcoes.add_child(lbl_aff)
