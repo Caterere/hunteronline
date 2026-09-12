@@ -602,3 +602,80 @@ func sincronizar_progresso() -> void:
 	var xp_sys = get_node_or_null("XPSystem") as XPSystem
 	if xp_sys != null and xp_sys.has_method("sincronizar_com_player_data"):
 		xp_sys.sincronizar_com_player_data()
+
+
+# ============================================================
+# CÂMERA & GAME FEEL (Fase J / polish MMORPG 2D)
+# ============================================================
+
+func configurar_limites_camera(limites: Rect2) -> void:
+	if _camera == null:
+		_camera = get_node_or_null("Camera2D") as Camera2D
+	if _camera == null:
+		return
+	_camera.limit_left = int(limites.position.x)
+	_camera.limit_top = int(limites.position.y)
+	_camera.limit_right = int(limites.position.x + limites.size.x)
+	_camera.limit_bottom = int(limites.position.y + limites.size.y)
+	_camera.limit_enabled = true
+
+
+func definir_zoom_camera(zoom: Vector2) -> void:
+	if _camera == null:
+		_camera = get_node_or_null("Camera2D") as Camera2D
+	if _camera == null:
+		return
+	_camera.zoom = zoom
+
+
+func _spawn_afterimage(tint: Color = Color(0.45, 0.85, 1.0, 0.45), lifetime: float = 0.22) -> void:
+	## Trail de velocidade (Godspeed / dash) — sprite fantasma curto.
+	var src: Sprite2D = get_node_or_null("Sprite2D") as Sprite2D
+	if src == null or src.texture == null:
+		return
+	var ghost := Sprite2D.new()
+	ghost.texture = src.texture
+	ghost.hframes = src.hframes
+	ghost.vframes = src.vframes
+	ghost.frame = src.frame
+	ghost.flip_h = src.flip_h
+	ghost.modulate = tint
+	ghost.z_index = z_index - 1
+	ghost.global_position = global_position
+	ghost.scale = scale
+	var parent_n: Node = get_parent()
+	if parent_n == null:
+		return
+	parent_n.add_child(ghost)
+	var tw := ghost.create_tween()
+	tw.tween_property(ghost, "modulate:a", 0.0, lifetime)
+	tw.tween_callback(ghost.queue_free)
+
+
+func _obter_tipo_chao() -> String:
+	## Classificação simples de superfície sob os pés (áudio de passo / poeira).
+	var space := get_world_2d().direct_space_state
+	if space == null:
+		return "default"
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = global_position + Vector2(0, 8)
+	query.collide_with_areas = true
+	query.collide_with_bodies = true
+	query.collision_mask = 1
+	var hits: Array = space.intersect_point(query, 4)
+	for hit in hits:
+		var collider = hit.get("collider")
+		if collider == null:
+			continue
+		var n := str(collider.name).to_lower()
+		if "water" in n or "agua" in n or "rio" in n:
+			return "water"
+		if "sand" in n or "areia" in n:
+			return "sand"
+		if "grass" in n or "grama" in n or "floresta" in n:
+			return "grass"
+		if "stone" in n or "pedra" in n or "rock" in n or "dungeon" in n:
+			return "stone"
+		if "wood" in n or "madeira" in n or "floor" in n:
+			return "wood"
+	return "default"

@@ -132,7 +132,8 @@ func _test_2_enemy_system_setup_from_data() -> void:
 func _test_3_player_game_feel_and_camera() -> void:
 	print("\n--- Teste 3: Game Feel do Jogador & Câmera ---")
 
-	var player_scn = load("res://entities/player/Player.tscn")
+	# Linux é case-sensitive: pasta canônica é entities/Player/
+	var player_scn = load("res://entities/Player/Player.tscn")
 	assert_test(player_scn != null, "Cena Player.tscn carrega com sucesso")
 
 	var player_node = player_scn.instantiate()
