@@ -497,14 +497,23 @@ func carregar_jogo(slot: int = -1) -> bool:
 	if data.has("attributes") and data["attributes"] is Dictionary:
 		for k in attrs_padrao.keys():
 			PlayerData.attributes[k] = data["attributes"].get(k, attrs_padrao[k])
+		# Preservar chaves extras (gold, flags de sistema, etc.)
+		for k in data["attributes"].keys():
+			if not attrs_padrao.has(k):
+				PlayerData.attributes[k] = data["attributes"][k]
 	else:
 		PlayerData.attributes = attrs_padrao.duplicate()
 
-	# Garantir que vida e nivel estão dentro dos limites válidos (1 a MAX_LEVEL)
+	# Garantir que nivel está dentro dos limites válidos; recalcular derivados
+	# SEM perder HP/aura correntes do save (GAME_FLOW / persistência).
 	PlayerData.attributes["nivel"] = clamp(int(PlayerData.attributes.get("nivel", 1)), ProgressionConfig.BASE_LEVEL, ProgressionConfig.MAX_LEVEL)
+	var saved_vida: int = int(PlayerData.attributes.get("vida", 100))
+	var saved_aura: float = float(PlayerData.attributes.get("aura", 0.0))
 	PlayerData.recalcular_todos_atributos()
-	var raw_vida = int(PlayerData.attributes.get("vida", 100))
-	PlayerData.attributes["vida"] = clamp(raw_vida, 1, PlayerData.attributes["vida_max"])
+	var vida_max: int = max(1, int(PlayerData.attributes.get("vida_max", 100)))
+	var aura_max: float = max(0.0, float(PlayerData.attributes.get("aura_max", 0.0)))
+	PlayerData.attributes["vida"] = clamp(saved_vida, 1, vida_max)
+	PlayerData.attributes["aura"] = clamp(saved_aura, 0.0, aura_max)
 
 	# Inventário
 	if data.has("inventory"):
@@ -699,6 +708,20 @@ func carregar_jogo(slot: int = -1) -> bool:
 		PlayerData.is_character_ready = true
 	if GameManager != null:
 		GameManager.set_flow_state(GameManager.GameFlowState.SAVE_LOADED)
+
+	# Reaplicar HP/aura salvos no final — títulos/skill tree/equip podem ter recalculado max.
+	if PlayerData != null and PlayerData.attributes != null:
+		var vmax: int = max(1, int(PlayerData.attributes.get("vida_max", 100)))
+		var amax: float = max(0.0, float(PlayerData.attributes.get("aura_max", 0.0)))
+		# Preferir valores capturados do JSON; se ausentes, manter atual.
+		if typeof(saved_vida) == TYPE_INT:
+			PlayerData.attributes["vida"] = clamp(saved_vida, 1, max(vmax, saved_vida))
+			# Se o save tinha HP > max legado, expandir max para não truncar progresso.
+			if saved_vida > vmax:
+				PlayerData.attributes["vida_max"] = saved_vida
+				PlayerData.attributes["vida"] = saved_vida
+		if typeof(saved_aura) == TYPE_FLOAT or typeof(saved_aura) == TYPE_INT:
+			PlayerData.attributes["aura"] = clamp(float(saved_aura), 0.0, max(amax, float(saved_aura)))
 
 	if get_tree() != null:
 		var ply = get_tree().get_first_node_in_group("player")

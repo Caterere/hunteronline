@@ -22,7 +22,9 @@ const NPCScheduleDataScript = preload("res://world/content/NPCScheduleData.gd")
 
 func _ready() -> void:
 	if GameManager != null and not GameManager.can_enter_lobby():
-		if OS.is_debug_build():
+		# F6 no editor: bootstrap de caçador padrão. Headless/CI NÃO — preserva suíte de game flow.
+		var allow_editor_bootstrap := OS.is_debug_build() and DisplayServer.get_name() != "headless"
+		if allow_editor_bootstrap:
 			# Modo Debug/Editor: Inicializa caçador padrão automaticamente para permitir F6 direto no Lobby
 			if PlayerData != null:
 				PlayerData.is_character_ready = true
@@ -40,7 +42,8 @@ func _ready() -> void:
 				GameManager.change_state(GameManager.GameState.IN_GAME)
 		else:
 			push_warning("[GameManager] ⚠️ ACESSO AO LOBBY BLOQUEADO: Nenhum personagem selecionado ou criado. Redirecionando para Seleção de Personagem.")
-			get_tree().change_scene_to_file.call_deferred("res://ui/CharacterSelection/CharacterSelectionUI.tscn")
+			if DisplayServer.get_name() != "headless":
+				get_tree().change_scene_to_file.call_deferred("res://ui/CharacterSelection/CharacterSelectionUI.tscn")
 			return
 
 	if GameManager != null:

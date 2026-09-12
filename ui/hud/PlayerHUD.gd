@@ -28,6 +28,10 @@ var player: Node = null
 var achievements_ui: AchievementsUI = null
 var nen_action_bar: Control = null
 var condition_tracker: ConditionTrackerUI = null
+var _hp_anterior: int = -1
+var _aura_anterior: int = -1
+var _hp_flash_tween: Tween = null
+var _aura_flash_tween: Tween = null
 
 
 # Painel Principal Topo-Esquerdo
@@ -865,6 +869,10 @@ func _atualizar_hp() -> void:
 	bar_hp.value = clamp(hp, 0, hp_max)
 	lbl_hp_num.text = "%s/%s" % [_formatar_numero(hp), _formatar_numero(hp_max)]
 
+	if _hp_anterior >= 0 and hp < _hp_anterior:
+		_flash_barra_impacto(bar_hp, true)
+	_hp_anterior = hp
+
 	var legacy_hp = get_node_or_null("MarginContainer/VBoxContainer/HPBar") as ProgressBar
 	if legacy_hp != null:
 		legacy_hp.max_value = bar_hp.max_value
@@ -879,10 +887,31 @@ func _atualizar_aura() -> void:
 	bar_aura.value = clamp(aura, 0, aura_max)
 	lbl_aura_num.text = "%s/%s" % [_formatar_numero(aura), _formatar_numero(aura_max)]
 
+	if _aura_anterior >= 0 and aura < _aura_anterior:
+		_flash_barra_impacto(bar_aura, false)
+	_aura_anterior = aura
+
 	var legacy_aura = get_node_or_null("MarginContainer/VBoxContainer/AuraBar") as ProgressBar
 	if legacy_aura != null:
 		legacy_aura.max_value = bar_aura.max_value
 		legacy_aura.value = bar_aura.value
+
+
+## Micro-punch MMORPG nas barras (dano HP / gasto de aura) — GAME_FEEL_BIBLE §HUD.
+func _flash_barra_impacto(barra: ProgressBar, is_hp: bool) -> void:
+	if barra == null:
+		return
+	var tw: Tween = _hp_flash_tween if is_hp else _aura_flash_tween
+	if tw != null and tw.is_valid():
+		tw.kill()
+	var flash_col := Color(1.35, 0.35, 0.35, 1.0) if is_hp else Color(0.45, 0.75, 1.35, 1.0)
+	barra.modulate = flash_col
+	tw = create_tween()
+	tw.tween_property(barra, "modulate", Color.WHITE, 0.18).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	if is_hp:
+		_hp_flash_tween = tw
+	else:
+		_aura_flash_tween = tw
 
 
 func _atualizar_xp() -> void:
