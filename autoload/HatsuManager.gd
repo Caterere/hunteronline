@@ -407,6 +407,8 @@ func criar_hatsu(
 	hatsu.calcular_versatility_score()
 	hatsu.calcular_functional_power()
 	hatsu.calcular_limitation_credits()
+	# Sempre materializa VisualProfile coerente com estilo/elemento/efeito
+	HatsuVisualResolver.apply_to_hatsu(hatsu)
 
 	return hatsu
 

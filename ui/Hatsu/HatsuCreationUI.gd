@@ -549,6 +549,18 @@ func _aplicar_preset(preset: Dictionary) -> void:
 		if arr is Array and not arr.is_empty():
 			sel_opcoes_preset_escolhidas[chave] = arr[0]
 
+	# Estilo/cores com sentido do elemento do conceito
+	sel_estilo_visual = HatsuVisualResolver.suggest_estilo(sel_elemento, sel_forma, sel_objetivo)
+	var preview_h := HatsuData.new()
+	preview_h.elemento = sel_elemento
+	preview_h.estilo_visual = sel_estilo_visual
+	preview_h.forma = sel_forma
+	preview_h.objetivo = sel_objetivo
+	preview_h.categoria = sel_categoria
+	var preview_vp := HatsuVisualResolver.build_for_hatsu(preview_h)
+	sel_cor_primaria = preview_vp.primary_color
+	sel_cor_secundaria = preview_vp.secondary_color
+
 
 # ============================================================
 # ETAPA 3: NOME & ESTILO VISUAL
@@ -570,6 +582,9 @@ func _montar_etapa_nome() -> void:
 	lbl_v.text = "Estilo Visual da Manifestação:"
 	lbl_v.add_theme_font_size_override("font_size", 4)
 	container_opcoes.add_child(lbl_v)
+
+	# Preview vivo: shape + cor + FX resolvidos do estilo atual
+	_montar_preview_visual()
 
 	var estilos = [
 		{"id": HatsuData.EstiloVisual.PURO_PULSANTE, "nome": "1. Puro Pulsante (Densidade de Nen)", "cor": Color(0.3, 0.7, 1.0, 1.0)},
@@ -599,6 +614,50 @@ func _montar_etapa_nome() -> void:
 
 # ============================================================
 # ETAPA 4: EFEITO PRINCIPAL & FUNCIONAMENTO (AUDITADO)
+func _montar_preview_visual() -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	container_opcoes.add_child(row)
+
+	var host := SubViewportContainer.new()
+	host.custom_minimum_size = Vector2(56, 40)
+	host.stretch = true
+	row.add_child(host)
+
+	var vp := SubViewport.new()
+	vp.size = Vector2i(112, 80)
+	vp.transparent_bg = true
+	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	host.add_child(vp)
+
+	var bg := ColorRect.new()
+	bg.color = Color(0.05, 0.07, 0.12, 1.0)
+	bg.size = Vector2(112, 80)
+	vp.add_child(bg)
+
+	var probe := HatsuData.new()
+	probe.nome = sel_nome
+	probe.estilo_visual = sel_estilo_visual
+	probe.elemento = sel_elemento
+	probe.forma = sel_forma
+	probe.objetivo = sel_objetivo
+	probe.categoria = sel_categoria
+	probe.cor_aura = sel_cor_primaria
+	probe.cor_aura_secundaria = sel_cor_secundaria
+	var profile := HatsuVisualResolver.build_for_hatsu(probe)
+
+	var visual := HatsuVisual.new()
+	visual.position = Vector2(56, 40)
+	visual.setup(profile)
+	vp.add_child(visual)
+
+	var info := Label.new()
+	info.add_theme_font_size_override("font_size", 3)
+	info.text = "FX cast: %s\nFX hit: %s\nShape: %d" % [profile.cast_effect, profile.impact_effect, int(profile.shape)]
+	info.modulate = Color(0.75, 0.9, 1.0, 1.0)
+	row.add_child(info)
+
+
 # ============================================================
 
 func _montar_etapa_funcionamento() -> void:
@@ -1287,21 +1346,15 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 				novo_hatsu.core_component = HatsuComponentLibrary.CoreType.STRIKE
 		_: novo_hatsu.core_component = HatsuComponentLibrary.CoreType.STRIKE
 
-	# Configurar Perfil Visual Customizado
-	var vp := VisualProfile.new()
-	vp.primary_color = sel_cor_primaria
-	vp.secondary_color = sel_cor_secundaria
-	vp.core_color = Color(1.0, 1.0, 1.0, 1.0)
-	vp.glow_color = sel_cor_primaria
-	vp.glow_intensity = 0.85
-	vp.trail_enabled = (sel_forma == HatsuData.Forma.PROJETIL)
-	vp.trail_color = sel_cor_primaria
-	match sel_forma:
-		HatsuData.Forma.PROJETIL: vp.shape = VisualProfile.VisualShape.SPHERE
-		HatsuData.Forma.AREA, HatsuData.Forma.ZONA: vp.shape = VisualProfile.VisualShape.RING
-		HatsuData.Forma.TOQUE: vp.shape = VisualProfile.VisualShape.BLADE
-		_: vp.shape = VisualProfile.VisualShape.SPHERE
-	novo_hatsu.visual_profile = vp
+	# Perfil visual com sentido: estilo/elemento/forma/objetivo → shape + cores + FX
+	novo_hatsu.estilo_visual = sel_estilo_visual
+	novo_hatsu.cor_aura = sel_cor_primaria
+	novo_hatsu.cor_aura_secundaria = sel_cor_secundaria
+	novo_hatsu.elemento = sel_elemento
+	novo_hatsu.objetivo = sel_objetivo
+	novo_hatsu.forma = sel_forma
+	novo_hatsu.categoria = sel_categoria
+	HatsuVisualResolver.apply_to_hatsu(novo_hatsu)
 
 	# Validar Power & Limitation Budget
 	var validacao = HatsuManager.validate_hatsu(novo_hatsu)

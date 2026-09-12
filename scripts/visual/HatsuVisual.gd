@@ -306,6 +306,8 @@ func _draw() -> void:
 # ============================================================
 # EFEITOS INSTANTÂNEOS DE CAST E IMPACTO (ESTÁTICOS)
 # ============================================================
+# EFEITOS INSTANTÂNEOS DE CAST E IMPACTO (ESTÁTICOS)
+# ============================================================
 
 static func spawn_cast_effect(pos: Vector2, p: Resource, parent: Node) -> Node2D:
 	if parent == null or p == null or p.cast_effect == "none":
@@ -318,11 +320,40 @@ static func spawn_cast_effect(pos: Vector2, p: Resource, parent: Node) -> Node2D
 
 	var cor_glow: Color = p.glow_color
 	var cor_core: Color = p.core_color
+	var cor_prim: Color = p.primary_color
 	var v_scale: float = p.visual_scale
+	var kind: String = str(p.cast_effect)
 
 	fx.draw.connect(func():
-		fx.draw_circle(Vector2.ZERO, 14.0 * v_scale, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.6))
-		fx.draw_circle(Vector2.ZERO, 7.0 * v_scale, cor_core)
+		match kind:
+			"spark_burst":
+				for i in range(8):
+					var ang: float = (TAU / 8.0) * float(i)
+					var a := Vector2(cos(ang), sin(ang)) * 4.0 * v_scale
+					var b := Vector2(cos(ang), sin(ang)) * 16.0 * v_scale
+					fx.draw_line(a, b, cor_glow, 2.0 * v_scale)
+				fx.draw_circle(Vector2.ZERO, 5.0 * v_scale, cor_core)
+			"smoke":
+				for i in range(4):
+					var ox := sin(float(i) * 1.7) * 6.0 * v_scale
+					var oy := cos(float(i) * 1.3) * 4.0 * v_scale
+					fx.draw_circle(Vector2(ox, oy), (7.0 - float(i)) * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.35))
+			"ice_flash":
+				var pts := PackedVector2Array([
+					Vector2(0, -12) * v_scale, Vector2(5, -2) * v_scale,
+					Vector2(12, 0) * v_scale, Vector2(5, 2) * v_scale,
+					Vector2(0, 12) * v_scale, Vector2(-5, 2) * v_scale,
+					Vector2(-12, 0) * v_scale, Vector2(-5, -2) * v_scale
+				])
+				fx.draw_colored_polygon(pts, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.55))
+				fx.draw_circle(Vector2.ZERO, 4.0 * v_scale, cor_core)
+			"heal_pulse":
+				fx.draw_arc(Vector2.ZERO, 12.0 * v_scale, 0.0, TAU, 28, Color(0.4, 1.0, 0.5, 0.7), 3.0 * v_scale)
+				fx.draw_circle(Vector2.ZERO, 6.0 * v_scale, Color(0.7, 1.0, 0.8, 0.8))
+			_:
+				# aura_flash padrão
+				fx.draw_circle(Vector2.ZERO, 14.0 * v_scale, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.6))
+				fx.draw_circle(Vector2.ZERO, 7.0 * v_scale, cor_core)
 	)
 
 	parent.add_child(fx)
@@ -347,10 +378,42 @@ static func spawn_impact_effect(pos: Vector2, p: Resource, parent: Node) -> Node
 	var cor_prim: Color = p.primary_color
 	var cor_glow: Color = p.glow_color
 	var v_scale: float = p.visual_scale
+	var kind: String = str(p.impact_effect)
 
 	fx.draw.connect(func():
-		fx.draw_arc(Vector2.ZERO, 18.0 * v_scale, 0.0, TAU, 32, cor_glow, 3.0)
-		fx.draw_circle(Vector2.ZERO, 8.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.7))
+		match kind:
+			"spark_burst":
+				for i in range(10):
+					var ang: float = (TAU / 10.0) * float(i) + 0.2
+					var a := Vector2(cos(ang), sin(ang)) * 3.0 * v_scale
+					var b := Vector2(cos(ang), sin(ang)) * 20.0 * v_scale
+					fx.draw_line(a, b, cor_glow, 2.2 * v_scale)
+				fx.draw_circle(Vector2.ZERO, 6.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.75))
+			"smoke":
+				for i in range(5):
+					var ox := cos(float(i) * 1.1) * 8.0 * v_scale
+					var oy := sin(float(i) * 1.4) * 6.0 * v_scale
+					fx.draw_circle(Vector2(ox, oy), (9.0 - float(i)) * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.3))
+			"ice_shatter":
+				for i in range(6):
+					var ang: float = (TAU / 6.0) * float(i)
+					var tip := Vector2(cos(ang), sin(ang)) * 16.0 * v_scale
+					fx.draw_colored_polygon(PackedVector2Array([
+						tip * 0.2, tip, tip.rotated(0.25) * 0.55
+					]), Color(0.7, 0.9, 1.0, 0.8))
+			"slash_flash":
+				fx.draw_line(Vector2(-16, -10) * v_scale, Vector2(16, 10) * v_scale, cor_glow, 4.0 * v_scale)
+				fx.draw_line(Vector2(-14, -12) * v_scale, Vector2(14, 12) * v_scale, cor_prim, 2.0 * v_scale)
+			"bind_flash":
+				fx.draw_arc(Vector2.ZERO, 14.0 * v_scale, 0.0, TAU, 24, Color(0.9, 0.2, 1.0, 0.8), 3.0 * v_scale)
+				fx.draw_arc(Vector2.ZERO, 9.0 * v_scale, 0.0, TAU, 24, cor_glow, 2.0 * v_scale)
+			"heal_pulse":
+				fx.draw_arc(Vector2.ZERO, 16.0 * v_scale, 0.0, TAU, 28, Color(0.3, 1.0, 0.45, 0.75), 3.0 * v_scale)
+				fx.draw_circle(Vector2.ZERO, 7.0 * v_scale, Color(0.6, 1.0, 0.7, 0.7))
+			_:
+				# shockwave padrão
+				fx.draw_arc(Vector2.ZERO, 18.0 * v_scale, 0.0, TAU, 32, cor_glow, 3.0)
+				fx.draw_circle(Vector2.ZERO, 8.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.7))
 	)
 
 	parent.add_child(fx)
