@@ -232,6 +232,8 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"regiao_atual": String(WorldProgressionManager.regiao_atual_id) if WorldProgressionManager != null else "lobby",
 		"regioes_desbloqueadas": WorldProgressionManager.regioes_desbloqueadas.map(func(r): return String(r)) if WorldProgressionManager != null else ["lobby"],
 		"relationship_data": RelationshipSystem.salvar_dados() if RelationshipSystem != null else {},
+		"association_mail_data": AssociationMailSystem.salvar_dados() if AssociationMailSystem != null else {},
+		"hunter_friends_data": HunterFriendsSystem.salvar_dados() if HunterFriendsSystem != null else {},
 		"rumor_data": RumorSystem.salvar_dados() if RumorSystem != null else {},
 		"world_events_data": WorldEventManager.salvar_dados() if WorldEventManager != null else {},
 		"bounty_data": BountySystem.salvar_dados() if BountySystem != null else {},
@@ -643,6 +645,10 @@ func carregar_jogo(slot: int = -1) -> bool:
 	# Matriz de Relacionamentos e Rumores
 	if RelationshipSystem != null:
 		RelationshipSystem.carregar_dados(data.get("relationship_data", {}))
+	if AssociationMailSystem != null:
+		AssociationMailSystem.carregar_dados(data.get("association_mail_data", {}))
+	if HunterFriendsSystem != null:
+		HunterFriendsSystem.carregar_dados(data.get("hunter_friends_data", {}))
 	if RumorSystem != null:
 		RumorSystem.carregar_dados(data.get("rumor_data", {}))
 	if WorldEventManager != null:
