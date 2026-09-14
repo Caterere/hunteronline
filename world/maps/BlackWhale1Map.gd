@@ -24,6 +24,8 @@ var _marcos_notificados: Dictionary = {
 func _ready() -> void:
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.WHALE)
 	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(9))
+	SagaDistrictKit.densify_saga(self, 9)
+	SagaChapterBinder.bind_hub(self, 9)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco9()
 	_configurar_inimigos()
