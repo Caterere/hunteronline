@@ -226,6 +226,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"guild_data": HunterGuildSystem.salvar_dados() if HunterGuildSystem != null else {},
 		"nen_contract_data": NenContractManager.salvar_dados() if NenContractManager != null else {},
 		"secret_bosses_data": SecretBossManager.salvar_dados() if SecretBossManager != null else {},
+		"gourmet_data": GourmetCooking.salvar_dados() if GourmetCooking != null else {},
 		"time_data": {
 			"hour": TimeManager.current_hour,
 			"minute": TimeManager.current_minute,
@@ -620,6 +621,8 @@ func carregar_jogo(slot: int = -1) -> bool:
 		NenContractManager.carregar_dados(data.get("nen_contract_data", {}))
 	if SecretBossManager != null and data.has("secret_bosses_data"):
 		SecretBossManager.carregar_dados(data.get("secret_bosses_data", {}))
+	if GourmetCooking != null and data.has("gourmet_data"):
+		GourmetCooking.carregar_dados(data.get("gourmet_data", {}))
 
 	# Coleções, Memória de NPCs, Eventos Vivos e Rotas (Fase L)
 	if CollectionManager != null and data.has("collections"):

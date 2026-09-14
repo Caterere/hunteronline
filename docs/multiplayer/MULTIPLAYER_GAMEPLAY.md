@@ -70,10 +70,12 @@ O multiplayer de Hunter Online foi construído para potencializar a fantasia do 
 | **Drops e Loot Instanciados** | `[IMPLEMENTED]` | Recompensas individuais sem duplicação ou roubo |
 | **Duelos Consensuais 1v1** | `[IMPLEMENTED]` | Arena circular, fim em 1 HP e restauração segura |
 | **Revive de Aliados em Combate** | `[IMPLEMENTED]` | Canalização de 3s (servidor) + tecla E no cliente; dano interrompe — **PREREQ-2** |
-| **Raids Cooperativas de 8 Hunters**| `[IN PROGRESS]` | Cap 8 via `PartyManager` modo raid + `RaidInstance`/`RaidCatalog` (vertical Ruínas de Zaban); mapa/encontro boss ainda a ligar — **S3** |
+| **Raids Cooperativas de 8 Hunters**| `[IMPLEMENTED]` | Cap 8 + `RaidInstance`/`RaidCatalog` + `DungeonRuinasZabanMap` (fases, telegraph, loot chão, soft wipe) — **S3** |
 | **Arena Ranqueada na Torre Celestial**| `[IMPLEMENTED]` | Temporadas 28d, MMR/Elo K=32 cosmético, soft reset, títulos — **S2** |
 | **Leilão de Yorknew (escrow)** | `[IMPLEMENTED]` | Listagens com taxa Jenny, seeds NPC e payouts — **S1** |
 | **Duelo de Cartas (Greed Island)** | `[IMPLEMENTED]` | Catálogo 24 cartas + `CardDuelSystem` jogável — **S4** |
-| **Guildas + Nen Contracts** | `[IMPLEMENTED]` | Cap 20, banco Jenny, juramentos Nen (máx. 3) — **A6** |
+| **Guildas de Caçadores + Nen Contracts** | `[IMPLEMENTED]` | Cap 20, banco Jenny, juramentos Nen (máx. 3), PauseMenu → GuildHallUI — **A6** |
+| **Blacklist Open Hunt (A7)** | `[IMPLEMENTED]` | Cartaz S-rank → rumor/evento → world boss co-op + loot por contribuição |
+| **Gourmet Life Skills (A8)** | `[IMPLEMENTED]` | Coleta → cozinha → buffs temporários; writs diários; Menchi → Kitchen UI |
 
-> Pré-requisitos e backlog priorizado: [`docs/roadmap/MMO_FEATURES_BACKLOG.md`](../roadmap/MMO_FEATURES_BACKLOG.md) (PREREQ-1 sync binário · PREREQ-2 revive aliado). A8 Gourmet fica para depois.
+> Pré-requisitos e backlog: [`docs/roadmap/MMO_FEATURES_BACKLOG.md`](../roadmap/MMO_FEATURES_BACKLOG.md).

@@ -33,8 +33,10 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 			falas = [
 				{"falante": "Kurapika", "texto": "Companheiro Caçador da Lista Negra (%s)..." % rank_nome},
 				{"falante": "Kurapika", "texto": "Nossa missão não é apenas punir o crime, mas resgatar as relíquias culturais arrancadas de povos que não podem mais se defender."},
-				{"falante": "Kurapika", "texto": "Continue caçando os alvos no Quadro de Bounties para elevar nosso prestígio."}
+				{"falante": "Kurapika", "texto": "Alvos S-rank no Quadro de Bounties são caças abertas: party, threat compartilhado e loot por contribuição. Inicie Karkov ou Drakon quando estiver pronto."}
 			]
+			# Oferece atalho para a caça aberta mais próxima (Karkov)
+			_oferecer_open_hunt_atalho()
 		elif nivel_nen >= 8:
 			falas = [
 				{"falante": "Kurapika", "texto": "Você tem um olhar resoluto. O Nen que flui em seu corpo carrega peso e disciplina."},
@@ -53,3 +55,19 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		visual_dialogue.exibir_sequencia_falas(falas)
 	else:
 		falar_balao(fala_padrao, 3.8, Color(1.0, 0.3, 0.3, 1.0))
+
+
+func _oferecer_open_hunt_atalho() -> void:
+	# Sem UI modal aqui: se não houver caça ativa, deixa rumor + toast apontando o quadro
+	if not BlacklistOpenHunt.active_hunts.is_empty():
+		return
+	if EventBus != null:
+		EventBus.emit_toast("🏴 Abra o Quadro de Procurados [Lobby] para iniciar Caça Aberta", Color(1.0, 0.55, 0.35))
+	if RumorSystem != null and RumorSystem.has_method("criar_rumor"):
+		RumorSystem.criar_rumor(
+			"rumor_blacklist_open_hint",
+			"Caça Aberta disponível",
+			"Karkov e Drakon estão no Quadro de Procurados como caças abertas S-rank.",
+			"lobby",
+			""
+		)

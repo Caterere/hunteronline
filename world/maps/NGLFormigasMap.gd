@@ -22,6 +22,10 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.NGL)
+	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(6))
+	SagaDistrictKit.densify_saga(self, 6)
+	SagaChapterBinder.bind_hub(self, 6)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco6()
 	_configurar_inimigos()
@@ -197,7 +201,8 @@ func _configurar_inimigos() -> void:
 		"EsquadraoQuimera": {"id": &"guarda_peijin", "nome": "Guarda de Peijin", "etapa": 19},
 		"YoupiInimigo": {"id": &"youpi", "nome": "Menthuthuyoupi (Guarda Real)", "etapa": 32},
 		"ShaiapoufInimigo": {"id": &"shaiapouf", "nome": "Shaiapouf (Guarda Real)", "etapa": 33},
-		"NeferpitouInimigo": {"id": &"neferpitou", "nome": "Neferpitou Boss", "etapa": 43}
+		"NeferpitouInimigo": {"id": &"neferpitou", "nome": "Neferpitou Boss", "etapa": 43},
+		"MeruemRei": {"id": &"meruem", "nome": "Rei Meruem", "etapa": 46}
 	}
 	
 	for nome in configs:

@@ -841,6 +841,10 @@ func die() -> void:
 		" morreu!"
 	)
 
+	# -----------------------------------------------------
+	# GAME FEEL — morte com presença (dissipação de aura)
+	# -----------------------------------------------------
+	_play_death_feel()
 
 	# -----------------------------------------------------
 	# ENTREGAR XP E GERAR DROPS DE LOOT
@@ -862,11 +866,11 @@ func die() -> void:
 
 
 	# -----------------------------------------------------
-	# REMOVER INIMIGO
+	# REMOVER INIMIGO (atraso maior para ler a dissipação)
 	# -----------------------------------------------------
 
 	await get_tree().create_timer(
-		0.15
+		0.45
 	).timeout
 
 
@@ -988,29 +992,77 @@ func _entregar_xp() -> void:
 	print("=================================")
 
 
+func _play_death_feel() -> void:
+	var pos: Vector2 = Vector2.ZERO
+	if enemy_body != null and is_instance_valid(enemy_body):
+		pos = enemy_body.global_position
+		# Fade do sprite do corpo
+		var spr = enemy_body.get_node_or_null("Sprite2D")
+		if spr == null:
+			spr = enemy_body.get_node_or_null("AnimatedSprite2D")
+		if spr != null:
+			var tw := enemy_body.create_tween()
+			tw.tween_property(spr, "modulate", Color(0.55, 0.85, 1.0, 0.0), 0.4)
+
+	if CombatImpactEffect != null:
+		CombatImpactEffect.spawn_death_dissipation(enemy_body if enemy_body != null else self, pos)
+		CombatImpactEffect.spawn_aura_burst(enemy_body if enemy_body != null else self, pos, Color(0.45, 0.85, 1.0, 0.95))
+
+	if EventBus != null:
+		if EventBus.has_method("emit_hitstop"):
+			EventBus.emit_hitstop(0.07)
+		if EventBus.has_method("emit_camera_shake"):
+			EventBus.emit_camera_shake(0.28, 0.16)
+
+	if AudioManager != null:
+		if AudioManager.has_method("tocar_sfx_posicional"):
+			AudioManager.tocar_sfx_posicional("stagger_break", pos, 1.05)
+		else:
+			AudioManager.tocar_sfx_tipo("stagger_break", 1.05)
+
+
 func _gerar_drop_loot() -> void:
 	if enemy_data != null and enemy_data.is_boss:
 		var hud = get_tree().get_first_node_in_group("player_hud")
 		if hud != null and hud.has_method("esconder_boss_bar"):
 			hud.esconder_boss_bar()
 
+	var world_parent: Node = get_tree().current_scene
+	if world_parent == null:
+		world_parent = get_parent()
+	var drop_pos: Vector2 = Vector2.ZERO
+	if enemy_body != null and is_instance_valid(enemy_body):
+		drop_pos = enemy_body.global_position
+	elif get_parent() is Node2D:
+		drop_pos = (get_parent() as Node2D).global_position
+
 	var enemy_lv: int = max(1, enemy_data.level if enemy_data != null else 1)
 	var qtd_gold: int = 0
 	if Economy != null:
 		qtd_gold = Economy.calcular_drop_jenny_inimigo(enemy_lv)
-		Economy.adicionar_gold(qtd_gold)
 	else:
 		qtd_gold = maxi(5, int(round(float(randi_range(12, 36) * enemy_lv) * 0.45)))
 
+	# Loot no chão (RO / Tibia) — sem auto-grant silencioso
+	if world_parent != null and qtd_gold > 0:
+		LootDrop.spawn_jenny(world_parent, drop_pos, qtd_gold)
+	elif qtd_gold > 0 and Economy != null:
+		Economy.adicionar_gold(qtd_gold)
 
-	# Processar Tabela de Drops (GDD Vol 8)
+	# Processar Tabela de Drops (GDD Vol 8) — itens também no chão
 	if enemy_data != null and not enemy_data.drop_table.is_empty():
 		for drop_info in enemy_data.drop_table:
 			var chance: float = float(drop_info.get("chance", 0.5))
 			if randf() <= chance:
 				var item_id = drop_info.get("item_id", "")
 				var qtd: int = int(drop_info.get("quantidade", 1))
-				if not item_id.is_empty() and PlayerData != null:
+				if item_id.is_empty():
+					continue
+				if world_parent != null:
+					for _i in range(maxi(1, qtd)):
+						LootDrop.spawn_item_drop(world_parent, drop_pos, String(item_id))
+					print("[EnemySystem] LOOT NO CHÃO: %s x%d" % [item_id, qtd])
+				elif PlayerData != null:
 					PlayerData.adicionar_item(StringName(item_id), qtd)
 					print("[EnemySystem] LOOT COLETADO: %s x%d" % [item_id, qtd])
 

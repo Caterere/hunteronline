@@ -10,6 +10,9 @@ extends NPC
 #
 # ============================================================
 
+var _kitchen_ui: GourmetKitchenUI = null
+
+
 func _ready() -> void:
 	super()
 	npc_name = "Menchi"
@@ -30,22 +33,40 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 			var rank_nome = FactionManager.obter_nome_rank_atual() if FactionManager else "Cozinheiro"
 			falas = [
 				{"falante": "Examinadora Menchi", "texto": "Excelente ver você na cozinha, meu caro Caçador Gourmet (%s)!" % rank_nome},
-				{"falante": "Examinadora Menchi", "texto": "Continue caçando feras raras e colhendo temperos proibidos para preparar os Banquetes Mágicos que fortalecem o corpo e a aura!"}
+				{"falante": "Examinadora Menchi", "texto": "Abra a Cozinha Gourmet — ensopados e chá dão buffs temporários. Não substituem Nen; só sustentam o corpo."}
 			]
+			visual_dialogue.exibir_sequencia_falas(falas)
+			_abrir_cozinha()
 		elif nivel_nen >= 2:
 			falas = [
 				{"falante": "Examinadora Menchi", "texto": "Vocês acham que ser um Hunter Gourmet é apenas cozinhar pratos bonitinhos? Quanta ignorância!"},
-				{"falante": "Examinadora Menchi", "texto": "Nós arriscamos a vida em abismos e vulcões para extrair o melhor sabor do mundo! Se você ama a caça culinária e quer banquetes que aumentam sua vida e aura permanentemente, junte-se à Guilda dos Hunters Gourmet!"},
+				{"falante": "Examinadora Menchi", "texto": "Nós arriscamos a vida em abismos e vulcões para extrair o melhor sabor do mundo! Se você ama a caça culinária e quer banquetes que aumentam sua vida e aura temporariamente, junte-se à Guilda dos Hunters Gourmet!"},
 				{"falante": "Examinadora Menchi", "texto": "Consulte o Jornal de Missões [J] na aba de Facções para ingressar na nossa guilda!"}
 			]
 			if FactionManager and PlayerData.faccao_atual.is_empty():
 				FactionManager.ingressar_faccao("gourmet")
 				PlayerData.registrar_segredo("recrutado_gourmet")
+			visual_dialogue.exibir_sequencia_falas(falas)
 		else:
 			falas = [
 				{"falante": "Examinadora Menchi", "texto": "Se não demonstrarem coragem, respeito pelos ingredientes e precisão técnica contra os javalis da floresta, eu reprovarei todos vocês sem hesitar!"}
 			]
-
-		visual_dialogue.exibir_sequencia_falas(falas)
+			visual_dialogue.exibir_sequencia_falas(falas)
 	else:
 		falar_balao(fala_padrao, 4.0, Color(0.9, 0.3, 0.5, 1.0))
+		if PlayerData != null and PlayerData.faccao_atual == "gourmet":
+			_abrir_cozinha()
+
+
+func _abrir_cozinha() -> void:
+	if _kitchen_ui == null:
+		var scn = load("res://ui/Gourmet/GourmetKitchenUI.tscn")
+		if scn != null:
+			_kitchen_ui = scn.instantiate()
+		else:
+			_kitchen_ui = GourmetKitchenUI.new()
+		get_tree().root.add_child(_kitchen_ui)
+	get_tree().create_timer(0.35).timeout.connect(func():
+		if _kitchen_ui != null and is_instance_valid(_kitchen_ui):
+			_kitchen_ui.abrir()
+	)

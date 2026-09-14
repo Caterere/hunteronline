@@ -45,6 +45,22 @@ func _conectar_sinais() -> void:
 	if CombatEngine != null and CombatEngine.has_signal("hit_processado"):
 		CombatEngine.hit_processado.connect(_on_combat_engine_hit)
 
+	if EventBus != null and EventBus.has_signal("jenny_changed"):
+		if not EventBus.jenny_changed.is_connected(_on_jenny_changed):
+			EventBus.jenny_changed.connect(_on_jenny_changed)
+
+
+func _on_jenny_changed(_new_amount: int, delta: int) -> void:
+	if delta <= 0:
+		return
+	var tree := get_tree()
+	if tree == null:
+		return
+	var players = tree.get_nodes_in_group("player")
+	if players.is_empty():
+		return
+	spawn_jenny(players[0], delta)
+
 
 func _on_combat_hit_landed(_atacante: Node, defensor: Node, dano: int, is_crit: bool) -> void:
 	if defensor == null or not is_instance_valid(defensor):
@@ -112,6 +128,24 @@ func spawn_bloqueio(alvo_ou_pos: Variant) -> void:
 func spawn_cura(alvo_ou_pos: Variant, valor: int) -> void:
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	spawn_texto(pos, "+%d HP" % valor, HunterUIStyle.COLOR_HEAL_GREEN, 1.15)
+
+
+## Spawna indicação de imunidade (GAME_FEEL §5)
+func spawn_imune(alvo_ou_pos: Variant) -> void:
+	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
+	spawn_texto(pos, "IMUNE", Color(0.75, 0.85, 1.0, 0.95), 1.2, 0.9)
+
+
+## Feedback flutuante de XP (Maple-style)
+func spawn_xp(alvo_ou_pos: Variant, valor: int) -> void:
+	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
+	spawn_texto(pos, "+%d XP" % valor, Color(0.45, 0.85, 1.0), 1.1, 0.9)
+
+
+## Feedback flutuante de Jenny
+func spawn_jenny(alvo_ou_pos: Variant, valor: int) -> void:
+	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
+	spawn_texto(pos, "+%d Jenny" % valor, Color(1.0, 0.85, 0.25), 1.05, 0.85)
 
 
 ## Spawna um texto arbitrário estilizado no mundo

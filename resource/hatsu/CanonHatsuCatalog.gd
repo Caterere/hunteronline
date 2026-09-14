@@ -340,6 +340,12 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"channel": HatsuData.HatsuChannel.LIBRARY,
 			"exclusive_group": "library_mode",
 			"concurrent_allowed": true,
+			"arquetipo": HatsuData.Arquetipo.LIVRO_COLECAO,
+			"is_storage_hatsu": true,
+			"steal_conditions": ["TOUCH_REQUIRED", "OBSERVE_GYO", "TARGET_EXPLAINS"],
+			"storage_capacity": 8,
+			"storage_duration_type": "CHARGES",
+			"tags": ["skill_hunter", "steal", "library"],
 			"descricao": "Especialização. Livro de Nen que potencializa, armazena e sincroniza múltiplos Hatsus roubados."
 		},
 		{
@@ -359,7 +365,74 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"channel": HatsuData.HatsuChannel.OFFENSIVE,
 			"exclusive_group": "",
 			"concurrent_allowed": true,
+			"tags": ["conjuration", "aoe"],
 			"descricao": "Conjuração. Invoca peixes carnívoros de Nen que devoram os alvos em área (85 de Dano)."
+		},
+
+		# --- MERUEM ---
+		{
+			"id": "meruem_aura_devour",
+			"nome": "Síntese Predadora (Devour)",
+			"usuario": "Meruem",
+			"categoria": HatsuData.Categoria.ESPECIALIZACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.SUPORTE,
+			"forma": HatsuData.Forma.TOQUE,
+			"condicoes": [],
+			"poder_base": 90.0,
+			"custo_aura": 40.0,
+			"cooldown": 12.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.PERMANENT_STANCE,
+			"channel": HatsuData.HatsuChannel.SPECIAL,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
+			"core_component": HatsuComponentLibrary.CoreType.ABSORPTION,
+			"absorption_target_stat": "forca",
+			"absorption_rate": 0.08,
+			"tags": ["absorb", "devour", "predator"],
+			"descricao": "Especialização. Absorve frações permanentes de força/aura da presa derrotada (rendimento decrescente)."
+		},
+
+		# --- NEFERPITOU ---
+		{
+			"id": "pitou_terpsichora",
+			"nome": "Terpsichora (Marionete de Guerra)",
+			"usuario": "Neferpitou",
+			"categoria": HatsuData.Categoria.MANIPULACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.SUPORTE,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [],
+			"poder_base": 70.0,
+			"custo_aura": 35.0,
+			"cooldown": 14.0,
+			"duracao": 18.0,
+			"activation_type": HatsuData.ActivationType.SUSTAINED,
+			"duration_type": HatsuData.DurationType.TIMED,
+			"channel": HatsuData.HatsuChannel.SPECIAL,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
+			"tags": ["buff", "terpsichora", "corporal"],
+			"descricao": "Manipulação. Marionete corporal: +força/+defesa temporários — buff de corpo, não substitui Nen."
+		},
+		{
+			"id": "pitou_doctor_blythe",
+			"nome": "Doctor Blythe (Cirurgia de Nen)",
+			"usuario": "Neferpitou",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.CURA,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [],
+			"poder_base": 55.0,
+			"cura_base": 120.0,
+			"custo_aura": 45.0,
+			"cooldown": 18.0,
+			"activation_type": HatsuData.ActivationType.CHANNELED,
+			"duration_type": HatsuData.DurationType.INSTANT,
+			"channel": HatsuData.HatsuChannel.UTILITY,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
+			"tags": ["heal_mass", "doctor", "medic"],
+			"descricao": "Conjuração. Cirurgia de Nen massiva — cura médico-nível (alto custo/CD)."
 		},
 
 		# --- ZENO ZOLDYCK ---

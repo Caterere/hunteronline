@@ -23,6 +23,9 @@ var _marcos_notificados: Dictionary = {
 
 func _ready() -> void:
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.YORKNEW)
+	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(4))
+	SagaDistrictKit.densify_saga(self, 4)
+	SagaChapterBinder.bind_hub(self, 4)
 	_garantir_dialogue_ui()
 	_popular_npcs_arco4()
 	_configurar_inimigos()
@@ -190,7 +193,8 @@ func _configurar_inimigos() -> void:
 		"UvoginInimigo": {"id": &"uvogin", "nome": "Uvogin (Trupe Fantasma)", "etapa": 10},
 		"SoldadoMafia2": {"id": &"clone_feitan", "nome": "Clone do Feitan", "etapa": 18},
 		"PakunodaInimiga": {"id": &"pakunoda", "nome": "Pakunoda (Trupe Fantasma)", "etapa": 23},
-		"NobunagaInimigo": {"id": &"chrollo_boss", "nome": "Chrollo Lucilfer (Chefe)", "etapa": 34}
+		"NobunagaInimigo": {"id": &"nobunaga", "nome": "Nobunaga Hazama", "etapa": 20},
+		"ChrolloBossInimigo": {"id": &"chrollo", "nome": "Chrollo Lucilfer (Chefe)", "etapa": 34}
 	}
 	
 	for nome in configs:

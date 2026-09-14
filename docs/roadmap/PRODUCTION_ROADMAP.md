@@ -21,6 +21,16 @@ Histórico de sprints diários: [`_history/`](_history/)
    - [x] Sentinela de Pedra
 3. **Feedback de Gyo**
    - [x] SFX `gyo_detect` / `nen_gyo`
+4. **Feel Gap Close (Maple/RO/Tibia)**
+   - [x] Morte com dissipação de aura + hit-stop
+   - [x] `LootDrop` no chão + pickup juice
+   - [x] Texto `IMUNE` + afterimages de dash + assinatura Hatsu
+   - [x] +XP/+Jenny float, buffs HUD, level-up juice, SFX posicional
+   - [x] Raid vertical Ruínas de Zaban wired
+   - [x] PREREQ-1 player/auction/guild binary sync
+   - [x] Raid Zaban density (3+ fases, telegraph AoE, loot no chão, wipe/revive legível)
+   - [x] A7 Blacklist open hunt (world boss co-op)
+   - [x] A8 Gourmet life skills (leve, buffs temporários)
 
 ---
 
@@ -39,7 +49,7 @@ Itens de quests investigativas, NPCs vivos, eventos de facção, Style Lock Pixe
    - [ ] Master server / matchmaking (frota VPS)
    - [ ] Compressão / cap de taxa VPS
    - [x] **PREREQ-2:** revive de aliados (canalização 3s) — ver backlog MMO
-   - [ ] **PREREQ-1:** sync binário compacto via `NetworkProtocol` — ver backlog MMO
+   - [x] **PREREQ-1:** sync binário compacto via `NetworkProtocol` — ver backlog MMO
 4. **Progressão** — soft-caps XP/Jenny `[x]`
 5. **Backlog MMO (não diluir COMBATE+NEN+HATSU)**
    - Tier S/A/B: [`MMO_FEATURES_BACKLOG.md`](MMO_FEATURES_BACKLOG.md)

@@ -13,7 +13,7 @@ Estas duas fundações devem avançar **antes** de AH, ranked, raids 8 e matchma
 
 | ID | Pré-requisito | Status atual | Arquivos-alvo | Desbloqueia |
 | :--- | :--- | :--- | :--- | :--- |
-| **PREREQ-1** | **Sync binário via `NetworkProtocol`** | Parcial — opcodes + serialize dict existem; snapshots/RPC já rodando; empacote binário compacto ainda aberto | [`scripts/network/NetworkProtocol.gd`](../../scripts/network/NetworkProtocol.gd), [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`docs/multiplayer/NETWORK_PROTOCOL.md`](../multiplayer/NETWORK_PROTOCOL.md) | Leilão Yorknew, ranked Arena, Duty Finder, guild bank sync |
+| **PREREQ-1** | **Sync binário via `NetworkProtocol`** | `[IMPLEMENTED]` — world snapshot HOS1 + player state binary + AUCTION_SYNC / GUILD_BANK_SYNC | [`scripts/network/NetworkProtocol.gd`](../../scripts/network/NetworkProtocol.gd), [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`docs/multiplayer/NETWORK_PROTOCOL.md`](../multiplayer/NETWORK_PROTOCOL.md) | Leilão Yorknew, ranked Arena, Duty Finder, guild bank sync |
 | **PREREQ-2** | **Revive de aliados em combate** (canalização 3s) | `[IMPLEMENTED]` — desmaio 30s + canal 3s + interrupt on hit + tecla E | [`scripts/network/ServerWorldCoordinator.gd`](../../scripts/network/ServerWorldCoordinator.gd), [`autoload/NetworkManager.gd`](../../autoload/NetworkManager.gd), [`autoload/PartyManager.gd`](../../autoload/PartyManager.gd), [`ui/party/PartyHUD.gd`](../../ui/party/PartyHUD.gd) | Raids 8, world bosses co-op sérios, Blacklist open hunt |
 
 **Ordem mínima:** PREREQ-1 (banda/estabilidade) em paralelo com PREREQ-2 (gameplay co-op). Contratos rotativos (Tier A #5) podem avançar offline sem estes pré-requisitos.
@@ -39,7 +39,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `IMPLEMENTED` — escrow local + UI Yorknew + sync packet PREREQ-1 |
 | **Inspiração** | Auction House (WoW/FFXIV) + Grand Exchange (OSRS) |
 | **Deps** | PREREQ-1; economia server-side estável |
 | **Reusar** | `autoload/Economy.gd`, `ui/Shop/ShopUI.gd`, `world/maps/YorknewCityMap.gd`, `scripts/network/*` |
@@ -49,7 +49,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` (`[FUTURE]` em MULTIPLAYER_GAMEPLAY) |
+| **Status** | `IMPLEMENTED` — MMR/season/queue + tower UI (`[FUTURE]` em MULTIPLAYER_GAMEPLAY) |
 | **Inspiração** | Arena ladders (WoW), ranked seasons (Blade & Soul / Lost Ark) |
 | **Deps** | PREREQ-1; duelos estáveis |
 | **Reusar** | `ui/Arena/HeavensArenaTowerUI.gd`, `scripts/systems/arena/ArenaGhostRegistry.gd`, `scripts/network/DuelSystem.gd` |
@@ -59,7 +59,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | Revive `IMPLEMENTED` · Raids `PLANNED` |
+| **Status** | Revive `IMPLEMENTED` · Raids `IMPLEMENTED` — vertical Ruínas de Zaban wired |
 | **Inspiração** | Alliance/raids (FFXIV/WoW), guardian raids (Lost Ark) |
 | **Deps** | **PREREQ-2** (obrigatório); party/threat/loot já existem |
 | **Reusar** | `autoload/PartyManager.gd`, `scripts/network/CoopDungeonInstance.gd`, `scripts/network/CoopWorldBossCoordinator.gd` |
@@ -69,7 +69,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` (mapa + binder existem) |
+| **Status** | `IMPLEMENTED` — CardDuelSystem + Antokiba board (mapa + binder existem) |
 | **Inspiração** | Triple Triad / Mahjong (FFXIV), card PvP + mapa meta (GW2) |
 | **Deps** | Conteúdo de saga GI; ranked opcional depois |
 | **Reusar** | `ui/GreedIslandBinder/`, `resource/greed_island/`, `world/maps/GreedIslandMap.gd` |
@@ -93,7 +93,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `IMPLEMENTED` — system + GuildHallUI + PauseMenu entry + bank sync packet |
 | **Inspiração** | Guilds + Free Companies (FFXIV) + syndicates (Warframe) |
 | **Deps** | PREREQ-1; chat multiplayer estável |
 | **Reusar** | `autoload/FactionManager.gd`, `autoload/ReputationSystem.gd`, `autoload/PartyManager.gd`, `ui/chat/`, `world/maps/PlayerHouse.gd` |
@@ -103,7 +103,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `IMPLEMENTED` — `BlacklistOpenHunt` + cartazes open hunt no `BountiesBoardUI` + Kurapika hint + `CoopWorldBossCoordinator` loot por contribuição |
 | **Inspiração** | World bosses / rare elites (GW2, WoW) + wanted posters |
 | **Deps** | PREREQ-2 recomendado; world boss coordinator |
 | **Reusar** | `autoload/BountySystem.gd`, `ui/Bounties/`, `scripts/network/CoopWorldBossCoordinator.gd`, `autoload/RumorSystem.gd` |
@@ -113,7 +113,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `IMPLEMENTED` — `GourmetCooking` autoload + `GourmetKitchenUI` + Menchi · buffs temporários (não compete com Nen) · writs diários |
 | **Inspiração** | Life skills (BDO), crafting/gathering (FFXIV/ESO) |
 | **Deps** | Facção Gourmet; manter leve vs árvore de Nen |
 | **Reusar** | `autoload/FactionManager.gd`, `ui/Blacksmith/`, `ui/Minigames/` |
@@ -153,8 +153,10 @@ flowchart LR
 5. **S2** — Arena ranqueada + 1ª temporada.
 6. **S1** — Leilão Yorknew (economia server-side estável).
 7. **S4** — Greed Island duelo de cartas.
-8. **A6** — Guildas + Nen Contracts.
-9. **A8 + B11** — Gourmet life skills + meta territorial faccional.
+8. **A6** — Guildas + Nen Contracts. ✅
+9. **A7** — Blacklist open hunt. ✅
+10. **A8** — Gourmet life skills. ✅
+11. **B11** — Meta territorial faccional.
 
 ---
 

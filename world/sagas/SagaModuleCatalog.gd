@@ -16,12 +16,9 @@ const SAGAS: Dictionary = {
 		"saga_id": 1,
 		"titulo": "287º Exame Hunter",
 		"subtitulo": "A Prova dos Prodígios",
-		"capitulos_total": 35,
+		"capitulos_total": 24,
 		"mapas": [
-			"res://world/maps/exame_maratona.tscn",
-			"res://world/maps/pantano_numere.tscn",
-			"res://world/maps/torre_truques.tscn",
-			"res://world/maps/ilha_zevil.tscn"
+			"res://world/maps/exame_maratona.tscn"
 		],
 		"bosses": [
 			{"id": "hisoka_exame", "nome": "Hisoka Morow (Examinador Falso)", "resource": "res://resource/status/enemies/boss_hisoka.tres"},
@@ -40,10 +37,9 @@ const SAGAS: Dictionary = {
 		"saga_id": 2,
 		"titulo": "Montanha Kukuroo",
 		"subtitulo": "O Domínio dos Zoldyck",
-		"capitulos_total": 20,
+		"capitulos_total": 18,
 		"mapas": [
-			"res://world/maps/montanha_kukuroo.tscn",
-			"res://world/maps/mansao_zoldyck.tscn"
+			"res://world/maps/montanha_kukuroo.tscn"
 		],
 		"bosses": [
 			{"id": "mike_beast", "nome": "Mike (Cão de Guarda Zoldyck)", "tier": 3},
@@ -60,10 +56,9 @@ const SAGAS: Dictionary = {
 		"saga_id": 3,
 		"titulo": "Arena Celestial",
 		"subtitulo": "O Batismo de Nen",
-		"capitulos_total": 30,
+		"capitulos_total": 26,
 		"mapas": [
-			"res://world/maps/arena_celestial.tscn",
-			"res://world/maps/dojo_wing.tscn"
+			"res://world/maps/arena_celestial.tscn"
 		],
 		"bosses": [
 			{"id": "gido", "nome": "Gido (Tops Dançantes de Nen)", "tier": 3},
@@ -81,11 +76,9 @@ const SAGAS: Dictionary = {
 		"saga_id": 4,
 		"titulo": "Yorknew City & Trupe Fantasma",
 		"subtitulo": "A Sinfonia das Sombras",
-		"capitulos_total": 45,
+		"capitulos_total": 34,
 		"mapas": [
-			"res://world/maps/yorknew_city.tscn",
-			"res://world/maps/leilao_subterraneo.tscn",
-			"res://world/maps/cemiterio_edificio.tscn"
+			"res://world/maps/yorknew_city.tscn"
 		],
 		"bosses": [
 			{"id": "uvogin", "nome": "Uvogin (Grande Impacto Big Bang)", "tier": 4},
@@ -103,11 +96,9 @@ const SAGAS: Dictionary = {
 		"saga_id": 5,
 		"titulo": "Greed Island",
 		"subtitulo": "O Jogo Forjado em Nen",
-		"capitulos_total": 40,
+		"capitulos_total": 36,
 		"mapas": [
-			"res://world/maps/greed_island.tscn",
-			"res://world/maps/cidade_antokiba.tscn",
-			"res://world/maps/costa_soufrabi.tscn"
+			"res://world/maps/greed_island.tscn"
 		],
 		"bosses": [
 			{"id": "razor_boss", "nome": "Razor (Os 14 Demônios)", "resource": "res://resource/status/enemies/boss_razor.tres"},
@@ -125,11 +116,9 @@ const SAGAS: Dictionary = {
 		"saga_id": 6,
 		"titulo": "Formigas Chimera",
 		"subtitulo": "O Apocalipse da Seleção Natural",
-		"capitulos_total": 55,
+		"capitulos_total": 48,
 		"mapas": [
-			"res://world/maps/floresta_ngl.tscn",
-			"res://world/maps/palacio_leste_gorteau.tscn",
-			"res://world/maps/ninho_rainha.tscn"
+			"res://world/maps/ngl_formigas.tscn"
 		],
 		"bosses": [
 			{"id": "neferpitou", "nome": "Neferpitou (Terpsichora)", "tier": 4},
@@ -150,8 +139,7 @@ const SAGAS: Dictionary = {
 		"subtitulo": "A Vontade do Presidente",
 		"capitulos_total": 20,
 		"mapas": [
-			"res://world/maps/sede_associacao_hunter.tscn",
-			"res://world/maps/hospital_central.tscn"
+			"res://world/maps/associacao_hunter.tscn"
 		],
 		"bosses": [
 			{"id": "illumi_zoldyck", "nome": "Illumi Zoldyck (Agulhas de Manipulação)", "tier": 4},
@@ -167,10 +155,9 @@ const SAGAS: Dictionary = {
 		"saga_id": 8,
 		"titulo": "Continente Negro",
 		"subtitulo": "Além das Fronteiras Conhecidas",
-		"capitulos_total": 30,
+		"capitulos_total": 22,
 		"mapas": [
-			"res://world/maps/costa_novo_mundo.tscn",
-			"res://world/maps/labirinto_brion.tscn"
+			"res://world/maps/continente_negro.tscn"
 		],
 		"bosses": [
 			{"id": "calamidade_brion", "nome": "Brion (A Arma Botânica)", "tier": 4},
@@ -186,11 +173,9 @@ const SAGAS: Dictionary = {
 		"saga_id": 9,
 		"titulo": "Guerra de Sucessão Kakin",
 		"subtitulo": "O Navio Baleia Negra",
-		"capitulos_total": 45,
+		"capitulos_total": 26,
 		"mapas": [
-			"res://world/maps/baleia_negra_nivel_1.tscn",
-			"res://world/maps/baleia_negra_nivel_3.tscn",
-			"res://world/maps/baleia_negra_nivel_5.tscn"
+			"res://world/maps/black_whale_1.tscn"
 		],
 		"bosses": [
 			{"id": "benjamin_guard", "nome": "Guarda Privada de Benjamin", "tier": 3},

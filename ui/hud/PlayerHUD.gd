@@ -763,6 +763,32 @@ func _atualizar_condicoes_combate() -> void:
 	if nen_system != null and nen_system.tecnica_ativa(NenSystem.Tecnica.ZETSU):
 		condicoes_ativas.append({"nome": "🍃 Oculto (Zetsu)", "cor": Color(0.3, 0.9, 0.4, 0.9)})
 
+	# 2b. Técnicas de Nen ofensivas/defensivas (barra de buffs do player — RO-style)
+	if nen_system != null and nen_system.has_method("tecnica_ativa"):
+		if nen_system.tecnica_ativa(NenSystem.Tecnica.TEN):
+			condicoes_ativas.append({"nome": "🛡️ Ten", "cor": Color(0.45, 0.7, 1.0, 0.95)})
+		if nen_system.tecnica_ativa(NenSystem.Tecnica.REN):
+			condicoes_ativas.append({"nome": "🔥 Ren", "cor": Color(0.35, 0.85, 1.0, 0.95)})
+		if nen_system.tecnica_ativa(NenSystem.Tecnica.KO):
+			condicoes_ativas.append({"nome": "💥 Ko", "cor": Color(1.0, 0.8, 0.25, 0.95)})
+		if nen_system.has_method("tecnica_ativa") and nen_system.tecnica_ativa(NenSystem.Tecnica.GYO):
+			condicoes_ativas.append({"nome": "👁 Gyo", "cor": Color(0.95, 0.75, 0.2, 0.95)})
+
+	# 2c. Modificadores ativos (buffs/debuffs de itens, títulos, Hatsu)
+	if PlayerData != null and "active_modifiers" in PlayerData:
+		for mod in PlayerData.active_modifiers:
+			if mod == null:
+				continue
+			var mod_id := str(mod.id) if "id" in mod else ""
+			var src := str(mod.source) if "source" in mod else ""
+			var label := src if not src.is_empty() else mod_id
+			if label.is_empty():
+				continue
+			var short := label.substr(0, mini(14, label.length()))
+			var is_debuff := "debuff" in label.to_lower() or "poison" in label.to_lower() or "mark" in label.to_lower()
+			var cor_mod := Color(1.0, 0.4, 0.4, 0.9) if is_debuff else Color(0.55, 0.95, 0.65, 0.9)
+			condicoes_ativas.append({"nome": ("☠ " if is_debuff else "✦ ") + short, "cor": cor_mod})
+
 	# 3. Em En
 	if nen_system != null and nen_system.has_method("tecnica_ativa") and nen_system.tecnica_ativa(NenSystem.Tecnica.EN):
 		condicoes_ativas.append({"nome": "🌐 Campo En", "cor": HunterUIStyle.COLOR_AURA_CYAN})

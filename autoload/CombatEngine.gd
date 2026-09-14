@@ -168,7 +168,12 @@ func calcular_dano_detalhado(
 			nen_sys.desativar_tecnica(NenSystem.Tecnica.ZETSU)
 
 	# Game Feel & Sensory Impact
-	if EventBus != null and dano_final > 0.0:
+	if is_immune:
+		if DamageNumberSystem != null and defensor != null:
+			DamageNumberSystem.spawn_imune(defensor)
+		if EventBus != null and EventBus.has_method("emit_hitstop"):
+			EventBus.emit_hitstop(0.03)
+	elif EventBus != null and dano_final > 0.0:
 		if is_ko:
 			EventBus.emit_hitstop(0.10)
 			EventBus.emit_camera_shake(0.50, 0.25)

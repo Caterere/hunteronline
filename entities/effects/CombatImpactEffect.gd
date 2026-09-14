@@ -212,6 +212,56 @@ static func spawn_aura_burst(parent: Node, pos: Vector2, aura_color: Color = Col
 	tween.tween_callback(burst_node.queue_free)
 
 
+## Dissipação de aura na morte do inimigo (GAME_FEEL §6 / RO death pop).
+static func spawn_death_dissipation(parent: Node, pos: Vector2, aura_color: Color = Color(0.55, 0.85, 1.0)) -> void:
+	if parent == null or not is_instance_valid(parent):
+		return
+	var root := _get_effect_root(parent)
+	if root == null:
+		return
+
+	_spawn_sprite_flash(root, pos, 0.0, TEX_AURA, aura_color, 0.55)
+
+	var fx := Node2D.new()
+	fx.position = pos
+	fx.z_index = 18
+	root.add_child(fx)
+
+	var ring := CPUParticles2D.new()
+	ring.emitting = true
+	ring.one_shot = true
+	ring.explosiveness = 1.0
+	ring.amount = 20
+	ring.lifetime = 0.5
+	ring.spread = 180.0
+	ring.initial_velocity_min = 40.0
+	ring.initial_velocity_max = 110.0
+	ring.gravity = Vector2(0, -30)
+	ring.scale_amount_min = 1.5
+	ring.scale_amount_max = 3.5
+	ring.color = Color(aura_color.r, aura_color.g, aura_color.b, 0.9)
+	fx.add_child(ring)
+
+	var wisps := CPUParticles2D.new()
+	wisps.emitting = true
+	wisps.one_shot = true
+	wisps.explosiveness = 0.7
+	wisps.amount = 12
+	wisps.lifetime = 0.6
+	wisps.direction = Vector2(0, -1)
+	wisps.spread = 40.0
+	wisps.initial_velocity_min = 20.0
+	wisps.initial_velocity_max = 55.0
+	wisps.scale_amount_min = 1.0
+	wisps.scale_amount_max = 2.2
+	wisps.color = Color(0.85, 0.95, 1.0, 0.8)
+	fx.add_child(wisps)
+
+	var tween := fx.create_tween()
+	tween.tween_property(fx, "modulate:a", 0.0, 0.55).set_delay(0.15)
+	tween.tween_callback(fx.queue_free)
+
+
 static func _spawn_sprite_flash(root: Node, pos: Vector2, rot: float, tex_path: String, tint: Color, dur: float) -> void:
 	if root == null or not ResourceLoader.exists(tex_path):
 		return

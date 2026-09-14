@@ -151,6 +151,7 @@ func _construir_ui() -> void:
 	btn_salvar = _criar_botao("💾 Salvar Jogo", vbox, _on_salvar_pressed)
 	btn_lobby = _criar_botao("🏛️ Salvar e Voltar ao Lobby", vbox, _on_lobby_pressed)
 	btn_jornal = _criar_botao("📜 Jornal de Missoes [J]", vbox, _on_jornal_pressed)
+	_criar_botao("🏰 Hall da Guilda", vbox, _on_guild_pressed)
 	btn_menu_principal = _criar_botao("🚪 Salvar e Sair p/ Menu", vbox, _on_menu_principal_pressed)
 	btn_sair_desktop = _criar_botao("❌ Salvar e Sair do Jogo", vbox, _on_sair_desktop_pressed)
 
@@ -238,6 +239,20 @@ func _on_jornal_pressed() -> void:
 	var journal = QuestJournalUI.obter_ou_criar(get_tree())
 	if journal != null and journal.has_method("abrir"):
 		journal.abrir()
+
+
+func _on_guild_pressed() -> void:
+	fechar()
+	var existing = get_tree().root.get_node_or_null("GuildHallUI")
+	if existing == null:
+		var GuildHallScript = load("res://ui/Guild/GuildHallUI.gd")
+		if GuildHallScript == null:
+			return
+		existing = GuildHallScript.new()
+		existing.name = "GuildHallUI"
+		get_tree().root.add_child(existing)
+	if existing.has_method("abrir"):
+		existing.abrir()
 
 
 func _on_menu_principal_pressed() -> void:

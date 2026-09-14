@@ -164,6 +164,8 @@ func adicionar_gold(quantidade: int) -> void:
 	var atual: int = obter_gold()
 	PlayerData.attributes["gold"] = atual + quantidade
 	gold_alterado.emit(PlayerData.attributes["gold"])
+	if EventBus != null and EventBus.has_signal("jenny_changed"):
+		EventBus.jenny_changed.emit(int(PlayerData.attributes["gold"]), quantidade)
 	print("[Economy] Gold adicionado: +", quantidade, " | Total: ", PlayerData.attributes["gold"])
 
 

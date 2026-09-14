@@ -25,11 +25,17 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.EXAME)
+	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(1))
+	SagaDistrictKit.densify_saga(self, 1)
+	SagaChapterBinder.bind_hub(self, 1)
+	_densificar_zonas_exame()
 	_garantir_dialogue_ui()
 	_garantir_spawn_points()
 	_configurar_inimigos_zonas()
 	_configurar_portal_conclusao()
 	_configurar_portal_retorno_lobby()
+	_garantir_quest_ativa()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 
@@ -210,3 +216,15 @@ func _configurar_portal_retorno_lobby() -> void:
 	portal.add_child(spr)
 
 	add_child(portal)
+
+func _garantir_quest_ativa() -> void:
+	if QuestSystem != null and QuestSystem.active_quests.is_empty():
+		QuestSystem.garantir_quest_do_arco(1)
+
+
+## Densidade local do Exame (padrão Kukuroo/Yorknew): fillers + NPCs + sensores.
+func _densificar_zonas_exame() -> void:
+	# Já coberto pelo SagaDistrictKit (distritos A–D + warps + sensores).
+	# Mantém gancho local para expansões específicas do arco 1.
+	if get_node_or_null("PlacaDistritoTunel") == null:
+		push_warning("[ExameMaratonaMap] SagaDistrictKit não aplicou distritos — verifique class_name.")

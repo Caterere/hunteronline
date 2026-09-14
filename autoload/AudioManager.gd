@@ -540,6 +540,27 @@ func tocar_sfx_tipo(tipo: String, volume_scale: float = 1.0) -> void:
 		tocar_sfx(stream, volume_scale)
 
 
+## SFX posicional 2D (AUDIO_BIBLE) — footsteps/hits/loot perto da câmera.
+func tocar_sfx_posicional(tipo: String, world_pos: Vector2, volume_scale: float = 1.0) -> void:
+	var stream: AudioStreamWAV = AudioSynthScript.obter_sfx(tipo)
+	if stream == null:
+		return
+	var p := AudioStreamPlayer2D.new()
+	p.stream = stream
+	p.volume_db = linear_to_db(clamp(sfx_volume_linear * master_volume_linear * volume_scale, 0.0001, 1.0))
+	p.max_distance = 480.0
+	p.attenuation = 1.2
+	p.bus = "Master"
+	var root := get_tree().current_scene if get_tree() != null else null
+	if root == null:
+		tocar_sfx(stream, volume_scale)
+		return
+	root.add_child(p)
+	p.global_position = world_pos
+	p.play()
+	p.finished.connect(func(): p.queue_free())
+
+
 # Atalhos rápidos de jogabilidade
 func tocar_hit(is_crit: bool = false) -> void:
 	tocar_sfx_tipo("hit_crit" if is_crit else "hit_light")

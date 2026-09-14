@@ -277,6 +277,7 @@ func _dash() -> void:
 				_attack_lunge_timer = 0.0
 				velocity = dir * 220.0
 				_gerar_efeito_poeira_passos(dir)
+				_spawn_afterimage(Color(0.55, 0.85, 1.0, 0.55))
 				if TutorialManager != null and TutorialManager.em_tutorial:
 					TutorialManager.notificar_esquiva_executada()
 
@@ -486,6 +487,54 @@ func _gerar_efeito_poeira_passos(dir: Vector2) -> void:
 			get_parent().add_child(dust)
 		else:
 			add_child(dust)
+
+
+## Afterimage de dash / Ko (VISUAL_BIBLE / Maple-style trail)
+func _spawn_afterimage(tint: Color = Color(0.55, 0.85, 1.0, 0.55)) -> void:
+	var sprite_player = get_node_or_null("Sprite2D") as Sprite2D
+	if sprite_player == null:
+		sprite_player = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
+	if sprite_player == null:
+		return
+
+	var ghost := Sprite2D.new()
+	if sprite_player is Sprite2D:
+		ghost.texture = sprite_player.texture
+		ghost.hframes = sprite_player.hframes
+		ghost.vframes = sprite_player.vframes
+		ghost.frame = sprite_player.frame
+		ghost.flip_h = sprite_player.flip_h
+		ghost.offset = sprite_player.offset
+	elif sprite_player is AnimatedSprite2D:
+		var anim_spr := sprite_player as AnimatedSprite2D
+		if anim_spr.sprite_frames != null and anim_spr.animation != &"":
+			ghost.texture = anim_spr.sprite_frames.get_frame_texture(anim_spr.animation, anim_spr.frame)
+		ghost.flip_h = anim_spr.flip_h
+
+	ghost.global_position = global_position + (sprite_player.position if sprite_player is Node2D else Vector2.ZERO)
+	ghost.modulate = tint
+	ghost.z_index = z_index - 1
+	ghost.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+
+	var parent_node: Node = get_parent()
+	if parent_node == null:
+		parent_node = self
+	parent_node.add_child(ghost)
+
+	var tween := ghost.create_tween()
+	tween.tween_property(ghost, "modulate:a", 0.0, 0.28)
+	tween.parallel().tween_property(ghost, "scale", Vector2(1.08, 1.08), 0.28)
+	tween.tween_callback(ghost.queue_free)
+
+	# Ko ativo: afterimage dourado extra
+	if nen_system != null and nen_system.has_method("tecnica_ativa"):
+		if nen_system.tecnica_ativa(NenSystem.Tecnica.KO):
+			var ghost_ko := ghost.duplicate() as Sprite2D
+			ghost_ko.modulate = Color(1.0, 0.85, 0.25, 0.4)
+			parent_node.add_child(ghost_ko)
+			var tw2 := ghost_ko.create_tween()
+			tw2.tween_property(ghost_ko, "modulate:a", 0.0, 0.35)
+			tw2.tween_callback(ghost_ko.queue_free)
 
 
 func _gerar_efeito_corte_ar(dir: Vector2, is_heavy: bool = false) -> void:
