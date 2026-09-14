@@ -4,6 +4,8 @@ extends Node2D
 # HUNTER ONLINE — RAID DENSITY + A7 BLACKLIST + A8 GOURMET
 # ============================================================
 
+const BlacklistOpenHuntScript = preload("res://scripts/systems/blacklist/BlacklistOpenHunt.gd")
+
 var _ok := 0
 var _total := 0
 var _pass := true
@@ -63,8 +65,6 @@ func _test_raid_density() -> void:
 	var raid = RaidInstanceScript.new()
 	var members: Array[int] = [1, 2]
 	_check(raid.start_raid("ruins_zaban_vertical", members, entry), "start raid density", "start fail")
-	var phases_seen: Array = []
-	raid.phase_changed.connect(func(_i, pid): phases_seen.append(pid))
 	raid.update_boss_hp_ratio(0.69)
 	raid.update_boss_hp_ratio(0.44)
 	raid.update_boss_hp_ratio(0.19)
@@ -79,17 +79,17 @@ func _test_a7_open_hunt() -> void:
 	print("\n[2] A7 Blacklist open hunt")
 	_check(ResourceLoader.exists("res://scripts/systems/blacklist/BlacklistOpenHunt.gd"),
 		"BlacklistOpenHunt existe", "A7 script missing")
-	var hunts: Array = BlacklistOpenHunt.list_open_hunts()
+	var hunts: Array = BlacklistOpenHuntScript.list_open_hunts()
 	_check(hunts.size() >= 2, ">=2 open hunts catalogadas", "catalog thin")
-	_check(BlacklistOpenHunt.is_open_hunt("bounty_cacador_renegado_zaban"),
+	_check(BlacklistOpenHuntScript.is_open_hunt("bounty_cacador_renegado_zaban"),
 		"Karkov marcado open_hunt", "karkov not open")
 	_check(BountySystem != null and bool(BountySystem.active_bounty_contracts.get("bounty_cacador_renegado_zaban", {}).get("open_hunt", false)),
 		"BountySystem open_hunt flag", "bounty flag missing")
 
-	BlacklistOpenHunt.active_hunts.clear()
-	var res: Dictionary = BlacklistOpenHunt.iniciar_caca("bounty_cacador_renegado_zaban", self)
+	BlacklistOpenHuntScript.active_hunts.clear()
+	var res: Dictionary = BlacklistOpenHuntScript.iniciar_caca("bounty_cacador_renegado_zaban", self)
 	_check(bool(res.get("ok", false)), "iniciar_caca Karkov ok", "start fail: %s" % str(res))
-	_check(BlacklistOpenHunt.active_hunts.has("bounty_cacador_renegado_zaban"),
+	_check(BlacklistOpenHuntScript.active_hunts.has("bounty_cacador_renegado_zaban"),
 		"caça ativa registrada", "active missing")
 	var coord = res.get("coordinator")
 	_check(coord != null and coord.has_method("registrar_dano"), "coordinator threat API", "coord missing")
@@ -97,8 +97,8 @@ func _test_a7_open_hunt() -> void:
 		coord.registrar_dano(1, 500, false)
 		var rewards: Dictionary = coord.calcular_recompensas_coop(4000, 150000, "licenca_hunter")
 		_check(rewards.has(1), "loot por contribuição peer 1", "contrib loot fail")
-	BlacklistOpenHunt.limpar_caca("bounty_cacador_renegado_zaban")
-	_check(not BlacklistOpenHunt.active_hunts.has("bounty_cacador_renegado_zaban"),
+	BlacklistOpenHuntScript.limpar_caca("bounty_cacador_renegado_zaban")
+	_check(not BlacklistOpenHuntScript.active_hunts.has("bounty_cacador_renegado_zaban"),
 		"limpar_caca limpa estado", "cleanup fail")
 
 	var board_src := FileAccess.get_file_as_string("res://ui/Bounties/BountiesBoardUI.gd")
@@ -142,6 +142,5 @@ func _test_a8_gourmet() -> void:
 	_check("_abrir_cozinha" in menchi_src and "GourmetKitchenUI" in menchi_src,
 		"Menchi abre cozinha", "Menchi not wired")
 
-	# Buffs são temporários — source gourmet, não nen_skill_tree
 	_check("gourmet" in FileAccess.get_file_as_string("res://autoload/GourmetCooking.gd"),
 		"source gourmet (não compete Nen)", "source wrong")

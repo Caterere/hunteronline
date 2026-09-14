@@ -128,14 +128,13 @@ static func iniciar_caca(hunt_id: String, parent: Node, spawn_override: Vector2 
 		if EventBus.has_signal("world_event_triggered"):
 			EventBus.world_event_triggered.emit(hunt_id, "Blacklist Open Hunt", spawn_pos)
 
-	if MultiplayerStateBridge != null and MultiplayerStateBridge.has_method("sincronizar_world_boss"):
-		MultiplayerStateBridge.sincronizar_world_boss(
-			str(contract.get("enemy_id")),
-			1,
-			int(contract.get("boss_hp", 3000)),
-			int(contract.get("boss_hp", 3000)),
-			str(contract.get("nome_alvo"))
-		)
+	MultiplayerStateBridge.sincronizar_world_boss(
+		str(contract.get("enemy_id")),
+		1,
+		int(contract.get("boss_hp", 3000)),
+		int(contract.get("boss_hp", 3000)),
+		str(contract.get("nome_alvo"))
+	)
 
 	return {"ok": true, "hunt_id": hunt_id, "enemy": enemy_node, "coordinator": coord}
 
