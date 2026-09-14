@@ -106,7 +106,32 @@ const CATALOGO_CHECKPOINTS: Dictionary = {
 		"cena": "res://world/maps/ngl_formigas.tscn",
 		"posicao": Vector2(100, 0),
 		"safe_name": "Posto de Inspeção de NGL"
+	},
+	&"associacao_hunter_auditorio": {
+		"nome": "Auditório dos Zodíacos",
+		"saga": 7,
+		"capitulo": 1,
+		"cena": "res://world/maps/associacao_hunter.tscn",
+		"posicao": Vector2(100, 0),
+		"safe_name": "Sede da Associação Hunter"
+	},
+	&"continente_negro_acampamento": {
+		"nome": "Acampamento Beyond",
+		"saga": 8,
+		"capitulo": 1,
+		"cena": "res://world/maps/continente_negro.tscn",
+		"posicao": Vector2(100, 0),
+		"safe_name": "Acampamento da Expedição"
+	},
+	&"black_whale_conves1": {
+		"nome": "Convés 1 — Rainha Oito",
+		"saga": 9,
+		"capitulo": 1,
+		"cena": "res://world/maps/black_whale_1.tscn",
+		"posicao": Vector2(100, 0),
+		"safe_name": "Black Whale Convés 1"
 	}
+
 }
 
 var current_saga: int = 1
@@ -372,6 +397,12 @@ func obter_checkpoint_ativo() -> Dictionary:
 			return CATALOGO_CHECKPOINTS[&"greed_island_planicie"]
 		6:
 			return CATALOGO_CHECKPOINTS[&"ngl_formigas_fronteira"]
+		7:
+			return CATALOGO_CHECKPOINTS[&"associacao_hunter_auditorio"]
+		8:
+			return CATALOGO_CHECKPOINTS[&"continente_negro_acampamento"]
+		9:
+			return CATALOGO_CHECKPOINTS[&"black_whale_conves1"]
 		_:
 			return CATALOGO_CHECKPOINTS[&"exame_hunter_inicio"]
 

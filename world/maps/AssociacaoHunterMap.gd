@@ -22,6 +22,8 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ASSOC)
+	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(7))
 	_garantir_dialogue_ui()
 	_popular_npcs_arco7()
 	_configurar_inimigos()
@@ -187,7 +189,9 @@ func _popular_npcs_arco7() -> void:
 func _configurar_inimigos() -> void:
 	var configs = {
 		"AgenteIlicito1": {"id": &"mordomo_perseguidor", "nome": "Mordomo Perseguidor", "etapa": 10},
+		"AgenteIlicito2": {"id": &"mordomo_perseguidor", "nome": "Mordomo Perseguidor", "etapa": 10},
 		"NeedleMan1": {"id": &"humano_agulha", "nome": "Homem-Agulha de Illumi", "etapa": 11},
+		"NeedleMan2": {"id": &"humano_agulha", "nome": "Homem-Agulha Elite", "etapa": 11},
 		"IllumiInimigo": {"id": &"illumi", "nome": "Illumi Zoldyck (Chefe)", "etapa": 12}
 	}
 	

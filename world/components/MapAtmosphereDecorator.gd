@@ -14,7 +14,13 @@ enum MapKind {
 	VALE,
 	YORKNEW,
 	KUKUROO,
-	ARENA
+	ARENA,
+	EXAME,
+	GREED,
+	NGL,
+	ASSOC,
+	CONTINENTE,
+	WHALE
 }
 
 @export var map_kind: MapKind = MapKind.FLORESTA
@@ -51,6 +57,18 @@ func _ready() -> void:
 			_densificar_kukuroo()
 		MapKind.ARENA:
 			_densificar_arena()
+		MapKind.EXAME:
+			_densificar_exame()
+		MapKind.GREED:
+			_densificar_greed()
+		MapKind.NGL:
+			_densificar_ngl()
+		MapKind.ASSOC:
+			_densificar_assoc()
+		MapKind.CONTINENTE:
+			_densificar_continente()
+		MapKind.WHALE:
+			_densificar_whale()
 	_espalhar_props_landmark()
 	_conectar_sinais()
 	_atualizar_luz()
@@ -325,6 +343,161 @@ func _densificar_arena() -> void:
 				decor.set_cell(b, 8, Vector2i(4, 2))
 
 
+
+func _densificar_exame() -> void:
+	var mapa := _mapa()
+	if mapa == null:
+		return
+	var chao: TileMapLayer = mapa.get_node_or_null("Chao_TileMapLayer") as TileMapLayer
+	var decor := _garantir_decor_layer()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0xE2A3E001
+	for tx in range(-20, 360):
+		for ty in range(-90, 90):
+			if chao != null and chao.get_cell_source_id(Vector2i(tx, ty)) == -1:
+				chao.set_cell(Vector2i(tx, ty), 2, Vector2i(0, 0))
+			if abs(ty) <= 2 and chao != null:
+				chao.set_cell(Vector2i(tx, ty), 3, Vector2i(1, 1))
+	if decor == null:
+		return
+	for tx in range(-10, 350, 6):
+		for ty in [-36, 36]:
+			var c := Vector2i(tx, ty)
+			if decor.get_cell_source_id(c) == -1:
+				decor.set_cell(c, 8, Vector2i(2, 1))
+		if rng.randf() < 0.3:
+			var b := Vector2i(tx + 2, rng.randi_range(-14, 14))
+			if decor.get_cell_source_id(b) == -1:
+				decor.set_cell(b, 7, Vector2i(1, 6))
+
+
+func _densificar_greed() -> void:
+	var mapa := _mapa()
+	if mapa == null:
+		return
+	var chao: TileMapLayer = mapa.get_node_or_null("Chao_TileMapLayer") as TileMapLayer
+	var decor := _garantir_decor_layer()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0x64EED001
+	for tx in range(-20, 280):
+		for ty in range(-90, 90):
+			if chao != null and chao.get_cell_source_id(Vector2i(tx, ty)) == -1:
+				chao.set_cell(Vector2i(tx, ty), 2, Vector2i(0, 0))
+			if abs(ty) <= 3 and chao != null:
+				chao.set_cell(Vector2i(tx, ty), 3, Vector2i(1, 1))
+	if decor == null:
+		return
+	for tx in range(-10, 270, 5):
+		for ty in [-40, 40]:
+			var c := Vector2i(tx, ty)
+			if decor.get_cell_source_id(c) == -1:
+				decor.set_cell(c, 7, Vector2i(2, 2))
+		if rng.randf() < 0.35:
+			var b := Vector2i(tx + 1, rng.randi_range(-12, 12))
+			if decor.get_cell_source_id(b) == -1:
+				decor.set_cell(b, 8, Vector2i(4, 2))
+
+
+func _densificar_ngl() -> void:
+	var mapa := _mapa()
+	if mapa == null:
+		return
+	var chao: TileMapLayer = mapa.get_node_or_null("Chao_TileMapLayer") as TileMapLayer
+	var decor := _garantir_decor_layer()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0x0A16F001
+	for tx in range(-20, 280):
+		for ty in range(-90, 90):
+			if chao != null and chao.get_cell_source_id(Vector2i(tx, ty)) == -1:
+				chao.set_cell(Vector2i(tx, ty), 1, Vector2i(0, 0))
+			if abs(ty) <= 2 and chao != null:
+				chao.set_cell(Vector2i(tx, ty), 5, Vector2i(1, 0))
+	if decor == null:
+		return
+	for tx in range(-10, 270, 4):
+		for ty in range(-80, 80, 4):
+			if abs(ty) <= 4:
+				continue
+			if decor.get_cell_source_id(Vector2i(tx, ty)) != -1:
+				continue
+			if rng.randf() < 0.22:
+				decor.set_cell(Vector2i(tx, ty), 5, Vector2i(0, 0))
+
+
+func _densificar_assoc() -> void:
+	var mapa := _mapa()
+	if mapa == null:
+		return
+	var chao: TileMapLayer = mapa.get_node_or_null("Chao_TileMapLayer") as TileMapLayer
+	var decor := _garantir_decor_layer()
+	for tx in range(-20, 280):
+		for ty in range(-90, 90):
+			if chao != null and chao.get_cell_source_id(Vector2i(tx, ty)) == -1:
+				chao.set_cell(Vector2i(tx, ty), 0, Vector2i(1, 9))
+			if abs(ty) <= 3 and chao != null:
+				chao.set_cell(Vector2i(tx, ty), 0, Vector2i(1, 5))
+	if decor == null:
+		return
+	for tx in range(-10, 270, 7):
+		for ty in [-36, -18, 18, 36]:
+			var c := Vector2i(tx, ty)
+			if decor.get_cell_source_id(c) == -1:
+				decor.set_cell(c, 8, Vector2i(2, 1))
+
+
+func _densificar_continente() -> void:
+	var mapa := _mapa()
+	if mapa == null:
+		return
+	var chao: TileMapLayer = mapa.get_node_or_null("Chao_TileMapLayer") as TileMapLayer
+	var decor := _garantir_decor_layer()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0x0DA4C001
+	for tx in range(-20, 280):
+		for ty in range(-90, 90):
+			if chao != null and chao.get_cell_source_id(Vector2i(tx, ty)) == -1:
+				chao.set_cell(Vector2i(tx, ty), 5, Vector2i(1, 0))
+			if abs(ty) <= 2 and chao != null:
+				chao.set_cell(Vector2i(tx, ty), 1, Vector2i(0, 0))
+	if decor == null:
+		return
+	for tx in range(-10, 270, 3):
+		for ty in range(-80, 80, 3):
+			if abs(ty) <= 4:
+				continue
+			if decor.get_cell_source_id(Vector2i(tx, ty)) != -1:
+				continue
+			if rng.randf() < 0.2:
+				decor.set_cell(Vector2i(tx, ty), 5, Vector2i(0, 0))
+
+
+func _densificar_whale() -> void:
+	var mapa := _mapa()
+	if mapa == null:
+		return
+	var chao: TileMapLayer = mapa.get_node_or_null("Chao_TileMapLayer") as TileMapLayer
+	var decor := _garantir_decor_layer()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 0xB0A1E001
+	for tx in range(-20, 280):
+		for ty in range(-90, 90):
+			if chao != null and chao.get_cell_source_id(Vector2i(tx, ty)) == -1:
+				chao.set_cell(Vector2i(tx, ty), 0, Vector2i(1, 9))
+			if abs(ty) <= 3 and chao != null:
+				chao.set_cell(Vector2i(tx, ty), 0, Vector2i(1, 5))
+	if decor == null:
+		return
+	for tx in range(-10, 270, 6):
+		for ty in [-40, -20, 20, 40]:
+			var c := Vector2i(tx, ty)
+			if decor.get_cell_source_id(c) == -1:
+				decor.set_cell(c, 8, Vector2i(2, 1))
+		if rng.randf() < 0.3:
+			var b := Vector2i(tx + 2, rng.randi_range(-12, 12))
+			if decor.get_cell_source_id(b) == -1:
+				decor.set_cell(b, 8, Vector2i(4, 2))
+
+
 func _espalhar_props_landmark() -> void:
 	if get_node_or_null("AtmosphereProps") != null:
 		return
@@ -396,6 +569,38 @@ func _espalhar_props_landmark() -> void:
 			_add_prop_sprite(root, "MarcoRecepcao", Vector2(160, 0), "res://assets/sprites/objects/marco_pedra_milestone.png", Color.WHITE, Vector2(1.1, 1.1))
 			_add_prop_sprite(root, "MonolitoDojo", Vector2(1100, -40), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.65, 0.9, 1.0), Vector2(1.15, 1.15))
 			_add_prop_sprite(root, "MonolitoTopo", Vector2(3400, -20), "res://assets/sprites/objects/nen_stone_monolith.png", Color(1.0, 0.55, 0.7), Vector2(1.25, 1.25))
+
+		MapKind.EXAME:
+			_add_prop_sprite(root, "MarcoTunel", Vector2(200, -40), "res://assets/sprites/objects/marco_pedra_milestone.png", Color.WHITE, Vector2(1.0, 1.0))
+			for x in [800.0, 1800.0, 3200.0, 4800.0]:
+				_add_prop_sprite(root, "LanternaExame_%d" % int(x), Vector2(x, -70), "res://assets/sprites/objects/hunter_road_lantern.png", Color.WHITE, Vector2(1, 1))
+				_add_point_light(root, Vector2(x, -80), Color(1.0, 0.85, 0.55), 1.15)
+			_add_prop_sprite(root, "MonolitoZevil", Vector2(5400, -30), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.9, 0.7, 1.0), Vector2(1.2, 1.2))
+		MapKind.GREED:
+			for x in [400.0, 1200.0, 2200.0, 3200.0]:
+				_add_prop_sprite(root, "MarcoGreed_%d" % int(x), Vector2(x, -60), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.55, 1.0, 0.7), Vector2(1.0, 1.0))
+				_add_point_light(root, Vector2(x, -70), Color(0.5, 1.0, 0.65), 1.2)
+			_add_prop_sprite(root, "MarcoSoufrabi", Vector2(2600, 40), "res://assets/sprites/objects/marco_pedra_milestone.png", Color.WHITE, Vector2(1.1, 1.1))
+		MapKind.NGL:
+			for x in [500.0, 1400.0, 2500.0, 3500.0]:
+				_add_prop_sprite(root, "TochaNGL_%d" % int(x), Vector2(x, -50), "res://assets/sprites/objects/ruin_nen_torch.png", Color(0.7, 1.0, 0.55), Vector2(1, 1))
+				_add_point_light(root, Vector2(x, -60), Color(0.4, 1.0, 0.5), 1.25)
+			_add_prop_sprite(root, "MonolitoPalacio", Vector2(3000, -40), "res://assets/sprites/objects/nen_stone_monolith.png", Color(1.0, 0.85, 0.35), Vector2(1.25, 1.25))
+		MapKind.ASSOC:
+			for x in [400.0, 1400.0, 2400.0, 3400.0]:
+				_add_prop_sprite(root, "PosteAssoc_%d" % int(x), Vector2(x, -70), "res://assets/sprites/objects/hunter_road_lantern.png", Color(0.9, 0.95, 1.0), Vector2(1.05, 1.05))
+				_add_point_light(root, Vector2(x, -80), Color(0.65, 0.8, 1.0), 1.2)
+			_add_prop_sprite(root, "MarcoZodiacos", Vector2(200, 0), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.75, 0.9, 1.0), Vector2(1.15, 1.15))
+		MapKind.CONTINENTE:
+			for x in [500.0, 1500.0, 2500.0, 3500.0]:
+				_add_prop_sprite(root, "MarcoNegro_%d" % int(x), Vector2(x, -50), "res://assets/sprites/objects/nen_stone_monolith.png", Color(0.55, 0.35, 0.7), Vector2(1.1, 1.1))
+				_add_point_light(root, Vector2(x, -60), Color(0.7, 0.45, 1.0), 1.3)
+		MapKind.WHALE:
+			for x in [400.0, 1400.0, 2500.0, 3400.0]:
+				_add_prop_sprite(root, "LuzConves_%d" % int(x), Vector2(x, -80), "res://assets/sprites/objects/hunter_road_lantern.png", Color(0.85, 0.9, 1.0), Vector2(1.0, 1.0))
+				_add_point_light(root, Vector2(x, -90), Color(0.55, 0.7, 1.0), 1.25)
+			_add_prop_sprite(root, "MarcoSucessao", Vector2(2800, -20), "res://assets/sprites/objects/nen_stone_monolith.png", Color(1.0, 0.55, 0.45), Vector2(1.2, 1.2))
+
 
 
 func _add_prop_sprite(parent: Node2D, nome: String, pos: Vector2, tex_path: String, modulate: Color, scale: Vector2) -> void:

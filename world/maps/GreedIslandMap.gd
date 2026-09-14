@@ -22,6 +22,8 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.GREED)
+	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(5))
 	_garantir_dialogue_ui()
 	_popular_npcs_arco5()
 	_configurar_inimigos()
@@ -190,9 +192,10 @@ func _popular_npcs_arco5() -> void:
 func _configurar_inimigos() -> void:
 	var configs = {
 		"MonstroNen1": {"id": &"monstro_greed", "nome": "Monstro Mágico de Greed", "etapa": 4},
+		"MonstroNen2": {"id": &"monstro_greed", "nome": "Monstro Mágico de Greed", "etapa": 4},
 		"GolemPedra1": {"id": &"golem_pedra", "nome": "Golem de Pedra das Montanhas", "etapa": 8},
 		"DemonioRazor1": {"id": &"demonio_razor", "nome": "Demônio de Nen de Razor", "etapa": 21},
-		"RazorBossInimigo": {"id": &"razor_boss", "nome": "Game Master Razor Boss", "etapa": 25},
+		"RazorInimigo": {"id": &"razor_boss", "nome": "Game Master Razor Boss", "etapa": 25},
 		"GenthruInimigo": {"id": &"genthru", "nome": "Genthru Bomber (Chefe)", "etapa": 31}
 	}
 	
