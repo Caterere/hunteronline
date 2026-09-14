@@ -116,17 +116,16 @@ func _check_unique_and_sets() -> void:
 	_assert(int(bonus.get("bonus_forca", 0)) >= 4, "set 2/2 forca")
 	_assert((bonus.get("sets_ativos", []) as Array).has(LootIdentityKit.SET_CACADOR), "set ativo")
 
-	if DataManager != null:
-		LootIdentityKit.registrar_itens_identidade(DataManager)
-		_assert(DataManager.obter_item(&"unique_laminas_exame") != null, "unique registrado")
-		_assert(DataManager.obter_item(&"set_formiga_garras") != null, "set piece registrado")
-		var u = DataManager.obter_item(&"unique_laminas_exame")
-		if u is EquipmentData:
-			_assert(not String(u.efeito_unico_id).is_empty(), "unique id preenchido")
-			_assert(not String(u.trade_off_descricao).is_empty(), "trade_off unique")
-		var s = DataManager.obter_item(&"set_cacador_peito")
-		if s is EquipmentData:
-			_assert(String(s.set_id) == LootIdentityKit.SET_CACADOR, "set_id peito")
+	# Stub de registro (autoload pode não resolver como identifier no -s)
+	var dm := _StubDataManager.new()
+	LootIdentityKit.registrar_itens_identidade(dm)
+	_assert(dm.items_registry.has(&"unique_laminas_exame"), "unique registrado")
+	_assert(dm.items_registry.has(&"set_formiga_garras"), "set piece registrado")
+	var u = dm.items_registry[&"unique_laminas_exame"]
+	_assert(u is EquipmentData and not String(u.efeito_unico_id).is_empty(), "unique id preenchido")
+	_assert(not String(u.trade_off_descricao).is_empty(), "trade_off unique")
+	var s = dm.items_registry[&"set_cacador_peito"]
+	_assert(s is EquipmentData and String(s.set_id) == LootIdentityKit.SET_CACADOR, "set_id peito")
 
 
 func _check_elite_specs() -> void:
@@ -189,3 +188,11 @@ func _check_tooltip() -> void:
 	_assert("incomum" in tip, "tooltip incomum")
 	_assert("efeito_unico_id" in tip, "tooltip unique")
 	_assert("set_id" in tip, "tooltip set")
+
+
+class _StubDataManager extends Node:
+	var items_registry: Dictionary = {}
+	var equipment_registry: Dictionary = {}
+
+	func obter_item(id: Variant) -> Variant:
+		return items_registry.get(id, null)
