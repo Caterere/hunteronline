@@ -28,6 +28,7 @@ func _ready() -> void:
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.EXAME)
 	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(1))
 	SagaDistrictKit.densify_saga(self, 1)
+	SagaTerritoryKit.attach(self, 1)
 	SagaChapterBinder.bind_hub(self, 1)
 	_densificar_zonas_exame()
 	_garantir_dialogue_ui()
