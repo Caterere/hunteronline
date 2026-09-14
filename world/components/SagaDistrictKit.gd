@@ -30,6 +30,7 @@ static func densify_districts(mapa: Node2D, districts: Array) -> void:
 static func densify_saga(mapa: Node2D, saga_id: int) -> void:
 	densify_districts(mapa, districts_for_saga(saga_id))
 	_spawn_nen_sensors_for_saga(mapa, saga_id)
+	EliteIdentityKit.densify_saga(mapa, saga_id)
 
 
 static func districts_for_saga(saga_id: int) -> Array:

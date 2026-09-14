@@ -14,6 +14,12 @@ extends ItemData
 @export var bonus_custo_aura_pct: float = 0.0
 @export var trade_off_descricao: String = ""
 
+@export_category("Loot Identity")
+@export var efeito_unico_id: String = ""
+@export var efeito_unico_desc: String = ""
+@export var set_id: String = ""
+@export var set_peca_id: String = ""
+
 func _init():
 	tipo = TipoItem.EQUIPAMENTO
 	acumulavel = false
