@@ -20,3 +20,11 @@ O Hatsu é a expressão máxima e individual da personalidade de um Hunter. O si
   1. Condições estritas de roubo atendidas (`steal_conditions`).
   2. Custo de aura do proprietário temporário.
   3. Descarte ou tempo de expiração após execução.
+
+### 3.1 Assinaturas Ultimate (feel MMO → Nen)
+* `HatsuSignatureKit` padroniza cast telegraph + callout + impacto para:
+  * **Skill Hunter** (Chrollo) — biblioteca / roubo
+  * **Devour** (Meruem) — absorção com diminishing returns
+  * **Terpsichora** (Pitou) — buff corporal temporário
+  * **Doctor Blythe** (Pitou) — cura médico-nível
+* Boss AI (`EnemyAI`) usa as mesmas assinaturas com mecânica real (não só balão).

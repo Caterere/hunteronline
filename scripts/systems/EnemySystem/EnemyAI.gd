@@ -4,6 +4,7 @@ extends Node
 const ComicBalloon = preload("res://scripts/ui/ComicBalloon.gd")
 const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd")
 const BossPhaseDataScript = preload("res://resource/status/BossPhaseData.gd")
+const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit.gd")
 
 # =========================================================
 # CONFIGURAÇÕES
@@ -1274,14 +1275,110 @@ func _hatsu_feitan(dir: Vector2) -> void:
 
 
 func _hatsu_chrollo() -> void:
-	ComicBalloon.mostrar(enemy_body, "📖 SKILL HUNTER: INDOOR FISH!", 2.2, -42.0)
-	var fx := HatsuAreaExplosionNode.new()
-	fx.setup(85.0, Color(0.3, 0.1, 0.4), Color(0.7, 0.2, 1.0))
-	enemy_body.add_child(fx)
+	# Skill Hunter real: tenta selar/roubar Hatsu equipado do jogador (toque + Gyo simbólico no boss)
+	HatsuSignatureKit.play(HatsuSignatureKit.Kind.SKILL_HUNTER, enemy_body, enemy_body.get_parent(), "Indoor Fish / Página Aberta")
+	var dist: float = enemy_body.global_position.distance_to(player.global_position) if player else 999.0
+	var roubou := false
+	if dist <= 90.0 and PlayerData != null:
+		var alvo_h = PlayerData.obter_hatsu_slot(0)
+		if alvo_h != null and enemy_system != null:
+			var pages: Array = []
+			if enemy_system.has_meta("stolen_pages"):
+				pages = enemy_system.get_meta("stolen_pages")
+			var copia: HatsuData = alvo_h.duplicate(true)
+			copia.usuario_original = "Player"
+			pages.append({"nome": copia.nome, "hatsu": copia})
+			enemy_system.set_meta("stolen_pages", pages)
+			if PlayerData.has_method("adicionar_modificador"):
+				var seal = StatModifier.new(&"chrollo_seal_slot0", &"hatsu_seal", StatModifier.Type.FLAT, 1.0, 8.0, "skill_hunter")
+				PlayerData.adicionar_modificador(seal)
+			roubou = true
+			if EventBus != null:
+				EventBus.emit_toast("📖 Chrollo selou: %s" % alvo_h.nome, Color(0.7, 0.35, 1.0))
+		if not roubou:
+			_aplicar_dano_jogador(28, Vector2.ZERO, 0.0)
+	else:
+		var fx := HatsuAreaExplosionNode.new()
+		fx.setup(85.0, Color(0.3, 0.1, 0.4), Color(0.7, 0.2, 1.0))
+		enemy_body.add_child(fx)
+		if dist <= 85.0:
+			_aplicar_dano_jogador(28, Vector2.ZERO, 0.0)
 
-	var dist: float = enemy_body.global_position.distance_to(player.global_position)
-	if dist <= 85.0:
-		_aplicar_dano_jogador(28, Vector2.ZERO, 0.0)
+
+func _hatsu_pitou(dir: Vector2) -> void:
+	var hp_ratio := 1.0
+	if enemy_system != null:
+		hp_ratio = float(enemy_system.health) / maxf(1.0, float(enemy_system.max_health))
+	# <40% HP → Doctor Blythe (cura massiva); senão Terpsichora (buff corporal)
+	if hp_ratio < 0.40:
+		HatsuSignatureKit.play(HatsuSignatureKit.Kind.DOCTOR_BLYTHE, enemy_body, enemy_body.get_parent(), "Cirurgia de Nen")
+		if enemy_system != null:
+			var heal_amt: int = int(float(enemy_system.max_health) * 0.28)
+			enemy_system.health = mini(enemy_system.max_health, enemy_system.health + heal_amt)
+			if EventBus != null:
+				EventBus.emit_toast("💉 Pitou regenerou +%d HP" % heal_amt, Color(0.35, 1.0, 0.55))
+		# Cura inimiga ainda ameaça: impulso curto se o player estiver perto
+		if player and enemy_body.global_position.distance_to(player.global_position) <= 70.0:
+			_aplicar_dano_jogador(12, dir, 80.0)
+	else:
+		HatsuSignatureKit.play(HatsuSignatureKit.Kind.TERPSICHORA, enemy_body, enemy_body.get_parent(), "Marionete de Guerra")
+		if enemy_system != null:
+			enemy_system.strength = int(enemy_system.strength * 1.25) + 4
+			enemy_system.defense = int(enemy_system.defense * 1.15) + 2
+			enemy_system.set_meta("terpsichora_active", true)
+		enemy_body.global_position = enemy_body.global_position.lerp(player.global_position, 0.45)
+		var fx := HatsuAreaExplosionNode.new()
+		fx.setup(75.0, Color(1.0, 0.1, 0.2), Color(0.4, 0.0, 0.1))
+		enemy_body.add_child(fx)
+		var dist: float = enemy_body.global_position.distance_to(player.global_position)
+		if dist <= 75.0:
+			_aplicar_dano_jogador(35, dir, 180.0)
+
+
+func _hatsu_meruem(dir: Vector2) -> void:
+	HatsuSignatureKit.play(HatsuSignatureKit.Kind.DEVOUR, enemy_body, enemy_body.get_parent(), "Síntese de Aura")
+	if enemy_system != null and enemy_system.has_method("disparar_fala_ataque"):
+		enemy_system.disparar_fala_ataque("Síntese de Aura")
+
+	# Absorve fração da força do jogador (permanente no boss com diminishing via meta stacks)
+	var stacks := 0
+	if enemy_system != null:
+		stacks = int(enemy_system.get_meta("meruem_absorb_stacks", 0))
+	var dim := 1.0 / (1.0 + 0.18 * float(stacks))
+	var player_forca := int(PlayerData.attributes.get("forca", 10)) if PlayerData else 10
+	var gain := maxi(1, int(round(float(player_forca) * 0.06 * dim)))
+	if enemy_system != null:
+		enemy_system.strength += gain
+		enemy_system.max_health += gain * 8
+		enemy_system.health = mini(enemy_system.max_health, enemy_system.health + gain * 4)
+		enemy_system.set_meta("meruem_absorb_stacks", stacks + 1)
+		if EventBus != null:
+			EventBus.emit_toast("👑 Meruem absorveu +%d FORÇA (stack %d)" % [gain, stacks + 1], Color(1.0, 0.9, 0.3))
+
+	# Blink + impacto (feel MMO ultimate)
+	if EventBus != null:
+		EventBus.emit_hitstop(0.10)
+	CombatImpactEffect.spawn_dust_kickup(enemy_body, enemy_body.global_position, -dir)
+	CombatImpactEffect.spawn_aura_burst(enemy_body, enemy_body.global_position, Color(1.0, 0.9, 0.3))
+	if player != null and is_instance_valid(player):
+		var blink_pos = player.global_position + (-dir * 36.0)
+		enemy_body.global_position = blink_pos
+		CombatImpactEffect.spawn_aura_burst(enemy_body, blink_pos, Color(1.0, 0.95, 0.4))
+		CombatImpactEffect.spawn_blunt_impact(enemy_body, player.global_position, 2.0, Color(1.0, 0.95, 0.4))
+
+	var dano_meruem = int((enemy_system.get_strength() if enemy_system else 30) * 1.8)
+	_aplicar_dano_jogador(dano_meruem, dir, 320.0)
+	if player != null and player.has_node("CombatSystem"):
+		var p_cs = player.get_node("CombatSystem")
+		if p_cs.has_method("consumir_postura"):
+			p_cs.consumir_postura(40.0)
+	# Se o golpe deixa o jogador crítico/morto, absorção extra (fantasy kill→power)
+	if PlayerData != null and int(PlayerData.attributes.get("vida", 100)) <= 0:
+		if enemy_system != null:
+			enemy_system.strength += maxi(3, gain * 2)
+			enemy_system.set_meta("meruem_absorb_stacks", stacks + 2)
+			if EventBus != null:
+				EventBus.emit_toast("👑 PRESA CONSUMIDA — Meruem cresceu", Color(1.0, 0.75, 0.2))
 
 
 func _hatsu_nobunaga() -> void:
@@ -1384,51 +1481,6 @@ func _hatsu_netero() -> void:
 	var dist: float = enemy_body.global_position.distance_to(player.global_position)
 	if dist <= 100.0:
 		_aplicar_dano_jogador(38, (player.global_position - enemy_body.global_position).normalized(), 200.0)
-
-
-func _hatsu_pitou(dir: Vector2) -> void:
-	ComicBalloon.mostrar(enemy_body, "🐱 TERPSICHORA: DANÇA DA MARIONETE!", 2.2, -42.0)
-	enemy_body.global_position = enemy_body.global_position.lerp(player.global_position, 0.5)
-
-	var fx := HatsuAreaExplosionNode.new()
-	fx.setup(75.0, Color(1.0, 0.1, 0.2), Color(0.4, 0.0, 0.1))
-	enemy_body.add_child(fx)
-
-	var dist: float = enemy_body.global_position.distance_to(player.global_position)
-	if dist <= 75.0:
-		_aplicar_dano_jogador(35, dir, 180.0)
-
-
-func _hatsu_meruem(dir: Vector2) -> void:
-	if enemy_system != null and enemy_system.has_method("disparar_fala_ataque"):
-		enemy_system.disparar_fala_ataque("Síntese de Aura")
-	else:
-		ComicBalloon.mostrar(enemy_body, "👑 FÓTONS DE EN: SÍNTESE DE AURA!", 2.5, -42.0)
-
-	if EventBus != null:
-		EventBus.emit_hatsu_dramatic_callout(enemy_body, "Metamorfose & Fótons", "Especialização (Velocidade & Impacto)", Color(1.0, 0.95, 0.4))
-		EventBus.emit_camera_shake(0.75, 0.35)
-		EventBus.emit_hitstop(0.10)
-
-	var map_parent = enemy_body.get_parent() if enemy_body.get_parent() != null else enemy_body
-
-	# Avanço instantâneo (Blink atrás do alvo com pós-imagem)
-	CombatImpactEffect.spawn_dust_kickup(enemy_body, enemy_body.global_position, -dir)
-	CombatImpactEffect.spawn_aura_burst(enemy_body, enemy_body.global_position, Color(1.0, 0.9, 0.3))
-
-	var offset_dest = -dir * 36.0
-	var blink_pos = player.global_position + offset_dest
-	enemy_body.global_position = blink_pos
-
-	CombatImpactEffect.spawn_aura_burst(enemy_body, blink_pos, Color(1.0, 0.95, 0.4))
-	CombatImpactEffect.spawn_blunt_impact(enemy_body, player.global_position, 2.0, Color(1.0, 0.95, 0.4))
-
-	var dano_meruem = int((enemy_system.get_strength() if enemy_system else 30) * 1.8)
-	_aplicar_dano_jogador(dano_meruem, dir, 320.0)
-	if player.has_node("CombatSystem"):
-		var p_cs = player.get_node("CombatSystem")
-		if p_cs.has_method("consumir_postura"):
-			p_cs.consumir_postura(40.0)
 
 
 func _hatsu_pouf() -> void:

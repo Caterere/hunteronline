@@ -567,6 +567,22 @@ func obter_hatsu_canonico(id_hatsu: String) -> HatsuData:
 			h.aura_drain_per_sec = float(info.get("aura_drain_per_sec", 0.0))
 			h.aura_drain_per_hit = float(info.get("aura_drain_per_hit", 0.0))
 			h.skill_hunter_compatible = bool(info.get("skill_hunter_compatible", true))
+			h.arquetipo = info.get("arquetipo", HatsuData.Arquetipo.SIMPLES)
+			h.is_storage_hatsu = bool(info.get("is_storage_hatsu", false))
+			h.storage_capacity = int(info.get("storage_capacity", 0))
+			h.storage_duration_type = str(info.get("storage_duration_type", ""))
+			h.core_component = info.get("core_component", 0)
+			h.absorption_target_stat = str(info.get("absorption_target_stat", "aura_max"))
+			h.absorption_rate = float(info.get("absorption_rate", 0.05))
+			h.usuario_original = str(info.get("usuario", ""))
+			var typed_tags: Array[String] = []
+			for t in info.get("tags", []):
+				typed_tags.append(str(t))
+			h.tags = typed_tags
+			var typed_sc: Array[String] = []
+			for sc in info.get("steal_conditions", []):
+				typed_sc.append(str(sc))
+			h.steal_conditions = typed_sc
 
 			var typed_condicoes: Array[HatsuData.Condicao] = []
 			for c in info.get("condicoes", []):

@@ -2,6 +2,7 @@ class_name HatsuSystem
 extends Node
 
 const HatsuVisual = preload("res://scripts/visual/HatsuVisual.gd")
+const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - HATSU SYSTEM (MOTOR DE COMBATE E VOWS)
@@ -373,6 +374,8 @@ func _on_enemy_killed(_enemy_type: StringName = &"") -> void:
 			var res_devour = HatsuManager.execute_absorption_devour(h, e_info)
 			if res_devour.get("sucesso", false) and combat_system != null:
 				combat_system._mostrar_texto_flutuante(res_devour.get("mensagem", ""), Color(0.85, 0.3, 1.0))
+				if owner_body != null:
+					HatsuSignatureKit.play(HatsuSignatureKit.Kind.DEVOUR, owner_body, owner_body.get_parent(), h.nome)
 
 	if alimentou_algum and combat_system != null:
 		combat_system._mostrar_texto_flutuante("💀 +1 ALMA DE NEN!", Color(0.7, 0.3, 1.0))
@@ -597,6 +600,15 @@ func usar_hatsu(slot_index: int) -> bool:
 		var cat_color = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
 		EventBus.emit_hatsu_dramatic_callout(owner_body, hatsu.nome, cat_name, cat_color)
 
+	# Assinatura ultimate (Skill Hunter / Devour / Terpsichora / Doctor Blythe)
+	if owner_body != null:
+		var kind: int = HatsuSignatureKit.detect_kind(hatsu)
+		if kind != HatsuSignatureKit.Kind.SKILL_HUNTER \
+			or hatsu.arquetipo == HatsuData.Arquetipo.LIVRO_COLECAO \
+			or hatsu.activation_type == HatsuData.ActivationType.OVERRIDE_LIBRARY \
+			or hatsu.core_component == HatsuComponentLibrary.CoreType.ABSORPTION:
+			HatsuSignatureKit.play(kind, owner_body, owner_body.get_parent(), hatsu.nome)
+
 	# Executar habilidade por Objetivo & Categoria
 	_executar_por_objetivo(hatsu, eficiencia)
 
@@ -767,9 +779,58 @@ func _executar_por_objetivo(hatsu: HatsuData, eficiencia: float) -> void:
 		HatsuData.ObjetivoPrincipal.CONTROLE:
 			_executar_controle(hatsu, eficiencia)
 		HatsuData.ObjetivoPrincipal.SUPORTE:
-			_executar_defesa(hatsu, eficiencia)
+			_executar_suporte(hatsu, eficiencia)
 		HatsuData.ObjetivoPrincipal.DANO, _:
 			_executar_dano_categorizado(hatsu, eficiencia)
+
+
+func _executar_suporte(hatsu: HatsuData, eficiencia: float) -> void:
+	var tags_l: Array = []
+	for t in hatsu.tags:
+		tags_l.append(str(t).to_lower())
+	var nome_l := hatsu.nome.to_lower()
+	# Devour / absorção ativa (Meruem-like)
+	if hatsu.core_component == HatsuComponentLibrary.CoreType.ABSORPTION \
+		or "absorb" in tags_l or "devour" in tags_l or "predador" in nome_l or "absorv" in nome_l:
+		_executar_absorcao_ativa(hatsu, eficiencia)
+		return
+	# Buff corporal (Terpsichora-like)
+	if "buff" in tags_l or "terpsichora" in tags_l or "corporal" in tags_l \
+		or "terpsichora" in nome_l or "marionete" in nome_l:
+		_executar_buff_corporal(hatsu, eficiencia)
+		return
+	# Skill Hunter já cai em LIVRO_COLECAO; fallback defesa
+	_executar_defesa(hatsu, eficiencia)
+
+
+func _executar_buff_corporal(hatsu: HatsuData, eficiencia: float) -> void:
+	if owner_body == null or PlayerData == null:
+		return
+	var poder: float = hatsu.obter_poder_final() * eficiencia
+	var forca_bonus: float = maxf(4.0, poder * 0.12)
+	var def_bonus: float = maxf(3.0, poder * 0.08)
+	var dur: float = maxf(8.0, hatsu.duracao if hatsu.duracao > 0.0 else 16.0)
+	var mod_f = StatModifier.new(
+		StringName("hatsu_terpsichora_forca"),
+		&"forca",
+		StatModifier.Type.FLAT,
+		forca_bonus,
+		dur,
+		"hatsu_corporal"
+	)
+	var mod_d = StatModifier.new(
+		StringName("hatsu_terpsichora_defesa"),
+		&"defesa",
+		StatModifier.Type.FLAT,
+		def_bonus,
+		dur,
+		"hatsu_corporal"
+	)
+	PlayerData.adicionar_modificador(mod_f)
+	PlayerData.adicionar_modificador(mod_d)
+	if combat_system != null:
+		combat_system._mostrar_texto_flutuante("🐱 +%.0f FORÇA / +%.0f DEF (%.0fs)" % [forca_bonus, def_bonus, dur], Color(1.0, 0.3, 0.4))
+	print("[Hatsu Buff Corporal] +%.1f forca / +%.1f defesa por %.1fs" % [forca_bonus, def_bonus, dur])
 
 
 func _executar_absorcao_ativa(hatsu: HatsuData, _eficiencia: float) -> void:
@@ -1204,6 +1265,10 @@ func _executar_cura(hatsu: HatsuData, eficiencia: float) -> void:
 
 	var poder: float = hatsu.obter_poder_final()
 	var valor_cura: int = max(10, int((hatsu.cura_base if hatsu.cura_base > 0.0 else poder * 1.2) * eficiencia))
+	# Doctor Blythe: cura médico-nível (cura_base alta)
+	var is_doctor := hatsu.cura_base >= 80.0 or "doctor" in hatsu.nome.to_lower() or "blythe" in hatsu.nome.to_lower()
+	if is_doctor:
+		valor_cura = max(valor_cura, int(float(PlayerData.attributes.get("vida_max", 100)) * 0.35 * eficiencia))
 
 	var hp_atual: int = int(PlayerData.attributes.get("vida", 100))
 	var hp_max: int = int(PlayerData.attributes.get("vida_max", 100))
@@ -1211,11 +1276,12 @@ func _executar_cura(hatsu: HatsuData, eficiencia: float) -> void:
 
 	# Efeito visual de pulso curativo
 	var fx := HatsuHealPulseNode.new()
-	fx.setup(hatsu.cor_aura)
+	fx.setup(hatsu.cor_aura if not is_doctor else Color(0.35, 1.0, 0.65))
 	owner_body.add_child(fx)
 
 	if combat_system != null:
-		combat_system._mostrar_texto_flutuante("❤️ +%d HP" % valor_cura, Color(0.2, 1.0, 0.4))
+		var label := "💉 DOCTOR +%d HP" % valor_cura if is_doctor else "❤️ +%d HP" % valor_cura
+		combat_system._mostrar_texto_flutuante(label, Color(0.2, 1.0, 0.4))
 	print("[Hatsu Cura] Regenerou +", valor_cura, " HP! Total: ", PlayerData.attributes["vida"], "/", hp_max)
 
 
