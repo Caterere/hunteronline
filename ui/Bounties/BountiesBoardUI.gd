@@ -293,12 +293,13 @@ func _renderizar_cartaz_associacao(q: Quest, is_star: bool) -> void:
 func _renderizar_cartaz_bounty(b: Dictionary) -> void:
 	var item_panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.08, 0.08, 0.9)
+	var is_open := bool(b.get("open_hunt", false)) or BlacklistOpenHunt.is_open_hunt(str(b.get("id", "")))
+	style.bg_color = Color(0.14, 0.06, 0.08, 0.92) if is_open else Color(0.12, 0.08, 0.08, 0.9)
 	style.border_width_left = 1
 	style.border_width_top = 1
 	style.border_width_right = 1
 	style.border_width_bottom = 1
-	style.border_color = Color(0.8, 0.3, 0.3)
+	style.border_color = Color(1.0, 0.45, 0.2) if is_open else Color(0.8, 0.3, 0.3)
 	style.corner_radius_top_left = 2
 	style.corner_radius_top_right = 2
 	style.corner_radius_bottom_right = 2
@@ -308,8 +309,10 @@ func _renderizar_cartaz_bounty(b: Dictionary) -> void:
 	var hbox := HBoxContainer.new()
 	item_panel.add_child(hbox)
 
+	var tag := "🏴 CAÇA ABERTA" if is_open else "🎯 [PROCURADO]"
 	var lbl := Label.new()
-	lbl.text = "🎯 [PROCURADO] %s (Nv. %d)\nRecompensa: +%d Jenny\n%s" % [
+	lbl.text = "%s %s (Nv. %d)\nRecompensa: +%d Jenny\n%s" % [
+		tag,
 		b["nome_alvo"],
 		b.get("nivel_alvo", 1),
 		b["recompensa_jenny"],
@@ -324,15 +327,29 @@ func _renderizar_cartaz_bounty(b: Dictionary) -> void:
 	if b.get("concluido", false):
 		btn.text = "✅ Concluído"
 		btn.disabled = true
-	elif b.get("aceito", false):
+	elif b.get("aceito", false) and BlacklistOpenHunt.active_hunts.has(str(b.get("id", ""))):
+		btn.text = "⚔️ Caça Ativa"
+		btn.disabled = true
+	elif b.get("aceito", false) and not is_open:
 		btn.text = "⚔️ Caçando..."
 		btn.disabled = true
 	else:
-		btn.text = "Aceitar Contrato"
+		btn.text = "Iniciar Caça Aberta" if is_open else "Aceitar Contrato"
+		var bounty_id := str(b["id"])
+		var open_flag := is_open
 		btn.pressed.connect(func():
 			if BountySystem != null:
-				BountySystem.aceitar_contrato(b["id"])
-				_atualizar_ui()
+				BountySystem.aceitar_contrato(bounty_id)
+			if open_flag:
+				var scene = get_tree().current_scene
+				if scene == null:
+					scene = get_tree().root
+				var res: Dictionary = BlacklistOpenHunt.iniciar_caca(bounty_id, scene)
+				if EventBus != null:
+					var cor := Color(0.4, 1.0, 0.4) if res.get("ok", false) else Color(1.0, 0.45, 0.35)
+					var msg := "🏴 Caça Aberta iniciada!" if res.get("ok", false) else str(res.get("erro", "Falha"))
+					EventBus.emit_toast(msg, cor)
+			_atualizar_ui()
 		)
 	hbox.add_child(btn)
 	container_bounties.add_child(item_panel)

@@ -28,6 +28,9 @@ Histórico de sprints diários: [`_history/`](_history/)
    - [x] +XP/+Jenny float, buffs HUD, level-up juice, SFX posicional
    - [x] Raid vertical Ruínas de Zaban wired
    - [x] PREREQ-1 player/auction/guild binary sync
+   - [x] Raid Zaban density (3+ fases, telegraph AoE, loot no chão, wipe/revive legível)
+   - [x] A7 Blacklist open hunt (world boss co-op)
+   - [x] A8 Gourmet life skills (leve, buffs temporários)
 
 ---
 

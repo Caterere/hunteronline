@@ -98,6 +98,14 @@ func _run() -> void:
 	var dungeon_src := FileAccess.get_file_as_string("res://world/maps/DungeonRuinasZabanMap.gd")
 	_check("_iniciar_raid_vertical" in dungeon_src and "RaidInstance" in dungeon_src,
 		"DungeonRuinasZabanMap wired to RaidInstance", "raid map not wired")
+	_check("_spawn_raid_loot_ground" in dungeon_src and "_try_register_wipe" in dungeon_src,
+		"density: loot chão + wipe soft", "density thin")
+
+	print("\n[8b] A7/A8 presence")
+	_check(ResourceLoader.exists("res://scripts/systems/blacklist/BlacklistOpenHunt.gd"),
+		"A7 BlacklistOpenHunt", "A7 missing")
+	_check(GourmetCooking != null and GourmetCooking.list_recipes().size() >= 3,
+		"A8 GourmetCooking autoload + recipes", "A8 missing")
 
 	print("\n[9] PREREQ-1 binary player + auction/guild")
 	var packed: PackedByteArray = NetworkProtocol.pack_player_state_binary(

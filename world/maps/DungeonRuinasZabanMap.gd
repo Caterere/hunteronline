@@ -26,6 +26,8 @@ var boss_node: Node = null
 var boss_derrotado: bool = false
 var raid_instance = null
 var _raid_catalog_entry: Dictionary = {}
+var _wipe_cooldown: float = 0.0
+var _last_wipe_frame: int = -999
 
 
 func _ready() -> void:
@@ -106,16 +108,19 @@ func _gerar_mapa_dungeon() -> void:
 
 
 func _instanciar_boss_e_sentinelas() -> void:
-	# 1. Sentinelas na Antecâmara (Y: 20)
-	_instanciar_mob(Vector2(200, 360), "Sentinela de Pedra 1", false)
-	_instanciar_mob(Vector2(440, 360), "Sentinela de Pedra 2", false)
-	
-	# 2. Guardião Ancestral de Zaban (Boss) no centro da câmara norte (X: 320, Y: 120)
-	_instanciar_mob(Vector2(320, 120), "Guardião Ancestral de Zaban", true)
-	
-	# 3. Portal de Saída (X: 320, Y: 440)
-	_criar_portal_saida(Vector2(320, 440))
+	# Densidade: packs na antecâmara + corredor + câmara
+	_instanciar_mob(Vector2(180, 380), "Sentinela de Pedra 1", false)
+	_instanciar_mob(Vector2(460, 380), "Sentinela de Pedra 2", false)
+	_instanciar_mob(Vector2(260, 340), "Sentinela de Pedra 3", false)
+	_instanciar_mob(Vector2(380, 340), "Sentinela de Pedra 4", false)
+	_instanciar_mob(Vector2(320, 280), "Guardião Menor do Corredor", false, true)
+	_instanciar_mob(Vector2(200, 200), "Sentinela da Câmara L", false)
+	_instanciar_mob(Vector2(440, 200), "Sentinela da Câmara R", false)
 
+	# Boss principal
+	_instanciar_mob(Vector2(320, 120), "Guardião Ancestral de Zaban", true)
+
+	_criar_portal_saida(Vector2(320, 440))
 	_instanciar_sensores_nen_ruinas()
 
 
@@ -145,58 +150,69 @@ func _instanciar_sensores_nen_ruinas() -> void:
 	)
 
 
-func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool) -> void:
+func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool = false) -> void:
 	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
-	if enemy_scn:
-		var enemy = enemy_scn.instantiate()
-		enemy.name = nome.replace(" ", "_")
-		enemy.position = pos
-		add_child(enemy)
-		
-		var es = enemy.get_node_or_null("EnemySystem")
-		if es:
-			if is_boss:
-				boss_node = enemy
-				es.is_boss = true
-				es.max_health = 600
-				es.health = 600
-				es.defense = 15
-				es.strength = 32
-				es.defesa_barra_max = 280.0
-				es.defesa_barra_atual = 280.0
-				es.tempo_defesa_quebrada = 4.0
-				es.xp_reward = 800
-				es.nen_xp_reward = 600
-				es.enemy_id = &"guardiao_ancestral"
-				es.enemy_name = nome
-				
-				# Conectar derrota do chefe
-				es.died.connect(_on_boss_derrotado)
-				if not es.died.is_connected(QuestSystem.register_enemy_kill):
-					es.died.connect(QuestSystem.register_enemy_kill)
-				if QuestSystem != null:
-					QuestSystem.registrar_spawn_posicao_missao(&"guardiao_ancestral", pos, 0, 0, -1, null, nome)
-				
-				# Ativar Boss Bar no HUD
-				var hud = get_tree().get_first_node_in_group("player_hud")
-				if hud and hud.has_method("registrar_boss"):
-					hud.registrar_boss(es)
-			else:
-				es.max_health = 140
-				es.health = 140
-				es.defense = 10
-				es.strength = 18
-				es.defesa_barra_max = 120.0
-				es.defesa_barra_atual = 120.0
-				es.tempo_defesa_quebrada = 3.0
-				es.xp_reward = 120
-				es.nen_xp_reward = 80
-				es.enemy_id = &"sentinela_pedra"
-				es.enemy_name = nome
-				if not es.died.is_connected(QuestSystem.register_enemy_kill):
-					es.died.connect(QuestSystem.register_enemy_kill)
-				if QuestSystem != null:
-					QuestSystem.registrar_spawn_posicao_missao(&"sentinela_pedra", pos, 0, 0, -1, null, nome)
+	if enemy_scn == null:
+		return
+	var enemy = enemy_scn.instantiate()
+	enemy.name = nome.replace(" ", "_")
+	enemy.position = pos
+	add_child(enemy)
+
+	var es = enemy.get_node_or_null("EnemySystem")
+	if es == null:
+		return
+
+	if is_boss:
+		boss_node = enemy
+		# Bind canônico DataManager → fases BossPhaseData reais
+		if DataManager != null and DataManager.has_method("get_enemy"):
+			var ed = DataManager.get_enemy(&"guardiao_ancestral")
+			if ed != null:
+				es.enemy_data = ed
+		es.is_boss = true
+		es.max_health = 600
+		es.health = 600
+		es.defense = 15
+		es.strength = 32
+		es.defesa_barra_max = 280.0
+		es.defesa_barra_atual = 280.0
+		es.tempo_defesa_quebrada = 4.0
+		es.xp_reward = 800
+		es.nen_xp_reward = 600
+		es.enemy_id = &"guardiao_ancestral"
+		es.enemy_name = nome
+		if es.enemy_data != null:
+			es.enemy_data.attack_telegraph_type = "aoe_circle"
+		es.died.connect(_on_boss_derrotado)
+		if QuestSystem != null:
+			if not es.died.is_connected(QuestSystem.register_enemy_kill):
+				es.died.connect(QuestSystem.register_enemy_kill)
+			QuestSystem.registrar_spawn_posicao_missao(&"guardiao_ancestral", pos, 0, 0, -1, null, nome)
+		var hud = get_tree().get_first_node_in_group("player_hud")
+		if hud and hud.has_method("registrar_boss"):
+			hud.registrar_boss(es)
+		BossIntroBanner.exibir(get_tree(), nome, "Ruínas de Zaban — Raid Vertical")
+	else:
+		es.max_health = 200 if is_elite else 140
+		es.health = es.max_health
+		es.defense = 14 if is_elite else 10
+		es.strength = 24 if is_elite else 18
+		es.defesa_barra_max = 160.0 if is_elite else 120.0
+		es.defesa_barra_atual = es.defesa_barra_max
+		es.tempo_defesa_quebrada = 3.0
+		es.xp_reward = 200 if is_elite else 120
+		es.nen_xp_reward = 120 if is_elite else 80
+		es.enemy_id = &"sentinela_pedra"
+		es.enemy_name = nome
+		if DataManager != null and DataManager.has_method("get_enemy"):
+			var ed2 = DataManager.get_enemy(&"sentinela_pedra")
+			if ed2 != null:
+				es.enemy_data = ed2.duplicate(true) if ed2.has_method("duplicate") else ed2
+		if QuestSystem != null:
+			if not es.died.is_connected(QuestSystem.register_enemy_kill):
+				es.died.connect(QuestSystem.register_enemy_kill)
+			QuestSystem.registrar_spawn_posicao_missao(&"sentinela_pedra", pos, 0, 0, -1, null, nome)
 
 
 func _on_boss_derrotado(_enemy_type: StringName) -> void:
@@ -243,28 +259,36 @@ func _iniciar_raid_vertical() -> void:
 	if PartyManager != null and PartyManager.has_method("entrar_modo_raid"):
 		PartyManager.entrar_modo_raid()
 	raid_instance = RaidInstanceScript.new()
-	raid_instance.name = "RaidInstanceZaban"
-	add_child(raid_instance)
 	if not raid_instance.start_raid("ruins_zaban_vertical", members, _raid_catalog_entry):
 		push_warning("[DungeonRuinasZaban] Falha ao iniciar raid vertical")
 		raid_instance = null
 		if PartyManager != null and PartyManager.has_method("sair_modo_raid"):
 			PartyManager.sair_modo_raid()
 		return
+	if raid_instance.has_method("desbloquear_checkpoint"):
+		raid_instance.desbloquear_checkpoint("entrada")
 	if raid_instance.has_signal("phase_changed"):
 		raid_instance.phase_changed.connect(_on_raid_phase_changed)
 	if raid_instance.has_signal("enrage_started"):
 		raid_instance.enrage_started.connect(_on_raid_enrage)
+	if raid_instance.has_signal("raid_wiped"):
+		raid_instance.raid_wiped.connect(_on_raid_wiped)
+	if EventBus != null and EventBus.has_signal("player_died"):
+		if not EventBus.player_died.is_connected(_on_raid_player_died):
+			EventBus.player_died.connect(_on_raid_player_died)
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("⚔️ Raid: %s" % str(_raid_catalog_entry.get("title", "Ruínas de Zaban")))
+		hud.exibir_notificacao("⚔️ Raid: %s — 3 fases · wipe → checkpoint" % str(_raid_catalog_entry.get("title", "Ruínas de Zaban")))
 
 
 func _process(delta: float) -> void:
+	if _wipe_cooldown > 0.0:
+		_wipe_cooldown = maxf(0.0, _wipe_cooldown - delta)
 	if raid_instance == null or boss_derrotado:
 		return
 	if raid_instance.has_method("tick_enrage"):
 		raid_instance.tick_enrage(delta)
+	_checar_wipe_party()
 	if boss_node == null or not is_instance_valid(boss_node):
 		return
 	var es = boss_node.get_node_or_null("EnemySystem")
@@ -278,29 +302,140 @@ func _process(delta: float) -> void:
 
 func _on_raid_phase_changed(phase_index: int, phase_id: String) -> void:
 	if EventBus != null:
-		EventBus.emit_toast("Fase %d — %s" % [phase_index + 1, phase_id], Color(1.0, 0.55, 0.3))
+		EventBus.emit_toast("Fase %d — %s" % [phase_index + 1, phase_id.to_upper()], Color(1.0, 0.55, 0.3))
+		EventBus.emit_camera_shake(0.45, 0.25)
 	if AudioManager != null:
 		AudioManager.tocar_sfx_tipo("boss_phase", 1.1)
+	_aplicar_fase_no_boss(phase_index, phase_id)
+	# Adds por fase
+	if phase_id in ["collapse", "midpoint"]:
+		_spawn_adds_fase(phase_index)
+
+
+func _aplicar_fase_no_boss(phase_index: int, phase_id: String) -> void:
+	if boss_node == null or not is_instance_valid(boss_node):
+		return
+	var ai = boss_node.get_node_or_null("EnemyAI")
+	if ai == null:
+		for c in boss_node.get_children():
+			if c.get_script() != null and str(c.get_script().resource_path).ends_with("EnemyAI.gd"):
+				ai = c
+				break
+	if ai == null:
+		return
+	# Forçar telegraphs AoE e frenesí alinhados às fases da raid
+	if phase_index >= 1 and ai.has_method("_entrar_fase_2_boss") and not bool(ai.get("is_fase_2")):
+		ai._entrar_fase_2_boss()
+	if phase_index >= 2 and ai.has_method("_entrar_fase_3_boss") and not bool(ai.get("is_fase_3")):
+		ai._entrar_fase_3_boss()
+	if phase_id.to_lower().contains("enrage") or phase_index >= 3:
+		if ai.has_method("_executar_terremoto_com_telegrafia"):
+			ai._executar_terremoto_com_telegrafia()
+		elif ai.has_method("_criar_indicador_chao_aoe"):
+			ai._criar_indicador_chao_aoe(boss_node.global_position, 72.0, 1.2)
+
+
+func _spawn_adds_fase(phase_index: int) -> void:
+	var offsets := [Vector2(-60, 40), Vector2(60, 40), Vector2(0, 70)]
+	for i in range(mini(2 + phase_index, offsets.size())):
+		var p: Vector2 = Vector2(320, 120) + offsets[i]
+		_instanciar_mob(p, "Sentinela Invocada %d" % (phase_index * 10 + i), false)
 
 
 func _on_raid_enrage(_seconds: float) -> void:
 	if EventBus != null:
 		EventBus.emit_toast("⚠ ENRAGE! O Guardião entra em frenesi!", Color(1.0, 0.2, 0.2))
+		EventBus.emit_camera_shake(0.7, 0.4)
 	if AudioManager != null:
 		AudioManager.tocar_sfx_tipo("boss_intro", 1.2)
+	_aplicar_fase_no_boss(3, "enrage")
+
+
+func _on_raid_player_died() -> void:
+	if raid_instance == null or boss_derrotado:
+		return
+	_try_register_wipe()
+
+
+func _on_raid_wiped() -> void:
+	_wipe_cooldown = 4.0
+	if EventBus != null:
+		EventBus.emit_toast("💀 WIPE! Checkpoint Entrada — revive aliados com [E]", Color(1.0, 0.35, 0.35))
+	_respawn_soft_checkpoint()
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	if hud != null and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao("🔄 Soft wipe · Checkpoint Entrada · Revive [E] em aliados")
+
+
+func _try_register_wipe() -> void:
+	if raid_instance == null or not raid_instance.has_method("register_wipe"):
+		return
+	if _wipe_cooldown > 0.0:
+		return
+	var frame := Engine.get_frames_drawn()
+	if frame - _last_wipe_frame < 90:
+		return
+	_last_wipe_frame = frame
+	_wipe_cooldown = 4.0
+	raid_instance.register_wipe()
+
+
+func _checar_wipe_party() -> void:
+	if raid_instance == null or PartyManager == null or _wipe_cooldown > 0.0:
+		return
+	if not PartyManager.has_method("obter_membros"):
+		return
+	var membros = PartyManager.obter_membros()
+	if membros.is_empty() or membros.size() <= 1:
+		return
+	var all_down := true
+	for m in membros:
+		var mid := int(m)
+		var info = {}
+		if "membros" in PartyManager and PartyManager.membros.has(mid):
+			info = PartyManager.membros[mid]
+		if not bool(info.get("is_downed", false)):
+			all_down = false
+			break
+	if all_down:
+		_try_register_wipe()
+
+
+func _respawn_soft_checkpoint() -> void:
+	if player == null or not is_instance_valid(player):
+		var players = get_tree().get_nodes_in_group("player")
+		if not players.is_empty():
+			player = players[0] as CharacterBody2D
+	if player == null:
+		return
+	player.global_position = Vector2(320, 410)
+	if PlayerData != null and PlayerData.attributes != null:
+		var max_hp := int(PlayerData.attributes.get("vida_max", 100))
+		PlayerData.attributes["vida"] = maxi(1, int(max_hp * 0.45))
+	if EventBus != null:
+		EventBus.emit_toast("Você reviveu no Checkpoint Entrada (45% HP)", Color(0.45, 0.85, 1.0))
 
 
 func _spawn_raid_loot_ground(result: Dictionary) -> void:
 	var loot_list: Array = result.get("loot", [])
 	var base_pos := Vector2(320, 140)
 	var jenny_total := 0
+	var item_ids: Array[String] = []
 	for entry in loot_list:
 		if entry is Dictionary:
 			jenny_total += int(entry.get("jenny", entry.get("gold", 25)))
+			for it in entry.get("itens", entry.get("items", [])):
+				item_ids.append(str(it))
 	if jenny_total <= 0:
-		jenny_total = 120
+		jenny_total = 180 + int(raid_instance.wipe_count if raid_instance else 0) * 20
 	LootDrop.spawn_jenny(self, base_pos, jenny_total)
 	LootDrop.spawn_item_drop(self, base_pos + Vector2(14, 0), "fragmento_aura_ancestral")
+	LootDrop.spawn_item_drop(self, base_pos + Vector2(-14, 6), "nucleo_golem")
+	if item_ids.is_empty():
+		LootDrop.spawn_item_drop(self, base_pos + Vector2(0, 16), "amuleto_forca")
+	else:
+		for i in range(mini(3, item_ids.size())):
+			LootDrop.spawn_item_drop(self, base_pos + Vector2(float(i * 12 - 12), 18.0), item_ids[i])
 
 
 func _spawna_bau_dourado(pos: Vector2) -> void:

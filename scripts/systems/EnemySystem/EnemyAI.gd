@@ -754,17 +754,30 @@ func _obter_recovery() -> float:
 func _mostrar_telegraph() -> void:
 	if enemy_body == null:
 		return
+	var telegraph_type := "flash"
+	if enemy_system != null and enemy_system.enemy_data != null:
+		telegraph_type = str(enemy_system.enemy_data.attack_telegraph_type)
+
 	var sprite = enemy_body.get_node_or_null("Sprite2D") as Sprite2D
-	if sprite != null:
-		sprite.modulate = Color(2.4, 0.4, 0.4, 1.0) # Flash de alerta de ataque iminente
-	
+	match telegraph_type:
+		"aoe_circle":
+			if sprite != null:
+				sprite.modulate = Color(2.2, 0.55, 0.2, 1.0)
+			_criar_indicador_chao_aoe(enemy_body.global_position, 48.0, maxf(0.2, windup_timer))
+		"exclamation":
+			if sprite != null:
+				sprite.modulate = Color(2.0, 1.6, 0.3, 1.0)
+		_:
+			if sprite != null:
+				sprite.modulate = Color(2.4, 0.4, 0.4, 1.0) # Flash de alerta
+
 	if _telegraph_indicator == null or not is_instance_valid(_telegraph_indicator):
 		var lbl = Label.new()
 		lbl.name = "TelegraphAlert"
-		lbl.text = "⚠️"
+		lbl.text = "⚠" if telegraph_type != "aoe_circle" else "◎"
 		lbl.position = Vector2(-8, -42)
 		lbl.add_theme_font_size_override("font_size", 8)
-		lbl.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 1.0))
+		lbl.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 1.0) if telegraph_type != "aoe_circle" else Color(1.0, 0.55, 0.15, 1.0))
 		enemy_body.add_child(lbl)
 		_telegraph_indicator = lbl
 

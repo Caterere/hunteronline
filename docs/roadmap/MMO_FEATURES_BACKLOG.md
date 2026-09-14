@@ -103,7 +103,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `IMPLEMENTED` — `BlacklistOpenHunt` + cartazes open hunt no `BountiesBoardUI` + Kurapika hint + `CoopWorldBossCoordinator` loot por contribuição |
 | **Inspiração** | World bosses / rare elites (GW2, WoW) + wanted posters |
 | **Deps** | PREREQ-2 recomendado; world boss coordinator |
 | **Reusar** | `autoload/BountySystem.gd`, `ui/Bounties/`, `scripts/network/CoopWorldBossCoordinator.gd`, `autoload/RumorSystem.gd` |
@@ -113,7 +113,7 @@ flowchart LR
 
 | Campo | Valor |
 | :--- | :--- |
-| **Status** | `BACKLOG` |
+| **Status** | `IMPLEMENTED` — `GourmetCooking` autoload + `GourmetKitchenUI` + Menchi · buffs temporários (não compete com Nen) · writs diários |
 | **Inspiração** | Life skills (BDO), crafting/gathering (FFXIV/ESO) |
 | **Deps** | Facção Gourmet; manter leve vs árvore de Nen |
 | **Reusar** | `autoload/FactionManager.gd`, `ui/Blacksmith/`, `ui/Minigames/` |
@@ -153,8 +153,10 @@ flowchart LR
 5. **S2** — Arena ranqueada + 1ª temporada.
 6. **S1** — Leilão Yorknew (economia server-side estável).
 7. **S4** — Greed Island duelo de cartas.
-8. **A6** — Guildas + Nen Contracts.
-9. **A8 + B11** — Gourmet life skills + meta territorial faccional.
+8. **A6** — Guildas + Nen Contracts. ✅
+9. **A7** — Blacklist open hunt. ✅
+10. **A8** — Gourmet life skills. ✅
+11. **B11** — Meta territorial faccional.
 
 ---
 

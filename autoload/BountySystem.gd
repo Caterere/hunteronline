@@ -79,9 +79,10 @@ func _inicializar_contratos_iniciais() -> void:
 			"regiao": "ruinas_zaban",
 			"nivel_alvo": 120,
 			"recompensa_jenny": 150000,
-			"descricao": "Ex-examinador que traiu a Associação vendendo credenciais a contrabandistas.",
+			"descricao": "Ex-examinador que traiu a Associação vendendo credenciais a contrabandistas. Caça aberta S-rank.",
 			"concluido": false,
-			"aceito": false
+			"aceito": false,
+			"open_hunt": true
 		},
 		"bounty_exilado_greed": {
 			"id": "bounty_exilado_greed",
@@ -99,9 +100,10 @@ func _inicializar_contratos_iniciais() -> void:
 			"regiao": "ngl_formigas",
 			"nivel_alvo": 680,
 			"recompensa_jenny": 15000000,
-			"descricao": "Líder de esquadrão mutante que se recusou a obedecer a Rainha e montou fortaleza própria.",
+			"descricao": "Líder de esquadrão mutante que se recusou a obedecer a Rainha e montou fortaleza própria. Caça aberta S-rank.",
 			"concluido": false,
-			"aceito": false
+			"aceito": false,
+			"open_hunt": true
 		},
 		"bounty_assassino_heilly": {
 			"id": "bounty_assassino_heilly",
@@ -164,25 +166,24 @@ func obter_recompensa_cabeca_jogador() -> int:
 	return infamia * 50 # Ex: 100 de infâmia = 5.000 Jenny de recompensa
 
 
-func concluir_contrato(contrato_id: String) -> void:
+func concluir_contrato(contrato_id: String, skip_economy: bool = false) -> void:
 	if not active_bounty_contracts.has(contrato_id):
 		return
 	var c = active_bounty_contracts[contrato_id]
 	if c["concluido"]:
 		return
 	c["concluido"] = true
-	var premio = c["recompensa_jenny"]
-	
-	if Economy != null:
-		Economy.adicionar_gold(premio)
+	var premio = int(c["recompensa_jenny"])
+	if not skip_economy:
+		if Economy != null:
+			Economy.adicionar_gold(premio)
+		if EventBus != null and EventBus.has_signal("player_stat_changed"):
+			EventBus.player_stat_changed.emit("xp", premio / 5)
+		if EventBus != null and EventBus.has_signal("toast_requested"):
+			EventBus.emit_toast("💰 Recompensa Coletada: +%d Jenny (%s)!" % [premio, c["nome_alvo"]], Color(1.0, 0.85, 0.2))
 	if ReputationSystem != null:
 		ReputationSystem.alterar_reputacao(ReputationSystem.Faccao.ASSOCIACAO_HUNTER, +80, "Contrato de Bounty Cumprido")
-	if EventBus != null and EventBus.has_signal("player_stat_changed"):
-		EventBus.player_stat_changed.emit("xp", premio / 5)
-		
 	contrato_bounty_concluido.emit(contrato_id, premio)
-	if EventBus != null and EventBus.has_signal("toast_requested"):
-		EventBus.emit_toast("💰 Recompensa Coletada: +%d Jenny (%s)!" % [premio, c["nome_alvo"]], Color(1.0, 0.85, 0.2))
 
 
 func _on_enemy_defeated(enemy_id: String, _xp: int, _nen_xp: int) -> void:
