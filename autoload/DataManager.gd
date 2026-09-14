@@ -30,6 +30,9 @@ func _carregar_dados_estaticos() -> void:
 	
 	# 2. Carregar Inimigos Padrão
 	_inicializar_inimigos_canônicos()
+
+	# 3. Elite + Loot Identity Pack (uniques / sets)
+	LootIdentityKit.registrar_itens_identidade(self)
 	
 	print("[DataManager] Registrados: %d Itens, %d Equipamentos, %d Inimigos" % [
 		items_registry.size(),

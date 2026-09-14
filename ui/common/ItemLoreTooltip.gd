@@ -154,23 +154,32 @@ func configurar_com_item(item: ItemData) -> void:
 	lbl_nome.text = item.nome_item
 	lbl_descricao.text = item.descricao
 
-	# Raridade e cores
+	# Raridade e cores (Loot Identity)
 	lbl_raridade.text = item.raridade
 	match item.raridade.to_lower():
-		"muito raro", "reliquia":
+		"lendario", "lendário", "muito raro", "reliquia":
 			lbl_raridade.add_theme_color_override("font_color", Color(1.0, 0.80, 0.2))
+		"epico", "épico":
+			lbl_raridade.add_theme_color_override("font_color", Color(0.85, 0.45, 1.0))
 		"raro":
 			lbl_raridade.add_theme_color_override("font_color", Color(0.3, 0.85, 1.0))
+		"incomum":
+			lbl_raridade.add_theme_color_override("font_color", Color(0.35, 0.9, 0.45))
 		_:
 			lbl_raridade.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 
 	# Tipo
 	lbl_tipo.text = "Equipamento" if item is EquipmentData else ("Chave" if item.tipo == 0 else "Item Especial")
 
-	# Trade-off (se for equipamento)
+	# Trade-off / unique / set (se for equipamento)
 	if item is EquipmentData and not item.trade_off_descricao.is_empty():
 		panel_tradeoff.visible = true
-		lbl_tradeoff.text = "⚖️ TRADE-OFF:\n" + item.trade_off_descricao
+		var extra := ""
+		if not item.efeito_unico_id.is_empty() and not item.efeito_unico_desc.is_empty():
+			extra = "\n✦ " + item.efeito_unico_desc
+		elif not item.set_id.is_empty():
+			extra = "\n◎ Set: " + item.set_id
+		lbl_tradeoff.text = "⚖️ TRADE-OFF:\n" + item.trade_off_descricao + extra
 	else:
 		panel_tradeoff.visible = false
 

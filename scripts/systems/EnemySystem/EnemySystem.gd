@@ -1042,6 +1042,7 @@ func _gerar_drop_loot() -> void:
 		qtd_gold = Economy.calcular_drop_jenny_inimigo(enemy_lv)
 	else:
 		qtd_gold = maxi(5, int(round(float(randi_range(12, 36) * enemy_lv) * 0.45)))
+	qtd_gold = int(round(float(qtd_gold) * LootIdentityKit.jenny_multiplier(enemy_data)))
 
 	# Loot no chão (RO / Tibia) — sem auto-grant silencioso
 	if world_parent != null and qtd_gold > 0:
@@ -1049,22 +1050,29 @@ func _gerar_drop_loot() -> void:
 	elif qtd_gold > 0 and Economy != null:
 		Economy.adicionar_gold(qtd_gold)
 
-	# Processar Tabela de Drops (GDD Vol 8) — itens também no chão
-	if enemy_data != null and not enemy_data.drop_table.is_empty():
-		for drop_info in enemy_data.drop_table:
-			var chance: float = float(drop_info.get("chance", 0.5))
-			if randf() <= chance:
-				var item_id = drop_info.get("item_id", "")
-				var qtd: int = int(drop_info.get("quantidade", 1))
-				if item_id.is_empty():
-					continue
-				if world_parent != null:
-					for _i in range(maxi(1, qtd)):
-						LootDrop.spawn_item_drop(world_parent, drop_pos, String(item_id))
-					print("[EnemySystem] LOOT NO CHÃO: %s x%d" % [item_id, qtd])
-				elif PlayerData != null:
-					PlayerData.adicionar_item(StringName(item_id), qtd)
-					print("[EnemySystem] LOOT COLETADO: %s x%d" % [item_id, qtd])
+	# Processar Tabela de Drops (GDD Vol 8 + Loot Identity) — itens no chão
+	var drop_rows: Array = LootIdentityKit.tabela_efetiva(enemy_data)
+	for drop_info in drop_rows:
+		if typeof(drop_info) != TYPE_DICTIONARY:
+			continue
+		var chance: float = float(drop_info.get("chance", 0.5))
+		# Raridade do item (se registrada) pesa a chance efetiva.
+		var item_id = drop_info.get("item_id", "")
+		if item_id.is_empty():
+			continue
+		if DataManager != null:
+			var it = DataManager.obter_item(StringName(String(item_id)))
+			if it != null and "raridade" in it:
+				chance = clampf(chance * (0.55 + 0.45 / LootIdentityKit.peso_raridade(String(it.raridade))), 0.0, 0.95)
+		if randf() <= chance:
+			var qtd: int = int(drop_info.get("quantidade", 1))
+			if world_parent != null:
+				for _i in range(maxi(1, qtd)):
+					LootDrop.spawn_item_drop(world_parent, drop_pos, String(item_id))
+				print("[EnemySystem] LOOT NO CHÃO: %s x%d" % [item_id, qtd])
+			elif PlayerData != null:
+				PlayerData.adicionar_item(StringName(item_id), qtd)
+				print("[EnemySystem] LOOT COLETADO: %s x%d" % [item_id, qtd])
 
 
 
