@@ -312,3 +312,16 @@ func carregar_dados(dados: Dictionary) -> void:
 	_seeded = bool(dados.get("seeded", false))
 	_ensure_seed_listings()
 	listings_changed.emit()
+
+
+## Pacote binário de sync (PREREQ-1 / S1) para servidor dedicado.
+func build_network_sync_packet() -> PackedByteArray:
+	return NetworkProtocol.pack_auction_sync(salvar_dados())
+
+
+func apply_network_sync_packet(bytes: PackedByteArray) -> bool:
+	var payload: Dictionary = NetworkProtocol.unpack_auction_sync(bytes)
+	if payload.is_empty():
+		return false
+	carregar_dados(payload)
+	return true

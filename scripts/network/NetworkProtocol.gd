@@ -47,7 +47,10 @@ enum Opcode {
 
 	# Social & Chat
 	CHAT_MESSAGE = 0x50,
-	PARTY_INVITE = 0x51
+	PARTY_INVITE = 0x51,
+	# Economia / Guilda (desbloqueados por PREREQ-1)
+	AUCTION_SYNC = 0x60,
+	GUILD_BANK_SYNC = 0x61
 }
 
 
@@ -369,3 +372,55 @@ static func measure_snapshot_sizes(snapshot: Dictionary) -> Dictionary:
 		"ratio": ratio,
 		"saved_bytes": dict_bytes.size() - bin_bytes.size()
 	}
+
+
+## Empacota estado do leilão (AUCTION_SYNC) — payload var_to_bytes + opcode.
+static func pack_auction_sync(payload: Dictionary) -> PackedByteArray:
+	var sp := StreamPeerBuffer.new()
+	sp.put_u8(Opcode.AUCTION_SYNC)
+	sp.put_u32(Time.get_ticks_msec())
+	var body: PackedByteArray = var_to_bytes(payload)
+	sp.put_u32(body.size())
+	sp.put_data(body)
+	return sp.data_array
+
+
+static func unpack_auction_sync(bytes: PackedByteArray) -> Dictionary:
+	if bytes.size() < 9:
+		return {}
+	var sp := StreamPeerBuffer.new()
+	sp.data_array = bytes
+	if int(sp.get_u8()) != Opcode.AUCTION_SYNC:
+		return {}
+	var _seq := sp.get_u32()
+	var sz := int(sp.get_u32())
+	if sz <= 0 or sp.get_available_bytes() < sz:
+		return {}
+	var body: PackedByteArray = sp.get_data(sz)[1]
+	return bytes_to_var(body) if body.size() > 0 else {}
+
+
+## Empacota bank/guild state (GUILD_BANK_SYNC).
+static func pack_guild_bank_sync(payload: Dictionary) -> PackedByteArray:
+	var sp := StreamPeerBuffer.new()
+	sp.put_u8(Opcode.GUILD_BANK_SYNC)
+	sp.put_u32(Time.get_ticks_msec())
+	var body: PackedByteArray = var_to_bytes(payload)
+	sp.put_u32(body.size())
+	sp.put_data(body)
+	return sp.data_array
+
+
+static func unpack_guild_bank_sync(bytes: PackedByteArray) -> Dictionary:
+	if bytes.size() < 9:
+		return {}
+	var sp := StreamPeerBuffer.new()
+	sp.data_array = bytes
+	if int(sp.get_u8()) != Opcode.GUILD_BANK_SYNC:
+		return {}
+	var _seq := sp.get_u32()
+	var sz := int(sp.get_u32())
+	if sz <= 0 or sp.get_available_bytes() < sz:
+		return {}
+	var body: PackedByteArray = sp.get_data(sz)[1]
+	return bytes_to_var(body) if body.size() > 0 else {}

@@ -123,6 +123,12 @@ func adicionar_xp(
 		xp_necessario()
 	)
 
+	# Feedback flutuante de XP (Maple-style)
+	if DamageNumberSystem != null and valor_final > 0:
+		var player_node = get_parent()
+		if player_node != null and player_node is Node2D:
+			DamageNumberSystem.spawn_xp(player_node, valor_final)
+
 
 # ============================================================
 # XP DE QUEST (WRAPPER DE COMPATIBILIDADE)
@@ -184,6 +190,18 @@ func _verificar_level_up() -> void:
 		level_up.emit(
 			level
 		)
+
+		# Juice de level-up (áudio + toast + pop visual)
+		if AudioManager != null:
+			AudioManager.tocar_sfx_tipo("level_up", 1.25)
+		if EventBus != null:
+			EventBus.emit_toast("NÍVEL %d!" % level, Color(1.0, 0.85, 0.3))
+		if DamageNumberSystem != null:
+			var player_node = get_parent()
+			if player_node != null and player_node is Node2D:
+				DamageNumberSystem.spawn_texto(player_node, "LEVEL UP!", Color(1.0, 0.9, 0.35), 1.4, 1.2)
+		if EventBus != null and EventBus.has_method("emit_camera_shake"):
+			EventBus.emit_camera_shake(0.35, 0.25)
 
 		if level >= ProgressionConfig.MAX_LEVEL:
 			level = ProgressionConfig.MAX_LEVEL

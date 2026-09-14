@@ -222,10 +222,25 @@ static func spawn_cast_effect(pos: Vector2, p: Resource, parent: Node) -> Node2D
 	var cor_glow: Color = p.glow_color
 	var cor_core: Color = p.core_color
 	var v_scale: float = p.visual_scale
+	var shape_name: String = str(p.cast_effect).to_lower() if "cast_effect" in p else "flash"
 
 	fx.draw.connect(func():
-		fx.draw_circle(Vector2.ZERO, 14.0 * v_scale, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.6))
-		fx.draw_circle(Vector2.ZERO, 7.0 * v_scale, cor_core)
+		match shape_name:
+			"spark_burst", "spark":
+				for i in range(6):
+					var a: float = float(i) * TAU / 6.0
+					var tip := Vector2(cos(a), sin(a)) * (18.0 * v_scale)
+					fx.draw_line(Vector2.ZERO, tip, cor_glow, 1.5)
+				fx.draw_circle(Vector2.ZERO, 5.0 * v_scale, cor_core)
+			"smoke", "mist":
+				fx.draw_circle(Vector2.ZERO, 16.0 * v_scale, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.35))
+				fx.draw_circle(Vector2(-6, -4) * v_scale, 9.0 * v_scale, Color(cor_core.r, cor_core.g, cor_core.b, 0.4))
+			"blade", "slash":
+				fx.draw_line(Vector2(-16, -8) * v_scale, Vector2(16, 8) * v_scale, cor_glow, 3.0)
+				fx.draw_line(Vector2(-14, -4) * v_scale, Vector2(14, 10) * v_scale, cor_core, 1.5)
+			_:
+				fx.draw_circle(Vector2.ZERO, 14.0 * v_scale, Color(cor_glow.r, cor_glow.g, cor_glow.b, 0.6))
+				fx.draw_circle(Vector2.ZERO, 7.0 * v_scale, cor_core)
 	)
 
 	parent.add_child(fx)
@@ -250,14 +265,40 @@ static func spawn_impact_effect(pos: Vector2, p: Resource, parent: Node) -> Node
 	var cor_prim: Color = p.primary_color
 	var cor_glow: Color = p.glow_color
 	var v_scale: float = p.visual_scale
+	var impact_name: String = str(p.impact_effect).to_lower() if "impact_effect" in p else "burst"
 
 	fx.draw.connect(func():
-		fx.draw_arc(Vector2.ZERO, 18.0 * v_scale, 0.0, TAU, 32, cor_glow, 3.0)
-		fx.draw_circle(Vector2.ZERO, 8.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.7))
+		match impact_name:
+			"slash", "cut":
+				fx.draw_line(Vector2(-20, -10) * v_scale, Vector2(20, 10) * v_scale, cor_glow, 3.5)
+				fx.draw_circle(Vector2.ZERO, 5.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.8))
+			"shockwave", "wave":
+				fx.draw_arc(Vector2.ZERO, 22.0 * v_scale, 0.0, TAU, 28, cor_glow, 2.5)
+				fx.draw_arc(Vector2.ZERO, 14.0 * v_scale, 0.0, TAU, 20, cor_prim, 1.5)
+			"pierce", "ray":
+				fx.draw_line(Vector2(-4, -22) * v_scale, Vector2(4, 22) * v_scale, cor_glow, 2.0)
+				fx.draw_circle(Vector2.ZERO, 6.0 * v_scale, cor_prim)
+			_:
+				fx.draw_arc(Vector2.ZERO, 18.0 * v_scale, 0.0, TAU, 32, cor_glow, 3.0)
+				fx.draw_circle(Vector2.ZERO, 8.0 * v_scale, Color(cor_prim.r, cor_prim.g, cor_prim.b, 0.7))
 	)
 
 	parent.add_child(fx)
 	fx.queue_redraw()
+
+	var particles := CPUParticles2D.new()
+	particles.emitting = true
+	particles.one_shot = true
+	particles.explosiveness = 1.0
+	particles.amount = 10
+	particles.lifetime = 0.28
+	particles.spread = 180.0
+	particles.initial_velocity_min = 50.0
+	particles.initial_velocity_max = 120.0
+	particles.scale_amount_min = 1.2
+	particles.scale_amount_max = 2.8
+	particles.color = cor_glow
+	fx.add_child(particles)
 
 	var tween := fx.create_tween()
 	tween.tween_property(fx, "scale", Vector2(2.2, 2.2), 0.22)

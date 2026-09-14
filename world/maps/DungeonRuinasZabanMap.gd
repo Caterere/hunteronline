@@ -24,6 +24,8 @@ const PATH_TILESET = "res://world/tilesets/world_tileset.tres"
 
 var boss_node: Node = null
 var boss_derrotado: bool = false
+var raid_instance = null
+var _raid_catalog_entry: Dictionary = {}
 
 
 func _ready() -> void:
@@ -38,6 +40,7 @@ func _ready() -> void:
 	_instanciar_boss_e_sentinelas()
 	_posicionar_player()
 	_configurar_audio_e_hud()
+	_iniciar_raid_vertical()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.DUNGEON)
@@ -207,9 +210,97 @@ func _on_boss_derrotado(_enemy_type: StringName) -> void:
 	if EventBus != null:
 		EventBus.enemy_defeated.emit("guardiao_ancestral", 800, 600)
 		EventBus.emit_toast("🏆 CHEFE DERROTADO! Guardião Ancestral de Zaban", Color(1.0, 0.85, 0.2))
+
+	if raid_instance != null and raid_instance.has_method("complete_raid"):
+		var result: Dictionary = raid_instance.complete_raid()
+		_spawn_raid_loot_ground(result)
+		if PartyManager != null and PartyManager.has_method("sair_modo_raid"):
+			PartyManager.sair_modo_raid()
+		if EventBus != null:
+			EventBus.emit_toast("Raid limpa — loot distribuído", Color(0.45, 0.95, 0.7))
 		
 	# Spawna Baú Dourado no local do chefe
 	_spawna_bau_dourado(Vector2(320, 120))
+
+
+func _iniciar_raid_vertical() -> void:
+	var RaidCatalogScript = load("res://resource/raid/RaidCatalog.gd")
+	var RaidInstanceScript = load("res://scripts/network/RaidInstance.gd")
+	if RaidCatalogScript == null or RaidInstanceScript == null:
+		return
+	if not RaidCatalogScript.has_raid("ruins_zaban_vertical"):
+		return
+	_raid_catalog_entry = RaidCatalogScript.get_raid("ruins_zaban_vertical")
+	var members: Array[int] = []
+	if PartyManager != null and PartyManager.has_method("obter_membros"):
+		for m in PartyManager.obter_membros():
+			members.append(int(m))
+	if members.is_empty():
+		var local_id := 1
+		if NetworkManager != null and "local_peer_id" in NetworkManager:
+			local_id = maxi(1, int(NetworkManager.local_peer_id))
+		members = [local_id]
+	if PartyManager != null and PartyManager.has_method("entrar_modo_raid"):
+		PartyManager.entrar_modo_raid()
+	raid_instance = RaidInstanceScript.new()
+	raid_instance.name = "RaidInstanceZaban"
+	add_child(raid_instance)
+	if not raid_instance.start_raid("ruins_zaban_vertical", members, _raid_catalog_entry):
+		push_warning("[DungeonRuinasZaban] Falha ao iniciar raid vertical")
+		raid_instance = null
+		if PartyManager != null and PartyManager.has_method("sair_modo_raid"):
+			PartyManager.sair_modo_raid()
+		return
+	if raid_instance.has_signal("phase_changed"):
+		raid_instance.phase_changed.connect(_on_raid_phase_changed)
+	if raid_instance.has_signal("enrage_started"):
+		raid_instance.enrage_started.connect(_on_raid_enrage)
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	if hud != null and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao("⚔️ Raid: %s" % str(_raid_catalog_entry.get("title", "Ruínas de Zaban")))
+
+
+func _process(delta: float) -> void:
+	if raid_instance == null or boss_derrotado:
+		return
+	if raid_instance.has_method("tick_enrage"):
+		raid_instance.tick_enrage(delta)
+	if boss_node == null or not is_instance_valid(boss_node):
+		return
+	var es = boss_node.get_node_or_null("EnemySystem")
+	if es == null:
+		return
+	var max_hp: float = maxf(1.0, float(es.max_health))
+	var ratio: float = float(es.health) / max_hp
+	if raid_instance.has_method("update_boss_hp_ratio"):
+		raid_instance.update_boss_hp_ratio(ratio)
+
+
+func _on_raid_phase_changed(phase_index: int, phase_id: String) -> void:
+	if EventBus != null:
+		EventBus.emit_toast("Fase %d — %s" % [phase_index + 1, phase_id], Color(1.0, 0.55, 0.3))
+	if AudioManager != null:
+		AudioManager.tocar_sfx_tipo("boss_phase", 1.1)
+
+
+func _on_raid_enrage(_seconds: float) -> void:
+	if EventBus != null:
+		EventBus.emit_toast("⚠ ENRAGE! O Guardião entra em frenesi!", Color(1.0, 0.2, 0.2))
+	if AudioManager != null:
+		AudioManager.tocar_sfx_tipo("boss_intro", 1.2)
+
+
+func _spawn_raid_loot_ground(result: Dictionary) -> void:
+	var loot_list: Array = result.get("loot", [])
+	var base_pos := Vector2(320, 140)
+	var jenny_total := 0
+	for entry in loot_list:
+		if entry is Dictionary:
+			jenny_total += int(entry.get("jenny", entry.get("gold", 25)))
+	if jenny_total <= 0:
+		jenny_total = 120
+	LootDrop.spawn_jenny(self, base_pos, jenny_total)
+	LootDrop.spawn_item_drop(self, base_pos + Vector2(14, 0), "fragmento_aura_ancestral")
 
 
 func _spawna_bau_dourado(pos: Vector2) -> void:

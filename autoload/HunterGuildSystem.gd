@@ -262,3 +262,17 @@ func carregar_dados(dados: Dictionary) -> void:
 	var raw = dados.get("guilds", {})
 	guilds = raw.duplicate(true) if typeof(raw) == TYPE_DICTIONARY else {}
 	_next_id = maxi(1, int(dados.get("next_id", 1)))
+
+
+## Pacote binário de sync de guild bank (PREREQ-1 / A6).
+func build_network_sync_packet() -> PackedByteArray:
+	return NetworkProtocol.pack_guild_bank_sync(salvar_dados())
+
+
+func apply_network_sync_packet(bytes: PackedByteArray) -> bool:
+	var payload: Dictionary = NetworkProtocol.unpack_guild_bank_sync(bytes)
+	if payload.is_empty():
+		return false
+	carregar_dados(payload)
+	_mirror()
+	return true

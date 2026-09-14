@@ -638,8 +638,21 @@ func _enviar_snapshot_local() -> void:
 		state.aura_max = float(PlayerData.attributes.get("aura_max", 100.0))
 		state.active_nen = str(PlayerData.quest_states.get("tecnica_nen_ativa", ""))
 
-	# Host listen / peer-to-peer legado
-	rpc("rpc_receber_snapshot", state.to_dict())
+	# Host listen / peer-to-peer — preferir sync binário compacto (PREREQ-1)
+	var use_binary_player: bool = server_config == null or bool(server_config.snapshot_binary)
+	if use_binary_player:
+		var packed: PackedByteArray = NetworkProtocol.pack_player_state_binary(
+			local_peer_id,
+			state.position,
+			state.velocity,
+			state.facing,
+			state.hp,
+			state.aura,
+			state.active_nen
+		)
+		rpc("rpc_receber_snapshot_jogador_binario", packed)
+	else:
+		rpc("rpc_receber_snapshot", state.to_dict())
 
 
 # ============================================================
@@ -1487,6 +1500,32 @@ func rpc_confirmar_acertos_combate(hits: Array) -> void:
 @rpc("any_peer", "call_local", "unreliable_ordered")
 func rpc_receber_snapshot(data: Dictionary) -> void:
 	var state = PlayerNetworkStateScript.from_dict(data)
+	_aplicar_estado_jogador_remoto(state)
+
+
+@rpc("any_peer", "call_local", "unreliable_ordered")
+func rpc_receber_snapshot_jogador_binario(payload: PackedByteArray) -> void:
+	var unpacked: Dictionary = NetworkProtocol.unpack_player_state_binary(payload)
+	if unpacked.is_empty():
+		return
+	var data := {
+		"pid": int(unpacked.get("id", 0)),
+		"px": float(unpacked.get("px", 0.0)),
+		"py": float(unpacked.get("py", 0.0)),
+		"vx": float(unpacked.get("vx", 0.0)),
+		"vy": float(unpacked.get("vy", 0.0)),
+		"fx": float(unpacked.get("fx", 0.0)),
+		"fy": float(unpacked.get("fy", 1.0)),
+		"hp": int(unpacked.get("hp", 100)),
+		"aura": float(unpacked.get("aura", 100.0)),
+		"nen": str(unpacked.get("nen", unpacked.get("nen_tech", ""))),
+		"ts": int(unpacked.get("seq", Time.get_ticks_msec())),
+	}
+	var state = PlayerNetworkStateScript.from_dict(data)
+	_aplicar_estado_jogador_remoto(state)
+
+
+func _aplicar_estado_jogador_remoto(state) -> void:
 	var pid: int = state.peer_id
 
 	if pid == local_peer_id:
