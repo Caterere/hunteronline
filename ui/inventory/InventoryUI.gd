@@ -5,14 +5,19 @@ extends CanvasLayer
 # ============================================================
 #
 # Menu visual de Inventário do Jogador.
-# Exibe itens coletados (Licença Hunter, Plaquetas, Poções, Elixires).
+# Exibe itens com nome, stats, trade-offs e lore via ItemExplainKit.
 # Resolução nativa 320x180 (pixel art).
 #
 # ============================================================
 
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
+const ItemLoreTooltipScript = preload("res://ui/common/ItemLoreTooltip.gd")
+
 var panel_main: PanelContainer
 var container_grid: GridContainer
 var lbl_detalhes: Label
+var lore_tooltip: ItemLoreTooltip
+var _item_selecionado_id: String = ""
 
 
 func _ready() -> void:
@@ -27,6 +32,8 @@ func alternar_inventario() -> void:
 	get_tree().paused = visible
 	if visible:
 		_atualizar_inventario()
+	elif lore_tooltip != null:
+		lore_tooltip.esconder()
 
 
 func _construir_ui() -> void:
@@ -54,11 +61,10 @@ func _construir_ui() -> void:
 	vbox.add_theme_constant_override("separation", 3)
 	margin.add_child(vbox)
 
-	# Cabeçalho
 	var lbl_titulo := Label.new()
 	lbl_titulo.text = "🎒 INVENTÁRIO HUNTER"
 	lbl_titulo.add_theme_font_size_override("font_size", 11)
-	lbl_titulo.add_theme_color_override("font_color", Color(1, 0.85, 0.25, 1))
+	lbl_titulo.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_GOLD)
 	lbl_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_titulo)
 
@@ -67,7 +73,6 @@ func _construir_ui() -> void:
 	hbox_content.add_theme_constant_override("separation", 8)
 	vbox.add_child(hbox_content)
 
-	# Grid de Slots de Itens (Esq)
 	container_grid = GridContainer.new()
 	container_grid.columns = 4
 	container_grid.custom_minimum_size = Vector2(220, 0)
@@ -75,21 +80,29 @@ func _construir_ui() -> void:
 	container_grid.add_theme_constant_override("v_separation", 4)
 	hbox_content.add_child(container_grid)
 
-	# Detalhes do Item Selecionado (Dir)
+	var scroll_det := ScrollContainer.new()
+	scroll_det.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_det.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	hbox_content.add_child(scroll_det)
+
 	lbl_detalhes = Label.new()
-	lbl_detalhes.text = "Selecione um item para ver detalhes."
+	lbl_detalhes.text = "Selecione um item para ver nome, stats, trade-offs e lore."
 	lbl_detalhes.add_theme_font_size_override("font_size", 8)
 	lbl_detalhes.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_detalhes.autowrap_mode = TextServer.AUTOWRAP_WORD
 	lbl_detalhes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hbox_content.add_child(lbl_detalhes)
+	scroll_det.add_child(lbl_detalhes)
 
 	var lbl_fechar := Label.new()
-	lbl_fechar.text = "[Pressione I para Fechar]"
-	lbl_fechar.add_theme_font_size_override("font_size", 8)
-	lbl_fechar.add_theme_color_override("font_color", Color(0.5, 0.6, 0.7, 1))
+	lbl_fechar.text = "[Pressione I para Fechar] · Passe o mouse para tip rápido"
+	lbl_fechar.add_theme_font_size_override("font_size", 7)
+	lbl_fechar.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
 	lbl_fechar.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_fechar)
+
+	lore_tooltip = ItemLoreTooltipScript.new() as ItemLoreTooltip
+	lore_tooltip.visible = false
+	add_child(lore_tooltip)
 
 
 func _atualizar_inventario() -> void:
@@ -102,18 +115,56 @@ func _atualizar_inventario() -> void:
 	var inv: Dictionary = PlayerData.inventory
 	if inv.is_empty():
 		lbl_detalhes.text = "Seu alforje de inventário está vazio."
+		_item_selecionado_id = ""
 		return
 
+	var primeiro_id: String = ""
 	for item_id in inv.keys():
-		var qtd: int = inv[item_id]
+		var qtd: int = int(inv[item_id])
+		if qtd <= 0:
+			continue
+		var sid := str(item_id)
+		if primeiro_id.is_empty():
+			primeiro_id = sid
+		var item: ItemData = ItemExplainKit.resolver_item(sid)
 		var btn := Button.new()
 		btn.custom_minimum_size = Vector2(48, 24)
-		btn.text = "%s x%d" % [item_id.left(6), qtd]
-		btn.add_theme_font_size_override("font_size", 8)
+		btn.text = ItemExplainKit.rotulo_botao(sid, qtd, item)
+		btn.tooltip_text = ItemExplainKit.nome_exibicao(sid, item)
+		btn.add_theme_font_size_override("font_size", 7)
 		HunterUIStyle.aplicar_estilo_botao(btn, HunterUIStyle.COLOR_BORDER_GREEN)
 
-		btn.pressed.connect(func():
-			lbl_detalhes.text = "📦 Item: %s\n📊 Quantidade: %d" % [item_id.to_upper(), qtd]
-		)
-
+		btn.pressed.connect(_on_item_pressed.bind(sid, qtd))
+		btn.mouse_entered.connect(_on_item_hover.bind(sid, btn))
+		btn.mouse_exited.connect(_on_item_unhover)
 		container_grid.add_child(btn)
+
+	if not _item_selecionado_id.is_empty() and inv.has(_item_selecionado_id):
+		_mostrar_detalhes(_item_selecionado_id, int(inv[_item_selecionado_id]))
+	elif not primeiro_id.is_empty():
+		_mostrar_detalhes(primeiro_id, int(inv[primeiro_id]))
+
+
+func _on_item_pressed(item_id: String, qtd: int) -> void:
+	_mostrar_detalhes(item_id, qtd)
+
+
+func _mostrar_detalhes(item_id: String, qtd: int) -> void:
+	_item_selecionado_id = item_id
+	lbl_detalhes.text = ItemExplainKit.formatar_detalhes(item_id, qtd)
+
+
+func _on_item_hover(item_id: String, btn: Control) -> void:
+	if lore_tooltip == null:
+		return
+	var item: ItemData = ItemExplainKit.resolver_item(item_id)
+	if item == null:
+		lore_tooltip.esconder()
+		return
+	var pos := btn.get_global_rect().position + Vector2(0, btn.size.y + 2)
+	lore_tooltip.mostrar_na_posicao(pos, item)
+
+
+func _on_item_unhover() -> void:
+	if lore_tooltip != null:
+		lore_tooltip.esconder()

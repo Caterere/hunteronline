@@ -997,15 +997,22 @@ func _executar_perfect_dodge(_atacante: Node) -> void:
 	if AudioManager != null:
 		AudioManager.tocar_perfect_dodge()
 
-	# Recuperar +20 de Aura pela maestria da esquiva perfeita
+	# Recuperar 30% da Aura Máxima (bate com a dica Perfect Dodge do Guia)
+	var aura_max_ref: float = float(PlayerData.attributes.get("aura_max", 100.0))
+	if nen_system != null and nen_system.has_method("obter_aura_maxima"):
+		aura_max_ref = float(nen_system.obter_aura_maxima())
+	var aura_recup: int = max(1, int(round(aura_max_ref * 0.30)))
 	if nen_system != null:
-		nen_system.recuperar_aura(20)
+		nen_system.recuperar_aura(aura_recup)
 	else:
 		var a_max: float = float(PlayerData.attributes.get("aura_max", 100.0))
 		var a_cur: float = float(PlayerData.attributes.get("aura", 0.0))
-		PlayerData.attributes["aura"] = min(a_max, a_cur + 20.0)
+		PlayerData.attributes["aura"] = min(a_max, a_cur + float(aura_recup))
 
-	_mostrar_texto_flutuante("⚡ PERFECT DODGE! +20 AURA (CRIT PRONTO)", Color(0.2, 1.0, 0.5))
+	_mostrar_texto_flutuante("⚡ PERFECT DODGE! +%d AURA (30%%) · CRIT PRONTO" % aura_recup, Color(0.2, 1.0, 0.5))
+
+	if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
+		TutorialManager.disparar_tutorial_contextual("perfect_dodge")
 
 
 

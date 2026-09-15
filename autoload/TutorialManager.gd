@@ -187,13 +187,25 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"titulo": "Combate Físico & Esquiva",
 		"categoria": "Combate",
 		"icone": "🥊",
-		"conteudo": "Pressione [J] ou [Botão Esquerdo do Mouse] para golpear. Use a tecla [K] ou [Shift] no momento exato do golpe inimigo para executar o 'PERFECT DODGE', esquivando de 100% do dano e recuperando Aura."
+		"conteudo": "Pressione [J] ou [Botão Esquerdo do Mouse] para golpear. Use a tecla [K] ou [Shift] no momento exato do golpe inimigo para executar o 'PERFECT DODGE', esquivando de 100% do dano e recuperando 30% da Aura Máxima."
+	},
+	"perfect_dodge_maestria": {
+		"titulo": "Perfect Dodge — Timing de Mestre",
+		"categoria": "Combate",
+		"icone": "⚡",
+		"conteudo": "Esquivar no frame do impacto concede imunidade total, prepara contra-ataque crítico e restaura 30% da sua Aura Máxima. Pratique o timing contra inimigos previsíveis."
 	},
 	"atributos_vitalidade": {
 		"titulo": "Atributos Primários do Caçador",
 		"categoria": "Personagem",
 		"icone": "❤️",
-		"conteudo": "• Vida (HP): Sua resistência a dano.\n• Aura: Energia gasta ao utilizar técnicas de Nen e Hatsu.\n• Força: Aumenta o dano dos golpes físicos.\n• Defesa: Reduz o dano recebido.\n• Velocidade: Diminui o tempo de recarga dos ataques e acelera a corrida."
+		"conteudo": "• Vida (HP): Sua resistência a dano.\n• Aura: Energia gasta ao utilizar técnicas de Nen e Hatsu.\n• Força: Aumenta o dano dos golpes físicos.\n• Defesa: Reduz o dano recebido.\n• Velocidade: Diminui o tempo de recarga dos ataques e acelera a corrida.\n• A cada nível você ganha +1 SP de Nen e os atributos sobem automaticamente."
+	},
+	"sistemas_atalhos": {
+		"titulo": "Atalhos dos Sistemas Hunter",
+		"categoria": "Interface",
+		"icone": "⌨️",
+		"conteudo": "[TAB] Hunter Menu (Status, Inventário, Nen Tree, Hatsu, Guia)\n[I] Inventário · [C] Status · [H] Hatsu · [J] Jornal de Missões · [K] Conquistas · [ESC] Pausa/Salvar · [N] Técnica Nen ativa."
 	},
 	"aura_energia_vital": {
 		"titulo": "Aura: A Força Vital",
@@ -206,6 +218,12 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"categoria": "Aura & Nen",
 		"icone": "🥋",
 		"conteudo": "1. TEN (Envolver): Mantém a aura no corpo para defesa.\n2. ZETSU (Suprimir): Fecha os poros para regeneração rápida e furtividade.\n3. REN (Expandir): Emite uma quantidade explosiva de aura.\n4. HATSU (Liberar): A expressão pessoal única e personalizada da aura."
+	},
+	"nen_arvore_sp": {
+		"titulo": "Constelação de Nen & Skill Points",
+		"categoria": "Aura & Nen",
+		"icone": "🌌",
+		"conteudo": "Após despertar o Nen, abra a aba Nen Tree no menu [TAB]. Cada nível concede +1 SP. Comece pelo Nexus central, invista em Ten/Ren/Zetsu e pan/zoom no mapa da constelação. SP acumulados antes do despertar ficam liberados ao falar com Wing."
 	},
 	"nen_tecnica_ten": {
 		"titulo": "Técnica: TEN (Manto Protetor)",
@@ -476,6 +494,7 @@ func pular_tutorial() -> void:
 		PlayerData.desbloquear_conhecimento("atributos_vitalidade")
 		PlayerData.desbloquear_conhecimento("aura_energia_vital")
 		PlayerData.desbloquear_conhecimento("mundo_exame_hunter")
+		PlayerData.desbloquear_conhecimento("sistemas_atalhos")
 
 		# Garantir RIGOROSAMENTE que Hatsus continuam vazios
 		PlayerData.hatsu_criados.clear()
@@ -577,6 +596,8 @@ func notificar_aba_status_aberta() -> void:
 
 
 func notificar_guia_aberto() -> void:
+	if PlayerData != null and not PlayerData.tem_conhecimento("sistemas_atalhos"):
+		PlayerData.desbloquear_conhecimento("sistemas_atalhos")
 	if not em_tutorial or _transicao_bloqueada:
 		return
 
@@ -649,22 +670,46 @@ func obter_fala_lembrete_elena() -> String:
 
 func disparar_tutorial_contextual(tipo: String) -> void:
 	var tipo_clean: String = tipo.to_lower()
+	# Evita spam: se o artigo âncora já foi desbloqueado, não reabre o modal
+	var once_map := {
+		"nen_despertar": "nen_4_principios",
+		"perfect_dodge": "perfect_dodge_maestria",
+		"hatsu_desbloqueio": "nen_tecnica_ko",
+		"nen_arvore": "nen_arvore_sp",
+		"nen_tree": "nen_arvore_sp",
+		"sistemas": "sistemas_atalhos",
+	}
+	if once_map.has(tipo_clean) and PlayerData != null and PlayerData.tem_conhecimento(String(once_map[tipo_clean])):
+		return
+
 	var titulo := "Dica Hunter"
 	var msg := ""
 
 	match tipo_clean:
 		"nen_despertar":
 			titulo = "🥋 DESPERTAR DE NEN"
-			msg = "Você abriu seus poros de Nen! Use a tecla [N] para alternar entre Ten (Defesa), Ren (Ataque) e Zetsu (Cura e Furtividade)."
+			msg = "Você abriu seus poros de Nen! Use a tecla [N] para alternar entre Ten (Defesa), Ren (Ataque) e Zetsu (Cura e Furtividade). Depois abra a Constelação [TAB → Nen Tree] para gastar SP."
 			PlayerData.desbloquear_conhecimento("nen_4_principios")
+			PlayerData.desbloquear_conhecimento("nen_arvore_sp")
 		"perfect_dodge":
 			titulo = "⚡ PERFECT DODGE"
-			msg = "Esquivar no momento exato do impacto concede imunidade total e recarrega instantaneamente 30% da sua Aura!"
+			msg = "Esquivar no momento exato do impacto concede imunidade total e recarrega instantaneamente 30% da sua Aura Máxima!"
+			PlayerData.desbloquear_conhecimento("perfect_dodge_maestria")
 			PlayerData.desbloquear_conhecimento("combate_basico")
 		"hatsu_desbloqueio":
 			titulo = "✨ CRIAÇÃO DE HATSU"
 			msg = "Hatsu é sua habilidade suprema personalizada! Equipe suas técnicas nos slots 1 a 4 e use-as com sabedoria em batalha."
 			PlayerData.desbloquear_conhecimento("nen_tecnica_ko")
+		"nen_arvore", "nen_tree":
+			if PlayerData == null or not PlayerData.despertou_nen:
+				return
+			titulo = "🌌 CONSTELAÇÃO DE NEN"
+			msg = "Comece pelo Nexus central. Cada nível dá +1 SP — invista em Ten/Ren/Zetsu. Arraste para pan, scroll para zoom. SP acumulados antes do despertar já estão liberados."
+			PlayerData.desbloquear_conhecimento("nen_arvore_sp")
+		"sistemas":
+			titulo = "⌨️ SISTEMAS HUNTER"
+			msg = "[TAB] menu completo · [I] inventário · [C] status · [H] Hatsu · [J] missões · [K] conquistas · [ESC] pausa/salvar."
+			PlayerData.desbloquear_conhecimento("sistemas_atalhos")
 		_:
 			return
 

@@ -174,6 +174,12 @@ func _verificar_level_up() -> void:
 		print("NOVO LEVEL: %d / %d" % [level, ProgressionConfig.MAX_LEVEL])
 		print("=================================")
 
+		# Snapshot pré-nível para mostrar deltas ao jogador
+		var hp_antes: int = int(PlayerData.attributes.get("vida_max", 100))
+		var forca_antes: int = int(PlayerData.attributes.get("forca", 10))
+		var def_antes: int = int(PlayerData.attributes.get("defesa", 10))
+		var vel_antes: int = int(PlayerData.attributes.get("velocidade", 10))
+
 		# 1. Atributos base aumentados automaticamente pela pipeline determinística
 		PlayerData.aplicar_nivel(
 			level
@@ -187,6 +193,22 @@ func _verificar_level_up() -> void:
 
 		print("+%d SKILL POINT (Total: %d)" % [sp_ganhos, PlayerData.nen_skill_points])
 
+		var d_hp: int = int(PlayerData.attributes.get("vida_max", hp_antes)) - hp_antes
+		var d_forca: int = int(PlayerData.attributes.get("forca", forca_antes)) - forca_antes
+		var d_def: int = int(PlayerData.attributes.get("defesa", def_antes)) - def_antes
+		var d_vel: int = int(PlayerData.attributes.get("velocidade", vel_antes)) - vel_antes
+		var partes_delta: PackedStringArray = []
+		if d_hp != 0:
+			partes_delta.append("%+d HP" % d_hp)
+		if d_forca != 0:
+			partes_delta.append("%+d Força" % d_forca)
+		if d_def != 0:
+			partes_delta.append("%+d Defesa" % d_def)
+		if d_vel != 0:
+			partes_delta.append("%+d Vel" % d_vel)
+		var texto_deltas := " · ".join(partes_delta) if not partes_delta.is_empty() else "atributos reajustados"
+		var toast_msg := "NÍVEL %d! +%d SP · %s" % [level, sp_ganhos, texto_deltas]
+
 		level_up.emit(
 			level
 		)
@@ -195,11 +217,11 @@ func _verificar_level_up() -> void:
 		if AudioManager != null:
 			AudioManager.tocar_sfx_tipo("level_up", 1.25)
 		if EventBus != null:
-			EventBus.emit_toast("NÍVEL %d!" % level, Color(1.0, 0.85, 0.3))
+			EventBus.emit_toast(toast_msg, Color(1.0, 0.85, 0.3))
 		if DamageNumberSystem != null:
 			var player_node = get_parent()
 			if player_node != null and player_node is Node2D:
-				DamageNumberSystem.spawn_texto(player_node, "LEVEL UP!", Color(1.0, 0.9, 0.35), 1.4, 1.2)
+				DamageNumberSystem.spawn_texto(player_node, "LEVEL UP! +%d SP" % sp_ganhos, Color(1.0, 0.9, 0.35), 1.4, 1.2)
 		if EventBus != null and EventBus.has_method("emit_camera_shake"):
 			EventBus.emit_camera_shake(0.35, 0.25)
 
