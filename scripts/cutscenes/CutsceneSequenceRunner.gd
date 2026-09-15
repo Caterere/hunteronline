@@ -189,11 +189,19 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 			_avancar(tree)
 
 		StepType.CAMERA_ZOOM:
-			var zoom_val: float = float(step.get("zoom", 1.2))
+			# Aceita float OU Vector2 — StoryCutsceneManager usa Vector2(x, x).
+			# float(Vector2) crashava e deixava LOCK_INPUT preso (player travado).
+			var zoom_raw = step.get("zoom", 1.2)
+			var zoom_target := Vector2(1.2, 1.2)
+			if zoom_raw is Vector2:
+				zoom_target = zoom_raw as Vector2
+			else:
+				var z: float = float(zoom_raw)
+				zoom_target = Vector2(z, z)
 			var duracao: float = float(step.get("duration", 0.5))
 			if _camera_cache != null:
 				var tween = create_tween()
-				tween.tween_property(_camera_cache, "zoom", Vector2(zoom_val, zoom_val), duracao).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+				tween.tween_property(_camera_cache, "zoom", zoom_target, duracao).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 				await tween.finished
 			_avancar(tree)
 
