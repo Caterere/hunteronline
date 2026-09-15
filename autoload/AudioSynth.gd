@@ -84,6 +84,49 @@ static func obter_sfx(tipo: String, variante: int = 0) -> AudioStreamWAV:
 			stream = _gerar_chain_conjurer()
 		"hatsu_specialist":
 			stream = _gerar_chord_specialist()
+		# --- PILAR 3: identidade sonora de mobs / ambiente / diálogo ---
+		"mob_growl_beast":
+			stream = _gerar_mob_voz(85.0, 55.0, 0.28, 0.55, false)
+		"mob_hurt_beast":
+			stream = _gerar_mob_voz(140.0, 70.0, 0.16, 0.40, true)
+		"mob_death_beast":
+			stream = _gerar_mob_voz(95.0, 35.0, 0.42, 0.65, true)
+		"mob_growl_insect":
+			stream = _gerar_mob_voz(420.0, 280.0, 0.18, 0.25, false)
+		"mob_hurt_insect":
+			stream = _gerar_mob_voz(520.0, 300.0, 0.12, 0.20, true)
+		"mob_death_insect":
+			stream = _gerar_mob_voz(380.0, 90.0, 0.30, 0.35, true)
+		"mob_growl_humanoid":
+			stream = _gerar_mob_voz(160.0, 110.0, 0.20, 0.15, false)
+		"mob_hurt_humanoid":
+			stream = _gerar_mob_voz(210.0, 100.0, 0.14, 0.22, true)
+		"mob_death_humanoid":
+			stream = _gerar_mob_voz(130.0, 55.0, 0.36, 0.30, true)
+		"mob_growl_construct":
+			stream = _gerar_mob_voz(70.0, 45.0, 0.26, 0.70, false)
+		"mob_hurt_construct":
+			stream = _gerar_mob_voz(95.0, 50.0, 0.15, 0.55, true)
+		"mob_death_construct":
+			stream = _gerar_quebra_postura(0.34)
+		"hit_flesh":
+			stream = _gerar_hit_fisico(150.0, 55.0, 0.10, 0.55)
+		"hit_aura":
+			stream = _gerar_sino_cristalino([330.0, 495.0, 660.0], 0.18)
+		"dialogue_murmur":
+			stream = _gerar_dialogue_murmur(variante)
+		"ambient_forest":
+			stream = _gerar_ambient_loop("forest")
+		"ambient_ruins":
+			stream = _gerar_ambient_loop("ruins")
+		"ambient_city":
+			stream = _gerar_ambient_loop("city")
+		"ambient_dungeon":
+			stream = _gerar_ambient_loop("dungeon")
+		"ambient_arena":
+			stream = _gerar_ambient_loop("arena")
+		"quest_stinger":
+			stream = _gerar_fanfarra_arpeggio([392.0, 523.25, 659.25], 0.32)
 		_:
 			stream = _gerar_hit_fisico(120.0, 50.0, 0.08, 0.3)
 
@@ -551,3 +594,121 @@ static func _gerar_chain_conjurer() -> AudioStreamWAV:
 
 static func _gerar_chord_specialist() -> AudioStreamWAV:
 	return _gerar_shimmer_item([220.0, 261.63, 311.13, 392.00], 0.45)
+
+
+## Vocalização curta de mob (growl / hurt / death) por faixa de frequência.
+static func _gerar_mob_voz(freq_ini: float, freq_fim: float, duracao: float, noise_amt: float, descendente: bool) -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var phase: float = 0.0
+	var phase2: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		var curve: float = t * t if descendente else (1.0 - (1.0 - t) * (1.0 - t))
+		var freq: float = lerp(freq_ini, freq_fim, curve)
+		phase += (freq * TAU) / float(sample_rate)
+		phase2 += (freq * 1.5 * TAU) / float(sample_rate)
+		var env: float = sin(minf(t * 4.0, 1.0) * PI * 0.5) * pow(1.0 - t, 1.3)
+		var growl: float = sin(phase) * 0.55 + sin(phase2) * 0.25
+		growl = tanh(growl * 1.8)
+		var noise: float = (randf() * 2.0 - 1.0) * noise_amt * env
+		var s: float = (growl + noise) * env * 0.72
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+## Murmúrio estilo Animal Crossing / Zelda — tom curto por variante de fala.
+static func _gerar_dialogue_murmur(variante: int = 0) -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var duracao: float = 0.09 + float(variante % 3) * 0.02
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+	var base_freq: float = 280.0 + float((variante * 37) % 120)
+	var phase: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(total_samples)
+		var freq: float = base_freq + sin(t * PI * 2.0) * 35.0
+		phase += (freq * TAU) / float(sample_rate)
+		var env: float = sin(t * PI)
+		var s: float = sin(phase) * env * 0.28
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+	return _criar_wav_buffer(buffer, sample_rate)
+
+
+## Ambient loop contínuo por bioma (volume baixo sob a OST).
+static func _gerar_ambient_loop(bioma: String) -> AudioStreamWAV:
+	var sample_rate: int = 22050
+	var duracao: float = 4.0
+	var total_samples: int = int(duracao * sample_rate)
+	var buffer := PackedByteArray()
+	buffer.resize(total_samples * 2)
+
+	var bed_freq: float = 55.0
+	var noise_level: float = 0.08
+	var chirp: bool = false
+	var drip: bool = false
+	var murmur_city: bool = false
+	match bioma:
+		"forest":
+			bed_freq = 48.0
+			noise_level = 0.12
+			chirp = true
+		"ruins":
+			bed_freq = 40.0
+			noise_level = 0.18
+			drip = true
+		"city":
+			bed_freq = 65.0
+			noise_level = 0.10
+			murmur_city = true
+		"dungeon":
+			bed_freq = 36.0
+			noise_level = 0.22
+			drip = true
+		"arena":
+			bed_freq = 70.0
+			noise_level = 0.06
+		_:
+			bed_freq = 50.0
+
+	var phase: float = 0.0
+	var phase_h: float = 0.0
+	for i in range(total_samples):
+		var t: float = float(i) / float(sample_rate)
+		phase += (bed_freq * TAU) / float(sample_rate)
+		phase_h += (bed_freq * 2.0 * TAU) / float(sample_rate)
+		var s: float = sin(phase) * 0.18 + sin(phase_h) * 0.08
+		s += (randf() * 2.0 - 1.0) * noise_level * 0.35
+		if chirp and int(t * 2.0) % 3 == 0 and fmod(t, 0.5) < 0.05:
+			s += sin(t * 2800.0) * 0.08 * (1.0 - fmod(t, 0.5) / 0.05)
+		if drip and fmod(t * 1.7, 1.0) < 0.02:
+			s += sin(t * 1800.0) * 0.12 * (1.0 - fmod(t * 1.7, 1.0) / 0.02)
+		if murmur_city and fmod(t * 0.9, 1.0) < 0.15:
+			s += sin(t * 220.0 + sin(t * 11.0)) * 0.05
+		var edge: float = minf(t / 0.15, (duracao - t) / 0.15)
+		edge = clampf(edge, 0.0, 1.0)
+		s *= edge * 0.55
+		buffer.encode_s16(i * 2, int(clampf(s, -1.0, 1.0) * 32767.0))
+
+	var wav := _criar_wav_buffer(buffer, sample_rate)
+	wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+	wav.loop_begin = 0
+	wav.loop_end = total_samples
+	return wav
+
+
+## Resolve arquétipo sonoro a partir do enemy_id / nome.
+static func resolver_archetipo_mob(enemy_id: String) -> String:
+	var e: String = enemy_id.to_lower()
+	if "slime" in e or "besouro" in e or "formiga" in e or "insect" in e or "inseto" in e or "serpente" in e:
+		return "insect"
+	if "golem" in e or "pedra" in e or "sentinela" in e or "construct" in e or "estatua" in e:
+		return "construct"
+	if "bandido" in e or "ladrao" in e or "hunter" in e or "humano" in e or "guarda" in e or "assassino" in e or "candidato" in e:
+		return "humanoid"
+	if "lobo" in e or "urso" in e or "javali" in e or "fera" in e or "best" in e or "cao" in e or "mike" in e:
+		return "beast"
+	return "beast"
