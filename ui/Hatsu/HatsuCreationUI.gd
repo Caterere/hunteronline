@@ -118,6 +118,8 @@ func toggle_menu() -> void:
 
 
 func abrir() -> void:
+	if TutorialManager != null:
+		TutorialManager.disparar_tutorial_contextual("hatsu_criacao")
 	if HatsuProgressionManager != null:
 		var check: Dictionary = HatsuProgressionManager.can_create_hatsu()
 		if not check.get("can_create", false):
@@ -1302,6 +1304,7 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 		HatsuData.Forma.TOQUE: vp.shape = VisualProfile.VisualShape.BLADE
 		_: vp.shape = VisualProfile.VisualShape.SPHERE
 	novo_hatsu.visual_profile = vp
+	HatsuExplainKit.garantir_descricao(novo_hatsu)
 
 	# Validar Power & Limitation Budget
 	var validacao = HatsuManager.validate_hatsu(novo_hatsu)
@@ -1329,6 +1332,10 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 			SaveManager.salvar_jogo()
 
 	hatsu_criado.emit(novo_hatsu)
+	if TutorialManager != null:
+		TutorialManager.disparar_tutorial_contextual("hatsu_explicacao")
+		if novo_hatsu.eh_carregavel_aprimoramento():
+			TutorialManager.disparar_tutorial_contextual("hatsu_aprimoramento")
 
 	# Atualizar HunterMenuUI se estiver instanciado
 	var root = get_tree().root if get_tree() else null

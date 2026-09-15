@@ -50,6 +50,8 @@ func toggle_menu() -> void:
 
 
 func abrir() -> void:
+	if TutorialManager != null:
+		TutorialManager.disparar_tutorial_contextual("hatsu_equipar")
 	_aberto_no_frame = true
 	visible = true
 	_atualizar_ui()
@@ -372,6 +374,21 @@ func _atualizar_inspetor() -> void:
 	lbl_nome.add_theme_font_size_override("font_size", 4)
 	lbl_nome.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2) if h.is_mastered() else Color(0.4, 0.95, 1.0))
 	vb.add_child(lbl_nome)
+
+	var lbl_desc := Label.new()
+	lbl_desc.text = HatsuExplainKit.garantir_descricao(h)
+	lbl_desc.add_theme_font_size_override("font_size", 3)
+	lbl_desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.95))
+	lbl_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_desc)
+	if h.eh_carregavel_aprimoramento():
+		var lbl_carga := Label.new()
+		lbl_carga.text = "⚡ Segure o slot para canalizar (barra = poder)."
+		lbl_carga.add_theme_font_size_override("font_size", 3)
+		lbl_carga.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
+		vb.add_child(lbl_carga)
+		if TutorialManager != null:
+			TutorialManager.disparar_tutorial_contextual("hatsu_aprimoramento")
 
 	# Mastery Progress
 	var lbl_m_val := Label.new()

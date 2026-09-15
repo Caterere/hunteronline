@@ -261,6 +261,30 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"icone": "🗡️",
 		"conteudo": "Estende sua aura sobre armas ou objetos empunhados (como pás, espadas ou cartas de baralho), transformando-os em lâminas letais."
 	},
+	"hatsu_conceito": {
+		"titulo": "O que é Hatsu",
+		"categoria": "Hatsu",
+		"icone": "✨",
+		"conteudo": "Hatsu é a expressão individual do Nen. Cada técnica reflete afinidade, votos e estilo. Equipe até 4 slots (teclas 1–4) e treine maestria em combate."
+	},
+	"hatsu_criacao": {
+		"titulo": "Forjar um Hatsu",
+		"categoria": "Hatsu",
+		"icone": "🛠️",
+		"conteudo": "Com Biscuit você define tipo, forma, objetivo e restrições. Déficit de créditos exige mais limitações. O resultado vira sua assinatura de caçador."
+	},
+	"hatsu_aprimoramento_carga": {
+		"titulo": "Aprimoramento Canalizado",
+		"categoria": "Hatsu",
+		"icone": "💥",
+		"conteudo": "Hatsus de Intensificação (dano) usam barra de conjuração: segure o slot, encha o poder e solte. Tempo cheio = dano máximo. Soltar cedo = golpe fraco e rápido."
+	},
+	"hatsu_slots_equip": {
+		"titulo": "Slots e Archive",
+		"categoria": "Hatsu",
+		"icone": "📦",
+		"conteudo": "Archive guarda até 12 técnicas. Slots 1–4 são combate ativo. Abra com [H] para inspecionar explicações, maestria e equipar."
+	},
 	"mundo_exame_hunter": {
 		"titulo": "O 287º Exame Hunter",
 		"categoria": "Mundo",
@@ -649,6 +673,20 @@ func obter_fala_lembrete_elena() -> String:
 
 func disparar_tutorial_contextual(tipo: String) -> void:
 	var tipo_clean: String = tipo.to_lower()
+	# Evita spam: se o artigo principal já foi desbloqueado, não reabre o toast
+	var once_map := {
+		"nen_despertar": "nen_4_principios",
+		"perfect_dodge": "combate_basico",
+		"hatsu_desbloqueio": "hatsu_conceito",
+		"hatsu_criacao": "hatsu_criacao",
+		"hatsu_equipar": "hatsu_slots_equip",
+		"hatsu_slots": "hatsu_slots_equip",
+		"hatsu_aprimoramento": "hatsu_aprimoramento_carga",
+		"hatsu_carga": "hatsu_aprimoramento_carga",
+		"hatsu_explicacao": "hatsu_conceito",
+	}
+	if once_map.has(tipo_clean) and PlayerData != null and PlayerData.tem_conhecimento(String(once_map[tipo_clean])):
+		return
 	var titulo := "Dica Hunter"
 	var msg := ""
 
@@ -661,10 +699,24 @@ func disparar_tutorial_contextual(tipo: String) -> void:
 			titulo = "⚡ PERFECT DODGE"
 			msg = "Esquivar no momento exato do impacto concede imunidade total e recarrega instantaneamente 30% da sua Aura!"
 			PlayerData.desbloquear_conhecimento("combate_basico")
-		"hatsu_desbloqueio":
+		"hatsu_desbloqueio", "hatsu_criacao":
 			titulo = "✨ CRIAÇÃO DE HATSU"
-			msg = "Hatsu é sua habilidade suprema personalizada! Equipe suas técnicas nos slots 1 a 4 e use-as com sabedoria em batalha."
+			msg = "Hatsu é a expressão da sua aura. Forje com Biscuit, pague restrições e leia a explicação de cada técnica no inspetor [H]."
+			PlayerData.desbloquear_conhecimento("hatsu_conceito")
+			PlayerData.desbloquear_conhecimento("hatsu_criacao")
 			PlayerData.desbloquear_conhecimento("nen_tecnica_ko")
+		"hatsu_equipar", "hatsu_slots":
+			titulo = "📦 SLOTS DE HATSU"
+			msg = "Archive guarda suas técnicas. Equipe até 4 nos slots de combate (teclas 1–4). Cada Hatsu tem explicação própria no inspetor."
+			PlayerData.desbloquear_conhecimento("hatsu_slots_equip")
+		"hatsu_aprimoramento", "hatsu_carga":
+			titulo = "💥 APRIMORAMENTO CANALIZADO"
+			msg = "Intensificação ofensiva: SEGURE o slot para encher a barra de poder e SOLTE para golpear. Barra cheia = dano máximo."
+			PlayerData.desbloquear_conhecimento("hatsu_aprimoramento_carga")
+		"hatsu_explicacao":
+			titulo = "📖 EXPLICAÇÃO DO HATSU"
+			msg = "Todo Hatsu que você cria ou equipa ganha uma explicação: tipo, forma, votos e como canalizar. Consulte no menu [H]."
+			PlayerData.desbloquear_conhecimento("hatsu_conceito")
 		_:
 			return
 
