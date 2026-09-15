@@ -174,6 +174,7 @@ enum Condicao {
 
 @export var hatsu_id: String = ""
 @export var nome: String = "Novo Hatsu"
+@export_multiline var descricao: String = ""
 @export var categoria: Categoria = Categoria.INTENSIFICACAO
 @export var objetivo: ObjetivoPrincipal = ObjetivoPrincipal.DANO
 @export var forma: Forma = Forma.PROJETIL
@@ -1006,13 +1007,194 @@ func obter_rank_maestria() -> int:
 
 func obter_nome_rank_maestria() -> String:
 	match obter_rank_maestria():
-		1: return "Iniciante (Cru)"
-		2: return "Intermediário I"
-		3: return "Intermediário II"
-		4: return "Avançado I"
-		5: return "Avançado II"
-		6: return "Mestre (Instantâneo)"
-		_: return "Mestre Transcendental"
+		1: return "Despertar"
+		2: return "Prática"
+		3: return "Afiação"
+		4: return "Domínio"
+		5: return "Virtuose"
+		6: return "★ Mestre"
+		_: return "★ Mestre"
+
+
+## Limiar de mastery (0–100) onde o rank começa.
+static func limiar_rank_maestria(rank: int) -> int:
+	match clampi(rank, 1, 6):
+		1: return 0
+		2: return 20
+		3: return 40
+		4: return 60
+		5: return 80
+		6: return 100
+	return 0
+
+
+func obter_fase_maestria() -> String:
+	## Texto curto: o que o jogador deve sentir nesta faixa.
+	var m := int(mastery)
+	if m < 20:
+		return "Despertar rápido — cada combate conta"
+	if m < 40:
+		return "Prática — a técnica começa a responder"
+	if m < 60:
+		return "Afiação — poder e fluidez reais"
+	if m < 80:
+		return "Domínio — build pronta pra caça séria"
+	if m < 100:
+		return "Virtuose — lapidação fina (opcional)"
+	return "★ Mestre — conjuração plena"
+
+
+func obter_desbloqueio_rank(rank: int = -1) -> String:
+	## O que o jogador GANHA ao cruzar o marco (claro e concreto).
+	var r := rank if rank > 0 else obter_rank_maestria()
+	match r:
+		1:
+			return "Hatsu nasce a ~30% do potencial — ainda é um rascunho vivo."
+		2:
+			return "Conjuração −15% · aura −10% · alcance +10%. Canalizar fica mais ágil."
+		3:
+			return "Conjuração −25% · aura −10% · alcance +10%. Feel do tipo responde melhor."
+		4:
+			return "Conjuração −35% · aura −20% · alcance +15%. Marco de combate sério."
+		5:
+			return "Conjuração −45% · aura −20% · alcance +15%. Quase no ápice."
+		6:
+			return "Conjuração instantânea · aura −30% · alcance +20%. ★ MASTERED."
+	return ""
+
+
+func obter_proximo_marco_maestria() -> Dictionary:
+	## Próximo rank + progresso até ele (anti-tedioso: meta curta e legível).
+	if is_mastered():
+		return {
+			"completo": true,
+			"rank_atual": 6,
+			"rank_proximo": 6,
+			"mastery_atual": int(mastery),
+			"mastery_alvo": 100,
+			"faltam": 0,
+			"progresso_pct": 100.0,
+			"titulo": "★ Mestre",
+			"desbloqueio": obter_desbloqueio_rank(6),
+			"fase": obter_fase_maestria(),
+			"dica": "Este Hatsu está lapidado. Equipe, varie situações ou forje outro."
+		}
+	var rank_atual := obter_rank_maestria()
+	var rank_prox := mini(rank_atual + 1, 6)
+	var alvo := limiar_rank_maestria(rank_prox)
+	var base := limiar_rank_maestria(rank_atual)
+	var atual := int(mastery)
+	var span := maxi(1, alvo - base)
+	var done := clampi(atual - base, 0, span)
+	var faltam := maxi(0, alvo - atual)
+	return {
+		"completo": false,
+		"rank_atual": rank_atual,
+		"rank_proximo": rank_prox,
+		"mastery_atual": atual,
+		"mastery_alvo": alvo,
+		"faltam": faltam,
+		"progresso_pct": (float(done) / float(span)) * 100.0,
+		"titulo": obter_nome_rank_por_numero(rank_prox),
+		"desbloqueio": obter_desbloqueio_rank(rank_prox),
+		"fase": obter_fase_maestria(),
+		"dica": _dica_progressao_maestria(atual)
+	}
+
+
+static func obter_nome_rank_por_numero(rank: int) -> String:
+	match rank:
+		1: return "Despertar"
+		2: return "Prática"
+		3: return "Afiação"
+		4: return "Domínio"
+		5: return "Virtuose"
+		6: return "★ Mestre"
+	return "—"
+
+
+func _dica_progressao_maestria(m: int) -> String:
+	if m < 20:
+		return "Fase rápida: use o Hatsu em combates do seu nível — Rank 2 chega cedo."
+	if m < 40:
+		return "Alvos elite/boss dão mais mastery. Evite farm muito abaixo do seu nível."
+	if m < 60:
+		return "Meta recomendada: Rank 4 (M60) — daqui o Hatsu já sustenta caça séria."
+	if m < 80:
+		return "Você já está forte. 80–100 é polish de mestre, não obrigação."
+	return "Ápice opcional: cada nível é caro, mas o ★ Mestre torna a conjuração instantânea."
+
+
+func obter_roadmap_maestria_linhas() -> Array[String]:
+	## Lista curta pra UI / Guia — evolução do MESMO Hatsu, sem mistério.
+	var linhas: Array[String] = []
+	var atual := obter_rank_maestria()
+	for r in range(1, 7):
+		var limiar := limiar_rank_maestria(r)
+		var marcador := "●" if r < atual else ("▶" if r == atual else "○")
+		if is_mastered() and r == 6:
+			marcador = "★"
+		var nome := obter_nome_rank_por_numero(r)
+		linhas.append("%s M%02d %s — %s" % [marcador, limiar, nome, obter_desbloqueio_rank(r)])
+	return linhas
+
+
+func obter_texto_evolucao_maestria() -> String:
+	var marco := obter_proximo_marco_maestria()
+	var partes: Array[String] = []
+	partes.append("Evolução: Rank %d · %s (M%d/100)." % [
+		int(marco.get("rank_atual", 1)),
+		obter_nome_rank_maestria(),
+		int(mastery)
+	])
+	partes.append(str(marco.get("fase", "")))
+	if not bool(marco.get("completo", false)):
+		partes.append("Próximo: %s em M%d (%d restantes) — %s" % [
+			str(marco.get("titulo", "")),
+			int(marco.get("mastery_alvo", 0)),
+			int(marco.get("faltam", 0)),
+			str(marco.get("desbloqueio", ""))
+		])
+		partes.append(str(marco.get("dica", "")))
+	else:
+		partes.append(str(marco.get("desbloqueio", "")))
+	return " ".join(partes)
+
+
+# Última fonte de treino (UI) — preenchida pelo ProgressionManager
+var ultima_fonte_treino_alvo: int = -1
+var ultima_fonte_treino_xp: float = 0.0
+
+
+func registrar_fonte_treino(alvo: int, xp: float) -> void:
+	ultima_fonte_treino_alvo = alvo
+	ultima_fonte_treino_xp = xp
+
+
+func obter_alvo_treino_preferido() -> int:
+	return HatsuConfig.preferred_mastery_target_for_objetivo(int(objetivo))
+
+
+func obter_dica_treino_maestria() -> String:
+	## Como masterizar ESTE Hatsu sem grind cego.
+	match obter_alvo_treino_preferido():
+		HatsuConfig.MasteryUseTarget.INIMIGO:
+			return "Treino: acerte inimigos (elite/boss rendem mais). Uso no ar quase não sobe."
+		HatsuConfig.MasteryUseTarget.ALIADO:
+			return "Treino: cure/buffe aliados em combate. Em si mesmo também conta, com menos bônus."
+		HatsuConfig.MasteryUseTarget.SELF:
+			return "Treino: use em si sob pressão (defesa/dash/buff). Spam fora de combate rende pouco."
+		_:
+			return "Treino: usos relevantes no contexto certo sobem a maestria."
+
+
+func obter_texto_ultima_fonte_treino() -> String:
+	if ultima_fonte_treino_alvo < 0:
+		return "Ainda não treinou este Hatsu em combate."
+	return "Último treino: %s (+%.1f XP)" % [
+		HatsuConfig.mastery_use_target_label(ultima_fonte_treino_alvo),
+		ultima_fonte_treino_xp
+	]
 
 
 func obter_fator_tempo_conjuracao_mastery() -> float:
@@ -1027,6 +1209,118 @@ func obter_fator_tempo_conjuracao_mastery() -> float:
 
 func obter_tempo_conjuracao_final() -> float:
 	return tempo_conjuracao_base * obter_fator_tempo_conjuracao_mastery()
+
+
+## Feel canalizado por tipo Nen (hold-to-charge).
+enum FeelMode {
+	NONE,
+	POWER,       # Intensificação → poder do golpe
+	RANGE_AIM,   # Emissão → mira + alcance
+	DURATION,    # Transformação → duração do buff/efeito
+	MATERIALIZE, # Conjuração → tamanho / permanência
+	CONTROL,     # Manipulação → força / duração do controle
+	RISK,        # Especialização → risco ↔ poder
+}
+
+
+func obter_feel_modo() -> FeelMode:
+	match categoria:
+		Categoria.INTENSIFICACAO:
+			if objetivo == ObjetivoPrincipal.DANO:
+				return FeelMode.POWER
+		Categoria.EMISSAO:
+			if objetivo == ObjetivoPrincipal.DANO \
+				or forma == Forma.PROJETIL \
+				or forma == Forma.AREA:
+				return FeelMode.RANGE_AIM
+		Categoria.TRANSFORMACAO:
+			return FeelMode.DURATION
+		Categoria.CONJURACAO:
+			return FeelMode.MATERIALIZE
+		Categoria.MANIPULACAO:
+			return FeelMode.CONTROL
+		Categoria.ESPECIALIZACAO:
+			return FeelMode.RISK
+	return FeelMode.NONE
+
+
+## Compat: Intensificação ofensiva continua sendo "aprimoramento".
+func eh_carregavel_aprimoramento() -> bool:
+	return obter_feel_modo() == FeelMode.POWER
+
+
+func eh_canalizavel_feel() -> bool:
+	return obter_feel_modo() != FeelMode.NONE
+
+
+func obter_rotulo_feel() -> String:
+	match obter_feel_modo():
+		FeelMode.POWER: return "PWR"
+		FeelMode.RANGE_AIM: return "ALC"
+		FeelMode.DURATION: return "DUR"
+		FeelMode.MATERIALIZE: return "MAT"
+		FeelMode.CONTROL: return "CTRL"
+		FeelMode.RISK: return "RISK"
+	return "CHG"
+
+
+func obter_dica_feel() -> String:
+	match obter_feel_modo():
+		FeelMode.POWER:
+			return "⚡ Segure o slot para canalizar poder (barra = dano)."
+		FeelMode.RANGE_AIM:
+			return "🎯 Segure para mirar e estender o alcance; solte para disparar."
+		FeelMode.DURATION:
+			return "⏳ Segure para prolongar a duração do buff/efeito."
+		FeelMode.MATERIALIZE:
+			return "🧱 Segure para materializar com mais tamanho e permanência."
+		FeelMode.CONTROL:
+			return "🧲 Segure para reforçar o controle (área/duração)."
+		FeelMode.RISK:
+			return "👁 Segure para escalar risco e poder da regra especial."
+	return ""
+
+
+func obter_multiplicador_carga(charge_pct: float) -> float:
+	## Alias legado (Intensificação / POWER).
+	return obter_multiplicador_feel(charge_pct)
+
+
+func obter_multiplicador_feel(charge_pct: float) -> float:
+	var t := clampf(charge_pct, 0.0, 1.0)
+	t = pow(t, 1.15)
+	match obter_feel_modo():
+		FeelMode.POWER:
+			return lerpf(0.35, 1.75, t)       # dano
+		FeelMode.RANGE_AIM:
+			return lerpf(0.55, 1.85, t)       # alcance
+		FeelMode.DURATION:
+			return lerpf(0.45, 1.70, t)       # duração
+		FeelMode.MATERIALIZE:
+			return lerpf(0.50, 1.60, t)       # raio/permanência
+		FeelMode.CONTROL:
+			return lerpf(0.40, 1.65, t)       # stun/área
+		FeelMode.RISK:
+			return lerpf(0.55, 2.00, t)       # poder com risco
+	return 1.0
+
+
+func obter_custo_feel_mult(charge_pct: float) -> float:
+	## Especialização: quanto mais carga, mais aura (risco).
+	if obter_feel_modo() != FeelMode.RISK:
+		return 1.0
+	var t := clampf(charge_pct, 0.0, 1.0)
+	return lerpf(0.85, 1.55, t)
+
+
+func obter_explicacao() -> String:
+	## Evita dependência circular de class_name com HatsuExplainKit.
+	var kit = load("res://scripts/systems/hatsu/HatsuExplainKit.gd")
+	if kit != null and kit.has_method("garantir_descricao"):
+		return str(kit.garantir_descricao(self))
+	return String(descricao)
+
+
 
 
 func obter_multiplicador_mastery() -> float:
@@ -1092,12 +1386,16 @@ func adicionar_mastery_xp(ganho_xp: float) -> Dictionary:
 	if is_mastered():
 		return {
 			"subiu_nivel": false,
+			"rank_subiu": false,
+			"rank_anterior": 6,
+			"rank_novo": 6,
 			"novo_nivel": int(mastery),
 			"mastered": true,
 			"xp_atual": 0.0,
 			"xp_necessario": 0.0
 		}
 
+	var rank_antes := obter_rank_maestria()
 	mastery_xp += ganho_xp
 	var subiu: bool = false
 	var cur_lvl: int = int(mastery)
@@ -1118,14 +1416,19 @@ func adicionar_mastery_xp(ganho_xp: float) -> Dictionary:
 		mastery_xp = 0.0
 		nivel_evolucao_hatsu = 100
 
+	var rank_depois := obter_rank_maestria()
 	var req_prox: float = HatsuConfig.get_xp_for_mastery_level(int(mastery)) if int(mastery) < int(max_m) else 0.0
 
 	return {
 		"subiu_nivel": subiu,
+		"rank_subiu": rank_depois > rank_antes,
+		"rank_anterior": rank_antes,
+		"rank_novo": rank_depois,
 		"novo_nivel": int(mastery),
 		"mastered": is_mastered(),
 		"xp_atual": mastery_xp,
-		"xp_necessario": req_prox
+		"xp_necessario": req_prox,
+		"proximo_marco": obter_proximo_marco_maestria()
 	}
 
 
@@ -1318,6 +1621,7 @@ func to_dict() -> Dictionary:
 		"hatsu_id": hatsu_id,
 		"hatsu_version": hatsu_version,
 		"nome": nome,
+		"descricao": descricao,
 		"categoria": int(categoria),
 		"objetivo": int(objetivo),
 		"forma": int(forma),
@@ -1429,6 +1733,7 @@ static func from_dict(data: Dictionary) -> HatsuData:
 	if h.hatsu_id.is_empty():
 		h.gerar_novo_id()
 	h.nome = data.get("nome", "Hatsu")
+	h.descricao = str(data.get("descricao", ""))
 	h.categoria = data.get("categoria", Categoria.INTENSIFICACAO)
 	h.objetivo = data.get("objetivo", ObjetivoPrincipal.DANO)
 	h.forma = data.get("forma", Forma.PROJETIL)

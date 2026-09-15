@@ -28,3 +28,47 @@ O Hatsu é a expressão máxima e individual da personalidade de um Hunter. O si
   * **Terpsichora** (Pitou) — buff corporal temporário
   * **Doctor Blythe** (Pitou) — cura médico-nível
 * Boss AI (`EnemyAI`) usa as mesmas assinaturas com mecânica real (não só balão).
+
+### 3.2 Feel canalizado por tipo Nen
+Hold-to-charge nos slots 1–4; a barra escala um parâmetro diferente por categoria:
+
+| Tipo | Barra | Parâmetro |
+|------|-------|-----------|
+| Intensificação | `PWR` | Poder / dano do golpe |
+| Emissão | `ALC` | Mira (mouse) + alcance |
+| Transformação | `DUR` | Duração do buff/efeito |
+| Conjuração | `MAT` | Tamanho / permanência |
+| Manipulação | `CTRL` | Área / duração do controle |
+| Especialização | `RISK` | Poder ↔ custo de aura |
+
+Implementação: `HatsuData.FeelMode` + `HatsuSystem._executar_feel_canalizado` + HUD com rótulo por tipo.
+
+### 3.3 Evolução do mesmo Hatsu (anti-grind)
+Maestria em **6 ranks** com meta curta e legível no inspetor `[H]`:
+
+| Rank | Mastery | Nome | Sensação |
+|------|---------|------|----------|
+| 1 | M0 | Despertar | rascunho (~30% poder) |
+| 2 | M20 | Prática | conjuração começa a fluir |
+| 3 | M40 | Afiação | feel do tipo responde |
+| 4 | M60 | Domínio | **meta de combate sério** |
+| 5 | M80 | Virtuose | polish |
+| 6 | M100 | ★ Mestre | ápice opcional / instantâneo |
+
+- Barra do inspetor = progresso até o **próximo marco**, não 0–100 opaco
+- Toast grande só em **rank up**; entre marcos o float mostra “faltam N”
+- Curva de XP mais rápida no início; 81–100 é prestígio, não obrigação
+
+### 3.4 Treino contextual (XP de Hatsu)
+Uma barra só (`mastery_xp`). O ganho depende do **uso real**:
+
+| Alvo | Quando | Rendimento |
+|------|--------|------------|
+| Inimigo | hit / controle | base + dano + elite/boss |
+| Aliado | cura / buff em party | base alta + cura |
+| Si próprio | defesa / dash / buff self | base média (+ HP baixo) |
+| Vazio | miss / spam no ar | quase nada |
+
+Afinidade de objetivo: treinar no alvo “certo” do Hatsu rende +25%; alvo errado −35%.
+API: `HatsuProgressionManager.conceder_mastery_por_uso(id, {alvo, dano, cura, ...})`.
+

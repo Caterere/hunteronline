@@ -25,6 +25,7 @@ signal hatsu_desativado(slot: int, hatsu: HatsuData)
 signal hatsu_falhou(slot: int, motivo: String)
 signal hatsu_estado_alterado(slot: int, novo_estado: int)
 signal cooldown_atualizado(slot: int, restante: float, total: float)
+signal hatsu_carga_atualizada(slot: int, pct: float, tempo: float, tempo_max: float)
 signal escudo_alterado(atual: float, maximo: float)
 signal almas_atualizadas(slot: int, total_almas: int)
 
@@ -48,6 +49,20 @@ var combat_system: HunterCombatSystem = null
 var slot_states: Array[SlotState] = [SlotState.READY, SlotState.READY, SlotState.READY, SlotState.READY]
 var slot_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var slot_cooldowns_max: Array[float] = [0.0, 0.0, 0.0, 0.0]
+
+# Canalização de feel por tipo Nen (hold-to-charge)
+var charging_slot: int = -1
+var charge_timer: float = 0.0
+var charge_time_max: float = 1.0
+var charge_hatsu: HatsuData = null
+var charge_eficiencia: float = 1.0
+var charge_pending_cd: float = 0.0
+var charge_aim_dir: Vector2 = Vector2.ZERO
+
+# Mastery por uso no cast atual
+var _cast_mastery_grants: int = 0
+var _cast_mastery_hatsu_id: String = ""
+var _cast_charge_pct: float = 0.0
 
 # Habilidades Sustentadas e Transformações Ativas
 var active_sustained_hatsus: Array[Dictionary] = [] # [{"slot": int, "hatsu": HatsuData, "timer": float, "is_active": bool}]
@@ -116,6 +131,17 @@ func _processar_snapshots_vitais(delta: float) -> void:
 
 
 func _atualizar_timers(delta: float) -> void:
+
+	# Canalização de feel por tipo (barra PWR/ALC/DUR/...)
+	if charging_slot >= 0:
+		charge_timer = minf(charge_timer + delta, charge_time_max)
+		var pct := 0.0 if charge_time_max <= 0.0 else charge_timer / charge_time_max
+		hatsu_carga_atualizada.emit(charging_slot, pct, charge_timer, charge_time_max)
+		# Imobiliza levemente durante a carga (postura de Nen)
+		imobilizado_timer = maxf(imobilizado_timer, 0.05)
+		# Emissão: atualiza mira continuamente enquanto segura
+		if charge_hatsu != null and charge_hatsu.obter_feel_modo() == HatsuData.FeelMode.RANGE_AIM:
+			_atualizar_mira_feel()
 	# 1. Atualizar Cooldowns
 	for i in range(4):
 		if slot_cooldowns[i] > 0.0:
@@ -449,19 +475,197 @@ func _processar_input() -> void:
 	if owner_body == null:
 		return
 
-	if Input.is_action_just_pressed("hatsu_slot_1"):
-		usar_hatsu(0)
-	elif Input.is_action_just_pressed("hatsu_slot_2"):
-		usar_hatsu(1)
-	elif Input.is_action_just_pressed("hatsu_slot_3"):
-		usar_hatsu(2)
-	elif Input.is_action_just_pressed("hatsu_slot_4"):
-		usar_hatsu(3)
+	# Soltar carga de feel (qualquer tipo canalizável)
+	if charging_slot >= 0:
+		var action := "hatsu_slot_%d" % (charging_slot + 1)
+		if Input.is_action_just_released(action) or not Input.is_action_pressed(action):
+			_liberar_carga_hatsu(false)
+		return
+
+	for i in range(4):
+		var action := "hatsu_slot_%d" % (i + 1)
+		if Input.is_action_just_pressed(action):
+			var hatsu: HatsuData = PlayerData.obter_hatsu_slot(i)
+			if hatsu != null and hatsu.eh_canalizavel_feel():
+				_iniciar_carga_hatsu(i)
+			else:
+				usar_hatsu(i)
 
 
 # ============================================================
 # EXECUÇÃO DE HATSU
 # ============================================================
+
+
+func _atualizar_mira_feel() -> void:
+	if owner_body == null:
+		return
+	var dir := Vector2.ZERO
+	if owner_body.get_viewport() != null:
+		dir = (owner_body.get_global_mouse_position() - owner_body.global_position)
+	if dir.length_squared() < 4.0:
+		if combat_system != null and combat_system.ultima_direcao != Vector2.ZERO:
+			dir = combat_system.ultima_direcao
+		elif owner_body.velocity != Vector2.ZERO:
+			dir = owner_body.velocity
+		else:
+			dir = Vector2.DOWN
+	charge_aim_dir = dir.normalized()
+	if combat_system != null:
+		combat_system.ultima_direcao = charge_aim_dir
+
+
+func _iniciar_carga_hatsu(slot_index: int) -> bool:
+	if charging_slot >= 0:
+		return false
+	var hatsu: HatsuData = PlayerData.obter_hatsu_slot(slot_index)
+	if hatsu == null or not hatsu.eh_canalizavel_feel():
+		return usar_hatsu(slot_index)
+	if slot_states[slot_index] == SlotState.COOLDOWN or slot_cooldowns[slot_index] > 0.0:
+		hatsu_falhou.emit(slot_index, "Em recarga")
+		return false
+	if slot_states[slot_index] == SlotState.ACTIVE:
+		return usar_hatsu(slot_index)
+
+	# Pré-checagens leves (aura / bloqueio)
+	var custo_aura: float = hatsu.obter_custo_final()
+	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+		custo_aura *= 0.60
+	elif PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.EMISSAO:
+		custo_aura *= 0.80
+	var aura_atual := float(PlayerData.attributes.get("aura", 0.0))
+	if aura_atual < custo_aura:
+		hatsu_falhou.emit(slot_index, "Aura insuficiente!")
+		if combat_system != null:
+			combat_system._mostrar_texto_flutuante("Aura insuficiente!", Color(1.0, 0.4, 0.4))
+		return false
+	if zetsu_forcado_timer > 0.0 or bloqueio_nen_timer > 0.0:
+		hatsu_falhou.emit(slot_index, "Nen bloqueado")
+		return false
+
+	charging_slot = slot_index
+	charge_timer = 0.0
+	charge_time_max = maxf(0.75, hatsu.obter_tempo_conjuracao_final())
+	charge_hatsu = hatsu
+	charge_eficiencia = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, hatsu.categoria)
+	charge_aim_dir = Vector2.ZERO
+	var cd: float = hatsu.obter_cooldown_final()
+	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+		cd *= 0.75
+	charge_pending_cd = cd
+	_definir_estado_slot(slot_index, SlotState.ACTIVATING)
+	hatsu_carga_atualizada.emit(slot_index, 0.0, 0.0, charge_time_max)
+	if TutorialManager != null:
+		var tip := "hatsu_carga"
+		match hatsu.obter_feel_modo():
+			HatsuData.FeelMode.POWER: tip = "hatsu_carga"
+			HatsuData.FeelMode.RANGE_AIM: tip = "hatsu_feel_emissao"
+			HatsuData.FeelMode.DURATION: tip = "hatsu_feel_transformacao"
+			HatsuData.FeelMode.MATERIALIZE: tip = "hatsu_feel_conjuracao"
+			HatsuData.FeelMode.CONTROL: tip = "hatsu_feel_manipulacao"
+			HatsuData.FeelMode.RISK: tip = "hatsu_feel_especializacao"
+		TutorialManager.disparar_tutorial_contextual(tip)
+	if combat_system != null:
+		var rotulo := hatsu.obter_rotulo_feel()
+		combat_system._mostrar_texto_flutuante("⚡ Canalizando %s (%s)..." % [hatsu.nome, rotulo], Color(1.0, 0.85, 0.35))
+	if hatsu.obter_feel_modo() == HatsuData.FeelMode.RANGE_AIM:
+		_atualizar_mira_feel()
+	return true
+
+
+func _liberar_carga_hatsu(cancelar: bool = false) -> void:
+	if charging_slot < 0:
+		return
+	var slot := charging_slot
+	var hatsu := charge_hatsu
+	var efic := charge_eficiencia
+	var pct := 0.0 if charge_time_max <= 0.0 else clampf(charge_timer / charge_time_max, 0.0, 1.0)
+	var cd := charge_pending_cd
+	var aim := charge_aim_dir
+	charging_slot = -1
+	charge_timer = 0.0
+	charge_hatsu = null
+	charge_aim_dir = Vector2.ZERO
+	hatsu_carga_atualizada.emit(slot, 0.0, 0.0, 0.0)
+	if cancelar or hatsu == null:
+		_definir_estado_slot(slot, SlotState.READY)
+		return
+	# Gasta aura (Especialização escala custo com RISK)
+	var custo_aura: float = hatsu.obter_custo_final() * hatsu.obter_custo_feel_mult(pct)
+	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+		custo_aura *= 0.60
+	elif PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.EMISSAO:
+		custo_aura *= 0.80
+	if nen_system != null:
+		if not nen_system.gastar_aura_float(custo_aura):
+			_definir_estado_slot(slot, SlotState.READY)
+			hatsu_falhou.emit(slot, "Aura insuficiente!")
+			return
+	else:
+		var a_cur = float(PlayerData.attributes.get("aura", 0.0))
+		PlayerData.attributes["aura"] = max(0.0, a_cur - custo_aura)
+
+	_aplicar_efeitos_juramentos(hatsu)
+	slot_cooldowns[slot] = cd
+	slot_cooldowns_max[slot] = cd
+	_definir_estado_slot(slot, SlotState.COOLDOWN)
+	if combat_system != null and combat_system.has_method("cancelar_ataque_para_hatsu"):
+		combat_system.cancelar_ataque_para_hatsu()
+	if aim != Vector2.ZERO and combat_system != null:
+		combat_system.ultima_direcao = aim
+	var modo := hatsu.obter_feel_modo()
+	var mult := hatsu.obter_multiplicador_feel(pct)
+	if EventBus != null and owner_body != null:
+		var cat_name = NenAffinityData.obter_nome_afinidade(hatsu.categoria)
+		var cat_color = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
+		EventBus.emit_hatsu_dramatic_callout(
+			owner_body, hatsu.nome,
+			"%s · %s %d%%" % [cat_name, hatsu.obter_rotulo_feel(), int(pct * 100.0)],
+			cat_color
+		)
+	_iniciar_mastery_do_cast(hatsu, pct)
+	_executar_feel_canalizado(hatsu, efic, pct, mult)
+	if combat_system != null:
+		var cor := Color(1.0, 0.55, 0.2) if pct >= 0.95 else Color(0.85, 0.9, 1.0)
+		var tag := hatsu.obter_rotulo_feel()
+		combat_system._mostrar_texto_flutuante("💥 %s %s x%.2f" % [hatsu.nome, tag, mult], cor)
+	_finalizar_mastery_do_cast(hatsu)
+	hatsu_executado.emit(slot, hatsu)
+
+
+func _executar_feel_canalizado(hatsu: HatsuData, efic: float, pct: float, mult: float) -> void:
+	## Aplica o multiplicador do feel no parâmetro certo por tipo Nen.
+	var h_exec: HatsuData = hatsu.duplicate(true) as HatsuData
+	if h_exec == null:
+		h_exec = hatsu
+	var efic_final := efic
+	match hatsu.obter_feel_modo():
+		HatsuData.FeelMode.POWER:
+			efic_final *= mult
+		HatsuData.FeelMode.RANGE_AIM:
+			h_exec.alcance = maxf(40.0, h_exec.alcance * mult)
+			h_exec.custom_range = h_exec.alcance
+			h_exec.raio = maxf(h_exec.raio, h_exec.alcance * 0.12)
+		HatsuData.FeelMode.DURATION:
+			h_exec.duracao = maxf(0.5, h_exec.duracao * mult)
+			h_exec.duracao_buff = maxf(0.5, h_exec.duracao_buff * mult)
+			# Transformação ofensiva ainda ganha um leve boost de presença
+			efic_final *= lerpf(0.90, 1.20, clampf(pct, 0.0, 1.0))
+		HatsuData.FeelMode.MATERIALIZE:
+			h_exec.raio = maxf(20.0, h_exec.raio * mult)
+			h_exec.duracao = maxf(0.5, h_exec.duracao * mult)
+			h_exec.alcance = maxf(40.0, h_exec.alcance * lerpf(0.90, 1.25, pct))
+		HatsuData.FeelMode.CONTROL:
+			h_exec.stun_duracao = maxf(0.35, h_exec.stun_duracao * mult)
+			h_exec.duracao = maxf(0.5, h_exec.duracao * mult)
+			h_exec.raio = maxf(24.0, h_exec.raio * lerpf(0.75, 1.45, pct))
+		HatsuData.FeelMode.RISK:
+			efic_final *= mult
+			h_exec.duracao = maxf(0.5, h_exec.duracao * lerpf(0.85, 1.35, pct))
+		_:
+			efic_final *= mult
+	_executar_por_objetivo(h_exec, efic_final)
+
 
 func usar_hatsu(slot_index: int) -> bool:
 	if slot_index < 0 or slot_index >= 4:
@@ -610,6 +814,7 @@ func usar_hatsu(slot_index: int) -> bool:
 			HatsuSignatureKit.play(kind, owner_body, owner_body.get_parent(), hatsu.nome)
 
 	# Executar habilidade por Objetivo & Categoria
+	_iniciar_mastery_do_cast(hatsu, 0.0)
 	_executar_por_objetivo(hatsu, eficiencia)
 
 	# Balão de fala estilo quadrinho
@@ -633,16 +838,8 @@ func usar_hatsu(slot_index: int) -> bool:
 
 	hatsu_executado.emit(slot_index, hatsu)
 	registrar_acao_combo("hatsu")
-	if hatsu.objetivo != HatsuData.ObjetivoPrincipal.DANO:
-		if HatsuProgressionManager != null:
-			var m_res = HatsuProgressionManager.conceder_mastery_xp(hatsu.hatsu_id, 0, {"level": PlayerData.attributes.get("nivel", 1) if PlayerData != null else 1})
-			if m_res.get("subiu_nivel", false) and combat_system != null:
-				if m_res.get("mastered", false):
-					combat_system._mostrar_texto_flutuante("★ %s MASTERED (100)!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
-				else:
-					combat_system._mostrar_texto_flutuante("⭐ %s MASTERY %d!" % [hatsu.nome.to_upper(), int(hatsu.mastery)], Color(1.0, 0.85, 0.3))
-	else:
-		hatsu.adicionar_mastery_xp(1.0)
+	_finalizar_mastery_do_cast(hatsu)
+
 
 	print("=================================")
 	print("[HatsuSystem] Executou com sucesso: ", hatsu.nome, " (Lv. ", hatsu.nivel_evolucao_hatsu, ")")
@@ -830,6 +1027,7 @@ func _executar_buff_corporal(hatsu: HatsuData, eficiencia: float) -> void:
 	PlayerData.adicionar_modificador(mod_d)
 	if combat_system != null:
 		combat_system._mostrar_texto_flutuante("🐱 +%.0f FORÇA / +%.0f DEF (%.0fs)" % [forca_bonus, def_bonus, dur], Color(1.0, 0.3, 0.4))
+	_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.SELF, {"low_hp": _hp_fracao_jogador() < 0.35})
 	print("[Hatsu Buff Corporal] +%.1f forca / +%.1f defesa por %.1fs" % [forca_bonus, def_bonus, dur])
 
 
@@ -895,20 +1093,101 @@ func _aplicar_dano_toque_imediato(hatsu: HatsuData, dano_val: int, dir_atk: Vect
 					_processar_hit_mastery(hatsu, dano_val, enemy_sys)
 
 
+func _iniciar_mastery_do_cast(hatsu: HatsuData, charge_pct: float = 0.0) -> void:
+	_cast_mastery_grants = 0
+	_cast_mastery_hatsu_id = hatsu.hatsu_id if hatsu != null else ""
+	_cast_charge_pct = clampf(charge_pct, 0.0, 1.0)
+
+
+func _em_combate_agora() -> bool:
+	if combat_system != null and ("em_combate" in combat_system):
+		return bool(combat_system.em_combate)
+	if owner_body != null and owner_body.get_tree() != null:
+		for e in owner_body.get_tree().get_nodes_in_group("enemy"):
+			if e is Node2D and is_instance_valid(e) and owner_body.global_position.distance_to(e.global_position) < 420.0:
+				return true
+	return false
+
+
+func _hp_fracao_jogador() -> float:
+	if PlayerData == null:
+		return 1.0
+	var hp := float(PlayerData.attributes.get("vida", 100))
+	var hp_max := maxf(1.0, float(PlayerData.attributes.get("vida_max", 100)))
+	return hp / hp_max
+
+
+func _mostrar_feedback_mastery(hatsu: HatsuData, m_res: Dictionary) -> void:
+	if combat_system == null or hatsu == null:
+		return
+	if m_res.get("mastered", false):
+		combat_system._mostrar_texto_flutuante("★ %s MASTERED!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
+	elif m_res.get("rank_subiu", false):
+		combat_system._mostrar_texto_flutuante(
+			"◆ %s RANK %d · %s" % [hatsu.nome.to_upper(), int(m_res.get("rank_novo", 1)), hatsu.obter_nome_rank_maestria()],
+			Color(1.0, 0.75, 0.25)
+		)
+	elif m_res.get("subiu_nivel", false):
+		var marco: Dictionary = m_res.get("proximo_marco", {})
+		var via := str(m_res.get("alvo_label", ""))
+		combat_system._mostrar_texto_flutuante(
+			"⭐ %s M%d · %s (%d)%s" % [
+				hatsu.nome.to_upper(),
+				int(hatsu.mastery),
+				str(marco.get("titulo", "")),
+				int(marco.get("faltam", 0)),
+				(" · " + via) if not via.is_empty() else ""
+			],
+			Color(0.85, 0.9, 1.0)
+		)
+
+
+func _conceder_mastery_uso(hatsu: HatsuData, alvo: int, extras: Dictionary = {}) -> Dictionary:
+	if HatsuProgressionManager == null or hatsu == null:
+		return {}
+	var ctx := extras.duplicate()
+	ctx["alvo"] = alvo
+	if not ctx.has("charge_pct"):
+		ctx["charge_pct"] = _cast_charge_pct
+	if not ctx.has("in_combat"):
+		ctx["in_combat"] = _em_combate_agora()
+	var res: Dictionary = HatsuProgressionManager.conceder_mastery_por_uso(hatsu.hatsu_id, ctx)
+	if float(res.get("gained_xp", 0.0)) > 0.0:
+		_cast_mastery_grants += 1
+		_mostrar_feedback_mastery(hatsu, res)
+	return res
+
+
+func _finalizar_mastery_do_cast(hatsu: HatsuData) -> void:
+	if hatsu == null or HatsuProgressionManager == null:
+		return
+	if _cast_mastery_grants > 0:
+		return
+	match hatsu.objetivo:
+		HatsuData.ObjetivoPrincipal.CURA, HatsuData.ObjetivoPrincipal.SUPORTE:
+			_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.SELF, {
+				"low_hp": _hp_fracao_jogador() < 0.35,
+			})
+		HatsuData.ObjetivoPrincipal.DEFESA, HatsuData.ObjetivoPrincipal.MOBILIDADE:
+			_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.SELF, {
+				"low_hp": _hp_fracao_jogador() < 0.35,
+			})
+		HatsuData.ObjetivoPrincipal.DANO, HatsuData.ObjetivoPrincipal.CONTROLE:
+			_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.VAZIO, {"ignore_cooldown": true})
+		_:
+			_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.VAZIO, {"ignore_cooldown": true})
+
+
 func _processar_hit_mastery(hatsu: HatsuData, dano_val: int, enemy_sys: Node) -> void:
-	if HatsuProgressionManager == null or hatsu == null or enemy_sys == null:
+	if hatsu == null or enemy_sys == null:
 		return
 	var ctx: Dictionary = {
 		"level": enemy_sys.enemy_data.level if "enemy_data" in enemy_sys and enemy_sys.enemy_data != null else 1,
 		"is_boss": enemy_sys.is_boss if "is_boss" in enemy_sys else false,
-		"is_elite": enemy_sys.enemy_data.is_elite if "enemy_data" in enemy_sys and enemy_sys.enemy_data != null and "is_elite" in enemy_sys.enemy_data else false
+		"is_elite": enemy_sys.enemy_data.is_elite if "enemy_data" in enemy_sys and enemy_sys.enemy_data != null and "is_elite" in enemy_sys.enemy_data else false,
+		"dano": dano_val,
 	}
-	var res := HatsuProgressionManager.conceder_mastery_xp(hatsu.hatsu_id, dano_val, ctx)
-	if res.get("subiu_nivel", false) and combat_system != null:
-		if res.get("mastered", false):
-			combat_system._mostrar_texto_flutuante("★ %s MASTERED (100)!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
-		else:
-			combat_system._mostrar_texto_flutuante("⭐ %s MASTERY %d!" % [hatsu.nome.to_upper(), int(hatsu.mastery)], Color(1.0, 0.85, 0.3))
+	_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.INIMIGO, ctx)
 
 
 func _executar_arsenal_roleta(hatsu: HatsuData, eficiencia: float) -> void:
@@ -1282,6 +1561,10 @@ func _executar_cura(hatsu: HatsuData, eficiencia: float) -> void:
 	if combat_system != null:
 		var label := "💉 DOCTOR +%d HP" % valor_cura if is_doctor else "❤️ +%d HP" % valor_cura
 		combat_system._mostrar_texto_flutuante(label, Color(0.2, 1.0, 0.4))
+	_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.SELF, {
+		"cura": valor_cura,
+		"low_hp": _hp_fracao_jogador() < 0.35,
+	})
 	print("[Hatsu Cura] Regenerou +", valor_cura, " HP! Total: ", PlayerData.attributes["vida"], "/", hp_max)
 
 
@@ -1330,7 +1613,7 @@ func _executar_controle(hatsu: HatsuData, eficiencia: float) -> void:
 
 	var col := CollisionShape2D.new()
 	var shape := CircleShape2D.new()
-	shape.radius = hatsu.raio
+	shape.radius = maxf(hatsu.raio, 24.0)
 	col.shape = shape
 	area.add_child(col)
 
@@ -1338,9 +1621,10 @@ func _executar_controle(hatsu: HatsuData, eficiencia: float) -> void:
 	area.position = Vector2.ZERO
 
 	var fx := HatsuAreaExplosionNode.new()
-	fx.setup(hatsu.raio, hatsu.cor_aura)
+	fx.setup(shape.radius, hatsu.cor_aura)
 	owner_body.add_child(fx)
 
+	var stun_t: float = maxf(0.35, hatsu.stun_duracao if hatsu.stun_duracao > 0.0 else 0.8)
 	area.area_entered.connect(func(alvo_area: Area2D):
 		var enemy: Node = alvo_area.get_parent()
 		if enemy != null and enemy != owner_body:
@@ -1349,10 +1633,15 @@ func _executar_controle(hatsu: HatsuData, eficiencia: float) -> void:
 				var dano_hatsu: int = int(_calcular_dano_hatsu(hatsu, eficiencia, enemy) * 0.5)
 				var dir: Vector2 = (enemy.global_position - owner_body.global_position).normalized()
 				enemy_sys.take_damage(dano_hatsu, dir, 220.0, owner_body)
-				print("[Hatsu Controle] Stun/Paralisia em ", enemy.name)
+				_processar_hit_mastery(hatsu, dano_hatsu, enemy_sys)
+				if enemy_sys.has_method("aplicar_stun"):
+					enemy_sys.aplicar_stun(stun_t)
+				elif "stun_timer" in enemy_sys:
+					enemy_sys.stun_timer = maxf(float(enemy_sys.stun_timer), stun_t)
+				print("[Hatsu Controle] Stun/Paralisia (%.1fs) em " % stun_t, enemy.name)
 	)
 
-	var timer := owner_body.get_tree().create_timer(0.25)
+	var timer := owner_body.get_tree().create_timer(maxf(0.25, stun_t * 0.35))
 	await timer.timeout
 	if is_instance_valid(area):
 		area.queue_free()
@@ -1489,7 +1778,7 @@ func _criar_golpe_remoto_emissao(hatsu: HatsuData, eficiencia: float) -> void:
 
 	var enemies = owner_body.get_tree().get_nodes_in_group("enemy")
 	var alvo_proximo: CharacterBody2D = null
-	var menor_dist: float = 220.0
+	var menor_dist: float = hatsu.obter_alcance_final() if hatsu.has_method("obter_alcance_final") else maxf(hatsu.alcance, 220.0)
 
 	for e in enemies:
 		if e is CharacterBody2D and is_instance_valid(e):
@@ -1504,6 +1793,7 @@ func _criar_golpe_remoto_emissao(hatsu: HatsuData, eficiencia: float) -> void:
 		var enemy_sys = alvo_proximo.get_node_or_null("EnemySystem")
 		if enemy_sys != null:
 			enemy_sys.take_damage(dano, dir, 250.0, owner_body)
+			_processar_hit_mastery(hatsu, dano, enemy_sys)
 			print("[Soco Remoto] Impacto sob ", alvo_proximo.name, " Dano: ", dano)
 
 
@@ -1544,7 +1834,7 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
 
 	var velocidade: float = 240.0
-	var alcance_max: float = hatsu.alcance
+	var alcance_max: float = hatsu.obter_alcance_final() if hatsu.has_method("obter_alcance_final") else hatsu.alcance
 
 	area.area_entered.connect(func(alvo_area: Area2D):
 		var enemy: Node = alvo_area.get_parent()
@@ -1553,6 +1843,7 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 			if enemy_sys != null:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
 				enemy_sys.take_damage(dano_hatsu, direcao, 120.0, owner_body)
+				_processar_hit_mastery(hatsu, dano_hatsu, enemy_sys)
 				if is_instance_valid(area):
 					HatsuVisual.spawn_impact_effect(area.global_position, vp, owner_body.get_parent())
 					area.queue_free()
@@ -1604,6 +1895,7 @@ func _criar_explosao_area(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
 				var dir: Vector2 = (enemy.global_position - owner_body.global_position).normalized()
 				enemy_sys.take_damage(dano_hatsu, dir, 150.0, owner_body)
+				_processar_hit_mastery(hatsu, dano_hatsu, enemy_sys)
 	)
 
 	var timer := owner_body.get_tree().create_timer(0.2)
@@ -1630,15 +1922,16 @@ func _criar_golpe_direto(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 
 	var col := CollisionShape2D.new()
 	var shape := CircleShape2D.new()
-	shape.radius = hatsu.alcance
+	shape.radius = hatsu.obter_alcance_final() if hatsu.has_method("obter_alcance_final") else hatsu.alcance
 	col.shape = shape
 	area.add_child(col)
 
 	owner_body.add_child(area)
-	area.position = direcao * hatsu.alcance
+	var alcance_golpe: float = shape.radius
+	area.position = direcao * alcance_golpe
 
 	# Efeito de Cast
-	HatsuVisual.spawn_cast_effect(owner_body.global_position + (direcao * hatsu.alcance * 0.5), vp, owner_body.get_parent())
+	HatsuVisual.spawn_cast_effect(owner_body.global_position + (direcao * alcance_golpe * 0.5), vp, owner_body.get_parent())
 
 	area.area_entered.connect(func(alvo_area: Area2D):
 		var enemy: Node = alvo_area.get_parent()

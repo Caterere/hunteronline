@@ -622,66 +622,183 @@ func obter_hatsu_ativo(slot_id: int) -> HatsuData:
 
 
 # ============================================================
-# 6. SISTEMA DE MASTERY & ANTI-FARM
+# 6. SISTEMA DE MASTERY & ANTI-FARM (uso contextual)
 # ============================================================
 
+# Anti-spam por Hatsu (ms) e última fonte de treino (UI)
+var _mastery_use_cooldown_ms: Dictionary = {}
+var _mastery_last_source: Dictionary = {}
+
+
 func conceder_mastery_xp(hatsu_id: String, dano_causado: int, inimigo_context: Dictionary = {}) -> Dictionary:
+	## Legado: hit ofensivo → uso contextual INIMIGO.
+	var ctx := inimigo_context.duplicate()
+	ctx["alvo"] = HatsuConfig.MasteryUseTarget.INIMIGO
+	ctx["dano"] = dano_causado
+	return conceder_mastery_por_uso(hatsu_id, ctx)
+
+
+func conceder_mastery_por_uso(hatsu_id: String, contexto: Dictionary = {}) -> Dictionary:
+	## Treina o Hatsu conforme o uso real:
+	## alvo = INIMIGO | ALIADO | SELF | VAZIO (+ dano/cura/charge/elite/boss).
 	var h: HatsuData = obter_hatsu_archive_por_id(hatsu_id)
 	if h == null:
-		return {"success": false, "reason": "NOT_FOUND"}
+		return {"success": false, "reason": "NOT_FOUND", "gained_xp": 0.0}
 
 	if h.is_mastered():
-		return {"success": true, "gained_xp": 0.0, "subiu_nivel": false, "mastered": true}
-
-	var ply_level: int = PlayerData.attributes.get("nivel", 1) if PlayerData != null else 1
-	var mob_level: int = int(inimigo_context.get("level", ply_level))
-
-	# 1. Penalidade Anti-Farm
-	var anti_farm_factor: float = HatsuConfig.calcular_penalidade_anti_farm(ply_level, mob_level)
-	if anti_farm_factor <= 0.0:
 		return {
 			"success": true,
 			"gained_xp": 0.0,
-			"reason": "ANTI_FARM_PENALTY",
 			"subiu_nivel": false,
-			"mastered": false
+			"rank_subiu": false,
+			"mastered": true
 		}
 
-	# 2. Multiplicadores de Elite / Boss
-	var mob_mult: float = HatsuConfig.MOB_XP_MULT_NORMAL
-	if inimigo_context.get("is_boss", false):
-		mob_mult = HatsuConfig.MOB_XP_MULT_BOSS
-	elif inimigo_context.get("is_elite", false):
-		mob_mult = HatsuConfig.MOB_XP_MULT_ELITE
+	var alvo: int = int(contexto.get("alvo", HatsuConfig.MasteryUseTarget.VAZIO))
+	var agora_ms: int = Time.get_ticks_msec()
+	var last_ms: int = int(_mastery_use_cooldown_ms.get(hatsu_id, 0))
+	var cd_ms: int = int(HatsuConfig.MASTERY_USE_GRANT_COOLDOWN * 1000.0)
+	if last_ms > 0 and (agora_ms - last_ms) < cd_ms and not bool(contexto.get("ignore_cooldown", false)):
+		return {
+			"success": true,
+			"gained_xp": 0.0,
+			"reason": "USE_COOLDOWN",
+			"subiu_nivel": false,
+			"rank_subiu": false,
+			"mastered": false,
+			"alvo": alvo
+		}
 
-	# 3. Cálculo do ganho de XP
-	var xp_from_dmg: float = float(max(1, dano_causado)) * HatsuConfig.MASTERY_XP_PER_DAMAGE
-	var total_xp: float = (xp_from_dmg + HatsuConfig.MASTERY_XP_PER_HIT_BASE) * anti_farm_factor * mob_mult
+	var ply_level: int = PlayerData.attributes.get("nivel", 1) if PlayerData != null else 1
+	var target_level: int = int(contexto.get("level", ply_level))
+
+	var anti_farm: float = 1.0
+	if alvo == HatsuConfig.MasteryUseTarget.INIMIGO:
+		anti_farm = HatsuConfig.calcular_penalidade_anti_farm(ply_level, target_level)
+		if anti_farm <= 0.0:
+			return {
+				"success": true,
+				"gained_xp": 0.0,
+				"reason": "ANTI_FARM_PENALTY",
+				"subiu_nivel": false,
+				"rank_subiu": false,
+				"mastered": false,
+				"alvo": alvo
+			}
+
+	var xp: float = HatsuConfig.mastery_xp_base_for_target(alvo)
+
+	var dano: int = int(contexto.get("dano", 0))
+	if dano > 0 and alvo == HatsuConfig.MasteryUseTarget.INIMIGO:
+		xp += float(dano) * HatsuConfig.MASTERY_XP_PER_DAMAGE
+
+	var cura: int = int(contexto.get("cura", 0))
+	if cura > 0 and (alvo == HatsuConfig.MasteryUseTarget.ALIADO or alvo == HatsuConfig.MasteryUseTarget.SELF):
+		xp += float(cura) * HatsuConfig.MASTERY_XP_HEAL_PER_POINT
+
+	var charge_pct: float = clampf(float(contexto.get("charge_pct", 0.0)), 0.0, 1.0)
+	if charge_pct > 0.0 and alvo != HatsuConfig.MasteryUseTarget.VAZIO:
+		xp += HatsuConfig.MASTERY_XP_CHARGE_BONUS_MAX * charge_pct
+
+	if alvo == HatsuConfig.MasteryUseTarget.SELF and bool(contexto.get("low_hp", false)):
+		xp += HatsuConfig.MASTERY_XP_LOW_HP_SELF_BONUS
+
+	if bool(contexto.get("in_combat", false)) \
+		and (alvo == HatsuConfig.MasteryUseTarget.ALIADO or alvo == HatsuConfig.MasteryUseTarget.SELF) \
+		and int(h.objetivo) != int(HatsuData.ObjetivoPrincipal.DANO):
+		xp += HatsuConfig.MASTERY_XP_IN_COMBAT_SUPPORT
+
+	var mob_mult: float = HatsuConfig.MOB_XP_MULT_NORMAL
+	if alvo == HatsuConfig.MasteryUseTarget.INIMIGO:
+		if bool(contexto.get("is_boss", false)):
+			mob_mult = HatsuConfig.MOB_XP_MULT_BOSS
+		elif bool(contexto.get("is_elite", false)):
+			mob_mult = HatsuConfig.MOB_XP_MULT_ELITE
+
+	var preferred: int = HatsuConfig.preferred_mastery_target_for_objetivo(int(h.objetivo))
+	var affinity_mult: float = 1.0
+	if alvo == HatsuConfig.MasteryUseTarget.VAZIO:
+		affinity_mult = 1.0
+	elif alvo == preferred:
+		affinity_mult = 1.25
+	elif (preferred == HatsuConfig.MasteryUseTarget.ALIADO and alvo == HatsuConfig.MasteryUseTarget.SELF) \
+		or (preferred == HatsuConfig.MasteryUseTarget.SELF and alvo == HatsuConfig.MasteryUseTarget.ALIADO):
+		affinity_mult = 1.0
+	else:
+		affinity_mult = 0.65
+
+	var total_xp: float = xp * anti_farm * mob_mult * affinity_mult
+	if total_xp <= 0.0:
+		return {
+			"success": true,
+			"gained_xp": 0.0,
+			"subiu_nivel": false,
+			"rank_subiu": false,
+			"mastered": false,
+			"alvo": alvo
+		}
 
 	var res: Dictionary = h.adicionar_mastery_xp(total_xp)
+	res["success"] = true
 	res["gained_xp"] = total_xp
-	res["anti_farm_factor"] = anti_farm_factor
+	res["alvo"] = alvo
+	res["alvo_label"] = HatsuConfig.mastery_use_target_label(alvo)
+	res["affinity_mult"] = affinity_mult
+	res["anti_farm_factor"] = anti_farm
+
+	_mastery_use_cooldown_ms[hatsu_id] = agora_ms
+	_mastery_last_source[hatsu_id] = {
+		"alvo": alvo,
+		"label": res["alvo_label"],
+		"xp": total_xp,
+		"time_ms": agora_ms
+	}
+	if h.has_method("registrar_fonte_treino"):
+		h.registrar_fonte_treino(alvo, total_xp)
 
 	hatsu_mastery_alterada.emit(hatsu_id, h.mastery, h.mastery_xp, h.is_mastered())
 
-	if res.get("subiu_nivel", false):
-		_exibir_notificacao_mastery(h, res.get("mastered", false))
+	if res.get("rank_subiu", false) or res.get("mastered", false):
+		_exibir_notificacao_mastery(h, res.get("mastered", false), res)
+	elif res.get("subiu_nivel", false):
+		_exibir_notificacao_mastery_leve(h, res)
 
 	return res
 
 
-func _exibir_notificacao_mastery(h: HatsuData, mastered: bool) -> void:
-	var msg: String = ""
+func obter_ultima_fonte_treino(hatsu_id: String) -> Dictionary:
+	return _mastery_last_source.get(hatsu_id, {})
+
+
+func _exibir_notificacao_mastery_leve(h: HatsuData, res: Dictionary) -> void:
+	## Entre marcos: só log — o float de combate já mostra M→próximo.
+	var marco: Dictionary = res.get("proximo_marco", h.obter_proximo_marco_maestria())
+	var fonte: String = str(res.get("alvo_label", ""))
+	print("[HatsuProgressionManager] ⭐ %s M%d · +%.1f XP (%s) · faltam %d p/ %s" % [
+		h.nome, int(h.mastery), float(res.get("gained_xp", 0.0)), fonte,
+		int(marco.get("faltam", 0)), str(marco.get("titulo", ""))
+	])
+
+
+func _exibir_notificacao_mastery(h: HatsuData, mastered: bool, res: Dictionary = {}) -> void:
 	var rank: int = h.obter_rank_maestria()
 	var rank_nome: String = h.obter_nome_rank_maestria()
-	var mods: Dictionary = h.obter_modificadores_maestria()
+	var unlock: String = h.obter_desbloqueio_rank(rank)
+	var fonte: String = str(res.get("alvo_label", ""))
+	var msg: String = ""
 	if mastered or rank >= 6:
-		msg = "━━━━━━━━━━━━━━━━━━━━\n★ HATSU MASTERED! (RANK 6 — MESTRE) ★\n━━━━━━━━━━━━━━━━━━━━\n'%s' atingiu a maestria suprema!\nConjuração Instantânea | Custo de Aura -30%% | Alcance +20%%" % h.nome
+		msg = "★ %s MASTERED — Rank 6\n%s\nÁpice alcançado. Pode lapidar outro Hatsu ou brilhar com este." % [h.nome, unlock]
 	else:
-		msg = "⭐ MASTERY DE HATSU: '%s' [Rank %d - %s] (Lv. %d/100)\nEficiência Aura: +%d%% | Redução Conjuração: -%d%%" % [
-			h.nome, rank, rank_nome, int(h.mastery),
-			int(mods.get("reducao_custo_pct", 0.0)),
-			int(mods.get("reducao_tempo_pct", 0.0))
+		var marco: Dictionary = res.get("proximo_marco", h.obter_proximo_marco_maestria())
+		msg = "◆ EVOLUÇÃO DE HATSU · %s\nRank %d — %s (M%d)%s\n%s\nPróximo: %s em M%d" % [
+			h.nome,
+			rank,
+			rank_nome,
+			int(h.mastery),
+			(" · via " + fonte) if not fonte.is_empty() else "",
+			unlock,
+			str(marco.get("titulo", "—")),
+			int(marco.get("mastery_alvo", 0))
 		]
 
 	if EventBus != null and EventBus.has_signal("toast_enviado"):

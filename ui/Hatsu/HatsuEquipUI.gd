@@ -50,6 +50,8 @@ func toggle_menu() -> void:
 
 
 func abrir() -> void:
+	if TutorialManager != null:
+		TutorialManager.disparar_tutorial_contextual("hatsu_equipar")
 	_aberto_no_frame = true
 	visible = true
 	_atualizar_ui()
@@ -373,31 +375,120 @@ func _atualizar_inspetor() -> void:
 	lbl_nome.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2) if h.is_mastered() else Color(0.4, 0.95, 1.0))
 	vb.add_child(lbl_nome)
 
-	# Mastery Progress
+	var lbl_desc := Label.new()
+	lbl_desc.text = HatsuExplainKit.garantir_descricao(h)
+	lbl_desc.add_theme_font_size_override("font_size", 3)
+	lbl_desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.95))
+	lbl_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_desc)
+	if h.eh_canalizavel_feel():
+		var lbl_carga := Label.new()
+		lbl_carga.text = h.obter_dica_feel()
+		lbl_carga.add_theme_font_size_override("font_size", 3)
+		lbl_carga.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
+		vb.add_child(lbl_carga)
+		if TutorialManager != null:
+			match h.obter_feel_modo():
+				HatsuData.FeelMode.POWER:
+					TutorialManager.disparar_tutorial_contextual("hatsu_aprimoramento")
+				HatsuData.FeelMode.RANGE_AIM:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_emissao")
+				HatsuData.FeelMode.DURATION:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_transformacao")
+				HatsuData.FeelMode.MATERIALIZE:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_conjuracao")
+				HatsuData.FeelMode.CONTROL:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_manipulacao")
+				HatsuData.FeelMode.RISK:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_especializacao")
+				_:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_por_tipo")
+
+	# Mastery / Evolução do mesmo Hatsu (roadmap claro)
+	var marco: Dictionary = h.obter_proximo_marco_maestria()
 	var lbl_m_val := Label.new()
-	lbl_m_val.text = "Mastery: %d / 100" % int(h.mastery)
+	lbl_m_val.text = "Evolução Rank %d · %s  |  M%d/100" % [
+		int(marco.get("rank_atual", h.obter_rank_maestria())),
+		h.obter_nome_rank_maestria(),
+		int(h.mastery)
+	]
 	lbl_m_val.add_theme_font_size_override("font_size", 4)
 	lbl_m_val.add_theme_color_override("font_color", Color(1.0, 0.9, 0.5))
 	vb.add_child(lbl_m_val)
 
+	var lbl_fase := Label.new()
+	lbl_fase.text = str(marco.get("fase", h.obter_fase_maestria()))
+	lbl_fase.add_theme_font_size_override("font_size", 3)
+	lbl_fase.add_theme_color_override("font_color", Color(0.75, 0.88, 1.0))
+	lbl_fase.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_fase)
+
 	var bar := ProgressBar.new()
 	bar.custom_minimum_size = Vector2(100, 4)
-	bar.max_value = 100.0
-	bar.value = h.mastery
+	# Barra = progresso até o PRÓXIMO marco (não 0–100 genérico)
+	if bool(marco.get("completo", false)):
+		bar.max_value = 100.0
+		bar.value = 100.0
+	else:
+		bar.max_value = 100.0
+		bar.value = float(marco.get("progresso_pct", 0.0))
 	bar.show_percentage = false
 	vb.add_child(bar)
 
-	# Escala de Poder e Eficiência
+	var lbl_prox := Label.new()
+	if bool(marco.get("completo", false)):
+		lbl_prox.text = "★ MASTERED — %s" % h.obter_desbloqueio_rank(6)
+	else:
+		lbl_prox.text = "Próximo: %s (M%d) · faltam %d\n→ %s" % [
+			str(marco.get("titulo", "")),
+			int(marco.get("mastery_alvo", 0)),
+			int(marco.get("faltam", 0)),
+			str(marco.get("desbloqueio", ""))
+		]
+	lbl_prox.add_theme_font_size_override("font_size", 3)
+	lbl_prox.add_theme_color_override("font_color", Color(1.0, 0.78, 0.4))
+	lbl_prox.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_prox)
+
+	var lbl_dica := Label.new()
+	lbl_dica.text = str(marco.get("dica", ""))
+	lbl_dica.add_theme_font_size_override("font_size", 3)
+	lbl_dica.add_theme_color_override("font_color", Color(0.7, 0.8, 0.75))
+	lbl_dica.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_dica)
+
+	var lbl_treino := Label.new()
+	lbl_treino.text = h.obter_dica_treino_maestria() + "\n" + h.obter_texto_ultima_fonte_treino()
+	lbl_treino.add_theme_font_size_override("font_size", 3)
+	lbl_treino.add_theme_color_override("font_color", Color(0.95, 0.82, 0.45))
+	lbl_treino.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_treino)
+	if TutorialManager != null:
+		TutorialManager.disparar_tutorial_contextual("hatsu_treino")
+
+	# Roadmap compacto dos 6 ranks
+	var lbl_road := Label.new()
+	lbl_road.text = "\n".join(h.obter_roadmap_maestria_linhas())
+	lbl_road.add_theme_font_size_override("font_size", 2)
+	lbl_road.add_theme_color_override("font_color", Color(0.65, 0.72, 0.8))
+	lbl_road.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_road)
+
+	# Escala de Poder e Eficiência (estado atual)
 	var p_ratio: int = int(h.obter_multiplicador_mastery() * 100)
 	var eff_bonus: int = int((1.0 - h.obter_reducao_custo_mastery()) * 100)
 	var cd_bonus: int = int((1.0 - h.obter_reducao_cooldown_mastery()) * 100)
 	var rng_bonus: int = int((h.obter_bonus_alcance_mastery() - 1.0) * 100)
 
 	var lbl_stats := Label.new()
-	lbl_stats.text = "Poder: %d%%\nAura: -%d%% | CD: -%d%% | Alc: +%d%%" % [p_ratio, eff_bonus, cd_bonus, rng_bonus]
-	lbl_stats.add_theme_font_size_override("font_size", 4)
+	lbl_stats.text = "Agora: Poder %d%% · Aura −%d%% · CD −%d%% · Alc +%d%%" % [p_ratio, eff_bonus, cd_bonus, rng_bonus]
+	lbl_stats.add_theme_font_size_override("font_size", 3)
 	lbl_stats.add_theme_color_override("font_color", Color(0.8, 0.9, 0.85))
 	vb.add_child(lbl_stats)
+
+	if TutorialManager != null:
+		TutorialManager.disparar_tutorial_contextual("hatsu_evolucao")
+		TutorialManager.disparar_tutorial_contextual("hatsu_treino")
 
 	# Botões de Equipar no Slot 1..4
 	var hb_eq := HBoxContainer.new()

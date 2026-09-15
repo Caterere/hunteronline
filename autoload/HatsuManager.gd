@@ -362,6 +362,7 @@ func criar_hatsu(
 	hatsu.condicoes = typed_condicoes
 	_configurar_stats_base(hatsu)
 	_configurar_arquetipo_padrao(hatsu)
+	HatsuExplainKit.garantir_descricao(hatsu)
 
 	# Cores por Elemento ou Customizadas
 	if cor_primaria.r >= 0.0:
@@ -517,31 +518,78 @@ func _configurar_stats_base(hatsu: HatsuData) -> void:
 						_:
 							hatsu.poder_base = 38.0 * mult_consumo
 							hatsu.cooldown_base = 3.5
+					# Feel POWER: barra de conjuração → dano
+					hatsu.activation_type = HatsuData.ActivationType.CHARGED
+					hatsu.tempo_conjuracao_base = clampf(0.85 + (hatsu.poder_base / 55.0), 1.0, 2.8)
 
 				HatsuData.Categoria.TRANSFORMACAO:
 					hatsu.poder_base = 35.0 * mult_consumo
 					hatsu.cooldown_base = 3.2
 					hatsu.duracao = 5.0
+					hatsu.duracao_buff = 5.0
+					# Feel DURATION: canaliza duração do buff/efeito
+					hatsu.activation_type = HatsuData.ActivationType.CHARGED
+					hatsu.tempo_conjuracao_base = clampf(0.70 + (hatsu.duracao / 8.0), 0.85, 2.2)
 
 				HatsuData.Categoria.EMISSAO:
 					hatsu.poder_base = 32.0 * mult_consumo
 					hatsu.cooldown_base = 2.8
 					hatsu.alcance = 180.0
+					# Feel RANGE_AIM: mira + alcance
+					hatsu.activation_type = HatsuData.ActivationType.CHARGED
+					hatsu.tempo_conjuracao_base = clampf(0.65 + (hatsu.alcance / 220.0), 0.80, 2.0)
 
 				HatsuData.Categoria.CONJURACAO:
 					hatsu.poder_base = 40.0 * mult_consumo
 					hatsu.cooldown_base = 4.0
 					hatsu.duracao = 7.0
+					hatsu.raio = maxf(hatsu.raio, 55.0)
+					# Feel MATERIALIZE: tamanho / permanência
+					hatsu.activation_type = HatsuData.ActivationType.CHARGED
+					hatsu.tempo_conjuracao_base = clampf(0.90 + (hatsu.duracao / 10.0), 1.0, 2.6)
 
 				HatsuData.Categoria.MANIPULACAO:
 					hatsu.poder_base = 28.0 * mult_consumo
 					hatsu.cooldown_base = 3.5
 					hatsu.duracao = 5.0
+					hatsu.stun_duracao = maxf(hatsu.stun_duracao, 1.2)
+					# Feel CONTROL: duração/área do controle
+					hatsu.activation_type = HatsuData.ActivationType.CHARGED
+					hatsu.tempo_conjuracao_base = clampf(0.75 + (hatsu.duracao / 9.0), 0.90, 2.3)
 
 				HatsuData.Categoria.ESPECIALIZACAO:
 					hatsu.poder_base = 42.0 * mult_consumo
 					hatsu.cooldown_base = 5.5
 					hatsu.duracao = 8.0
+					# Feel RISK: poder ↔ custo de aura
+					hatsu.activation_type = HatsuData.ActivationType.CHARGED
+					hatsu.tempo_conjuracao_base = clampf(1.0 + (hatsu.poder_base / 60.0), 1.1, 3.0)
+
+	_aplicar_feel_canalizado_stats(hatsu)
+
+
+func _aplicar_feel_canalizado_stats(hatsu: HatsuData) -> void:
+	## Garante CHARGED + tempo de conjuração para qualquer Hatsu canalizável por tipo,
+	## inclusive objetivos fora de DANO (ex: Transformação SUPORTE → duração).
+	if hatsu == null or not hatsu.eh_canalizavel_feel():
+		return
+	hatsu.activation_type = HatsuData.ActivationType.CHARGED
+	if hatsu.tempo_conjuracao_base >= 0.85:
+		return
+	match hatsu.obter_feel_modo():
+		HatsuData.FeelMode.POWER:
+			hatsu.tempo_conjuracao_base = clampf(0.85 + (hatsu.poder_base / 55.0), 1.0, 2.8)
+		HatsuData.FeelMode.RANGE_AIM:
+			hatsu.tempo_conjuracao_base = clampf(0.65 + (hatsu.alcance / 220.0), 0.80, 2.0)
+		HatsuData.FeelMode.DURATION:
+			hatsu.tempo_conjuracao_base = clampf(0.70 + (maxf(hatsu.duracao, hatsu.duracao_buff) / 8.0), 0.85, 2.2)
+			hatsu.duracao_buff = maxf(hatsu.duracao_buff, hatsu.duracao)
+		HatsuData.FeelMode.MATERIALIZE:
+			hatsu.tempo_conjuracao_base = clampf(0.90 + (hatsu.duracao / 10.0), 1.0, 2.6)
+		HatsuData.FeelMode.CONTROL:
+			hatsu.tempo_conjuracao_base = clampf(0.75 + (hatsu.duracao / 9.0), 0.90, 2.3)
+		HatsuData.FeelMode.RISK:
+			hatsu.tempo_conjuracao_base = clampf(1.0 + (hatsu.poder_base / 60.0), 1.1, 3.0)
 
 
 func obter_hatsu_canonico(id_hatsu: String) -> HatsuData:
