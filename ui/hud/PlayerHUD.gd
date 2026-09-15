@@ -1157,7 +1157,8 @@ func _on_hatsu_falhou(slot: int, motivo: String) -> void:
 
 func _on_level_up(new_level: int) -> void:
 	print("HUD: LEVEL UP -> ", new_level)
-	exibir_notificacao("✨ NÍVEL UP! Você alcançou o Nível %d!" % new_level)
+	var sp: int = PlayerData.nen_skill_points if PlayerData != null else 0
+	exibir_notificacao("✨ NÍVEL %d! +SP disponível (total %d) · Status [C] / Nen Tree [TAB]" % [new_level, sp])
 	_atualizar_hud()
 
 
