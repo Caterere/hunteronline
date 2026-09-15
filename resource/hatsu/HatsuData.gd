@@ -174,6 +174,7 @@ enum Condicao {
 
 @export var hatsu_id: String = ""
 @export var nome: String = "Novo Hatsu"
+@export_multiline var descricao: String = ""
 @export var categoria: Categoria = Categoria.INTENSIFICACAO
 @export var objetivo: ObjetivoPrincipal = ObjetivoPrincipal.DANO
 @export var forma: Forma = Forma.PROJETIL
@@ -1029,6 +1030,28 @@ func obter_tempo_conjuracao_final() -> float:
 	return tempo_conjuracao_base * obter_fator_tempo_conjuracao_mastery()
 
 
+## Intensificação ofensiva: hold-to-charge com barra de poder.
+func eh_carregavel_aprimoramento() -> bool:
+	if categoria != Categoria.INTENSIFICACAO:
+		return false
+	if objetivo != ObjetivoPrincipal.DANO:
+		return false
+	return true
+
+
+func obter_multiplicador_carga(charge_pct: float) -> float:
+	## 0% → golpe fraco (~35%); 100% → impacto máximo (~175%).
+	var t := clampf(charge_pct, 0.0, 1.0)
+	t = pow(t, 1.15)
+	return lerpf(0.35, 1.75, t)
+
+
+func obter_explicacao() -> String:
+	return HatsuExplainKit.garantir_descricao(self)
+
+
+
+
 func obter_multiplicador_mastery() -> float:
 	var max_m: float = HatsuConfig.MAX_MASTERY if ClassDB.class_exists(&"HatsuConfig") or Engine.has_singleton(&"HatsuConfig") or true else 100.0
 	var ratio: float = clamp(mastery / max_m, 0.0, 1.0)
@@ -1318,6 +1341,7 @@ func to_dict() -> Dictionary:
 		"hatsu_id": hatsu_id,
 		"hatsu_version": hatsu_version,
 		"nome": nome,
+		"descricao": descricao,
 		"categoria": int(categoria),
 		"objetivo": int(objetivo),
 		"forma": int(forma),
@@ -1429,6 +1453,7 @@ static func from_dict(data: Dictionary) -> HatsuData:
 	if h.hatsu_id.is_empty():
 		h.gerar_novo_id()
 	h.nome = data.get("nome", "Hatsu")
+	h.descricao = str(data.get("descricao", ""))
 	h.categoria = data.get("categoria", Categoria.INTENSIFICACAO)
 	h.objetivo = data.get("objetivo", ObjetivoPrincipal.DANO)
 	h.forma = data.get("forma", Forma.PROJETIL)

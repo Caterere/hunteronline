@@ -209,4 +209,6 @@ func _abrir_hatsu_creator() -> void:
 			add_child(creation_ui)
 
 	if creation_ui != null and creation_ui.has_method("abrir"):
+		if TutorialManager != null:
+			TutorialManager.disparar_tutorial_contextual("hatsu_desbloqueio")
 		creation_ui.abrir()

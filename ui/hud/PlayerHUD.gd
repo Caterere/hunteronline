@@ -59,6 +59,7 @@ var slot_cost_labels: Array[Label] = []
 var slot_cd_labels: Array[Label] = []
 var slot_cd_overlays: Array[ColorRect] = []
 var slot_progress_bars: Array[ProgressBar] = []
+var slot_charge_pct: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var active_selected_slot: int = 0
 
 # Menu de Equipamento de Hatsu
@@ -673,6 +674,8 @@ func _conectar_player_e_sistemas() -> void:
 			if hatsu_system != null:
 				if not hatsu_system.hatsu_falhou.is_connected(_on_hatsu_falhou):
 					hatsu_system.hatsu_falhou.connect(_on_hatsu_falhou)
+				if hatsu_system.has_signal("hatsu_carga_atualizada") and not hatsu_system.hatsu_carga_atualizada.is_connected(_on_hatsu_carga):
+					hatsu_system.hatsu_carga_atualizada.connect(_on_hatsu_carga)
 
 	if SaveManager != null and not SaveManager.jogo_carregado.is_connected(_on_save_carregado):
 		SaveManager.jogo_carregado.connect(_on_save_carregado)
@@ -990,6 +993,17 @@ func _exibir_toast_banner(mensagem: String, cor_borda: Color = Color.WHITE) -> v
 	exibir_notificacao(mensagem)
 
 
+
+func _on_hatsu_carga(slot: int, pct: float, _tempo: float, _tempo_max: float) -> void:
+	if slot < 0 or slot >= 4:
+		return
+	while slot_charge_pct.size() < 4:
+		slot_charge_pct.append(0.0)
+	for i in range(4):
+		slot_charge_pct[i] = pct if i == slot else 0.0
+	_atualizar_hatsu_slots()
+
+
 func _atualizar_hatsu_slots() -> void:
 	if slot_name_labels.size() < 4 or slot_progress_bars.size() < 4:
 		return
@@ -1053,10 +1067,27 @@ func _atualizar_hatsu_slots() -> void:
 				slot_cost_labels[i].text = ""
 			slot_panels[i].add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 3))
 
-		# Atualizar Cooldown
-		if cd_atual > 0.0 and cd_max > 0.0:
+		# Atualizar Cooldown / Carga de Aprimoramento
+		var charge_pct := 0.0
+		if i < slot_charge_pct.size():
+			charge_pct = slot_charge_pct[i]
+		if st == 2 or charge_pct > 0.0: # ACTIVATING
+			slot_progress_bars[i].value = charge_pct * 100.0
+			slot_progress_bars[i].visible = true
+			slot_progress_bars[i].add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(Color(1.0, 0.55, 0.15)))
+			if i < slot_cd_overlays.size(): slot_cd_overlays[i].visible = true
+			if i < slot_cd_labels.size():
+				slot_cd_labels[i].text = "PWR %d%%" % int(charge_pct * 100.0)
+				slot_cd_labels[i].visible = true
+				slot_name_labels[i].visible = false
+			if i < slot_cost_labels.size():
+				slot_cost_labels[i].text = "⚡CARGA"
+				slot_cost_labels[i].add_theme_color_override("font_color", Color(1.0, 0.7, 0.25))
+				slot_cost_labels[i].visible = true
+		elif cd_atual > 0.0 and cd_max > 0.0:
 			slot_progress_bars[i].value = (cd_atual / cd_max) * 100.0
 			slot_progress_bars[i].visible = true
+			slot_progress_bars[i].add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(HunterUIStyle.COLOR_GOLD))
 			if i < slot_cd_overlays.size(): slot_cd_overlays[i].visible = true
 			if i < slot_cd_labels.size():
 				slot_cd_labels[i].text = "%.1fs" % cd_atual
