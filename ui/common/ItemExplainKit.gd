@@ -11,13 +11,14 @@ extends RefCounted
 static func resolver_item(item_id: Variant) -> ItemData:
 	if item_id == null:
 		return null
-	if DataManager == null:
+	var dm = Engine.get_main_loop().root.get_node_or_null("DataManager") if Engine.get_main_loop() != null else null
+	if dm == null:
 		return null
-	var res: Resource = DataManager.get_item(StringName(str(item_id)))
+	var res: Resource = dm.get_item(StringName(str(item_id)))
 	if res is ItemData:
 		return res as ItemData
 	# Fallback: equipamento só no equipment_registry
-	res = DataManager.get_equipment(StringName(str(item_id)))
+	res = dm.get_equipment(StringName(str(item_id)))
 	if res is ItemData:
 		return res as ItemData
 	return null
