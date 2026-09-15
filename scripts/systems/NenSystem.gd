@@ -755,6 +755,17 @@ func ativar_tecnica(
 ) -> bool:
 
 	# --------------------------------------------------------
+	# Somente GYO / ZETSU / EN são técnicas ATIVAS (toggle).
+	# TEN, REN, SHU, KO, KEN, RYU permanecem passivas via
+	# PassiveNenController / Skill Tree / equipamento.
+	# --------------------------------------------------------
+	if tecnica != Tecnica.GYO and tecnica != Tecnica.ZETSU and tecnica != Tecnica.EN:
+		print("[NenSystem] Técnica %s é passiva — não pode ser ativada manualmente." % nome_tecnica(tecnica))
+		if EventBus != null:
+			EventBus.emit_toast("%s é passiva (Skill Tree / combate)." % nome_tecnica(tecnica), Color(0.75, 0.8, 0.95))
+		return false
+
+	# --------------------------------------------------------
 	# Precisa ter Nen despertado.
 	# Exceção: ZETSU instintivo (supressão de aura) pode ser usado
 	# em exploração antes do despertar formal.
@@ -810,6 +821,8 @@ func ativar_tecnica(
 				tecnicas[Tecnica.GYO]["ativo"] = false
 				tecnica_ativada.emit(Tecnica.ZETSU)
 				if EventBus != null: EventBus.nen_technique_activated.emit("ZETSU")
+				if AudioManager != null:
+					AudioManager.tocar_sfx_tipo("nen_zetsu", 0.95)
 			return ok
 	elif tecnica == Tecnica.EN:
 		if active_controller != null:
@@ -819,6 +832,8 @@ func ativar_tecnica(
 				tecnicas[Tecnica.ZETSU]["ativo"] = false
 				tecnica_ativada.emit(Tecnica.EN)
 				if EventBus != null: EventBus.nen_technique_activated.emit("EN")
+				if AudioManager != null:
+					AudioManager.tocar_sfx_tipo("nen_en", 0.95)
 			return ok
 	elif tecnica == Tecnica.GYO:
 		if active_controller != null:
@@ -828,24 +843,11 @@ func ativar_tecnica(
 				tecnicas[Tecnica.ZETSU]["ativo"] = false
 				tecnica_ativada.emit(Tecnica.GYO)
 				if EventBus != null: EventBus.nen_technique_activated.emit("GYO")
+				if AudioManager != null:
+					AudioManager.tocar_sfx_tipo("nen_gyo", 0.95)
 			return ok
 
-	tecnicas[tecnica]["ativo"] = true
-	tecnica_ativada.emit(tecnica)
-	var t_nome := nome_tecnica(tecnica)
-	if EventBus != null:
-		EventBus.nen_technique_activated.emit(t_nome)
-
-	if AudioManager != null:
-		var sfx_id := "nen_" + t_nome.to_lower()
-		AudioManager.tocar_sfx_tipo(sfx_id, 0.95)
-
-	print(
-		"NEN ATIVADO: ",
-		t_nome
-	)
-
-	return true
+	return false
 
 
 # ============================================================

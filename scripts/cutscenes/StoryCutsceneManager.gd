@@ -70,29 +70,28 @@ static func _mover_amigos_maratona(tree: SceneTree, gon: NPC, killua: NPC, leori
 static func executar_pantanal_hisoka(tree: SceneTree, satotz: NPC, hisoka: NPC, amigos: Array[NPC]) -> void:
 	if em_cutscene:
 		return
-		
+
 	em_cutscene = true
 	print("[Cutscene] Iniciando Sequência do Pantanal Numere & Hisoka...")
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
-	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
-		var falas: Array[Dictionary] = [
-			{"falante": "Examinador Satotz", "texto": "Parabéns aos que resistiram à maratona subterrânea. À nossa frente estende-se o Pantanal Numere — também conhecido como o 'Ninho dos Trapaceiros'."},
-			{"falante": "Examinador Satotz", "texto": "O nevoeiro é denso e traiçoeiro. Macacos comedores de homens e feras ilusórias usarão truques para devorar candidatos desatentos. Não se separem de mim sob hipótese alguma!"},
-			{"falante": "Hisoka", "texto": "♦ Hehe... Que interessante... No meio da névoa, ninguém vai ouvir os gritos dos fracos sendo purgados. Vamos ver quem é digno de continuar vivo... ♠"},
-			{"falante": "Kurapika", "texto": "A aura daquele homem... é assassina e monstruosa! Fiquem alertas, o perigo no pantanal não vem apenas das feras!"},
-			{"falante": "Killua Zoldyck", "texto": "Gon, vamos na frente! Ficar perto do Hisoka é pedir pra morrer antes da 2ª fase!"}
-		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			_dispersar_amigos_pantanal(tree, amigos)
-		, CONNECT_ONE_SHOT)
-	else:
-		if satotz != null and is_instance_valid(satotz):
-			satotz.falar_balao("Atenção no nevoeiro do Pantanal Numere! Não caiam em armadilhas!", 4.0, Color(0.6, 0.7, 0.9, 1.0))
-			await tree.create_timer(4.0).timeout
-			if is_instance_valid(satotz): satotz.fechar_balao_atual()
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "scariness"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "Parabéns aos que resistiram à maratona. À frente: o Pantanal Numere — o Ninho dos Trapaceiros."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "O nevoeiro é traiçoeiro. Não se separem de mim sob hipótese alguma!"},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_SHAKE, "intensity": 0.3, "duration": 0.25},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Hisoka", "text": "No meio da névoa, ninguém ouve os gritos dos fracos. Vamos ver quem é digno..."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Kurapika", "text": "A aura daquele homem é assassina. O perigo não vem só das feras!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Killua Zoldyck", "text": "Gon, vamos na frente! Ficar perto do Hisoka é pedir pra morrer."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_pantanal_hisoka", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.25},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	CutsceneSequenceRunner.executar(tree, passos, "Pantanal_Hisoka", func():
 		_dispersar_amigos_pantanal(tree, amigos)
+	)
 
 
 static func _dispersar_amigos_pantanal(tree: SceneTree, amigos: Array[NPC]) -> void:
@@ -118,22 +117,29 @@ static func executar_gourmet_menchi_buhara(tree: SceneTree) -> void:
 		return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
-	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
-		var falas: Array[Dictionary] = [
-			{"falante": "Examinador Buhara", "texto": "Bons candidatos! O meu menu para a 2ª Fase é carne assada de Great Stamp Pig!"},
-			{"falante": "Examinadora Menchi", "texto": "Cozinhar é a arte suprema de colocar a vida em risco para extrair o melhor sabor do mundo. Se a carne estiver mal preparada ou se demonstrarem covardia, todos serão reprovados!"},
-			{"falante": "Gon Freecss", "texto": "Eu e o Killua vamos caçar os javalis gigantes na floresta! Vamos nessa!"}
-		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			em_cutscene = false
-			var hud = tree.get_first_node_in_group("player_hud")
-			if hud and hud.has_method("exibir_notificacao"):
-				hud.exibir_notificacao("🐗 Cace o Grande Javali Selvagem (Great Stamp) na Floresta Biska!")
-		, CONNECT_ONE_SHOT)
-	else:
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.15, 1.15), "duration": 0.3},
+		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "the_world_of_adventurers"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Buhara", "text": "Bons candidatos! O meu menu para a 2ª Fase é carne assada de Great Stamp Pig!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinadora Menchi", "text": "Cozinhar é arte — e risco. Carne mal preparada ou covardia: todos reprovados!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss", "text": "Eu e o Killua vamos caçar os javalis gigantes na floresta! Vamos nessa!"},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_gourmet_menchi", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	CutsceneSequenceRunner.executar(tree, passos, "Gourmet_Menchi", func():
 		em_cutscene = false
+		var hud = tree.get_first_node_in_group("player_hud")
+		if hud and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🐗 Cace o Grande Javali Selvagem (Great Stamp) na Floresta Biska!")
+		# Recompensa de marco: chance de adaga se ainda não tem
+		if PlayerData != null and not PlayerData.tem_item(&"adaga_zaban"):
+			PlayerData.adicionar_item(&"adaga_zaban", 1)
+			if EventBus != null:
+				EventBus.emit_toast("🔪 Menchi deixou uma Adaga de Zaban na mesa!", Color(1.0, 0.85, 0.35))
+	)
 
 
 # ------------------------------------------------------------
@@ -144,37 +150,42 @@ static func executar_conclusao_exame_hunter(tree: SceneTree, callback_fim: Calla
 		return
 
 	em_cutscene = true
-	print("[Cutscene] 🏆 Conclusão da 1ª Fase do 287º Exame Hunter...")
+	print("[Cutscene] Conclusão da 1ª Fase do 287º Exame Hunter...")
 
 	if QuestSystem != null:
 		QuestSystem.register_npc_visit(&"satotz")
 
 	PlayerData.completar_etapa_historia(1)
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
-	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
-		var falas: Array[Dictionary] = [
-			{"falante": "Examinador Satotz", "texto": "Atenção a todos os candidatos sobreviventes! O nevoeiro do Pantanal Numere e as provações da Floresta Biska foram superadas!"},
-			{"falante": "Examinador Satotz", "texto": "Declaro oficialmente ENCERRADA a 1ª Fase do 287º Exame Hunter! Vocês provaram ter resistência física, técnica e determinação inabalável."},
-			{"falante": "Gon Freecss", "texto": "Nós conseguimos passar juntos! Mas... onde está o Killua? Ele me disse que precisava voltar para a sua casa antes da próxima fase..."},
-			{"falante": "Kurapika", "texto": "A família do Killua... os infames assassinos Zoldyck. A propriedade deles fica no pico da temida Montanha Kukuroo."},
-			{"falante": "Leorio Paradinight", "texto": "Não vamos deixar nosso amigo para trás! Vamos até a Montanha Kukuroo abrir aqueles portões gigantes e resgatar o Killua!"},
-			{"falante": "Examinador Satotz", "texto": "O caminho para a Montanha Kukuroo está aberto. Preparem-se... a verdadeira provação dos Caçadores está apenas começando!"}
-		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			em_cutscene = false
-			var hud = tree.get_first_node_in_group("player_hud")
-			if hud != null and hud.has_method("exibir_notificacao"):
-				hud.exibir_notificacao("🏆 1ª FASE CONCLUÍDA! Rumo à Montanha Kukuroo!")
-			if callback_fim.is_valid():
-				callback_fim.call()
-		, CONNECT_ONE_SHOT)
-	else:
-		await tree.create_timer(1.0).timeout
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "hashire"},
+		{"type": CutsceneSequenceRunner.StepType.EFFECT_FX, "effect": "flash"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "Candidatos sobreviventes! Pantanal Numere e Floresta Biska foram superados!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "Declaro ENCERRADA a 1ª Fase do 287º Exame Hunter. Resistência, técnica e determinação — comprovadas."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss", "text": "Passamos juntos! Mas... onde está o Killua? Ele disse que precisava voltar para casa..."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Kurapika", "text": "A família Zoldyck. A propriedade fica no pico da Montanha Kukuroo."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Leorio Paradinight", "text": "Não vamos deixar nosso amigo! Rumo a Kukuroo — abrimos aqueles portões!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "O caminho está aberto. A verdadeira provação dos Caçadores apenas começa."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_conclusao_exame", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.25},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	CutsceneSequenceRunner.executar(tree, passos, "Conclusao_Exame", func():
 		em_cutscene = false
+		var hud = tree.get_first_node_in_group("player_hud")
+		if hud != null and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🏆 1ª FASE CONCLUÍDA! Rumo à Montanha Kukuroo!")
+		# Licença parcial / gear de marco
+		if PlayerData != null and not PlayerData.tem_item(&"colete_cacador"):
+			PlayerData.adicionar_item(&"colete_cacador", 1)
+			if EventBus != null:
+				EventBus.emit_toast("🦺 Associação entregou: Colete de Caçador", Color(0.55, 0.95, 0.55))
 		if callback_fim.is_valid():
 			callback_fim.call()
+	)
 
 
 # ------------------------------------------------------------

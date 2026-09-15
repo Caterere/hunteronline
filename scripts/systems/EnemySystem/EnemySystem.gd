@@ -14,6 +14,7 @@ signal defesa_restaurada()
 
 const ComicBalloon = preload("res://scripts/ui/ComicBalloon.gd")
 const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd")
+const BiomeLootCatalogScript = preload("res://resource/item/BiomeLootCatalog.gd")
 
 
 # =========================================================
@@ -1097,6 +1098,11 @@ func _gerar_drop_loot() -> void:
 				elif PlayerData != null:
 					PlayerData.adicionar_item(StringName(item_id), qtd)
 					print("[EnemySystem] LOOT COLETADO: %s x%d" % [item_id, qtd])
+
+	# Drop raro por bioma (1 item característico)
+	if world_parent != null:
+		var bonus: float = 0.05 if (enemy_data != null and enemy_data.is_boss) else 0.0
+		BiomeLootCatalogScript.tentar_drop_raro(world_parent, drop_pos, "", bonus)
 
 
 

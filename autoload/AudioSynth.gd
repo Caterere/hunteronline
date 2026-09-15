@@ -46,6 +46,8 @@ static func obter_sfx(tipo: String, variante: int = 0) -> AudioStreamWAV:
 			stream = _gerar_sino_cristalino([740.0, 1110.0, 1480.0], 0.28)
 		"nen_zetsu":
 			stream = _gerar_silencio_zetsu(0.25)
+		"nen_en":
+			stream = _gerar_hum_aura(90.0, 0.35)
 		"hatsu_cast":
 			stream = _gerar_disparo_energia(320.0, 140.0, 0.25)
 		"level_up":

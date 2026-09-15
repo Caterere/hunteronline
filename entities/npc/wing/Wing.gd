@@ -46,8 +46,8 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns por realizar o Teste da Água! Sua Afinidade Natal é oficialmente comprovada como: " + afinidade_nome.to_upper() + "!"})
 		falas_wing.append({"falante": "Mestre Wing", "texto": afinidade_desc})
 		falas_wing.append({"falante": "Mestre Wing", "texto": "Abrirei suavemente seus nós de aura... Sinta a energia fluir sem escapar: você despertou o TEN (Envolver)!"})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Durante o combate, segure [Q] para Zetsu, Gyo e En — as únicas técnicas ativas. Ten, Ren, Shu, Ko, Ken e Ryu fluem como passivas."})
 		falas_wing.append({"falante": "Mestre Wing", "texto": "O Ten envolve seu corpo como um manto protetor, reduzindo drasticamente qualquer impacto recebido."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Durante o combate, segure [Q] para abrir a Barra de Ação Rápida de Nen e alternar suas posturas. Fale comigo de novo para treinar Ten de verdade."})
 		PlayerData.quest_states["wing_tutorial_progresso"] = 2
 		# Presente de mestre: amuleto + faixa para o loop de equipamento
 		if not PlayerData.tem_item(&"amuleto_forca"):
@@ -66,9 +66,9 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		return
 
 	elif arco_atual == 3 and etapa_atual == 12:
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Agora que domina o Ten, você deve aprender a expandir a aura explosivamente: o REN (Expandir)!"})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "O Ren multiplica seu poder destrutivo e intimida oponentes fracos, mas drena aura continuamente."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Pratique a transição rápida entre Ten e Ren em combate — e use o menu de treino comigo."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Ten e Ren agora fluem como passivas no seu corpo — não precisa ativá-los. Seu foco ativo é Zetsu, Gyo e En."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Gyo concentra a visão nos pontos de aura. En expande o radar. Zetsu silencia tudo. Use [Q] só para esses três."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Venha treinar comigo quando quiser reforçar a base de forma permanente."})
 		_exibir_falas(falas_wing, func(): _abrir_menu_treino())
 		return
 
@@ -181,8 +181,8 @@ func _fechar_menu() -> void:
 func _on_opcao_conversar() -> void:
 	_fechar_menu()
 	_exibir_falas([
-		{"falante": "Mestre Wing", "texto": "Continue praticando os 4 princípios fundamentais (Ten, Ren, Zetsu e Gyo). Segure [Q] em combate para alternar rapidamente entre eles."},
-		{"falante": "Mestre Wing", "texto": "Consulte a Árvore de Habilidades em [N] e equipe seus itens em [I]. Treino e equipamento complementam o Nen — nunca o substituem."},
+		{"falante": "Mestre Wing", "texto": "Ativas: Zetsu, Gyo e En — segure [Q]. Ten, Ren, Shu, Ko, Ken e Ryu são passivas (Árvore [N] e combate)."},
+		{"falante": "Mestre Wing", "texto": "Equipe uma arma em [I] para o Shu revestir a lâmina. Treine comigo para ganhos permanentes."},
 	])
 
 

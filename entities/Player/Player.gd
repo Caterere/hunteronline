@@ -83,6 +83,7 @@ func _ready() -> void:
 	add_to_group("player")
 	_aplicar_customizacao_visual()
 	_garantir_indicador_desmaio()
+	_garantir_shu_weapon_aura()
 
 	# Restaurar posição salva se estiver carregando save ou posicionar no SpawnPoint
 	if PlayerData.posicao_salva != Vector2.ZERO:
@@ -92,6 +93,17 @@ func _ready() -> void:
 		var wpm = get_node_or_null("/root/WorldProgressionManager")
 		if wpm != null and wpm.has_method("posicionar_player_no_spawn"):
 			wpm.call_deferred("posicionar_player_no_spawn", self)
+
+
+func _garantir_shu_weapon_aura() -> void:
+	if get_node_or_null("ShuWeaponAura") != null:
+		return
+	var script_ref = load("res://entities/effects/ShuWeaponAura.gd")
+	if script_ref == null:
+		return
+	var aura = script_ref.new()
+	aura.name = "ShuWeaponAura"
+	add_child(aura)
 
 
 func _on_camera_shake_requested(intensity: float, _duration: float) -> void:
