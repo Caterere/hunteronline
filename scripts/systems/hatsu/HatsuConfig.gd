@@ -82,10 +82,71 @@ const MASTERY_XP_PER_DAMAGE: float = 0.02
 # Ganho base de XP ao atingir com sucesso uma habilidade de utilidade/suporte/cura.
 const MASTERY_XP_PER_HIT_BASE: float = 5.0
 
+# --- 6b. MASTERY POR USO CONTEXTUAL (inimigo / aliado / si / vazio) ---
+# Uma barra só; a fonte muda o quanto rende. Uso vazio quase não treina (anti-spam).
+enum MasteryUseTarget {
+	INIMIGO,
+	ALIADO,
+	SELF,
+	VAZIO,
+}
+
+const MASTERY_XP_USE_INIMIGO: float = 8.0
+const MASTERY_XP_USE_ALIADO: float = 10.0
+const MASTERY_XP_USE_SELF: float = 7.0
+const MASTERY_XP_USE_VAZIO: float = 1.5
+
+# Bônus por qualidade do uso
+const MASTERY_XP_HEAL_PER_POINT: float = 0.04      # cura efetiva
+const MASTERY_XP_CHARGE_BONUS_MAX: float = 4.0     # soltar feel com barra cheia
+const MASTERY_XP_LOW_HP_SELF_BONUS: float = 3.0    # self sob pressão (HP < 35%)
+const MASTERY_XP_IN_COMBAT_SUPPORT: float = 2.0    # suporte/cura durante combate
+
+# Anti-spam: intervalo mínimo entre grants do mesmo Hatsu (segundos)
+const MASTERY_USE_GRANT_COOLDOWN: float = 0.35
+# Cap de grants VAZIO por cast (sempre 1)
+const MASTERY_VAZIO_MAX_PER_CAST: int = 1
+
 # Multiplicadores de tipo de inimigo:
 const MOB_XP_MULT_NORMAL: float = 1.0
 const MOB_XP_MULT_ELITE: float = 1.5
 const MOB_XP_MULT_BOSS: float = 2.5
+
+
+static func mastery_xp_base_for_target(alvo: int) -> float:
+	match alvo:
+		MasteryUseTarget.INIMIGO: return MASTERY_XP_USE_INIMIGO
+		MasteryUseTarget.ALIADO: return MASTERY_XP_USE_ALIADO
+		MasteryUseTarget.SELF: return MASTERY_XP_USE_SELF
+		MasteryUseTarget.VAZIO: return MASTERY_XP_USE_VAZIO
+	return MASTERY_XP_USE_VAZIO
+
+
+static func mastery_use_target_label(alvo: int) -> String:
+	match alvo:
+		MasteryUseTarget.INIMIGO: return "inimigo"
+		MasteryUseTarget.ALIADO: return "aliado"
+		MasteryUseTarget.SELF: return "si próprio"
+		MasteryUseTarget.VAZIO: return "uso vazio"
+	return "uso"
+
+
+static func preferred_mastery_target_for_objetivo(objetivo: int) -> int:
+	## Qual contexto treina melhor este Hatsu (dica de UI).
+	match objetivo:
+		0: # DANO
+			return MasteryUseTarget.INIMIGO
+		1: # DEFESA
+			return MasteryUseTarget.SELF
+		2: # CURA
+			return MasteryUseTarget.ALIADO
+		3: # MOBILIDADE
+			return MasteryUseTarget.SELF
+		4: # CONTROLE
+			return MasteryUseTarget.INIMIGO
+		5: # SUPORTE
+			return MasteryUseTarget.ALIADO
+	return MasteryUseTarget.SELF
 
 # Diferença máxima de nível permitida sem penalidade.
 const SAFE_LEVEL_DELTA: int = 10

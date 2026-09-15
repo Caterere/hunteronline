@@ -58,6 +58,7 @@ static func _compor(hatsu: HatsuData) -> String:
 		partes.append("Habilidade sustentada: ative e desative no mesmo slot.")
 
 	partes.append(hatsu.obter_texto_evolucao_maestria())
+	partes.append(hatsu.obter_dica_treino_maestria())
 
 	match hatsu.categoria:
 		HatsuData.Categoria.INTENSIFICACAO:
@@ -114,7 +115,13 @@ static func artigos_guia() -> Dictionary:
 			"titulo": "Evolução do mesmo Hatsu",
 			"categoria": "Hatsu",
 			"icone": "◆",
-			"conteudo": "Seu Hatsu sobe em 6 ranks claros (M0→20→40→60→80→100). Rank 4 (Domínio/M60) já é combate sério; 80–100 é ápice opcional. No inspetor [H] veja o próximo desbloqueio e quantos pontos faltam — sem grind cego.",
+			"conteudo": "O Hatsu sobe com XP de uso contextual: inimigo (dano/controle), aliado (cura/buff), si próprio (defesa/dash) ou uso vazio (quase nada). 6 ranks (M0→100). Rank 4 (M60) já é combate sério; 100 é ápice opcional. No [H] veja o próximo unlock e como treinar.",
+		},
+		"hatsu_treino_contextual": {
+			"titulo": "Treino Contextual de Hatsu",
+			"categoria": "Hatsu",
+			"icone": "🎯",
+			"conteudo": "Não farm no ar: acerte o tipo certo de alvo. Dano→inimigos; cura/suporte→aliados (ou si); defesa/mobilidade→si sob pressão. Elite/boss e charge cheia dão bônus. Spam vazio quase não masteriza.",
 		},
 		"hatsu_slots_equip": {
 			"titulo": "Slots e Archive",

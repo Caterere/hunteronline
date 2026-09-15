@@ -59,3 +59,16 @@ Maestria em **6 ranks** com meta curta e legível no inspetor `[H]`:
 - Toast grande só em **rank up**; entre marcos o float mostra “faltam N”
 - Curva de XP mais rápida no início; 81–100 é prestígio, não obrigação
 
+### 3.4 Treino contextual (XP de Hatsu)
+Uma barra só (`mastery_xp`). O ganho depende do **uso real**:
+
+| Alvo | Quando | Rendimento |
+|------|--------|------------|
+| Inimigo | hit / controle | base + dano + elite/boss |
+| Aliado | cura / buff em party | base alta + cura |
+| Si próprio | defesa / dash / buff self | base média (+ HP baixo) |
+| Vazio | miss / spam no ar | quase nada |
+
+Afinidade de objetivo: treinar no alvo “certo” do Hatsu rende +25%; alvo errado −35%.
+API: `HatsuProgressionManager.conceder_mastery_por_uso(id, {alvo, dano, cura, ...})`.
+

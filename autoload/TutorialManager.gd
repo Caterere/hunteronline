@@ -289,7 +289,13 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"titulo": "Evolução do mesmo Hatsu",
 		"categoria": "Hatsu",
 		"icone": "◆",
-		"conteudo": "6 ranks: Despertar→Prática→Afiação→Domínio→Virtuose→★ Mestre (M0/20/40/60/80/100). Cada marco desbloqueia conjuração mais rápida, menos aura e mais alcance. Rank 4 (M60) já basta pra caça séria; 100 é prestígio, não obrigação. Veja o próximo unlock no inspetor [H]."
+		"conteudo": "6 ranks (M20/40/60/80/100). XP vem de usos reais: inimigo, aliado ou si — não de spam no ar. Rank 4 (M60) = combate sério; ★ Mestre é opcional. No [H] veja o próximo unlock e a dica de treino."
+	},
+	"hatsu_treino_contextual": {
+		"titulo": "Treino Contextual",
+		"categoria": "Hatsu",
+		"icone": "🎯",
+		"conteudo": "Dano treina em inimigos; cura/buff em aliados; defesa/dash em si. Uso vazio quase não sobe. Elite/boss e canalização cheia dão bônus."
 	},
 	"hatsu_slots_equip": {
 		"titulo": "Slots e Archive",
@@ -703,6 +709,7 @@ func disparar_tutorial_contextual(tipo: String) -> void:
 		"hatsu_feel_por_tipo": "hatsu_feel_por_tipo",
 		"hatsu_evolucao": "hatsu_evolucao_maestria",
 		"hatsu_mastery": "hatsu_evolucao_maestria",
+		"hatsu_treino": "hatsu_treino_contextual",
 		"hatsu_explicacao": "hatsu_conceito",
 	}
 	if once_map.has(tipo_clean) and PlayerData != null and PlayerData.tem_conhecimento(String(once_map[tipo_clean])):
@@ -759,8 +766,12 @@ func disparar_tutorial_contextual(tipo: String) -> void:
 			PlayerData.desbloquear_conhecimento("hatsu_feel_por_tipo")
 		"hatsu_evolucao", "hatsu_mastery":
 			titulo = "◆ EVOLUÇÃO DO HATSU"
-			msg = "O mesmo Hatsu sobe em 6 ranks (M20/40/60/80/100). Rank 4 = combate sério; ★ Mestre é ápice opcional. No [H] veja o próximo desbloqueio e quantos pontos faltam."
+			msg = "O mesmo Hatsu sobe em 6 ranks com XP de uso real (inimigo/aliado/si). Rank 4 = combate sério; ★ Mestre é opcional. No [H] veja o próximo desbloqueio e como treinar."
 			PlayerData.desbloquear_conhecimento("hatsu_evolucao_maestria")
+		"hatsu_treino":
+			titulo = "🎯 TREINO CONTEXTUAL"
+			msg = "Não farm no ar: dano→inimigos, cura→aliados, defesa/dash→si. Elite/boss e charge cheia rendem mais."
+			PlayerData.desbloquear_conhecimento("hatsu_treino_contextual")
 		"hatsu_explicacao":
 			titulo = "📖 EXPLICAÇÃO DO HATSU"
 			msg = "Todo Hatsu que você cria ou equipa ganha uma explicação: tipo, forma, votos e como canalizar. Consulte no menu [H]."

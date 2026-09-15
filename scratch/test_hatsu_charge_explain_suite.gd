@@ -18,6 +18,7 @@ func _run_suite() -> void:
 	_check_feel_modes()
 	_check_charge_math()
 	_check_mastery_roadmap()
+	_check_mastery_use_context()
 	_check_factory()
 	_check_wiring()
 	_check_tutorials()
@@ -163,6 +164,46 @@ func _check_mastery_roadmap() -> void:
 	_assert("obter_roadmap_maestria_linhas" in eq, "equip mostra roadmap")
 	var tm := _read("res://autoload/TutorialManager.gd")
 	_assert("hatsu_evolucao_maestria" in tm, "tutorial evolucao")
+
+
+
+func _check_mastery_use_context() -> void:
+	print("-- Mastery use context --")
+	var h := HatsuData.new()
+	h.nome = "Ko Context"
+	h.categoria = HatsuData.Categoria.INTENSIFICACAO
+	h.objetivo = HatsuData.ObjetivoPrincipal.DANO
+	h.mastery = 0.0
+	_assert(h.obter_alvo_treino_preferido() == HatsuConfig.MasteryUseTarget.INIMIGO, "dano prefere inimigo")
+	_assert("inimigo" in h.obter_dica_treino_maestria().to_lower(), "dica menciona inimigo")
+
+	h.objetivo = HatsuData.ObjetivoPrincipal.CURA
+	_assert(h.obter_alvo_treino_preferido() == HatsuConfig.MasteryUseTarget.ALIADO, "cura prefere aliado")
+
+	h.objetivo = HatsuData.ObjetivoPrincipal.DEFESA
+	_assert(h.obter_alvo_treino_preferido() == HatsuConfig.MasteryUseTarget.SELF, "defesa prefere self")
+
+	# XP base: vazio << inimigo/aliado
+	_assert(HatsuConfig.mastery_xp_base_for_target(HatsuConfig.MasteryUseTarget.VAZIO) < HatsuConfig.mastery_xp_base_for_target(HatsuConfig.MasteryUseTarget.INIMIGO), "vazio < inimigo")
+	_assert(HatsuConfig.mastery_xp_base_for_target(HatsuConfig.MasteryUseTarget.ALIADO) >= HatsuConfig.mastery_xp_base_for_target(HatsuConfig.MasteryUseTarget.SELF), "aliado >= self")
+
+	# Wiring
+	var pm := _read("res://autoload/HatsuProgressionManager.gd")
+	_assert("conceder_mastery_por_uso" in pm, "API por uso")
+	_assert("MasteryUseTarget" in pm, "enum alvo no manager")
+	var sys := _read("res://scripts/systems/HatsuSystem.gd")
+	_assert("_conceder_mastery_uso" in sys, "system concede uso")
+	_assert("_finalizar_mastery_do_cast" in sys, "finalize cast mastery")
+	_assert("MasteryUseTarget.VAZIO" in sys, "miss = vazio")
+	_assert("MasteryUseTarget.INIMIGO" in sys, "hit = inimigo")
+	_assert("MasteryUseTarget.SELF" in sys, "cura/defesa = self")
+	var eq := _read("res://ui/Hatsu/HatsuEquipUI.gd")
+	_assert("obter_dica_treino_maestria" in eq, "equip dica treino")
+	var tm := _read("res://autoload/TutorialManager.gd")
+	_assert("hatsu_treino_contextual" in tm, "tutorial treino")
+	var kit := _read("res://scripts/systems/hatsu/HatsuExplainKit.gd")
+	_assert("hatsu_treino_contextual" in kit, "explain treino")
+	_assert("obter_dica_treino_maestria" in kit, "explain inclui dica")
 
 
 func _check_factory() -> void:

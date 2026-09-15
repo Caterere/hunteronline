@@ -59,6 +59,11 @@ var charge_eficiencia: float = 1.0
 var charge_pending_cd: float = 0.0
 var charge_aim_dir: Vector2 = Vector2.ZERO
 
+# Mastery por uso no cast atual
+var _cast_mastery_grants: int = 0
+var _cast_mastery_hatsu_id: String = ""
+var _cast_charge_pct: float = 0.0
+
 # Habilidades Sustentadas e Transformações Ativas
 var active_sustained_hatsus: Array[Dictionary] = [] # [{"slot": int, "hatsu": HatsuData, "timer": float, "is_active": bool}]
 
@@ -618,11 +623,13 @@ func _liberar_carga_hatsu(cancelar: bool = false) -> void:
 			"%s · %s %d%%" % [cat_name, hatsu.obter_rotulo_feel(), int(pct * 100.0)],
 			cat_color
 		)
+	_iniciar_mastery_do_cast(hatsu, pct)
 	_executar_feel_canalizado(hatsu, efic, pct, mult)
 	if combat_system != null:
 		var cor := Color(1.0, 0.55, 0.2) if pct >= 0.95 else Color(0.85, 0.9, 1.0)
 		var tag := hatsu.obter_rotulo_feel()
 		combat_system._mostrar_texto_flutuante("💥 %s %s x%.2f" % [hatsu.nome, tag, mult], cor)
+	_finalizar_mastery_do_cast(hatsu)
 	hatsu_executado.emit(slot, hatsu)
 
 
@@ -807,6 +814,7 @@ func usar_hatsu(slot_index: int) -> bool:
 			HatsuSignatureKit.play(kind, owner_body, owner_body.get_parent(), hatsu.nome)
 
 	# Executar habilidade por Objetivo & Categoria
+	_iniciar_mastery_do_cast(hatsu, 0.0)
 	_executar_por_objetivo(hatsu, eficiencia)
 
 	# Balão de fala estilo quadrinho
@@ -830,36 +838,8 @@ func usar_hatsu(slot_index: int) -> bool:
 
 	hatsu_executado.emit(slot_index, hatsu)
 	registrar_acao_combo("hatsu")
-	if hatsu.objetivo != HatsuData.ObjetivoPrincipal.DANO:
-		if HatsuProgressionManager != null:
-			var m_res = HatsuProgressionManager.conceder_mastery_xp(hatsu.hatsu_id, 0, {"level": PlayerData.attributes.get("nivel", 1) if PlayerData != null else 1})
-			if combat_system != null:
-				if m_res.get("mastered", false):
-					combat_system._mostrar_texto_flutuante("★ %s MASTERED!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
-				elif m_res.get("rank_subiu", false):
-					combat_system._mostrar_texto_flutuante(
-						"◆ %s RANK %d · %s" % [hatsu.nome.to_upper(), int(m_res.get("rank_novo", 1)), hatsu.obter_nome_rank_maestria()],
-						Color(1.0, 0.75, 0.25)
-					)
-				elif m_res.get("subiu_nivel", false):
-					var marco: Dictionary = m_res.get("proximo_marco", {})
-					combat_system._mostrar_texto_flutuante(
-						"⭐ %s M%d → %s (%d)" % [
-							hatsu.nome.to_upper(),
-							int(hatsu.mastery),
-							str(marco.get("titulo", "")),
-							int(marco.get("faltam", 0))
-						],
-						Color(0.85, 0.9, 1.0)
-					)
-	else:
-		var before_rank := hatsu.obter_rank_maestria()
-		var m_hit := hatsu.adicionar_mastery_xp(1.0)
-		if combat_system != null and m_hit.get("rank_subiu", false):
-			combat_system._mostrar_texto_flutuante(
-				"◆ %s RANK %d!" % [hatsu.nome.to_upper(), int(m_hit.get("rank_novo", before_rank))],
-				Color(1.0, 0.75, 0.25)
-			)
+	_finalizar_mastery_do_cast(hatsu)
+
 
 	print("=================================")
 	print("[HatsuSystem] Executou com sucesso: ", hatsu.nome, " (Lv. ", hatsu.nivel_evolucao_hatsu, ")")
@@ -1047,6 +1027,7 @@ func _executar_buff_corporal(hatsu: HatsuData, eficiencia: float) -> void:
 	PlayerData.adicionar_modificador(mod_d)
 	if combat_system != null:
 		combat_system._mostrar_texto_flutuante("🐱 +%.0f FORÇA / +%.0f DEF (%.0fs)" % [forca_bonus, def_bonus, dur], Color(1.0, 0.3, 0.4))
+	_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.SELF, {"low_hp": _hp_fracao_jogador() < 0.35})
 	print("[Hatsu Buff Corporal] +%.1f forca / +%.1f defesa por %.1fs" % [forca_bonus, def_bonus, dur])
 
 
@@ -1112,20 +1093,101 @@ func _aplicar_dano_toque_imediato(hatsu: HatsuData, dano_val: int, dir_atk: Vect
 					_processar_hit_mastery(hatsu, dano_val, enemy_sys)
 
 
+func _iniciar_mastery_do_cast(hatsu: HatsuData, charge_pct: float = 0.0) -> void:
+	_cast_mastery_grants = 0
+	_cast_mastery_hatsu_id = hatsu.hatsu_id if hatsu != null else ""
+	_cast_charge_pct = clampf(charge_pct, 0.0, 1.0)
+
+
+func _em_combate_agora() -> bool:
+	if combat_system != null and ("em_combate" in combat_system):
+		return bool(combat_system.em_combate)
+	if owner_body != null and owner_body.get_tree() != null:
+		for e in owner_body.get_tree().get_nodes_in_group("enemy"):
+			if e is Node2D and is_instance_valid(e) and owner_body.global_position.distance_to(e.global_position) < 420.0:
+				return true
+	return false
+
+
+func _hp_fracao_jogador() -> float:
+	if PlayerData == null:
+		return 1.0
+	var hp := float(PlayerData.attributes.get("vida", 100))
+	var hp_max := maxf(1.0, float(PlayerData.attributes.get("vida_max", 100)))
+	return hp / hp_max
+
+
+func _mostrar_feedback_mastery(hatsu: HatsuData, m_res: Dictionary) -> void:
+	if combat_system == null or hatsu == null:
+		return
+	if m_res.get("mastered", false):
+		combat_system._mostrar_texto_flutuante("★ %s MASTERED!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
+	elif m_res.get("rank_subiu", false):
+		combat_system._mostrar_texto_flutuante(
+			"◆ %s RANK %d · %s" % [hatsu.nome.to_upper(), int(m_res.get("rank_novo", 1)), hatsu.obter_nome_rank_maestria()],
+			Color(1.0, 0.75, 0.25)
+		)
+	elif m_res.get("subiu_nivel", false):
+		var marco: Dictionary = m_res.get("proximo_marco", {})
+		var via := str(m_res.get("alvo_label", ""))
+		combat_system._mostrar_texto_flutuante(
+			"⭐ %s M%d · %s (%d)%s" % [
+				hatsu.nome.to_upper(),
+				int(hatsu.mastery),
+				str(marco.get("titulo", "")),
+				int(marco.get("faltam", 0)),
+				(" · " + via) if not via.is_empty() else ""
+			],
+			Color(0.85, 0.9, 1.0)
+		)
+
+
+func _conceder_mastery_uso(hatsu: HatsuData, alvo: int, extras: Dictionary = {}) -> Dictionary:
+	if HatsuProgressionManager == null or hatsu == null:
+		return {}
+	var ctx := extras.duplicate()
+	ctx["alvo"] = alvo
+	if not ctx.has("charge_pct"):
+		ctx["charge_pct"] = _cast_charge_pct
+	if not ctx.has("in_combat"):
+		ctx["in_combat"] = _em_combate_agora()
+	var res: Dictionary = HatsuProgressionManager.conceder_mastery_por_uso(hatsu.hatsu_id, ctx)
+	if float(res.get("gained_xp", 0.0)) > 0.0:
+		_cast_mastery_grants += 1
+		_mostrar_feedback_mastery(hatsu, res)
+	return res
+
+
+func _finalizar_mastery_do_cast(hatsu: HatsuData) -> void:
+	if hatsu == null or HatsuProgressionManager == null:
+		return
+	if _cast_mastery_grants > 0:
+		return
+	match hatsu.objetivo:
+		HatsuData.ObjetivoPrincipal.CURA, HatsuData.ObjetivoPrincipal.SUPORTE:
+			_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.SELF, {
+				"low_hp": _hp_fracao_jogador() < 0.35,
+			})
+		HatsuData.ObjetivoPrincipal.DEFESA, HatsuData.ObjetivoPrincipal.MOBILIDADE:
+			_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.SELF, {
+				"low_hp": _hp_fracao_jogador() < 0.35,
+			})
+		HatsuData.ObjetivoPrincipal.DANO, HatsuData.ObjetivoPrincipal.CONTROLE:
+			_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.VAZIO, {"ignore_cooldown": true})
+		_:
+			_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.VAZIO, {"ignore_cooldown": true})
+
+
 func _processar_hit_mastery(hatsu: HatsuData, dano_val: int, enemy_sys: Node) -> void:
-	if HatsuProgressionManager == null or hatsu == null or enemy_sys == null:
+	if hatsu == null or enemy_sys == null:
 		return
 	var ctx: Dictionary = {
 		"level": enemy_sys.enemy_data.level if "enemy_data" in enemy_sys and enemy_sys.enemy_data != null else 1,
 		"is_boss": enemy_sys.is_boss if "is_boss" in enemy_sys else false,
-		"is_elite": enemy_sys.enemy_data.is_elite if "enemy_data" in enemy_sys and enemy_sys.enemy_data != null and "is_elite" in enemy_sys.enemy_data else false
+		"is_elite": enemy_sys.enemy_data.is_elite if "enemy_data" in enemy_sys and enemy_sys.enemy_data != null and "is_elite" in enemy_sys.enemy_data else false,
+		"dano": dano_val,
 	}
-	var res := HatsuProgressionManager.conceder_mastery_xp(hatsu.hatsu_id, dano_val, ctx)
-	if res.get("subiu_nivel", false) and combat_system != null:
-		if res.get("mastered", false):
-			combat_system._mostrar_texto_flutuante("★ %s MASTERED (100)!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
-		else:
-			combat_system._mostrar_texto_flutuante("⭐ %s MASTERY %d!" % [hatsu.nome.to_upper(), int(hatsu.mastery)], Color(1.0, 0.85, 0.3))
+	_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.INIMIGO, ctx)
 
 
 func _executar_arsenal_roleta(hatsu: HatsuData, eficiencia: float) -> void:
@@ -1499,6 +1561,10 @@ func _executar_cura(hatsu: HatsuData, eficiencia: float) -> void:
 	if combat_system != null:
 		var label := "💉 DOCTOR +%d HP" % valor_cura if is_doctor else "❤️ +%d HP" % valor_cura
 		combat_system._mostrar_texto_flutuante(label, Color(0.2, 1.0, 0.4))
+	_conceder_mastery_uso(hatsu, HatsuConfig.MasteryUseTarget.SELF, {
+		"cura": valor_cura,
+		"low_hp": _hp_fracao_jogador() < 0.35,
+	})
 	print("[Hatsu Cura] Regenerou +", valor_cura, " HP! Total: ", PlayerData.attributes["vida"], "/", hp_max)
 
 
@@ -1567,6 +1633,7 @@ func _executar_controle(hatsu: HatsuData, eficiencia: float) -> void:
 				var dano_hatsu: int = int(_calcular_dano_hatsu(hatsu, eficiencia, enemy) * 0.5)
 				var dir: Vector2 = (enemy.global_position - owner_body.global_position).normalized()
 				enemy_sys.take_damage(dano_hatsu, dir, 220.0, owner_body)
+				_processar_hit_mastery(hatsu, dano_hatsu, enemy_sys)
 				if enemy_sys.has_method("aplicar_stun"):
 					enemy_sys.aplicar_stun(stun_t)
 				elif "stun_timer" in enemy_sys:
@@ -1726,6 +1793,7 @@ func _criar_golpe_remoto_emissao(hatsu: HatsuData, eficiencia: float) -> void:
 		var enemy_sys = alvo_proximo.get_node_or_null("EnemySystem")
 		if enemy_sys != null:
 			enemy_sys.take_damage(dano, dir, 250.0, owner_body)
+			_processar_hit_mastery(hatsu, dano, enemy_sys)
 			print("[Soco Remoto] Impacto sob ", alvo_proximo.name, " Dano: ", dano)
 
 
@@ -1775,6 +1843,7 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 			if enemy_sys != null:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
 				enemy_sys.take_damage(dano_hatsu, direcao, 120.0, owner_body)
+				_processar_hit_mastery(hatsu, dano_hatsu, enemy_sys)
 				if is_instance_valid(area):
 					HatsuVisual.spawn_impact_effect(area.global_position, vp, owner_body.get_parent())
 					area.queue_free()
@@ -1826,6 +1895,7 @@ func _criar_explosao_area(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
 				var dir: Vector2 = (enemy.global_position - owner_body.global_position).normalized()
 				enemy_sys.take_damage(dano_hatsu, dir, 150.0, owner_body)
+				_processar_hit_mastery(hatsu, dano_hatsu, enemy_sys)
 	)
 
 	var timer := owner_body.get_tree().create_timer(0.2)

@@ -1161,6 +1161,42 @@ func obter_texto_evolucao_maestria() -> String:
 	return " ".join(partes)
 
 
+# Última fonte de treino (UI) — preenchida pelo ProgressionManager
+var ultima_fonte_treino_alvo: int = -1
+var ultima_fonte_treino_xp: float = 0.0
+
+
+func registrar_fonte_treino(alvo: int, xp: float) -> void:
+	ultima_fonte_treino_alvo = alvo
+	ultima_fonte_treino_xp = xp
+
+
+func obter_alvo_treino_preferido() -> int:
+	return HatsuConfig.preferred_mastery_target_for_objetivo(int(objetivo))
+
+
+func obter_dica_treino_maestria() -> String:
+	## Como masterizar ESTE Hatsu sem grind cego.
+	match obter_alvo_treino_preferido():
+		HatsuConfig.MasteryUseTarget.INIMIGO:
+			return "Treino: acerte inimigos (elite/boss rendem mais). Uso no ar quase não sobe."
+		HatsuConfig.MasteryUseTarget.ALIADO:
+			return "Treino: cure/buffe aliados em combate. Em si mesmo também conta, com menos bônus."
+		HatsuConfig.MasteryUseTarget.SELF:
+			return "Treino: use em si sob pressão (defesa/dash/buff). Spam fora de combate rende pouco."
+		_:
+			return "Treino: usos relevantes no contexto certo sobem a maestria."
+
+
+func obter_texto_ultima_fonte_treino() -> String:
+	if ultima_fonte_treino_alvo < 0:
+		return "Ainda não treinou este Hatsu em combate."
+	return "Último treino: %s (+%.1f XP)" % [
+		HatsuConfig.mastery_use_target_label(ultima_fonte_treino_alvo),
+		ultima_fonte_treino_xp
+	]
+
+
 func obter_fator_tempo_conjuracao_mastery() -> float:
 	match obter_rank_maestria():
 		1: return 1.00 # Custo base 100%, tempo base 100%

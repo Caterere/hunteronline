@@ -457,6 +457,15 @@ func _atualizar_inspetor() -> void:
 	lbl_dica.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vb.add_child(lbl_dica)
 
+	var lbl_treino := Label.new()
+	lbl_treino.text = h.obter_dica_treino_maestria() + "\n" + h.obter_texto_ultima_fonte_treino()
+	lbl_treino.add_theme_font_size_override("font_size", 3)
+	lbl_treino.add_theme_color_override("font_color", Color(0.95, 0.82, 0.45))
+	lbl_treino.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_treino)
+	if TutorialManager != null:
+		TutorialManager.disparar_tutorial_contextual("hatsu_treino")
+
 	# Roadmap compacto dos 6 ranks
 	var lbl_road := Label.new()
 	lbl_road.text = "\n".join(h.obter_roadmap_maestria_linhas())
@@ -479,6 +488,7 @@ func _atualizar_inspetor() -> void:
 
 	if TutorialManager != null:
 		TutorialManager.disparar_tutorial_contextual("hatsu_evolucao")
+		TutorialManager.disparar_tutorial_contextual("hatsu_treino")
 
 	# Botões de Equipar no Slot 1..4
 	var hb_eq := HBoxContainer.new()
