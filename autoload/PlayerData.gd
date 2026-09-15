@@ -1,6 +1,7 @@
 extends Node
 
 const AuraVisualProfile = preload("res://resource/hatsu/AuraVisualProfile.gd")
+const EquipmentCatalogScript = preload("res://resource/item/EquipmentCatalog.gd")
 
 # ============================================================
 # HUNTER ONLINE - PLAYER DATA
@@ -264,6 +265,17 @@ func gerar_novo_character_id() -> String:
 var inventory: Dictionary = {}
 var tecnicas_nen: Dictionary = {}
 
+## Slots canônicos: cabeca, corpo, mao_princ, mao_sec, acessorio, licenca
+## Valor: item_id (String) ou "" se vazio.
+var equipped: Dictionary = {
+	"cabeca": "",
+	"corpo": "",
+	"mao_princ": "",
+	"mao_sec": "",
+	"acessorio": "",
+	"licenca": "",
+}
+
 
 # ============================================================
 # PROGRESSÃO DE HISTÓRIA / LORE
@@ -397,6 +409,14 @@ func reset() -> void:
 	absorbed_stats_registry.clear()
 	hatsu_fragments_discovered.clear()
 	active_modifiers.clear()
+	equipped = {
+		"cabeca": "",
+		"corpo": "",
+		"mao_princ": "",
+		"mao_sec": "",
+		"acessorio": "",
+		"licenca": "",
+	}
 	aura_visual_profile = AuraVisualProfile.new()
 	attributes = {
 		"vida": 100,
@@ -975,6 +995,109 @@ func tem_item(
 ) -> bool:
 
 	return obter_item_quantidade(item_id) >= quantidade
+
+
+# ============================================================
+# EQUIPAMENTO (SLOTS + STATMODIFIER)
+# ============================================================
+
+func obter_equipado(slot: String) -> String:
+	return str(equipped.get(slot, ""))
+
+
+func esta_equipado(item_id: String) -> bool:
+	for slot in equipped.keys():
+		if str(equipped[slot]) == item_id:
+			return true
+	return false
+
+
+func equipar_item(item_id: String) -> Dictionary:
+	if item_id.is_empty():
+		return {"sucesso": false, "mensagem": "Item inválido."}
+	if not EquipmentCatalogScript.eh_equipamento(item_id):
+		return {"sucesso": false, "mensagem": "Este item não é um equipamento."}
+	if not tem_item(StringName(item_id), 1) and not esta_equipado(item_id):
+		return {"sucesso": false, "mensagem": "Você não possui este item."}
+
+	var slot: String = String(EquipmentCatalogScript.obter_slot(item_id))
+	if slot.is_empty() or not equipped.has(slot):
+		return {"sucesso": false, "mensagem": "Slot de equipamento desconhecido."}
+
+	var atual: String = str(equipped.get(slot, ""))
+	if atual == item_id:
+		return {"sucesso": true, "mensagem": "Já equipado.", "slot": slot}
+
+	# Devolve o anterior ao inventário (já está lá se veio de craft; só limpa slot)
+	if not atual.is_empty():
+		_remover_mods_equipamento(atual)
+
+	equipped[slot] = item_id
+	_aplicar_mods_equipamento(item_id)
+
+	var nome: String = EquipmentCatalogScript.obter_nome(item_id)
+	var msg: String = "Equipou %s [%s]" % [nome, slot]
+	print("[PlayerData] ", msg)
+	if EventBus != null:
+		EventBus.emit_toast("⚔️ %s" % msg, Color(0.55, 0.9, 1.0))
+	atributos_recalculados.emit()
+	return {"sucesso": true, "mensagem": msg, "slot": slot, "nome": nome}
+
+
+func desequipar_slot(slot: String) -> Dictionary:
+	if not equipped.has(slot):
+		return {"sucesso": false, "mensagem": "Slot inválido."}
+	var item_id: String = str(equipped.get(slot, ""))
+	if item_id.is_empty():
+		return {"sucesso": false, "mensagem": "Slot vazio."}
+	_remover_mods_equipamento(item_id)
+	equipped[slot] = ""
+	var nome: String = EquipmentCatalogScript.obter_nome(item_id)
+	if EventBus != null:
+		EventBus.emit_toast("Desequipou %s" % nome, Color(0.7, 0.75, 0.85))
+	atributos_recalculados.emit()
+	return {"sucesso": true, "mensagem": "Desequipado: %s" % nome, "item_id": item_id}
+
+
+func reaplicar_mods_equipamento() -> void:
+	for slot in equipped.keys():
+		var item_id: String = str(equipped[slot])
+		if item_id.is_empty():
+			continue
+		_aplicar_mods_equipamento(item_id)
+
+
+func reaplicar_mods_progressao() -> void:
+	## Chamado após load / limpeza de modifiers para restaurar treino + gear.
+	reaplicar_mods_equipamento()
+	var tree: SceneTree = get_tree()
+	if tree == null:
+		return
+	var ts: Node = tree.get_first_node_in_group("training_system")
+	if ts == null:
+		ts = TrainingSystem.obter_ou_criar(tree)
+	if ts != null and ts.has_method("reaplicar_mods_concluidos"):
+		ts.reaplicar_mods_concluidos()
+
+
+func _aplicar_mods_equipamento(item_id: String) -> void:
+	var def: Dictionary = EquipmentCatalogScript.obter(item_id)
+	if def.is_empty():
+		return
+	var fonte: String = "equip_%s" % item_id
+	var bonus: Dictionary = def.get("bonus", {})
+	for stat_key in bonus.keys():
+		var valor: float = float(bonus[stat_key])
+		var typ = StatModifier.Type.FLAT
+		# dano_arma é multiplicador percentual de Shu (0.10 = +10%)
+		if str(stat_key) == "dano_arma":
+			typ = StatModifier.Type.PERCENTAGE
+		var mod_id: StringName = StringName("equip_%s_%s" % [item_id, str(stat_key)])
+		adicionar_modificador(StatModifier.new(mod_id, StringName(str(stat_key)), typ, valor, -1.0, fonte))
+
+
+func _remover_mods_equipamento(item_id: String) -> void:
+	remover_modificadores_da_fonte("equip_%s" % item_id)
 
 
 # ============================================================

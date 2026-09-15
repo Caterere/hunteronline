@@ -195,6 +195,7 @@ func salvar_jogo(slot: int = -1) -> bool:
 		},
 		"attributes": PlayerData.attributes.duplicate(),
 		"inventory": PlayerData.inventory.duplicate(),
+		"equipped": PlayerData.equipped.duplicate(),
 		"quest_states": PlayerData.quest_states.duplicate(),
 		"tecnicas_nen": PlayerData.tecnicas_nen.duplicate(),
 		"hatsu_criados": hatsus_serialized,
@@ -471,6 +472,28 @@ func carregar_jogo(slot: int = -1) -> bool:
 	if data.has("inventory"):
 		PlayerData.inventory = data["inventory"].duplicate()
 
+	# Equipamento (slots)
+	PlayerData.equipped = {
+		"cabeca": "",
+		"corpo": "",
+		"mao_princ": "",
+		"mao_sec": "",
+		"acessorio": "",
+		"licenca": "",
+	}
+	if data.has("equipped") and data["equipped"] is Dictionary:
+		for slot_key in PlayerData.equipped.keys():
+			PlayerData.equipped[slot_key] = str(data["equipped"].get(slot_key, ""))
+
+	# Reaplica mods de gear + treinos (StatModifiers não são serializados)
+	if PlayerData.has_method("reaplicar_mods_progressao"):
+		PlayerData.reaplicar_mods_progressao()
+		PlayerData.attributes["vida"] = clamp(
+			int(PlayerData.attributes.get("vida", 100)),
+			1,
+			int(PlayerData.attributes.get("vida_max", 100))
+		)
+
 	# Quests
 	if data.has("quest_states"):
 		PlayerData.quest_states = data["quest_states"].duplicate()
@@ -706,6 +729,14 @@ func novo_jogo(slot: int = 1) -> void:
 			"nivel": 1
 		}
 		PlayerData.inventory.clear()
+		PlayerData.equipped = {
+			"cabeca": "",
+			"corpo": "",
+			"mao_princ": "",
+			"mao_sec": "",
+			"acessorio": "",
+			"licenca": "",
+		}
 		PlayerData.quest_states.clear()
 		PlayerData.hatsu_criados.clear()
 		PlayerData.hatsu_slots = [-1, -1, -1, -1]

@@ -1,15 +1,12 @@
 class_name BlacksmithUI
 extends CanvasLayer
 
+const EquipmentCatalogScript = preload("res://resource/item/EquipmentCatalog.gd")
+
 var panel_main: PanelContainer
 var vbox_content: VBoxContainer
 var lbl_gold: Label
 var tab_container: TabContainer
-
-var crafts = [
-	{"id": "espada_aco", "nome": "Espada de Aço", "custo": 500, "ingredientes": "10x Minério"},
-	{"id": "armadura_ferro", "nome": "Armadura de Ferro", "custo": 800, "ingredientes": "15x Minério"}
-]
 
 func _ready() -> void:
 	process_mode = PROCESS_MODE_ALWAYS
@@ -33,9 +30,9 @@ func _construir_ui() -> void:
 	add_child(bg)
 
 	panel_main = PanelContainer.new()
-	panel_main.custom_minimum_size = Vector2(280, 160)
+	panel_main.custom_minimum_size = Vector2(300, 180)
 	panel_main.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	
+
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.1, 0.12, 0.16, 0.95)
 	style.border_width_left = 1
@@ -78,17 +75,17 @@ func _construir_ui() -> void:
 	lbl_gold.add_theme_font_size_override("font_size", 6)
 	lbl_gold.add_theme_color_override("font_color", Color(0.4, 0.9, 1, 1))
 	hbox_header.add_child(lbl_gold)
-	
+
 	tab_container = TabContainer.new()
 	tab_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tab_container.add_theme_font_size_override("font_size", 6)
 	tab_container.tab_changed.connect(func(_tab): _atualizar_ui())
 	vbox_content.add_child(tab_container)
-	
+
 	var tab_upg = VBoxContainer.new()
 	tab_upg.name = "Melhorar Equipamento"
 	tab_container.add_child(tab_upg)
-	
+
 	var tab_craft = VBoxContainer.new()
 	tab_craft.name = "Crafting"
 	tab_container.add_child(tab_craft)
@@ -102,11 +99,11 @@ func _construir_ui() -> void:
 func _atualizar_ui() -> void:
 	if lbl_gold != null:
 		lbl_gold.text = "Jenny: " + str(Economy.obter_gold())
-		
+
 	var aba_atual = tab_container.get_current_tab_control()
 	for child in aba_atual.get_children():
 		child.queue_free()
-		
+
 	if aba_atual.name == "Melhorar Equipamento":
 		_preencher_upgrade(aba_atual)
 	elif aba_atual.name == "Crafting":
@@ -115,49 +112,81 @@ func _atualizar_ui() -> void:
 func _preencher_upgrade(container: Control) -> void:
 	if not PlayerData.inventory.has("equipamentos_upgrade"):
 		PlayerData.inventory["equipamentos_upgrade"] = {}
-		
+
 	var has_items = false
-	if PlayerData.inventory.has("itens"):
-		for item_id in PlayerData.inventory["itens"].keys():
-			if "espada" in item_id or "armadura" in item_id: # placeholder check
-				has_items = true
-				var nivel = PlayerData.inventory["equipamentos_upgrade"].get(item_id, 0)
-				var btn := Button.new()
-				if nivel < 10:
-					var custo = 100 * (nivel + 1)
-					btn.text = "%s +%d -> Melhorar por %d Jenny" % [item_id, nivel, custo]
-					btn.pressed.connect(func():
-						if Economy.remover_gold(custo):
-							PlayerData.inventory["equipamentos_upgrade"][item_id] = nivel + 1
-							print("Upgrade efetuado no item ", item_id, " para +", nivel+1)
-							_atualizar_ui()
-					)
-				else:
-					btn.text = "%s +10 (MÁXIMO)" % item_id
-					btn.disabled = true
-				
-				btn.add_theme_font_size_override("font_size", 5)
-				container.add_child(btn)
-	
+	for item_id in EquipmentCatalogScript.ids():
+		if not PlayerData.tem_item(StringName(str(item_id))):
+			continue
+		has_items = true
+		var id_str: String = str(item_id)
+		var nivel = PlayerData.inventory["equipamentos_upgrade"].get(id_str, 0)
+		var btn := Button.new()
+		if nivel < 10:
+			var custo = 100 * (nivel + 1)
+			btn.text = "%s +%d → Melhorar (%d Jenny)" % [EquipmentCatalogScript.obter_nome(id_str), nivel, custo]
+			btn.pressed.connect(func():
+				if Economy.remover_gold(custo):
+					PlayerData.inventory["equipamentos_upgrade"][id_str] = nivel + 1
+					# +1 força flat por nível de upgrade enquanto equipado
+					if PlayerData.esta_equipado(id_str):
+						PlayerData.adicionar_modificador(StatModifier.new(
+							StringName("upg_%s" % id_str),
+							&"forca",
+							StatModifier.Type.FLAT,
+							float(nivel + 1),
+							-1.0,
+							"equip_upgrade_%s" % id_str
+						))
+					if EventBus != null:
+						EventBus.emit_toast("Forja: %s +%d" % [EquipmentCatalogScript.obter_nome(id_str), nivel + 1], Color(1.0, 0.7, 0.3))
+					_atualizar_ui()
+			)
+		else:
+			btn.text = "%s +10 (MÁXIMO)" % EquipmentCatalogScript.obter_nome(id_str)
+			btn.disabled = true
+
+		btn.add_theme_font_size_override("font_size", 5)
+		container.add_child(btn)
+
 	if not has_items:
 		var lbl = Label.new()
-		lbl.text = "Nenhum equipamento para melhorar."
+		lbl.text = "Nenhum equipamento para melhorar. Craft ou treine com mestres."
 		lbl.add_theme_font_size_override("font_size", 5)
 		container.add_child(lbl)
 
 func _preencher_crafting(container: Control) -> void:
-	for info in crafts:
+	for info in EquipmentCatalogScript.listar_crafts():
 		var btn := Button.new()
-		btn.text = "%s - Custo: %d Jenny | Req: %s" % [info["nome"], info["custo"], info["ingredientes"]]
+		btn.text = "%s — %d Jenny" % [info["nome"], info["custo"]]
 		btn.add_theme_font_size_override("font_size", 5)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-
+		var craft_id: String = str(info["id"])
+		var custo: int = int(info["custo"])
 		btn.pressed.connect(func():
-			if Economy.remover_gold(info["custo"]):
-				if not PlayerData.inventory.has("itens"):
-					PlayerData.inventory["itens"] = {}
-				PlayerData.inventory["itens"][info["id"]] = PlayerData.inventory["itens"].get(info["id"], 0) + 1
-				print("Craftado ", info["nome"])
+			if Economy.remover_gold(custo):
+				PlayerData.adicionar_item(StringName(craft_id), 1)
+				if EventBus != null:
+					EventBus.emit_toast("Forjou: %s (equipe em I)" % EquipmentCatalogScript.obter_nome(craft_id), Color(0.55, 0.95, 0.45))
 				_atualizar_ui()
 		)
 		container.add_child(btn)
+
+	# Ofertas básicas sempre disponíveis (não só craft flag)
+	for extra_id in ["adaga_zaban", "colete_cacador", "escudo_leve", "anel_aura"]:
+		var def: Dictionary = EquipmentCatalogScript.obter(extra_id)
+		if def.is_empty():
+			continue
+		var custo2: int = int(def.get("preco", 200))
+		var btn2 := Button.new()
+		btn2.text = "%s — %d Jenny" % [str(def.get("nome", extra_id)), custo2]
+		btn2.add_theme_font_size_override("font_size", 5)
+		btn2.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		var eid: String = extra_id
+		btn2.pressed.connect(func():
+			if Economy.remover_gold(custo2):
+				PlayerData.adicionar_item(StringName(eid), 1)
+				if EventBus != null:
+					EventBus.emit_toast("Comprou: %s" % EquipmentCatalogScript.obter_nome(eid), Color(0.55, 0.95, 0.45))
+				_atualizar_ui()
+		)
+		container.add_child(btn2)

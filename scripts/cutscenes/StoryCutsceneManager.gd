@@ -21,30 +21,29 @@ static var em_cutscene: bool = false
 static func executar_maratona_hunter(tree: SceneTree, gon: NPC, killua: NPC, leorio: NPC, kurapika: NPC, satotz: NPC) -> void:
 	if em_cutscene:
 		return
-		
+
 	em_cutscene = true
 	print("[Cutscene] Iniciando Sequência do Exame Hunter: Encontro dos 4 Amigos...")
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
-	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
-		var falas: Array[Dictionary] = [
-			{"falante": "Gon Freecss (Nº 405)", "texto": "Oi! Eu sou o Gon da Ilha da Baleia! Estou fazendo o Exame Hunter para descobrir por que meu pai, o Ging, escolheu ser Hunter acima de tudo!"},
-			{"falante": "Killua Zoldyck (Nº 99)", "texto": "Ei, skate não é trapaça! O examinador só mandou segui-lo. Eu sou o Killua... Fugir da minha família de assassinos parecia divertido, mas até agora tá bem fácil."},
-			{"falante": "Leorio Paradinight (Nº 403)", "texto": "Ufa... argh... calem a boca, seus moleques cheios de energia! Eu sou o Leorio! Se eu virar Hunter, vou ter dinheiro pra pagar a faculdade de medicina e tratar os doentes de graça sem cobrar um centavo!"},
-			{"falante": "Kurapika (Nº 404)", "texto": "Eu sou Kurapika, o último sobrevivente do Clã Kurta. Busco a Licença Hunter para caçar os assassinos da Trupe Fantasma (Genei Ryodan) e recuperar os Olhos Escarlates roubados do meu povo."},
-			{"falante": "Gon Freecss (Nº 405)", "texto": "Nós 4 temos motivos diferentes, mas vamos passar juntos! Olhem, o Examinador Satotz está acelerando o passo! Mantenham o ritmo!"}
-		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			_mover_amigos_maratona(tree, gon, killua, leorio, kurapika, satotz)
-		, CONNECT_ONE_SHOT)
-	else:
-		if gon != null and is_instance_valid(gon):
-			gon.falar_balao("Oi! Eu sou o Gon Freecss! Vamos todos correr juntos até o Satotz!", 3.5, Color(0.2, 0.9, 0.4, 1.0))
-			await tree.create_timer(3.5).timeout
-			if is_instance_valid(gon): gon.fechar_balao_atual()
-		_mover_amigos_maratona(tree, gon, killua, leorio, kurapika, satotz)
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "departure"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss (Nº 405)", "text": "Oi! Eu sou o Gon da Ilha da Baleia! Estou fazendo o Exame Hunter para descobrir por que meu pai, o Ging, escolheu ser Hunter acima de tudo!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Killua Zoldyck (Nº 99)", "text": "Ei, skate não é trapaça! O examinador só mandou segui-lo. Eu sou o Killua... Fugir da minha família de assassinos parecia divertido, mas até agora tá bem fácil."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Leorio Paradinight (Nº 403)", "text": "Ufa... argh... calem a boca, seus moleques cheios de energia! Eu sou o Leorio! Se eu virar Hunter, vou ter dinheiro pra pagar a faculdade de medicina e tratar os doentes de graça!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Kurapika (Nº 404)", "text": "Eu sou Kurapika, o último sobrevivente do Clã Kurta. Busco a Licença Hunter para caçar a Trupe Fantasma e recuperar os Olhos Escarlates."},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_SHAKE, "intensity": 0.25, "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss (Nº 405)", "text": "Nós 4 temos motivos diferentes, mas vamos passar juntos! Olhem — o Examinador Satotz está acelerando! Mantenham o ritmo!"},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_maratona_amigos", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.25},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
 
+	CutsceneSequenceRunner.executar(tree, passos, "Maratona_Encontro_Amigos", func():
+		_mover_amigos_maratona(tree, gon, killua, leorio, kurapika, satotz)
+		em_cutscene = false
+	)
 
 static func _mover_amigos_maratona(tree: SceneTree, gon: NPC, killua: NPC, leorio: NPC, kurapika: NPC, satotz: NPC) -> void:
 	var destino_satotz := Vector2(1750, -300)
@@ -185,25 +184,27 @@ static func executar_montanha_kukuroo_cutscene(tree: SceneTree, callback_fim: Ca
 	if em_cutscene: return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
-	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
-		var falas: Array[Dictionary] = [
-			{"falante": "Guarda Zebro", "texto": "Bem-vindos aos portões da família Zoldyck. Qualquer um que entrar pela porta lateral será devorado vivo pelo cão de guarda Mike."},
-			{"falante": "Guarda Zebro", "texto": "Se querem ver o jovem mestre Killua como amigos, precisão empurrar o Portão da Testagem. Cada folha pesa 2 toneladas — um total de 4 toneladas no 1º portão!"},
-			{"falante": "Gon Freecss", "texto": "Nós vamos treinar com os pesos de vocês e empurrar esse portão com nossas próprias mãos!"},
-			{"falante": "Mordoma Canary", "texto": "...Vocês realmente são amigos do jovem Killua? Ele nunca teve ninguém para chamá-lo pelo nome sem medo... Por favor, salvem o jovem mestre da escuridão."},
-			{"falante": "Silva Zoldyck", "texto": "Killua... vá com seus amigos. Mas lembre-se do nosso pacto de sangue: 'Nunca traia seus companheiros'. E você sempre será o meu filho... um assassino Zoldyck."}
-		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.completar_etapa_historia(2)
-			em_cutscene = false
-			if callback_fim.is_valid(): callback_fim.call()
-		, CONNECT_ONE_SHOT)
-	else:
-		em_cutscene = false
-		if callback_fim.is_valid(): callback_fim.call()
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.25, 1.25), "duration": 0.4},
+		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "kingdom_of_predators"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Guarda Zebro", "text": "Bem-vindos aos portões da família Zoldyck. Qualquer um que entrar pela porta lateral será devorado vivo pelo cão de guarda Mike."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Guarda Zebro", "text": "Se querem ver o jovem mestre Killua como amigos, precisam empurrar o Portão da Testagem. Cada folha pesa 2 toneladas — 4 toneladas no 1º portão!"},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_SHAKE, "intensity": 0.45, "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss", "text": "Nós vamos treinar com os pesos de vocês e empurrar esse portão com nossas próprias mãos!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mordoma Canary", "text": "...Vocês realmente são amigos do jovem Killua? Ele nunca teve ninguém para chamá-lo pelo nome sem medo... Por favor, salvem o jovem mestre da escuridão."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Silva Zoldyck", "text": "Killua... vá com seus amigos. Mas lembre-se do nosso pacto: 'Nunca traia seus companheiros'. E você sempre será meu filho... um assassino Zoldyck."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_kukuroo_portao", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.3},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
 
+	CutsceneSequenceRunner.executar(tree, passos, "Kukuroo_Portao", func():
+		PlayerData.completar_etapa_historia(2)
+		em_cutscene = false
+		if callback_fim.is_valid():
+			callback_fim.call()
+	)
 
 # ------------------------------------------------------------
 # ARCO 3: ARENA CELESTIAL & O DESPERTAR DO NEN
@@ -212,24 +213,27 @@ static func executar_arena_celestial_cutscene(tree: SceneTree, callback_fim: Cal
 	if em_cutscene: return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
-	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
-		var falas: Array[Dictionary] = [
-			{"falante": "Mestre Wing", "texto": "Escutem bem, Gon, Killua e jovem Hunter. O que vocês sentiram no corredor do 200º andar foi 'Hatsu' carregado de intenção assassina."},
-			{"falante": "Mestre Wing", "texto": "Se passassem por aquela linha sem proteção, seus corpos seriam despedaçados pela pressão de aura. É hora de despertar seus nós de Nen através do 'Ten'!"},
-			{"falante": "Zushi", "texto": "Osu! Os 4 Grandes Princípios são Ten (Envolver), Zetsu (Silenciar), Ren (Expandir) e Hatsu (Liberar)!"},
-			{"falante": "Hisoka", "texto": "♦ Hehe... Finalmente vocês aprenderam a enxergar a aura com Gyo. Agora sim a luta pelo 200º andar será deliciosa... ♠"}
-		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.completar_etapa_historia(3)
-			em_cutscene = false
-			if callback_fim.is_valid(): callback_fim.call()
-		, CONNECT_ONE_SHOT)
-	else:
-		em_cutscene = false
-		if callback_fim.is_valid(): callback_fim.call()
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.3, 1.3), "duration": 0.4},
+		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "legend_of_the_martial_artist"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Escutem bem. O que vocês sentiram no corredor do 200º andar foi Hatsu carregado de intenção assassina."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Sem proteção, seus corpos seriam despedaçados pela pressão de aura. É hora de despertar seus nós de Nen através do Ten!"},
+		{"type": CutsceneSequenceRunner.StepType.EFFECT_FX, "effect": "flash"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Zushi", "text": "Osu! Os 4 Grandes Princípios: Ten (Envolver), Zetsu (Silenciar), Ren (Expandir) e Hatsu (Liberar)!"},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_SHAKE, "intensity": 0.3, "duration": 0.25},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Hisoka", "text": "Finalmente vocês aprenderam a enxergar a aura com Gyo. Agora a luta pelo 200º andar será deliciosa..."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_arena_despertar", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.3},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
 
+	CutsceneSequenceRunner.executar(tree, passos, "Arena_Despertar_Nen", func():
+		PlayerData.completar_etapa_historia(3)
+		em_cutscene = false
+		if callback_fim.is_valid():
+			callback_fim.call()
+	)
 
 # ------------------------------------------------------------
 # ARCO 4: YORKNEW CITY & A TRUPE FANTASMA (GENEI RYODAN)
