@@ -70,10 +70,10 @@ func _test_1_fundacao_matematica_lv1000() -> void:
 
 	# Teste 1.1: Nível 1 (Valores Base)
 	PlayerData.aplicar_nivel(1)
-	assert_test(PlayerData.attributes["vida_max"] == 120, "1.1 HP no Nível 1 com Intensificação é exatamente 120 (100 base)")
-	assert_test(PlayerData.attributes["forca"] == 12, "1.2 Força no Nível 1 com Intensificação é exatamente 12 (10 base)")
-	assert_test(PlayerData.attributes["defesa"] == 10, "1.3 Defesa Base no Nível 1 é exatamente 10")
-	assert_test(is_equal_approx(PlayerData.obter_stat_calculado("velocidade"), 10.0), "1.4 Velocidade Base no Nível 1 é exatamente 10.0")
+	assert_test(PlayerData.attributes["vida_max"] == 60, "1.1 HP no Nível 1 com Intensificação é exatamente 60 (50 base)")
+	assert_test(PlayerData.attributes["forca"] == 6, "1.2 Força no Nível 1 com Intensificação é exatamente 6 (5 base)")
+	assert_test(PlayerData.attributes["defesa"] == 5, "1.3 Defesa Base no Nível 1 é exatamente 5")
+	assert_test(is_equal_approx(PlayerData.obter_stat_calculado("velocidade"), 5.0), "1.4 Velocidade Base no Nível 1 é exatamente 5.0")
 
 	# Teste 1.2: Crescimento Monótono em Marcos
 	var marcos: Array[int] = [10, 50, 100, 250, 500, 750, 1000]

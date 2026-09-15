@@ -60,6 +60,7 @@ func _construir_ui() -> void:
 	offset_left = -144.0
 	offset_top = 6.0
 	offset_right = -6.0
+	scale = Vector2(0.75, 0.75)
 
 	add_theme_stylebox_override("panel", HunterUIStyle.criar_style_quest_tracker())
 
@@ -317,23 +318,26 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 					var n_custom: String = ""
 					if "npc_name" in n:
 						n_custom = str(n.npc_name).to_lower()
+					var token := target_name_str.split(" ")[0] if not target_name_str.is_empty() else ""
 
-					var bateu: bool = (
-						target_str in n_name
-						or n_name in target_str
-						or target_name_str in n_name
-						or (!n_custom.is_empty() and (target_str in n_custom or target_name_str in n_custom or n_custom in target_name_str))
-					)
+					var bateu: bool = false
+					if not target_str.is_empty():
+						bateu = (
+							target_str == n_name or target_str == n_custom
+							or target_str in n_name or target_str in n_custom
+							or n_name.begins_with(target_str) or n_custom.begins_with(target_str)
+						)
+					if not bateu and not token.is_empty() and token.length() >= 3:
+						bateu = token == n_name or token == n_custom or token in n_name or token in n_custom
+					if not bateu and not target_name_str.is_empty() and not n_custom.is_empty():
+						bateu = n_custom in target_name_str or target_name_str.begins_with(n_custom)
 
 					if bateu:
 						alvo_pos = n.global_position
 						encontrou_alvo = true
 						break
 
-			# Se não achou pelo nome exato, pega o primeiro NPC da cena
-			if not encontrou_alvo and not npcs.is_empty() and npcs[0] is Node2D:
-				alvo_pos = npcs[0].global_position
-				encontrou_alvo = true
+			# Sem match: não aponta pro primeiro NPC aleatório (polui GPS)
 
 		QuestObjective.Type.KILL:
 			var enemy_type_str = str(obj.enemy_type).to_lower()
@@ -384,10 +388,22 @@ func _atualizar_bussola(obj: QuestObjective, pendente_idx: int = 0, total_objeti
 				encontrou_alvo = true
 
 	if not encontrou_alvo:
-		var portais = get_tree().get_nodes_in_group("portal")
-		if not portais.is_empty() and portais[0] is Node2D:
-			alvo_pos = portais[0].global_position
-			nome_alvo = "Portal de Transição"
+		# Preferir marcadores de capítulo / âncora do distrito — nunca o portal de avanço
+		var cur := get_tree().current_scene
+		if cur != null:
+			for nome in ["GuiaCapituloSaga", "PlacaObjetivoCapitulo"]:
+				var n = cur.get_node_or_null(nome)
+				if n != null and n is Node2D:
+					alvo_pos = (n as Node2D).global_position
+					nome_alvo = "Objetivo do Capítulo"
+					encontrou_alvo = true
+					break
+		if not encontrou_alvo and PlayerData != null:
+			alvo_pos = SagaChapterBinder._district_anchor_for_etapa(
+				int(PlayerData.arco_atual),
+				max(1, int(PlayerData.etapa_quest_arco))
+			)
+			nome_alvo = "Zona do Objetivo"
 			encontrou_alvo = true
 
 	var prefixo_passo = "👉 Requisito %d/%d" % [pendente_idx + 1, total_objetivos]

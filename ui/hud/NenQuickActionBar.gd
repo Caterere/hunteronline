@@ -48,6 +48,7 @@ func _construir_ui() -> void:
 	panel.offset_right = 110.0
 	panel.offset_top = -100.0
 	panel.offset_bottom = -48.0
+	panel.scale = Vector2(0.75, 0.75)
 	panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_nen(true))
 	add_child(panel)
 

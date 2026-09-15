@@ -60,6 +60,7 @@ func _criar_overlay_tela() -> void:
 	panel.name = "GPSBottomPanel"
 	panel.position = Vector2(160 - 85, 160)
 	panel.custom_minimum_size = Vector2(170, 15)
+	panel.scale = Vector2(0.75, 0.75)
 	
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.06, 0.10, 0.85)
@@ -316,12 +317,17 @@ func _atualizar_alvo_ativo() -> void:
 					if (not target_id_str.is_empty() and (target_id_str == n_name or target_id_str == custom_name)) \
 							or (not target_name_str.is_empty() and (target_name_str == n_name or target_name_str == custom_name)):
 						score = 3
-					elif (not target_id_str.is_empty() and target_id_str.length() >= 4 and (n_name.begins_with(target_id_str) or custom_name.begins_with(target_id_str))) \
-							or (not target_name_str.is_empty() and target_name_str.length() >= 4 and (n_name.begins_with(target_name_str) or custom_name.begins_with(target_name_str))):
+					elif (not target_id_str.is_empty() and target_id_str.length() >= 3 and (n_name.begins_with(target_id_str) or custom_name.begins_with(target_id_str) or target_id_str.begins_with(n_name) or target_id_str.begins_with(custom_name))) \
+							or (not target_name_str.is_empty() and target_name_str.length() >= 3 and (n_name.begins_with(target_name_str) or custom_name.begins_with(target_name_str))):
 						score = 2
-					elif (not target_id_str.is_empty() and target_id_str.length() >= 5 and (target_id_str in n_name or target_id_str in custom_name)) \
-							or (not target_name_str.is_empty() and target_name_str.length() >= 5 and (target_name_str in n_name or target_name_str in custom_name)):
-						score = 1
+					else:
+						# Match pelo primeiro token do nome ("Tonpa o Quebrador..." → "tonpa")
+						var token := target_name_str.split(" ")[0] if not target_name_str.is_empty() else ""
+						if (not target_id_str.is_empty() and target_id_str.length() >= 3 and (target_id_str in n_name or target_id_str in custom_name or n_name in target_id_str)) \
+								or (not token.is_empty() and token.length() >= 3 and (token == n_name or token == custom_name or token in n_name or token in custom_name)):
+							score = 1
+						elif (not target_name_str.is_empty() and target_name_str.length() >= 5 and (target_name_str in n_name or target_name_str in custom_name)):
+							score = 1
 
 					if score > best_score or (score == best_score and score >= 0 and player_ref.global_position.distance_to(n.global_position) < best_dist):
 						if score >= 0:
@@ -453,52 +459,58 @@ func _atualizar_alvo_ativo() -> void:
 				current_target_pos = best_zone.global_position
 				target_found = true
 
-	# 2. ROTEAMENTO INTER-MAPAS: Se o alvo NÃO foi encontrado no mapa atual,
-	# encontrar o portão/transição que conecta em direção à região da missão
+	# 2. Fallbacks de OBJETIVO (nunca pular para o portal de avanço com objetivo pendente)
 	if not target_found:
-		var transicoes: Array = []
-		_coletar_areas_transicao(get_tree().current_scene, transicoes)
-		
+		_tentar_alvo_por_marcadores_capitulo(obj_pendente)
+	if not target_found and obj_pendente.type == QuestObjective.Type.KILL:
+		_tentar_alvo_por_spawn_registry(obj_pendente)
+	if not target_found:
+		_tentar_alvo_por_ancora_distrito()
+
+	# 3. ROTEAMENTO INTER-MAPAS: só se o alvo NÃO está neste mapa
+	#    e a quest espera outro mapa. Nunca preferir story_gate com objetivo aberto.
+	if not target_found:
+		var cena_path: String = ""
+		if get_tree().current_scene != null and get_tree().current_scene.scene_file_path != null:
+			cena_path = str(get_tree().current_scene.scene_file_path).to_lower()
 		var destino_mapa_esperado: String = _obter_mapa_esperado_da_quest(quest)
-		var transicao_candidata: Node2D = null
+		var ja_no_mapa_certo := destino_mapa_esperado.is_empty()
+		if not destino_mapa_esperado.is_empty() and not cena_path.is_empty():
+			var dest_leaf := destino_mapa_esperado.get_file().to_lower().replace(".tscn", "")
+			ja_no_mapa_certo = dest_leaf in cena_path or destino_mapa_esperado.to_lower() in cena_path
 
-		# 1º: Procura primeiro a transição cujo target_scene_path bate com o mapa esperado
-		for t in transicoes:
-			if t is MapTransitionArea and not destino_mapa_esperado.is_empty():
-				if t.target_scene_path == destino_mapa_esperado or destino_mapa_esperado in t.target_scene_path:
-					transicao_candidata = t
-					break
+		if not ja_no_mapa_certo:
+			var transicoes: Array = []
+			_coletar_areas_transicao(get_tree().current_scene, transicoes)
+			var transicao_candidata: Node2D = null
 
-		# 2º: Procura portal com StoryGate que autoriza o avanço
-		if transicao_candidata == null:
 			for t in transicoes:
-				if t is MapTransitionArea and t.story_gate != null:
-					transicao_candidata = t
-					break
-
-		# 3º: Procura transição de mapa que não seja interior de residência nem retorno
-		if transicao_candidata == null:
-			for t in transicoes:
-				if t is MapTransitionArea:
-					var target_p = t.target_scene_path.to_lower()
-					var t_name = t.name.to_lower()
-					if not "interior" in target_p and not "casa" in target_p and not "retorno" in t_name:
+				if t is MapTransitionArea and not destino_mapa_esperado.is_empty():
+					if t.target_scene_path == destino_mapa_esperado or destino_mapa_esperado in t.target_scene_path:
 						transicao_candidata = t
 						break
 
-		# Fallback geral
-		if transicao_candidata == null and not transicoes.is_empty():
-			transicao_candidata = transicoes[0] as Node2D
+			if transicao_candidata == null:
+				for t in transicoes:
+					if t is MapTransitionArea:
+						var target_p = t.target_scene_path.to_lower()
+						var t_name = t.name.to_lower()
+						# Evita portal de avanço de saga / story_gate enquanto objetivo está aberto
+						if t.story_gate != null:
+							continue
+						if not "interior" in target_p and not "casa" in target_p and not "retorno" in t_name:
+							transicao_candidata = t
+							break
 
-		if transicao_candidata != null:
-			current_target_node = transicao_candidata
-			current_target_pos = transicao_candidata.global_position
-			current_target_type = "portal"
-			if transicao_candidata is MapTransitionArea and not transicao_candidata.portal_name.is_empty():
-				current_target_name = transicao_candidata.portal_name
-			else:
-				current_target_name = "Portão de Viagem"
-			target_found = true
+			if transicao_candidata != null:
+				current_target_node = transicao_candidata
+				current_target_pos = transicao_candidata.global_position
+				current_target_type = "portal"
+				if transicao_candidata is MapTransitionArea and not transicao_candidata.portal_name.is_empty():
+					current_target_name = transicao_candidata.portal_name
+				else:
+					current_target_name = "Rota para o objetivo"
+				target_found = true
 
 	# Atualizar Distância e UI do GPS
 	if target_found and player_ref != null:
@@ -508,6 +520,69 @@ func _atualizar_alvo_ativo() -> void:
 			var prefixo_passo = "👉 Passo %d/%d" % [pendente_idx + 1, total_objetivos]
 			lbl_target_info.text = "%s: %s (%d/%d)" % [prefixo_passo, obj_pendente.describe(), prog_atual, req_total]
 			lbl_target_info.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
+
+
+func _tentar_alvo_por_marcadores_capitulo(_obj: QuestObjective) -> void:
+	var cur := get_tree().current_scene if get_tree() != null else null
+	if cur == null:
+		return
+	for nome in ["GuiaCapituloSaga", "PlacaObjetivoCapitulo"]:
+		var n = cur.get_node_or_null(nome)
+		if n != null and n is Node2D and is_instance_valid(n):
+			current_target_node = n
+			current_target_pos = (n as Node2D).global_position
+			current_target_type = "npc"
+			current_target_name = "Objetivo do Capítulo"
+			target_found = true
+			return
+
+
+func _tentar_alvo_por_spawn_registry(obj: QuestObjective) -> void:
+	if QuestSystem == null or not ("_mission_spawn_registry" in QuestSystem):
+		return
+	var registry = QuestSystem._mission_spawn_registry
+	if registry == null or registry.is_empty():
+		return
+	var enemy_type_str := str(obj.enemy_type).to_lower()
+	var melhor_pos := Vector2.ZERO
+	var achou := false
+	var melhor_dist := 999999.0
+	for entry in registry:
+		if typeof(entry) != TYPE_DICTIONARY:
+			continue
+		var eid := str(entry.get("enemy_id", "")).to_lower()
+		if not enemy_type_str.is_empty() and eid != enemy_type_str and not (enemy_type_str in eid) and not (eid in enemy_type_str):
+			continue
+		var pos: Vector2 = entry.get("pos", Vector2.ZERO)
+		if player_ref == null:
+			melhor_pos = pos
+			achou = true
+			break
+		var d: float = player_ref.global_position.distance_to(pos)
+		if d < melhor_dist:
+			melhor_dist = d
+			melhor_pos = pos
+			achou = true
+	if achou:
+		current_target_node = null
+		current_target_pos = melhor_pos
+		current_target_type = "enemy"
+		current_target_name = enemy_type_str.replace("_", " ").capitalize() if not enemy_type_str.is_empty() else "Inimigo de Missão"
+		target_found = true
+
+
+func _tentar_alvo_por_ancora_distrito() -> void:
+	var arco := 1
+	var etapa := 1
+	if PlayerData != null:
+		arco = int(PlayerData.arco_atual)
+		etapa = max(1, int(PlayerData.etapa_quest_arco))
+	var pos: Vector2 = SagaChapterBinder._district_anchor_for_etapa(arco, etapa)
+	current_target_node = null
+	current_target_pos = pos
+	current_target_type = "npc"
+	current_target_name = "Zona do Objetivo"
+	target_found = true
 
 
 func _obter_mapa_esperado_da_quest(quest: Quest) -> String:
@@ -649,12 +724,19 @@ func _obter_icone_seta(rad_angle: float) -> String:
 func _buscar_no_recursivo_por_nome(parent: Node, target_id: String, target_name: String) -> Node2D:
 	if parent == null:
 		return null
+	var tid := target_id.strip_edges().to_lower()
+	var tname := target_name.strip_edges().to_lower()
+	var token := tname.split(" ")[0] if not tname.is_empty() else ""
 	if parent is Node2D:
 		var p_name: String = parent.name.to_lower() if parent.name != null else ""
-		if target_id in p_name or p_name in target_id or target_name in p_name:
+		if not tid.is_empty() and (tid == p_name or tid in p_name or p_name in tid):
 			return parent
-		if "npc_name" in parent and parent.npc_name != null and str(parent.npc_name).to_lower() in target_name:
+		if not token.is_empty() and token.length() >= 3 and (token == p_name or token in p_name):
 			return parent
+		if "npc_name" in parent and parent.npc_name != null:
+			var cn := str(parent.npc_name).to_lower()
+			if (not tid.is_empty() and (tid == cn or tid in cn)) or (not token.is_empty() and (token == cn or token in cn)):
+				return parent
 			
 	for child in parent.get_children():
 		if child != null:

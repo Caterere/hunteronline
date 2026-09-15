@@ -353,12 +353,12 @@ func register_persuasion(npc_id: StringName) -> void:
 func _notificar_progresso_hud(obj: QuestObjective, progresso: int, quest: Quest) -> void:
 	if obj == null:
 		return
+	# Só notifica conclusão de objetivo — progresso parcial polui a tela
+	if progresso < obj.required_amount:
+		return
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
-		if progresso >= obj.required_amount:
-			hud.exibir_notificacao("✓¨ Requisito Concluído: %s!" % obj.describe())
-		else:
-			hud.exibir_notificacao("🎯 Progresso: %s (%d/%d)" % [obj.describe(), progresso, obj.required_amount])
+		hud.exibir_notificacao("✓ %s" % obj.describe())
 
 
 
@@ -431,21 +431,21 @@ func complete_quest(quest: Quest) -> void:
 	)
 
 	var hud_notif = get_tree().get_first_node_in_group("player_hud")
+	var partes: PackedStringArray = []
+	if quest.reward_xp > 0:
+		partes.append("+%d XP" % quest.reward_xp)
+	if quest.reward_gold > 0:
+		partes.append("+%d Jenny" % quest.reward_gold)
+	for reward in quest.reward_items:
+		if reward != null and reward.type == QuestReward.Type.ITEM:
+			partes.append("+%s" % str(reward.item_id))
+	var reward_txt: String = " · ".join(partes) if not partes.is_empty() else "Progresso da saga"
+	var msg_complete := "🏆 %s — %s" % [quest.quest_name, reward_txt]
+	# Uma única notificação (fila do HUD) — evita toast duplicado na tela
 	if hud_notif != null and hud_notif.has_method("exibir_notificacao"):
-		hud_notif.exibir_notificacao("🏆 Missão Concluída: %s" % quest.quest_name)
-
-	# Toast de marco: deixa claro o que o jogador ganhou
-	if EventBus != null:
-		var partes: PackedStringArray = []
-		if quest.reward_xp > 0:
-			partes.append("+%d XP" % quest.reward_xp)
-		if quest.reward_gold > 0:
-			partes.append("+%d Jenny" % quest.reward_gold)
-		for reward in quest.reward_items:
-			if reward != null and reward.type == QuestReward.Type.ITEM:
-				partes.append("+%s" % str(reward.item_id))
-		var reward_txt: String = " · ".join(partes) if not partes.is_empty() else "Progresso da saga"
-		EventBus.emit_toast("🏆 %s — %s" % [quest.quest_name, reward_txt], Color(1.0, 0.88, 0.35))
+		hud_notif.exibir_notificacao(msg_complete)
+	elif EventBus != null:
+		EventBus.emit_toast(msg_complete, Color(1.0, 0.88, 0.35))
 	if AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):
 		AudioManager.tocar_sfx_tipo("quest_complete", 1.0)
 

@@ -20,6 +20,8 @@ const AchievementsUI = preload("res://ui/Achievements/AchievementsUI.gd")
 const NenQuickActionBarScript = preload("res://ui/hud/NenQuickActionBar.gd")
 const ConditionTrackerUIScript = preload("res://ui/hud/ConditionTrackerUI.gd")
 
+const HUD_SCALE: float = 0.75
+
 # Referências
 var xp_system: XPSystem = null
 var hatsu_system: HatsuSystem = null
@@ -108,10 +110,11 @@ func _criar_condition_tracker() -> void:
 		condition_tracker.name = "ConditionTrackerUI"
 		# Canto inferior esquerdo — só aparece com Hatsu condicional ativo
 		condition_tracker.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-		condition_tracker.offset_left = 10.0
-		condition_tracker.offset_top = -150.0
-		condition_tracker.offset_right = 160.0
-		condition_tracker.offset_bottom = -12.0
+		condition_tracker.offset_left = 8.0
+		condition_tracker.offset_top = -112.0
+		condition_tracker.offset_right = 120.0
+		condition_tracker.offset_bottom = -9.0
+		condition_tracker.scale = Vector2(HUD_SCALE, HUD_SCALE)
 		add_child(condition_tracker)
 
 
@@ -162,12 +165,14 @@ func _criar_card_jogador_top_left() -> void:
 		old_margin.visible = false
 
 	# Raiz: header + 3 frames de barra SEPARADOS (refs Mini Medieval / Fantasy HUD)
+	# Escala ~75% para liberar visão em 640×360
 	var root := VBoxContainer.new()
 	root.name = "PlayerHudRoot"
 	root.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	root.offset_left = 6.0
-	root.offset_top = 6.0
-	root.add_theme_constant_override("separation", 2)
+	root.offset_left = 4.0
+	root.offset_top = 4.0
+	root.add_theme_constant_override("separation", 1)
+	root.scale = Vector2(HUD_SCALE, HUD_SCALE)
 	add_child(root)
 
 	player_card_panel = PanelContainer.new()
@@ -401,7 +406,8 @@ func _criar_boss_bar() -> void:
 	boss_bar_panel.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	boss_bar_panel.offset_left = -105.0
 	boss_bar_panel.offset_right = 105.0
-	boss_bar_panel.offset_top = 6.0
+	boss_bar_panel.offset_top = 4.0
+	boss_bar_panel.scale = Vector2(HUD_SCALE, HUD_SCALE)
 	boss_bar_panel.visible = false
 	boss_bar_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_boss_banner())
 	add_child(boss_bar_panel)
@@ -556,6 +562,7 @@ func _criar_painel_hatsu_slots() -> void:
 	margin_bottom.offset_bottom = -6.0
 	margin_bottom.custom_minimum_size = Vector2(124, 28)
 	margin_bottom.add_theme_constant_override("margin_bottom", 0)
+	margin_bottom.scale = Vector2(HUD_SCALE, HUD_SCALE)
 	add_child(margin_bottom)
 
 	hatsu_slots_container = HBoxContainer.new()
@@ -1157,7 +1164,7 @@ func _on_hatsu_falhou(slot: int, motivo: String) -> void:
 
 func _on_level_up(new_level: int) -> void:
 	print("HUD: LEVEL UP -> ", new_level)
-	exibir_notificacao("✨ NÍVEL UP! Você alcançou o Nível %d!" % new_level)
+	# Toast de level-up já vem do XPSystem via EventBus — evita duplicar na tela
 	_atualizar_hud()
 
 
@@ -1174,6 +1181,12 @@ func _on_save_carregado(_slot: int) -> void:
 
 
 var _notif_stack_container: VBoxContainer = null
+var _toast_queue: Array[String] = []
+var _toast_showing: bool = false
+var _toast_ultimo_texto: String = ""
+var _toast_ultimo_ms: int = 0
+const TOAST_MAX_QUEUE: int = 4
+const TOAST_DEDUPE_MS: int = 2500
 
 
 func _garantir_notif_stack() -> VBoxContainer:
@@ -1190,24 +1203,54 @@ func _garantir_notif_stack() -> VBoxContainer:
 	_notif_stack_container.name = "NotificationStack"
 	_notif_stack_container.set_anchors_preset(Control.PRESET_CENTER_TOP)
 	_notif_stack_container.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_notif_stack_container.custom_minimum_size = Vector2(240, 0)
-	_notif_stack_container.offset_top = 8.0
-	_notif_stack_container.offset_left = -120.0
-	_notif_stack_container.offset_right = 120.0
+	_notif_stack_container.custom_minimum_size = Vector2(180 * HUD_SCALE, 0)
+	_notif_stack_container.offset_top = 6.0
+	_notif_stack_container.offset_left = -90.0 * HUD_SCALE
+	_notif_stack_container.offset_right = 90.0 * HUD_SCALE
 	_notif_stack_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_notif_stack_container.add_theme_constant_override("separation", 3)
+	_notif_stack_container.add_theme_constant_override("separation", 2)
 	root_ctrl.add_child(_notif_stack_container)
 	return _notif_stack_container
 
 
 func exibir_notificacao(texto: String) -> void:
+	var msg := texto.strip_edges()
+	if msg.is_empty():
+		return
+
+	# Deduplica spam (mesma mensagem em sequência rápida)
+	var agora := Time.get_ticks_msec()
+	if msg == _toast_ultimo_texto and (agora - _toast_ultimo_ms) < TOAST_DEDUPE_MS:
+		return
+	if not _toast_queue.is_empty() and _toast_queue[_toast_queue.size() - 1] == msg:
+		return
+
+	if _toast_queue.size() >= TOAST_MAX_QUEUE:
+		_toast_queue.pop_front()
+	_toast_queue.append(msg)
+	_tentar_mostrar_proximo_toast()
+
+
+func _tentar_mostrar_proximo_toast() -> void:
+	if _toast_showing or _toast_queue.is_empty():
+		return
+
 	var container := _garantir_notif_stack()
 	if container == null:
 		return
 
+	# Uma mensagem por vez no mesmo slot
+	for c in container.get_children():
+		c.queue_free()
+
+	var texto: String = _toast_queue.pop_front()
+	_toast_ultimo_texto = texto
+	_toast_ultimo_ms = Time.get_ticks_msec()
+	_toast_showing = true
+
 	var panel := PanelContainer.new()
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.custom_minimum_size = Vector2(225, 18)
+	panel.custom_minimum_size = Vector2(170 * HUD_SCALE, 14 * HUD_SCALE)
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.05, 0.08, 0.12, 0.95)
@@ -1224,8 +1267,8 @@ func exibir_notificacao(texto: String) -> void:
 
 	var margin := MarginContainer.new()
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	margin.add_theme_constant_override("margin_left", 6)
-	margin.add_theme_constant_override("margin_right", 6)
+	margin.add_theme_constant_override("margin_left", 5)
+	margin.add_theme_constant_override("margin_right", 5)
 	margin.add_theme_constant_override("margin_top", 2)
 	margin.add_theme_constant_override("margin_bottom", 2)
 	panel.add_child(margin)
@@ -1235,7 +1278,7 @@ func exibir_notificacao(texto: String) -> void:
 	notif.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notif.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	notif.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	notif.add_theme_font_size_override("font_size", 6)
+	notif.add_theme_font_size_override("font_size", 5)
 	notif.add_theme_color_override("font_color", Color(1.0, 0.92, 0.5, 1.0))
 	notif.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	notif.add_theme_constant_override("shadow_offset_x", 1)
@@ -1246,10 +1289,12 @@ func exibir_notificacao(texto: String) -> void:
 	panel.modulate.a = 0.0
 
 	var tween := create_tween()
-	tween.tween_property(panel, "modulate:a", 1.0, 0.2)
-	tween.tween_interval(3.2)
-	tween.tween_property(panel, "modulate:a", 0.0, 0.4)
+	tween.tween_property(panel, "modulate:a", 1.0, 0.15)
+	tween.tween_interval(2.4)
+	tween.tween_property(panel, "modulate:a", 0.0, 0.3)
 	tween.chain().tween_callback(func():
 		if is_instance_valid(panel):
 			panel.queue_free()
+		_toast_showing = false
+		_tentar_mostrar_proximo_toast()
 	)
