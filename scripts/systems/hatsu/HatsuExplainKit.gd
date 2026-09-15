@@ -25,11 +25,33 @@ static func _compor(hatsu: HatsuData) -> String:
 	var partes: Array[String] = []
 	partes.append("%s é um Hatsu de %s focado em %s (forma: %s)." % [hatsu.nome, cat, obj, forma])
 
-	if hatsu.eh_carregavel_aprimoramento():
+	if hatsu.eh_canalizavel_feel():
 		var t := hatsu.obter_tempo_conjuracao_final()
-		partes.append(
-			"Aprimoramento canalizado: segure o slot para encher a barra de poder (até %.1fs). Quanto mais tempo, maior o dano." % t
-		)
+		match hatsu.obter_feel_modo():
+			HatsuData.FeelMode.POWER:
+				partes.append(
+					"Aprimoramento canalizado: segure o slot para encher a barra de poder (até %.1fs). Quanto mais tempo, maior o dano." % t
+				)
+			HatsuData.FeelMode.RANGE_AIM:
+				partes.append(
+					"Emissão canalizada: segure para mirar e estender o alcance (até %.1fs); solte para disparar." % t
+				)
+			HatsuData.FeelMode.DURATION:
+				partes.append(
+					"Transformação canalizada: segure para prolongar a duração do buff/efeito (até %.1fs)." % t
+				)
+			HatsuData.FeelMode.MATERIALIZE:
+				partes.append(
+					"Conjuração canalizada: segure para materializar com mais tamanho e permanência (até %.1fs)." % t
+				)
+			HatsuData.FeelMode.CONTROL:
+				partes.append(
+					"Manipulação canalizada: segure para reforçar área e duração do controle (até %.1fs)." % t
+				)
+			HatsuData.FeelMode.RISK:
+				partes.append(
+					"Especialização canalizada: segure para escalar risco e poder — aura sobe com a barra (até %.1fs)." % t
+				)
 	elif hatsu.activation_type == HatsuData.ActivationType.CHARGED:
 		partes.append("Requer canalização antes do impacto — solte no momento certo.")
 	elif hatsu.activation_type == HatsuData.ActivationType.SUSTAINED:
@@ -39,13 +61,13 @@ static func _compor(hatsu: HatsuData) -> String:
 		HatsuData.Categoria.INTENSIFICACAO:
 			partes.append("Intensificação reforça o corpo e o golpe físico — o poder nasce da aura concentrada no impacto.")
 		HatsuData.Categoria.TRANSFORMACAO:
-			partes.append("Transformação muda a propriedade da aura (lâmina, eletricidade, calor...).")
+			partes.append("Transformação muda a propriedade da aura (lâmina, eletricidade, calor...) — a duração define quanto tempo a propriedade permanece.")
 		HatsuData.Categoria.EMISSAO:
 			partes.append("Emissão projeta aura à distância — alcance e precisão importam mais que força bruta.")
 		HatsuData.Categoria.CONJURACAO:
-			partes.append("Conjuração materializa algo concreto de Nen no mundo.")
+			partes.append("Conjuração materializa algo concreto de Nen no mundo — tamanho e permanência vêm da canalização.")
 		HatsuData.Categoria.MANIPULACAO:
-			partes.append("Manipulação controla alvos, objetos ou regras de movimento.")
+			partes.append("Manipulação controla alvos, objetos ou regras de movimento — a canalização reforça o domínio.")
 		HatsuData.Categoria.ESPECIALIZACAO:
 			partes.append("Especialização quebra o hexágono — regra própria, risco próprio.")
 
@@ -79,6 +101,12 @@ static func artigos_guia() -> Dictionary:
 			"categoria": "Hatsu",
 			"icone": "💥",
 			"conteudo": "Hatsus de Intensificação (dano) usam barra de conjuração: segure o slot, encha o poder e solte. Tempo cheio = dano máximo. Soltar cedo = golpe fraco e rápido.",
+		},
+		"hatsu_feel_por_tipo": {
+			"titulo": "Feel por Tipo de Nen",
+			"categoria": "Hatsu",
+			"icone": "⬡",
+			"conteudo": "Cada tipo canaliza um parâmetro diferente: Intensificação=poder, Emissão=mira/alcance, Transformação=duração, Conjuração=materialização, Manipulação=controle, Especialização=risco.",
 		},
 		"hatsu_slots_equip": {
 			"titulo": "Slots e Archive",

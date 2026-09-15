@@ -279,6 +279,12 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"icone": "💥",
 		"conteudo": "Hatsus de Intensificação (dano) usam barra de conjuração: segure o slot, encha o poder e solte. Tempo cheio = dano máximo. Soltar cedo = golpe fraco e rápido."
 	},
+	"hatsu_feel_por_tipo": {
+		"titulo": "Feel por Tipo de Nen",
+		"categoria": "Hatsu",
+		"icone": "⬡",
+		"conteudo": "Cada tipo canaliza um parâmetro diferente: Intensificação=poder (PWR), Emissão=mira/alcance (ALC), Transformação=duração (DUR), Conjuração=materialização (MAT), Manipulação=controle (CTRL), Especialização=risco (RISK)."
+	},
 	"hatsu_slots_equip": {
 		"titulo": "Slots e Archive",
 		"categoria": "Hatsu",
@@ -683,6 +689,12 @@ func disparar_tutorial_contextual(tipo: String) -> void:
 		"hatsu_slots": "hatsu_slots_equip",
 		"hatsu_aprimoramento": "hatsu_aprimoramento_carga",
 		"hatsu_carga": "hatsu_aprimoramento_carga",
+		"hatsu_feel_emissao": "hatsu_feel_por_tipo",
+		"hatsu_feel_transformacao": "hatsu_feel_por_tipo",
+		"hatsu_feel_conjuracao": "hatsu_feel_por_tipo",
+		"hatsu_feel_manipulacao": "hatsu_feel_por_tipo",
+		"hatsu_feel_especializacao": "hatsu_feel_por_tipo",
+		"hatsu_feel_por_tipo": "hatsu_feel_por_tipo",
 		"hatsu_explicacao": "hatsu_conceito",
 	}
 	if once_map.has(tipo_clean) and PlayerData != null and PlayerData.tem_conhecimento(String(once_map[tipo_clean])):
@@ -713,6 +725,30 @@ func disparar_tutorial_contextual(tipo: String) -> void:
 			titulo = "💥 APRIMORAMENTO CANALIZADO"
 			msg = "Intensificação ofensiva: SEGURE o slot para encher a barra de poder e SOLTE para golpear. Barra cheia = dano máximo."
 			PlayerData.desbloquear_conhecimento("hatsu_aprimoramento_carga")
+		"hatsu_feel_emissao":
+			titulo = "🎯 EMISSÃO · MIRA/ALCANCE"
+			msg = "Segure o slot para mirar e estender o alcance (barra ALC). Solte para disparar na direção do mouse."
+			PlayerData.desbloquear_conhecimento("hatsu_feel_por_tipo")
+		"hatsu_feel_transformacao":
+			titulo = "⏳ TRANSFORMAÇÃO · DURAÇÃO"
+			msg = "Segure o slot para prolongar a duração do buff/efeito (barra DUR). Solte quando a duração estiver no ponto."
+			PlayerData.desbloquear_conhecimento("hatsu_feel_por_tipo")
+		"hatsu_feel_conjuracao":
+			titulo = "🧱 CONJURAÇÃO · MATERIALIZAR"
+			msg = "Segure para materializar com mais tamanho e permanência (barra MAT)."
+			PlayerData.desbloquear_conhecimento("hatsu_feel_por_tipo")
+		"hatsu_feel_manipulacao":
+			titulo = "🧲 MANIPULAÇÃO · CONTROLE"
+			msg = "Segure para reforçar área e duração do controle (barra CTRL)."
+			PlayerData.desbloquear_conhecimento("hatsu_feel_por_tipo")
+		"hatsu_feel_especializacao":
+			titulo = "👁 ESPECIALIZAÇÃO · RISCO"
+			msg = "Segure para escalar risco e poder (barra RISK). Mais carga = mais aura gasta."
+			PlayerData.desbloquear_conhecimento("hatsu_feel_por_tipo")
+		"hatsu_feel_por_tipo":
+			titulo = "⬡ FEEL POR TIPO"
+			msg = "Cada tipo Nen canaliza um parâmetro: PWR, ALC, DUR, MAT, CTRL ou RISK. Segure o slot e solte no momento certo."
+			PlayerData.desbloquear_conhecimento("hatsu_feel_por_tipo")
 		"hatsu_explicacao":
 			titulo = "📖 EXPLICAÇÃO DO HATSU"
 			msg = "Todo Hatsu que você cria ou equipa ganha uma explicação: tipo, forma, votos e como canalizar. Consulte no menu [H]."

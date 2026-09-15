@@ -28,3 +28,17 @@ O Hatsu é a expressão máxima e individual da personalidade de um Hunter. O si
   * **Terpsichora** (Pitou) — buff corporal temporário
   * **Doctor Blythe** (Pitou) — cura médico-nível
 * Boss AI (`EnemyAI`) usa as mesmas assinaturas com mecânica real (não só balão).
+
+### 3.2 Feel canalizado por tipo Nen
+Hold-to-charge nos slots 1–4; a barra escala um parâmetro diferente por categoria:
+
+| Tipo | Barra | Parâmetro |
+|------|-------|-----------|
+| Intensificação | `PWR` | Poder / dano do golpe |
+| Emissão | `ALC` | Mira (mouse) + alcance |
+| Transformação | `DUR` | Duração do buff/efeito |
+| Conjuração | `MAT` | Tamanho / permanência |
+| Manipulação | `CTRL` | Área / duração do controle |
+| Especialização | `RISK` | Poder ↔ custo de aura |
+
+Implementação: `HatsuData.FeelMode` + `HatsuSystem._executar_feel_canalizado` + HUD com rótulo por tipo.

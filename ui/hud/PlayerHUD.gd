@@ -1067,17 +1067,28 @@ func _atualizar_hatsu_slots() -> void:
 				slot_cost_labels[i].text = ""
 			slot_panels[i].add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 3))
 
-		# Atualizar Cooldown / Carga de Aprimoramento
+		# Atualizar Cooldown / Carga de Feel por tipo
 		var charge_pct := 0.0
 		if i < slot_charge_pct.size():
 			charge_pct = slot_charge_pct[i]
 		if st == 2 or charge_pct > 0.0: # ACTIVATING
 			slot_progress_bars[i].value = charge_pct * 100.0
 			slot_progress_bars[i].visible = true
-			slot_progress_bars[i].add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(Color(1.0, 0.55, 0.15)))
+			var fill_col := Color(1.0, 0.55, 0.15)
+			var rotulo := "PWR"
+			if hatsu != null and hatsu.has_method("obter_rotulo_feel"):
+				rotulo = hatsu.obter_rotulo_feel()
+				match hatsu.obter_feel_modo() if hatsu.has_method("obter_feel_modo") else 0:
+					HatsuData.FeelMode.RANGE_AIM: fill_col = Color(1.0, 0.65, 0.25)
+					HatsuData.FeelMode.DURATION: fill_col = Color(0.45, 0.85, 1.0)
+					HatsuData.FeelMode.MATERIALIZE: fill_col = Color(0.7, 0.55, 1.0)
+					HatsuData.FeelMode.CONTROL: fill_col = Color(0.55, 1.0, 0.7)
+					HatsuData.FeelMode.RISK: fill_col = Color(1.0, 0.35, 0.55)
+					_: fill_col = Color(1.0, 0.55, 0.15)
+			slot_progress_bars[i].add_theme_stylebox_override("fill", HunterUIStyle.criar_style_progress_fill(fill_col))
 			if i < slot_cd_overlays.size(): slot_cd_overlays[i].visible = true
 			if i < slot_cd_labels.size():
-				slot_cd_labels[i].text = "PWR %d%%" % int(charge_pct * 100.0)
+				slot_cd_labels[i].text = "%s %d%%" % [rotulo, int(charge_pct * 100.0)]
 				slot_cd_labels[i].visible = true
 				slot_name_labels[i].visible = false
 			if i < slot_cost_labels.size():

@@ -1334,8 +1334,16 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 	hatsu_criado.emit(novo_hatsu)
 	if TutorialManager != null:
 		TutorialManager.disparar_tutorial_contextual("hatsu_explicacao")
-		if novo_hatsu.eh_carregavel_aprimoramento():
-			TutorialManager.disparar_tutorial_contextual("hatsu_aprimoramento")
+		if novo_hatsu.eh_canalizavel_feel():
+			match novo_hatsu.obter_feel_modo():
+				HatsuData.FeelMode.POWER:
+					TutorialManager.disparar_tutorial_contextual("hatsu_aprimoramento")
+				HatsuData.FeelMode.RANGE_AIM:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_emissao")
+				HatsuData.FeelMode.DURATION:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_transformacao")
+				_:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_por_tipo")
 
 	# Atualizar HunterMenuUI se estiver instanciado
 	var root = get_tree().root if get_tree() else null

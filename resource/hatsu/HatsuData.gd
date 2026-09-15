@@ -1030,20 +1030,106 @@ func obter_tempo_conjuracao_final() -> float:
 	return tempo_conjuracao_base * obter_fator_tempo_conjuracao_mastery()
 
 
-## Intensificação ofensiva: hold-to-charge com barra de poder.
+## Feel canalizado por tipo Nen (hold-to-charge).
+enum FeelMode {
+	NONE,
+	POWER,       # Intensificação → poder do golpe
+	RANGE_AIM,   # Emissão → mira + alcance
+	DURATION,    # Transformação → duração do buff/efeito
+	MATERIALIZE, # Conjuração → tamanho / permanência
+	CONTROL,     # Manipulação → força / duração do controle
+	RISK,        # Especialização → risco ↔ poder
+}
+
+
+func obter_feel_modo() -> FeelMode:
+	match categoria:
+		Categoria.INTENSIFICACAO:
+			if objetivo == ObjetivoPrincipal.DANO:
+				return FeelMode.POWER
+		Categoria.EMISSAO:
+			if objetivo == ObjetivoPrincipal.DANO \
+				or forma == Forma.PROJETIL \
+				or forma == Forma.AREA:
+				return FeelMode.RANGE_AIM
+		Categoria.TRANSFORMACAO:
+			return FeelMode.DURATION
+		Categoria.CONJURACAO:
+			return FeelMode.MATERIALIZE
+		Categoria.MANIPULACAO:
+			return FeelMode.CONTROL
+		Categoria.ESPECIALIZACAO:
+			return FeelMode.RISK
+	return FeelMode.NONE
+
+
+## Compat: Intensificação ofensiva continua sendo "aprimoramento".
 func eh_carregavel_aprimoramento() -> bool:
-	if categoria != Categoria.INTENSIFICACAO:
-		return false
-	if objetivo != ObjetivoPrincipal.DANO:
-		return false
-	return true
+	return obter_feel_modo() == FeelMode.POWER
+
+
+func eh_canalizavel_feel() -> bool:
+	return obter_feel_modo() != FeelMode.NONE
+
+
+func obter_rotulo_feel() -> String:
+	match obter_feel_modo():
+		FeelMode.POWER: return "PWR"
+		FeelMode.RANGE_AIM: return "ALC"
+		FeelMode.DURATION: return "DUR"
+		FeelMode.MATERIALIZE: return "MAT"
+		FeelMode.CONTROL: return "CTRL"
+		FeelMode.RISK: return "RISK"
+	return "CHG"
+
+
+func obter_dica_feel() -> String:
+	match obter_feel_modo():
+		FeelMode.POWER:
+			return "⚡ Segure o slot para canalizar poder (barra = dano)."
+		FeelMode.RANGE_AIM:
+			return "🎯 Segure para mirar e estender o alcance; solte para disparar."
+		FeelMode.DURATION:
+			return "⏳ Segure para prolongar a duração do buff/efeito."
+		FeelMode.MATERIALIZE:
+			return "🧱 Segure para materializar com mais tamanho e permanência."
+		FeelMode.CONTROL:
+			return "🧲 Segure para reforçar o controle (área/duração)."
+		FeelMode.RISK:
+			return "👁 Segure para escalar risco e poder da regra especial."
+	return ""
 
 
 func obter_multiplicador_carga(charge_pct: float) -> float:
-	## 0% → golpe fraco (~35%); 100% → impacto máximo (~175%).
+	## Alias legado (Intensificação / POWER).
+	return obter_multiplicador_feel(charge_pct)
+
+
+func obter_multiplicador_feel(charge_pct: float) -> float:
 	var t := clampf(charge_pct, 0.0, 1.0)
 	t = pow(t, 1.15)
-	return lerpf(0.35, 1.75, t)
+	match obter_feel_modo():
+		FeelMode.POWER:
+			return lerpf(0.35, 1.75, t)       # dano
+		FeelMode.RANGE_AIM:
+			return lerpf(0.55, 1.85, t)       # alcance
+		FeelMode.DURATION:
+			return lerpf(0.45, 1.70, t)       # duração
+		FeelMode.MATERIALIZE:
+			return lerpf(0.50, 1.60, t)       # raio/permanência
+		FeelMode.CONTROL:
+			return lerpf(0.40, 1.65, t)       # stun/área
+		FeelMode.RISK:
+			return lerpf(0.55, 2.00, t)       # poder com risco
+	return 1.0
+
+
+func obter_custo_feel_mult(charge_pct: float) -> float:
+	## Especialização: quanto mais carga, mais aura (risco).
+	if obter_feel_modo() != FeelMode.RISK:
+		return 1.0
+	var t := clampf(charge_pct, 0.0, 1.0)
+	return lerpf(0.85, 1.55, t)
 
 
 func obter_explicacao() -> String:

@@ -381,14 +381,28 @@ func _atualizar_inspetor() -> void:
 	lbl_desc.add_theme_color_override("font_color", Color(0.75, 0.85, 0.95))
 	lbl_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vb.add_child(lbl_desc)
-	if h.eh_carregavel_aprimoramento():
+	if h.eh_canalizavel_feel():
 		var lbl_carga := Label.new()
-		lbl_carga.text = "⚡ Segure o slot para canalizar (barra = poder)."
+		lbl_carga.text = h.obter_dica_feel()
 		lbl_carga.add_theme_font_size_override("font_size", 3)
 		lbl_carga.add_theme_color_override("font_color", Color(1.0, 0.7, 0.3))
 		vb.add_child(lbl_carga)
 		if TutorialManager != null:
-			TutorialManager.disparar_tutorial_contextual("hatsu_aprimoramento")
+			match h.obter_feel_modo():
+				HatsuData.FeelMode.POWER:
+					TutorialManager.disparar_tutorial_contextual("hatsu_aprimoramento")
+				HatsuData.FeelMode.RANGE_AIM:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_emissao")
+				HatsuData.FeelMode.DURATION:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_transformacao")
+				HatsuData.FeelMode.MATERIALIZE:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_conjuracao")
+				HatsuData.FeelMode.CONTROL:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_manipulacao")
+				HatsuData.FeelMode.RISK:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_especializacao")
+				_:
+					TutorialManager.disparar_tutorial_contextual("hatsu_feel_por_tipo")
 
 	# Mastery Progress
 	var lbl_m_val := Label.new()
