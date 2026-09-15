@@ -362,6 +362,7 @@ func criar_hatsu(
 	hatsu.condicoes = typed_condicoes
 	_configurar_stats_base(hatsu)
 	_configurar_arquetipo_padrao(hatsu)
+	HatsuExplainKit.garantir_descricao(hatsu)
 
 	# Cores por Elemento ou Customizadas
 	if cor_primaria.r >= 0.0:
@@ -517,6 +518,9 @@ func _configurar_stats_base(hatsu: HatsuData) -> void:
 						_:
 							hatsu.poder_base = 38.0 * mult_consumo
 							hatsu.cooldown_base = 3.5
+					# Canalização = poder: barra longa para hits pesados
+					hatsu.activation_type = HatsuData.ActivationType.CHARGED
+					hatsu.tempo_conjuracao_base = clampf(0.85 + (hatsu.poder_base / 55.0), 1.0, 2.8)
 
 				HatsuData.Categoria.TRANSFORMACAO:
 					hatsu.poder_base = 35.0 * mult_consumo

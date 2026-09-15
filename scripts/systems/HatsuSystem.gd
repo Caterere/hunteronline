@@ -25,6 +25,7 @@ signal hatsu_desativado(slot: int, hatsu: HatsuData)
 signal hatsu_falhou(slot: int, motivo: String)
 signal hatsu_estado_alterado(slot: int, novo_estado: int)
 signal cooldown_atualizado(slot: int, restante: float, total: float)
+signal hatsu_carga_atualizada(slot: int, pct: float, tempo: float, tempo_max: float)
 signal escudo_alterado(atual: float, maximo: float)
 signal almas_atualizadas(slot: int, total_almas: int)
 
@@ -48,6 +49,14 @@ var combat_system: HunterCombatSystem = null
 var slot_states: Array[SlotState] = [SlotState.READY, SlotState.READY, SlotState.READY, SlotState.READY]
 var slot_cooldowns: Array[float] = [0.0, 0.0, 0.0, 0.0]
 var slot_cooldowns_max: Array[float] = [0.0, 0.0, 0.0, 0.0]
+
+# Canalização de Aprimoramento (hold-to-charge)
+var charging_slot: int = -1
+var charge_timer: float = 0.0
+var charge_time_max: float = 1.0
+var charge_hatsu: HatsuData = null
+var charge_eficiencia: float = 1.0
+var charge_pending_cd: float = 0.0
 
 # Habilidades Sustentadas e Transformações Ativas
 var active_sustained_hatsus: Array[Dictionary] = [] # [{"slot": int, "hatsu": HatsuData, "timer": float, "is_active": bool}]
@@ -116,6 +125,14 @@ func _processar_snapshots_vitais(delta: float) -> void:
 
 
 func _atualizar_timers(delta: float) -> void:
+
+	# Canalização de aprimoramento (barra de poder)
+	if charging_slot >= 0:
+		charge_timer = minf(charge_timer + delta, charge_time_max)
+		var pct := 0.0 if charge_time_max <= 0.0 else charge_timer / charge_time_max
+		hatsu_carga_atualizada.emit(charging_slot, pct, charge_timer, charge_time_max)
+		# Imobiliza levemente durante a carga (postura de Nen)
+		imobilizado_timer = maxf(imobilizado_timer, 0.05)
 	# 1. Atualizar Cooldowns
 	for i in range(4):
 		if slot_cooldowns[i] > 0.0:
@@ -449,19 +466,121 @@ func _processar_input() -> void:
 	if owner_body == null:
 		return
 
-	if Input.is_action_just_pressed("hatsu_slot_1"):
-		usar_hatsu(0)
-	elif Input.is_action_just_pressed("hatsu_slot_2"):
-		usar_hatsu(1)
-	elif Input.is_action_just_pressed("hatsu_slot_3"):
-		usar_hatsu(2)
-	elif Input.is_action_just_pressed("hatsu_slot_4"):
-		usar_hatsu(3)
+	# Soltar carga de aprimoramento
+	if charging_slot >= 0:
+		var action := "hatsu_slot_%d" % (charging_slot + 1)
+		if Input.is_action_just_released(action) or not Input.is_action_pressed(action):
+			_liberar_carga_hatsu(false)
+		return
+
+	for i in range(4):
+		var action := "hatsu_slot_%d" % (i + 1)
+		if Input.is_action_just_pressed(action):
+			var hatsu: HatsuData = PlayerData.obter_hatsu_slot(i)
+			if hatsu != null and hatsu.eh_carregavel_aprimoramento():
+				_iniciar_carga_hatsu(i)
+			else:
+				usar_hatsu(i)
 
 
 # ============================================================
 # EXECUÇÃO DE HATSU
 # ============================================================
+
+
+func _iniciar_carga_hatsu(slot_index: int) -> bool:
+	if charging_slot >= 0:
+		return false
+	var hatsu: HatsuData = PlayerData.obter_hatsu_slot(slot_index)
+	if hatsu == null or not hatsu.eh_carregavel_aprimoramento():
+		return usar_hatsu(slot_index)
+	if slot_states[slot_index] == SlotState.COOLDOWN or slot_cooldowns[slot_index] > 0.0:
+		hatsu_falhou.emit(slot_index, "Em recarga")
+		return false
+	if slot_states[slot_index] == SlotState.ACTIVE:
+		return usar_hatsu(slot_index)
+
+	# Pré-checagens leves (aura / bloqueio)
+	var custo_aura: float = hatsu.obter_custo_final()
+	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+		custo_aura *= 0.60
+	elif PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.EMISSAO:
+		custo_aura *= 0.80
+	var aura_atual := float(PlayerData.attributes.get("aura", 0.0))
+	if aura_atual < custo_aura:
+		hatsu_falhou.emit(slot_index, "Aura insuficiente!")
+		if combat_system != null:
+			combat_system._mostrar_texto_flutuante("Aura insuficiente!", Color(1.0, 0.4, 0.4))
+		return false
+	if zetsu_forcado_timer > 0.0 or bloqueio_nen_timer > 0.0:
+		hatsu_falhou.emit(slot_index, "Nen bloqueado")
+		return false
+
+	charging_slot = slot_index
+	charge_timer = 0.0
+	charge_time_max = maxf(0.75, hatsu.obter_tempo_conjuracao_final())
+	charge_hatsu = hatsu
+	charge_eficiencia = NenAffinityData.calcular_eficiencia_categoria(PlayerData.afinidade_nen, hatsu.categoria)
+	var cd: float = hatsu.obter_cooldown_final()
+	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+		cd *= 0.75
+	charge_pending_cd = cd
+	_definir_estado_slot(slot_index, SlotState.ACTIVATING)
+	hatsu_carga_atualizada.emit(slot_index, 0.0, 0.0, charge_time_max)
+	if TutorialManager != null:
+		TutorialManager.disparar_tutorial_contextual("hatsu_carga")
+	if combat_system != null:
+		combat_system._mostrar_texto_flutuante("⚡ Canalizando %s..." % hatsu.nome, Color(1.0, 0.85, 0.35))
+	return true
+
+
+func _liberar_carga_hatsu(cancelar: bool = false) -> void:
+	if charging_slot < 0:
+		return
+	var slot := charging_slot
+	var hatsu := charge_hatsu
+	var efic := charge_eficiencia
+	var pct := 0.0 if charge_time_max <= 0.0 else clampf(charge_timer / charge_time_max, 0.0, 1.0)
+	var cd := charge_pending_cd
+	charging_slot = -1
+	charge_timer = 0.0
+	charge_hatsu = null
+	hatsu_carga_atualizada.emit(slot, 0.0, 0.0, 0.0)
+	if cancelar or hatsu == null:
+		_definir_estado_slot(slot, SlotState.READY)
+		return
+	# Gasta aura e dispara com multiplicador de carga
+	var custo_aura: float = hatsu.obter_custo_final()
+	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+		custo_aura *= 0.60
+	elif PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.EMISSAO:
+		custo_aura *= 0.80
+	if nen_system != null:
+		if not nen_system.gastar_aura_float(custo_aura):
+			_definir_estado_slot(slot, SlotState.READY)
+			hatsu_falhou.emit(slot, "Aura insuficiente!")
+			return
+	else:
+		var a_cur = float(PlayerData.attributes.get("aura", 0.0))
+		PlayerData.attributes["aura"] = max(0.0, a_cur - custo_aura)
+
+	_aplicar_efeitos_juramentos(hatsu)
+	slot_cooldowns[slot] = cd
+	slot_cooldowns_max[slot] = cd
+	_definir_estado_slot(slot, SlotState.COOLDOWN)
+	if combat_system != null and combat_system.has_method("cancelar_ataque_para_hatsu"):
+		combat_system.cancelar_ataque_para_hatsu()
+	if EventBus != null and owner_body != null:
+		var cat_name = NenAffinityData.obter_nome_afinidade(hatsu.categoria)
+		var cat_color = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
+		EventBus.emit_hatsu_dramatic_callout(owner_body, hatsu.nome, "%s · Poder %d%%" % [cat_name, int(pct * 100.0)], cat_color)
+	var mult := hatsu.obter_multiplicador_carga(pct)
+	_executar_por_objetivo(hatsu, efic * mult)
+	if combat_system != null:
+		var cor := Color(1.0, 0.55, 0.2) if pct >= 0.95 else Color(0.85, 0.9, 1.0)
+		combat_system._mostrar_texto_flutuante("💥 %s x%.2f" % [hatsu.nome, mult], cor)
+	hatsu_executado.emit(slot, hatsu)
+
 
 func usar_hatsu(slot_index: int) -> bool:
 	if slot_index < 0 or slot_index >= 4:
