@@ -4,14 +4,12 @@ extends Control
 # ==============================================================================
 # HUNTER ONLINE — NEN SKILL TREE CONSTELLATION MAP (REDESIGN PROFUNDO)
 # ==============================================================================
-# Interface estilo ARPG autêntico (Path of Exile / FFX Sphere Grid / Grim Dawn):
-# - Mapa estelar contendo mais de 400 nós interconectados em 10 regiões.
-# - Câmera livre: Arrastar com mouse (Pan), Zoom contínuo (0.25x a 2.0x).
-# - Culling de Viewport: 60+ FPS estáveis renderizando apenas nós visíveis.
-# - Modos de exibição: Embutido na aba do menu ou Tela Cheia Imersiva.
-# - Busca rápida por texto / tags (realce de caminhos de build).
-# - Inspetor lateral com alocação e Tooltip flutuante instantâneo.
-# - Reset da árvore com confirmação e reembolso integral de pontos.
+# Interface estilo ARPG/MMO (PoE / WoW Dragonflight / Last Epoch):
+# - Hierarquia de nós clara (Small/Medium/Major/Keystone) com anéis e glow.
+# - Conexões com fluxo de aura animado nos caminhos alocados.
+# - Pulse em nós disponíveis + busca com dim agressivo (legibilidade PoE).
+# - Labels de região, pips de rank, burst de unlock e path highlight.
+# - Câmera livre (pan/zoom), culling de viewport, inspetor + tooltip.
 # ==============================================================================
 
 const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
@@ -21,6 +19,7 @@ var database: SkillTreeDatabase = null
 var _bg_texture: Texture2D = null
 var _tex_nen_icons: Texture2D = null
 var _tex_small_node_icons: Texture2D = null
+var _tex_node_rings: Texture2D = null
 
 # Câmera e Navegação
 var pan_offset: Vector2 = Vector2.ZERO
@@ -33,6 +32,13 @@ var is_dragging: bool = false
 var drag_start_mouse: Vector2 = Vector2.ZERO
 var drag_start_pan: Vector2 = Vector2.ZERO
 var has_dragged: bool = false
+
+# FX / animação (estilo MMO talent trees)
+var _fx_time: float = 0.0
+var _path_highlight: Dictionary = {} # StringName -> true
+var _search_matches: Array[StringName] = []
+var _search_match_idx: int = -1
+var _unlock_bursts: Array[Dictionary] = [] # {pos: Vector2 world, t: float, color: Color}
 
 signal fullscreen_toggled(is_fullscreen: bool)
 
@@ -105,6 +111,7 @@ func _ready() -> void:
 
 	# Centralizar inicialmente no Nexus (0,0)
 	call_deferred("_centralizar_no_nexus")
+	call_deferred("_rebuild_path_highlight", selected_node_id)
 
 
 func _carregar_texturas_tema() -> void:
@@ -114,14 +121,18 @@ func _carregar_texturas_tema() -> void:
 		_tex_nen_icons = load("res://assets/sprites/ui/nen_category_icons.png")
 	if ResourceLoader.exists("res://assets/sprites/ui/nen_small_node_icons.png"):
 		_tex_small_node_icons = load("res://assets/sprites/ui/nen_small_node_icons.png")
+	if ResourceLoader.exists("res://assets/sprites/ui/nen_skill_node_rings.png"):
+		_tex_node_rings = load("res://assets/sprites/ui/nen_skill_node_rings.png")
 
 
 func _draw_node_icon(node: SkillTreeNodeData, pos: Vector2, radius: float, is_unlocked: bool, is_available: bool) -> void:
-	var a := 0.95 if is_unlocked or is_available else 0.38
-	var icon_r := radius * (0.72 if node.node_type == SkillTreeNodeData.NodeType.SMALL else 0.85)
+	var a := 1.0 if is_unlocked else (0.88 if is_available else 0.40)
+	var icon_r := radius * (0.70 if node.node_type == SkillTreeNodeData.NodeType.SMALL else 0.82)
 	var dst := Rect2(pos - Vector2(icon_r, icon_r), Vector2(icon_r * 2, icon_r * 2))
 
-	# Nós pequenos: sheet de ícones miúdos (12 células) — senão fallback categoria
+	# Disco de contraste atrás do ícone (legibilidade estilo WoW talent icon)
+	map_viewport.draw_circle(pos, icon_r * 0.95, Color(0.04, 0.03, 0.02, 0.55 * a))
+
 	if node.node_type == SkillTreeNodeData.NodeType.SMALL and _tex_small_node_icons != null:
 		var cols := 12
 		var cell_w := int(_tex_small_node_icons.get_width() / float(cols))
@@ -135,7 +146,6 @@ func _draw_node_icon(node: SkillTreeNodeData, pos: Vector2, radius: float, is_un
 		return
 
 	if _tex_nen_icons == null:
-		# Fallback geométrico legível nos nós pequenos
 		var mark := Color(0.95, 0.88, 0.55, a)
 		map_viewport.draw_circle(pos, maxf(1.5, radius * 0.28), mark)
 		return
@@ -170,21 +180,29 @@ func _localizar_skill_tree() -> void:
 
 
 func _process(delta: float) -> void:
+	_fx_time += delta
 	# Interpolação suave de Pan e Zoom
-	var needs_redraw := false
+	var needs_redraw := true # animações de pulse/fluxo pedem redraw contínuo
 	if pan_offset.distance_to(target_pan) > 0.5:
 		pan_offset = pan_offset.lerp(target_pan, clamp(delta * 14.0, 0.0, 1.0))
-		needs_redraw = true
 	else:
 		pan_offset = target_pan
 
 	if abs(zoom_level - target_zoom) > 0.005:
 		zoom_level = lerp(zoom_level, target_zoom, clamp(delta * 14.0, 0.0, 1.0))
-		needs_redraw = true
 	else:
 		zoom_level = target_zoom
 
-	if needs_redraw and map_viewport != null:
+	# Bursts de unlock (fade out)
+	if not _unlock_bursts.is_empty():
+		var vivos: Array[Dictionary] = []
+		for b in _unlock_bursts:
+			b["t"] = float(b.get("t", 0.0)) + delta
+			if float(b["t"]) < 0.85:
+				vivos.append(b)
+		_unlock_bursts = vivos
+
+	if needs_redraw and map_viewport != null and is_visible_in_tree():
 		map_viewport.queue_redraw()
 
 
@@ -302,6 +320,13 @@ func _construir_top_bar() -> void:
 	search_edit.text_changed.connect(_on_search_changed)
 	hbox.add_child(search_edit)
 
+	var btn_next_match := Button.new()
+	btn_next_match.text = "⏭"
+	btn_next_match.tooltip_text = "Ir para o próximo resultado da busca"
+	btn_next_match.add_theme_font_size_override("font_size", 6)
+	btn_next_match.pressed.connect(_ir_proximo_match_busca)
+	hbox.add_child(btn_next_match)
+
 	# Menu de Regiões Compacto
 	var opt_regions := OptionButton.new()
 	opt_regions.add_item("Regiões (Todas)", 0)
@@ -366,6 +391,12 @@ func _construir_bottom_bar() -> void:
 	lbl_points.add_theme_font_size_override("font_size", 6)
 	lbl_points.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 	hbox.add_child(lbl_points)
+
+	var lbl_legend := Label.new()
+	lbl_legend.text = "  ● Peq  ◉ Médio  ◆ Major  ★ Keystone  ··· disponível  ═ alocado"
+	lbl_legend.add_theme_font_size_override("font_size", 5)
+	lbl_legend.add_theme_color_override("font_color", Color(0.75, 0.68, 0.48, 0.85))
+	hbox.add_child(lbl_legend)
 
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -555,10 +586,10 @@ func _on_map_draw() -> void:
 		view_size / zoom_level
 	)
 
-	# Fundo HxH: pergaminho + aura Nen (não espaço genérico)
 	_draw_background_grid(center_screen)
+	_draw_region_labels(center_screen, vp_rect)
 
-	# 1. Desenhar Linhas Conectoras (fluxo de aura)
+	# 1. Linhas conectoras (fluxo de aura + path highlight)
 	var drawn_lines: Dictionary = {}
 	for nid in database.nodes.keys():
 		var node: SkillTreeNodeData = database.nodes[nid]
@@ -585,8 +616,8 @@ func _on_map_draw() -> void:
 			var is_unlocked: bool = (skill_tree != null and skill_tree.no_desbloqueado(nid))
 			var is_prereq_unlocked: bool = (skill_tree != null and skill_tree.no_desbloqueado(prereq_id))
 			var is_available: bool = (skill_tree != null and skill_tree.pode_investir(nid))
+			var on_path: bool = _path_highlight.has(nid) and _path_highlight.has(prereq_id)
 
-			# Dim ink / glowing Nen aura (HxH, não laranja PoE genérico)
 			var line_color := Color(0.28, 0.20, 0.12, 0.35)
 			var line_width := 1.1 * zoom_level
 			var reg_tint: Color = Color(0.55, 0.45, 0.30)
@@ -594,51 +625,83 @@ func _on_map_draw() -> void:
 				reg_tint = database.REGIONS[node.region_id].get("color", reg_tint)
 
 			if is_unlocked and is_prereq_unlocked:
-				# Aura da região + ouro Hunter License
 				line_color = Color(reg_tint.r, reg_tint.g, reg_tint.b, 0.95).lerp(Color(0.35, 0.92, 1.0, 0.95), 0.35)
-				line_width = 2.6 * zoom_level
-				map_viewport.draw_line(from_screen, to_screen, Color(1.0, 0.85, 0.35, 0.32), line_width + 2.0, true)
+				line_width = 2.8 * zoom_level
+				# Glow externo (PoE allocated edge)
+				map_viewport.draw_line(from_screen, to_screen, Color(1.0, 0.85, 0.35, 0.22), line_width + 3.5, true)
+				map_viewport.draw_line(from_screen, to_screen, Color(0.4, 0.95, 1.0, 0.18), line_width + 1.5, true)
+				_draw_aura_flow(from_screen, to_screen, line_color)
 			elif is_prereq_unlocked and is_available:
-				line_color = Color(reg_tint.r, reg_tint.g, reg_tint.b, 0.75).lerp(Color(0.45, 1.0, 0.55, 0.88), 0.4)
-				line_width = 1.9 * zoom_level
+				# Trace path disponível (WoW / PoE hover path)
+				var pulse := 0.55 + 0.45 * sin(_fx_time * 3.2)
+				line_color = Color(reg_tint.r, reg_tint.g, reg_tint.b, 0.55 + 0.35 * pulse).lerp(Color(0.45, 1.0, 0.55, 0.9), 0.45)
+				line_width = 2.0 * zoom_level
+				_draw_dashed_line(from_screen, to_screen, line_color, line_width)
 			else:
-				line_color = Color(reg_tint.r * 0.35, reg_tint.g * 0.35, reg_tint.b * 0.35, 0.28)
+				line_color = Color(reg_tint.r * 0.35, reg_tint.g * 0.35, reg_tint.b * 0.35, 0.22)
+
+			if on_path and not (is_unlocked and is_prereq_unlocked):
+				line_color = Color(1.0, 0.82, 0.28, 0.75)
+				line_width = maxf(line_width, 2.2 * zoom_level)
+
 			if not search_filter.is_empty():
 				var matches_filter = _node_matches_search(node) or _node_matches_search(prereq_node)
 				if not matches_filter:
-					line_color.a *= 0.15
+					line_color.a *= 0.08
 
-			map_viewport.draw_line(from_screen, to_screen, line_color, line_width, true)
+			if not (is_prereq_unlocked and is_available and not (is_unlocked and is_prereq_unlocked)):
+				map_viewport.draw_line(from_screen, to_screen, line_color, line_width, true)
 
-	# 2. Desenhar Nós
+	# 2. Nós
 	for nid in database.nodes.keys():
 		var node: SkillTreeNodeData = database.nodes[nid]
 		if not vp_rect.has_point(node.position):
 			continue
-
 		var screen_pos := (node.position * zoom_level) + center_screen + pan_offset
 		_draw_skill_node(node, screen_pos)
+
+	# 3. Bursts de unlock (acima dos nós)
+	_draw_unlock_bursts(center_screen)
+
+	# 4. Vignette suave (foco no mapa)
+	_draw_vignette()
 
 
 func _draw_background_grid(center_screen: Vector2) -> void:
 	var full := Rect2(Vector2.ZERO, size)
-	# Base pergaminho escuro (HxH license / madeira)
-	map_viewport.draw_rect(full, Color(0.10, 0.07, 0.04, 1.0), true)
+	# Base 100% opaca (evita “checkerboard” de alpha no capture/viewport)
+	map_viewport.draw_rect(full, Color(0.09, 0.06, 0.035, 1.0), true)
 	if _bg_texture != null:
-		map_viewport.draw_texture_rect(_bg_texture, full, false, Color(1, 1, 1, 0.72))
+		var tile := 512.0 * maxf(zoom_level, 0.55)
+		var origin := Vector2(
+			fposmod(pan_offset.x * 0.28, tile),
+			fposmod(pan_offset.y * 0.28, tile)
+		)
+		var x0 := -tile + origin.x
+		while x0 < size.x + tile:
+			var y0 := -tile + origin.y
+			while y0 < size.y + tile:
+				map_viewport.draw_texture_rect(_bg_texture, Rect2(Vector2(x0, y0), Vector2(tile, tile)), false, Color(0.92, 0.85, 0.7, 0.42))
+				y0 += tile
+			x0 += tile
 	else:
-		# Nebulosa de aura Nen procedural (ciano + sépia)
 		map_viewport.draw_circle(center_screen + pan_offset * 0.15, size.x * 0.55, Color(0.08, 0.22, 0.28, 0.35))
 		map_viewport.draw_circle(center_screen + Vector2(size.x * 0.2, -size.y * 0.1) + pan_offset * 0.1, size.x * 0.35, Color(0.35, 0.18, 0.08, 0.22))
-		# Pontos de constelação (tinta)
-		var rng := RandomNumberGenerator.new()
-		rng.seed = 287001 # Exame Hunter seed estável
-		for i in range(90):
-			var p := Vector2(rng.randf() * size.x, rng.randf() * size.y)
-			var a := rng.randf_range(0.08, 0.35)
-			map_viewport.draw_circle(p, rng.randf_range(0.6, 1.4), Color(0.85, 0.78, 0.55, a))
 
-	# Hexágono do gráfico de Nen (6 categorias) no centro
+	# Nebulosa de aura por cima do tile (costura as bordas)
+	map_viewport.draw_circle(center_screen + pan_offset * 0.12, size.x * 0.48, Color(0.06, 0.16, 0.2, 0.22))
+	map_viewport.draw_circle(center_screen + Vector2(-size.x * 0.15, size.y * 0.1), size.x * 0.32, Color(0.25, 0.12, 0.06, 0.18))
+
+	# Estrelas / partículas de aura estáveis
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 287001
+	for i in range(110):
+		var p := Vector2(rng.randf() * size.x, rng.randf() * size.y)
+		var twinkle := 0.5 + 0.5 * sin(_fx_time * rng.randf_range(1.2, 2.8) + float(i))
+		var a := rng.randf_range(0.06, 0.28) * twinkle
+		map_viewport.draw_circle(p, rng.randf_range(0.55, 1.5), Color(0.9, 0.82, 0.55, a))
+
+	# Hexágono do gráfico de Nen (6 categorias)
 	var nexus := center_screen + pan_offset
 	var hex_r: float = 220.0 * zoom_level
 	var hex_pts := PackedVector2Array()
@@ -646,14 +709,103 @@ func _draw_background_grid(center_screen: Vector2) -> void:
 		var a := -PI * 0.5 + TAU * float(i) / 6.0
 		hex_pts.append(nexus + Vector2(cos(a), sin(a)) * hex_r)
 	for i in range(6):
-		map_viewport.draw_line(hex_pts[i], hex_pts[(i + 1) % 6], Color(0.55, 0.38, 0.14, 0.28), 1.5, true)
-		map_viewport.draw_line(nexus, hex_pts[i], Color(0.25, 0.65, 0.75, 0.12), 1.0, true)
+		var pulse_a := 0.22 + 0.08 * sin(_fx_time * 1.4 + float(i))
+		map_viewport.draw_line(hex_pts[i], hex_pts[(i + 1) % 6], Color(0.55, 0.38, 0.14, pulse_a), 1.6, true)
+		map_viewport.draw_line(nexus, hex_pts[i], Color(0.25, 0.65, 0.75, 0.10), 1.0, true)
 
-	# Anéis de aura
+	# Anéis de profundidade (órbitas PoE-like)
 	var rings: Array[float] = [300.0, 700.0, 1200.0, 1800.0, 2400.0, 3000.0]
-	for r: float in rings:
+	for ri in range(rings.size()):
+		var r: float = rings[ri]
 		var r_screen: float = r * zoom_level
-		map_viewport.draw_arc(nexus, r_screen, 0.0, TAU, 64, Color(0.35, 0.55, 0.45, 0.12), 1.0)
+		var a2 := 0.08 + 0.04 * sin(_fx_time * 0.7 + float(ri))
+		map_viewport.draw_arc(nexus, r_screen, 0.0, TAU, 72, Color(0.35, 0.55, 0.45, a2), 1.0)
+
+
+func _draw_region_labels(center_screen: Vector2, vp_rect: Rect2) -> void:
+	if database == null or zoom_level < 0.28:
+		return
+	for reg_id in database.REGIONS.keys():
+		if reg_id == &"nexus":
+			continue
+		var info: Dictionary = database.REGIONS[reg_id]
+		var angle := float(info.get("angle", 0.0))
+		var world := Vector2.from_angle(angle) * 980.0
+		if not vp_rect.grow(180.0).has_point(world):
+			continue
+		var screen := (world * zoom_level) + center_screen + pan_offset
+		var col: Color = info.get("color", Color.WHITE)
+		var nome: String = str(info.get("name", reg_id))
+		# Pill de região
+		var font := ThemeDB.fallback_font
+		var fs := 8 if zoom_level > 0.55 else 6
+		var tw := font.get_string_size(nome, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var pad := Vector2(8, 4)
+		var rect := Rect2(screen - Vector2(tw * 0.5 + pad.x, 10), Vector2(tw + pad.x * 2, 16))
+		map_viewport.draw_rect(rect, Color(0.06, 0.04, 0.02, 0.72), true)
+		map_viewport.draw_rect(rect, Color(col.r, col.g, col.b, 0.55), false, 1.2)
+		map_viewport.draw_string(font, rect.position + Vector2(pad.x, 12), nome, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(col.r, col.g, col.b, 0.95).lerp(Color(1, 0.92, 0.7), 0.35))
+
+
+func _draw_vignette() -> void:
+	var w := size.x
+	var h := size.y
+	var edge := Color(0.02, 0.015, 0.01, 0.55)
+	map_viewport.draw_rect(Rect2(0, 0, w, 28), Color(edge.r, edge.g, edge.b, 0.35), true)
+	map_viewport.draw_rect(Rect2(0, h - 26, w, 26), Color(edge.r, edge.g, edge.b, 0.4), true)
+	map_viewport.draw_rect(Rect2(0, 0, 18, h), Color(edge.r, edge.g, edge.b, 0.3), true)
+	map_viewport.draw_rect(Rect2(w - 18, 0, 18, h), Color(edge.r, edge.g, edge.b, 0.3), true)
+
+
+func _draw_aura_flow(from_s: Vector2, to_s: Vector2, col: Color) -> void:
+	var dir := to_s - from_s
+	var len_v := dir.length()
+	if len_v < 8.0:
+		return
+	var n := dir / len_v
+	var count := clampi(int(len_v / 42.0), 2, 8)
+	for i in range(count):
+		var t := fmod((_fx_time * 0.35) + float(i) / float(count), 1.0)
+		var p := from_s.lerp(to_s, t)
+		var a := 0.25 + 0.55 * sin(t * PI)
+		map_viewport.draw_circle(p, 2.0 * zoom_level + 0.8, Color(col.r, col.g, col.b, a))
+		map_viewport.draw_circle(p, 1.0 * zoom_level, Color(1.0, 0.95, 0.7, a * 0.9))
+
+
+func _draw_dashed_line(from_s: Vector2, to_s: Vector2, col: Color, width: float) -> void:
+	var dir := to_s - from_s
+	var len_v := dir.length()
+	if len_v < 4.0:
+		return
+	var n := dir / len_v
+	var dash := 8.0 * zoom_level
+	var gap := 5.0 * zoom_level
+	var d := 0.0
+	var phase := fmod(_fx_time * 22.0, dash + gap)
+	d = -phase
+	while d < len_v:
+		var a := clampf(d, 0.0, len_v)
+		var b := clampf(d + dash, 0.0, len_v)
+		if b > a:
+			map_viewport.draw_line(from_s + n * a, from_s + n * b, col, width, true)
+		d += dash + gap
+
+
+func _draw_unlock_bursts(center_screen: Vector2) -> void:
+	for b in _unlock_bursts:
+		var t: float = float(b.get("t", 0.0))
+		var world: Vector2 = b.get("pos", Vector2.ZERO)
+		var col: Color = b.get("color", Color(1.0, 0.85, 0.35))
+		var screen := (world * zoom_level) + center_screen + pan_offset
+		var life := clampf(t / 0.85, 0.0, 1.0)
+		var rad := (18.0 + life * 42.0) * zoom_level
+		var a := (1.0 - life) * 0.7
+		map_viewport.draw_arc(screen, rad, 0.0, TAU, 40, Color(col.r, col.g, col.b, a), 2.5)
+		map_viewport.draw_arc(screen, rad * 0.55, 0.0, TAU, 28, Color(1, 1, 1, a * 0.5), 1.5)
+		for i in range(8):
+			var ang := TAU * float(i) / 8.0 + t * 4.0
+			var p := screen + Vector2(cos(ang), sin(ang)) * rad * 0.85
+			map_viewport.draw_circle(p, 2.2 * (1.0 - life) * zoom_level, Color(col.r, col.g, col.b, a))
 
 
 func _draw_skill_node(node: SkillTreeNodeData, pos: Vector2) -> void:
@@ -663,6 +815,7 @@ func _draw_skill_node(node: SkillTreeNodeData, pos: Vector2) -> void:
 	var is_maxed := rank >= node.nivel_max
 	var is_selected := (node.id == selected_node_id)
 	var is_hovered := (node.id == hovered_node_id)
+	var on_path := _path_highlight.has(node.id)
 
 	var base_radius: float = 12.0
 	match node.node_type:
@@ -680,58 +833,121 @@ func _draw_skill_node(node: SkillTreeNodeData, pos: Vector2) -> void:
 	if not search_filter.is_empty():
 		is_highlighted = _node_matches_search(node)
 
-	# Bloqueado = bronze apagado; ativo = aura ciano + ouro Hunter
-	var fill_color := Color(0.14, 0.10, 0.06, 0.92)
-	var border_color := Color(0.38, 0.28, 0.16, 0.75)
-	var border_width := 1.5 * zoom_level
+	# Paleta por estado (contraste alto estilo PoE allocated)
+	var fill_color := Color(0.12, 0.09, 0.05, 0.94)
+	var border_color := Color(0.35, 0.26, 0.14, 0.7)
+	var border_width := 1.6 * zoom_level
+	var glow_a := 0.0
 
 	if is_unlocked:
-		fill_color = reg_color.lerp(Color(0.2, 0.75, 0.95), 0.45)
-		fill_color.a = 0.96
-		border_color = Color(1.0, 0.82, 0.28) if is_maxed else Color(0.45, 0.95, 1.0)
-		border_width = 2.6 * zoom_level
-		# Glow de aura
-		map_viewport.draw_circle(pos, radius * 1.45, Color(border_color.r, border_color.g, border_color.b, 0.18))
+		fill_color = reg_color.lerp(Color(0.15, 0.55, 0.75), 0.35)
+		fill_color = fill_color.lerp(Color(0.95, 0.85, 0.45), 0.25)
+		fill_color.a = 0.98
+		border_color = Color(1.0, 0.86, 0.32) if is_maxed else Color(0.45, 0.95, 1.0)
+		border_width = 2.8 * zoom_level
+		glow_a = 0.28
 	elif is_available:
-		fill_color = Color(0.12, 0.22, 0.18, 0.92)
-		border_color = Color(0.35, 1.0, 0.55)
-		border_width = 2.1 * zoom_level
+		var pulse := 0.5 + 0.5 * sin(_fx_time * 3.6 + hash(node.id) * 0.001)
+		fill_color = Color(0.10, 0.20, 0.16, 0.94)
+		border_color = Color(0.35, 1.0, 0.55, 0.65 + 0.35 * pulse)
+		border_width = 2.2 * zoom_level
+		glow_a = 0.12 + 0.16 * pulse
+	else:
+		fill_color = Color(0.10, 0.08, 0.05, 0.88)
+		border_color = Color(0.28, 0.22, 0.14, 0.55)
+
+	if on_path and not is_unlocked:
+		border_color = Color(1.0, 0.82, 0.3, 0.9)
+		glow_a = maxf(glow_a, 0.18)
 
 	if not is_highlighted:
-		fill_color.a *= 0.20
-		border_color.a *= 0.20
+		fill_color.a *= 0.12
+		border_color.a *= 0.12
+		glow_a *= 0.08
+	elif not search_filter.is_empty():
+		# Match de busca: anel amarelo pulsante (PoE search glow)
+		var sp := 0.5 + 0.5 * sin(_fx_time * 5.0)
+		map_viewport.draw_arc(pos, radius + 6.0 + sp * 3.0, 0.0, TAU, 36, Color(1.0, 0.92, 0.25, 0.55 + 0.35 * sp), 2.4)
 
+	# Sombra
+	map_viewport.draw_circle(pos + Vector2(1.5, 2.0) * zoom_level, radius * 1.05, Color(0, 0, 0, 0.35 * fill_color.a))
+
+	# Glow externo
+	if glow_a > 0.01:
+		map_viewport.draw_circle(pos, radius * 1.55, Color(border_color.r, border_color.g, border_color.b, glow_a))
+		map_viewport.draw_circle(pos, radius * 1.25, Color(border_color.r, border_color.g, border_color.b, glow_a * 0.55))
+
+	# Corpo por tipo (hierarquia visual clara)
 	match node.node_type:
 		SkillTreeNodeData.NodeType.SMALL:
 			map_viewport.draw_circle(pos, radius, fill_color)
-			map_viewport.draw_arc(pos, radius, 0.0, TAU, 24, border_color, border_width)
+			map_viewport.draw_arc(pos, radius, 0.0, TAU, 28, border_color, border_width)
+			# Bevel interno
+			map_viewport.draw_arc(pos, radius * 0.78, 0.0, TAU, 20, Color(1, 1, 1, 0.12 * fill_color.a), 1.0)
 		SkillTreeNodeData.NodeType.MEDIUM:
 			map_viewport.draw_circle(pos, radius, fill_color)
-			map_viewport.draw_arc(pos, radius, 0.0, TAU, 32, border_color, border_width)
-			map_viewport.draw_arc(pos, radius * 0.65, 0.0, TAU, 24, border_color * 0.7, border_width * 0.6)
+			map_viewport.draw_arc(pos, radius, 0.0, TAU, 36, border_color, border_width)
+			map_viewport.draw_arc(pos, radius * 0.68, 0.0, TAU, 28, border_color * Color(1, 1, 1, 0.7), border_width * 0.55)
+			_draw_ring_ornament(pos, radius, false)
 		SkillTreeNodeData.NodeType.MAJOR:
 			_draw_polygon_node(pos, radius, 8, fill_color, border_color, border_width)
+			map_viewport.draw_arc(pos, radius * 0.55, 0.0, TAU, 24, Color(border_color.r, border_color.g, border_color.b, 0.55), 1.2)
+			_draw_ring_ornament(pos, radius, true)
 		SkillTreeNodeData.NodeType.KEYSTONE:
 			if is_unlocked or is_available:
-				map_viewport.draw_arc(pos, radius * 1.35, 0.0, TAU, 32, Color(0.4, 0.9, 1.0, 0.35), 2.2 * zoom_level)
-			_draw_polygon_node(pos, radius, 6, fill_color, border_color, border_width * 1.3)
+				var kp := 0.5 + 0.5 * sin(_fx_time * 2.4)
+				map_viewport.draw_arc(pos, radius * (1.28 + 0.08 * kp), 0.0, TAU, 40, Color(0.4, 0.9, 1.0, 0.28 + 0.12 * kp), 2.4 * zoom_level)
+			_draw_polygon_node(pos, radius, 6, fill_color, border_color, border_width * 1.35)
+			_draw_polygon_node(pos, radius * 0.62, 6, Color(fill_color.r * 0.7, fill_color.g * 0.7, fill_color.b * 0.7, fill_color.a), border_color * 0.8, border_width * 0.6)
+			_draw_ring_ornament(pos, radius * 1.05, true)
 
-	# Ícones em TODOS os nós (pequenos usam sheet dedicado ou fallback categoria)
-	if zoom_level > 0.35:
+	# Ícones
+	if zoom_level > 0.32:
 		_draw_node_icon(node, pos, radius, is_unlocked, is_available)
 
-	if is_hovered:
-		map_viewport.draw_arc(pos, radius + 4.0, 0.0, TAU, 32, Color(1.0, 1.0, 1.0, 0.8), 2.0)
+	# Rank pips (nós multi-nível)
+	if node.nivel_max > 1 and zoom_level > 0.45:
+		_draw_rank_pips(pos, radius, rank, node.nivel_max, is_highlighted)
 
+	if is_hovered:
+		map_viewport.draw_arc(pos, radius + 5.0, 0.0, TAU, 36, Color(1.0, 1.0, 1.0, 0.85), 2.0)
 	if is_selected:
-		map_viewport.draw_arc(pos, radius + 7.0, 0.0, TAU, 32, HunterUIStyle.COLOR_GOLD, 2.5)
+		var sel_pulse := 0.5 + 0.5 * sin(_fx_time * 4.0)
+		map_viewport.draw_arc(pos, radius + 7.5 + sel_pulse, 0.0, TAU, 40, HunterUIStyle.COLOR_GOLD, 2.6)
+		map_viewport.draw_arc(pos, radius + 10.0 + sel_pulse * 0.5, 0.0, TAU, 40, Color(1.0, 0.85, 0.35, 0.35), 1.2)
+
+
+func _draw_ring_ornament(pos: Vector2, radius: float, ornate: bool) -> void:
+	# Ornamento procedural (evita o avatar/retrato do atlas de rings).
+	if not ornate or zoom_level < 0.5:
+		return
+	var r := radius * 1.08
+	var studs := 6
+	for i in range(studs):
+		var a := -PI * 0.5 + TAU * float(i) / float(studs)
+		var p := pos + Vector2(cos(a), sin(a)) * r
+		map_viewport.draw_circle(p, 1.6 * zoom_level, Color(0.85, 0.68, 0.28, 0.75))
+		map_viewport.draw_circle(p, 0.7 * zoom_level, Color(1.0, 0.92, 0.55, 0.9))
+
+
+func _draw_rank_pips(pos: Vector2, radius: float, rank: int, max_rank: int, visible: bool) -> void:
+	if not visible:
+		return
+	var n := mini(max_rank, 6)
+	var spacing := 4.5 * zoom_level
+	var total_w := spacing * float(n - 1)
+	var base := pos + Vector2(-total_w * 0.5, radius + 6.0 * zoom_level)
+	for i in range(n):
+		var filled := i < rank
+		var p := base + Vector2(spacing * float(i), 0)
+		var c := Color(1.0, 0.85, 0.3, 0.95) if filled else Color(0.25, 0.2, 0.12, 0.7)
+		map_viewport.draw_circle(p, 1.8 * zoom_level, c)
 
 
 func _nen_icon_column_count() -> int:
 	if _tex_nen_icons == null:
 		return 6
 	var w := _tex_nen_icons.get_width()
-	# Preferir 6 categorias HxH; fallback 4 se sheet antigo
 	if w >= 180 and (w % 6) == 0:
 		return 6
 	if w >= 120 and (w % 4) == 0:
@@ -740,20 +956,19 @@ func _nen_icon_column_count() -> int:
 
 
 func _indice_categoria_regiao(region_id: StringName) -> int:
-	# Sheet 6: Intensificação, Transmutação, Emissão, Conjuração, Manipulação, Especialização
 	match String(region_id):
 		"warrior", "body":
-			return 0 # Intensificação
+			return 0
 		"nen", "vitality":
-			return 1 # Transmutação / fluxo
+			return 1
 		"hatsu", "critical":
-			return 2 # Emissão / impacto
+			return 2
 		"aura", "master":
-			return 3 # Conjuração / reserva
+			return 3
 		"speed":
-			return 4 # Manipulação / controle
+			return 4
 		"specialization", "nexus":
-			return 5 # Especialização
+			return 5
 		_:
 			return -1
 
@@ -830,6 +1045,7 @@ func _processar_clique_em_no(click_pos: Vector2) -> void:
 	var clicked_id := _obter_no_sob_cursor(click_pos)
 	if not clicked_id.is_empty():
 		selected_node_id = clicked_id
+		_rebuild_path_highlight(clicked_id)
 		_atualizar_inspector()
 		map_viewport.queue_redraw()
 
@@ -1008,8 +1224,42 @@ func _on_invest_pressed() -> void:
 		return
 	var sucesso := skill_tree.investir_ponto(selected_node_id)
 	if sucesso:
+		_spawn_unlock_burst(selected_node_id)
+		_rebuild_path_highlight(selected_node_id)
 		_atualizar_inspector()
 		map_viewport.queue_redraw()
+
+
+func _spawn_unlock_burst(nid: StringName) -> void:
+	if database == null or not database.nodes.has(nid):
+		return
+	var node: SkillTreeNodeData = database.nodes[nid]
+	var col := Color(1.0, 0.85, 0.35)
+	if database.REGIONS.has(node.region_id):
+		col = database.REGIONS[node.region_id].get("color", col)
+	_unlock_bursts.append({"pos": node.position, "t": 0.0, "color": col})
+	if AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):
+		AudioManager.tocar_sfx_tipo("nen_gyo", 1.05)
+
+
+func _rebuild_path_highlight(nid: StringName) -> void:
+	_path_highlight.clear()
+	if database == null or not database.nodes.has(nid):
+		return
+	var stack: Array[StringName] = [nid]
+	var seen: Dictionary = {}
+	while not stack.is_empty():
+		var cur: StringName = stack.pop_back()
+		if seen.has(cur):
+			continue
+		seen[cur] = true
+		_path_highlight[cur] = true
+		var node: SkillTreeNodeData = database.nodes.get(cur)
+		if node == null:
+			continue
+		for pr in node.prerequisites:
+			if database.nodes.has(pr):
+				stack.append(pr)
 
 
 func _on_skill_investida(_nid: String, _rank: int) -> void:
@@ -1045,6 +1295,33 @@ func _confirmar_reset_arvore() -> void:
 
 func _on_search_changed(new_text: String) -> void:
 	search_filter = new_text.strip_edges().to_lower()
+	_rebuild_search_matches()
+	map_viewport.queue_redraw()
+
+
+func _rebuild_search_matches() -> void:
+	_search_matches.clear()
+	_search_match_idx = -1
+	if search_filter.is_empty() or database == null:
+		return
+	for nid in database.nodes.keys():
+		var node: SkillTreeNodeData = database.nodes[nid]
+		if _node_matches_search(node):
+			_search_matches.append(nid)
+
+
+func _ir_proximo_match_busca() -> void:
+	if _search_matches.is_empty():
+		_rebuild_search_matches()
+	if _search_matches.is_empty():
+		return
+	_search_match_idx = (_search_match_idx + 1) % _search_matches.size()
+	var nid: StringName = _search_matches[_search_match_idx]
+	selected_node_id = nid
+	_rebuild_path_highlight(nid)
+	var node: SkillTreeNodeData = database.nodes[nid]
+	_navegar_para_posicao_mundo(node.position, clampf(target_zoom, 0.9, 1.35))
+	_atualizar_inspector()
 	map_viewport.queue_redraw()
 
 
