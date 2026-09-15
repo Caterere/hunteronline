@@ -229,6 +229,17 @@ func _aplicar_hit_flash() -> void:
 func _physics_process(delta: float) -> void:
 	var input_ctx = get_node_or_null("/root/InputContextManager")
 	if controles_travados or StoryCutsceneManager.em_cutscene or (input_ctx != null and not input_ctx.is_gameplay_input_allowed()):
+		# #region agent log
+		if not has_meta("_dbg_block_logs") or int(get_meta("_dbg_block_logs")) < 5:
+			var n = 0 if not has_meta("_dbg_block_logs") else int(get_meta("_dbg_block_logs"))
+			set_meta("_dbg_block_logs", n + 1)
+			var _fp = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
+			if _fp == null: _fp = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
+			else: _fp.seek_end()
+			var _ctx_ok = true
+			if input_ctx != null: _ctx_ok = input_ctx.is_gameplay_input_allowed()
+			if _fp: _fp.store_line(JSON.stringify({"hypothesisId":"C,D,E","location":"Player.gd:_physics_process","message":"movement_blocked","data":{"controles_travados":controles_travados,"em_cutscene":StoryCutsceneManager.em_cutscene,"input_ctx_allowed":_ctx_ok,"pos":{"x":global_position.x,"y":global_position.y}},"timestamp":Time.get_ticks_msec()})); _fp.close()
+		# #endregion
 		velocity = Vector2.ZERO
 		_animate()
 		move_and_slide()

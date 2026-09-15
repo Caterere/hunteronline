@@ -35,6 +35,12 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		var satotz = parent.get_node_or_null("Satotz") as NPC
 		
 		StoryCutsceneManager.executar_maratona_hunter(get_tree(), self, killua, leorio, kurapika, satotz)
+		# #region agent log
+		var _fg = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
+		if _fg == null: _fg = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
+		else: _fg.seek_end()
+		if _fg: _fg.store_line(JSON.stringify({"hypothesisId":"A","location":"Gon.gd:_on_interacted","message":"called_executar_maratona_hunter","data":{"arco":arco,"killua":killua!=null,"leorio":leorio!=null,"kurapika":kurapika!=null,"satotz":satotz!=null},"timestamp":Time.get_ticks_msec()})); _fg.close()
+		# #endregion
 		return
 
 	# Diálogos padrão com balão de fala
