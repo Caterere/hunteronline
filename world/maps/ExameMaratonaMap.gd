@@ -171,20 +171,26 @@ func _configurar_portal_conclusao() -> void:
 
 
 func _garantir_spawn_points() -> void:
-	if get_node_or_null("SpawnDefault") == null:
-		var sp_def := SpawnPoint.new()
+	# Corredor walkable do mapa/território fica em Y≈0 (path tiles).
+	# Spawn antigo (20, 80) caía em colisões e prendia o player no início.
+	const SPAWN_SAFE := Vector2(80, 16)
+	var sp_def := get_node_or_null("SpawnDefault") as SpawnPoint
+	if sp_def == null:
+		sp_def = SpawnPoint.new()
 		sp_def.name = "SpawnDefault"
 		sp_def.spawn_id = &"default"
 		sp_def.is_default_spawn = true
-		sp_def.position = Vector2(20, 80)
 		add_child(sp_def)
+	sp_def.spawn_id = &"default"
+	sp_def.is_default_spawn = true
+	sp_def.position = SPAWN_SAFE
 
 	if get_node_or_null("SpawnFromKukuroo") == null:
 		var sp_kuk := SpawnPoint.new()
 		sp_kuk.name = "SpawnFromKukuroo"
 		sp_kuk.spawn_id = &"from_kukuroo"
 		sp_kuk.is_default_spawn = false
-		sp_kuk.position = Vector2(5850, 80)
+		sp_kuk.position = Vector2(5850, 16)
 		add_child(sp_kuk)
 
 
@@ -194,7 +200,7 @@ func _configurar_portal_retorno_lobby() -> void:
 
 	var portal := MapTransitionArea.new()
 	portal.name = "PortalRetornoLobby"
-	portal.position = Vector2(-60, 80)
+	portal.position = Vector2(-80, 16)
 	portal.portal_name = "Retornar a Hunter Plaza"
 	portal.map_subtitle = "Capital dos Caçadores — Hub Central"
 	portal.target_scene_path = "res://world/lobby.tscn"

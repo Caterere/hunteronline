@@ -42,8 +42,8 @@ static func districts_for_saga(saga_id: int) -> Array:
 					"pos": Vector2(280, -90),
 					"text": "📍 Zona A — Túnel de Zaban",
 					"warp_name": "WarpTunel",
-					"warp_pos": Vector2(120, 70),
-					"warp_target": Vector2(1900, 70),
+					"warp_pos": Vector2(120, 16),
+					"warp_target": Vector2(1900, 16),
 					"warp_label": "Atalho → Pantanal",
 					"fillers": [
 						{"name": "SabotadorAmbient_B", "pos": Vector2(900, 40), "id": "candidato_sabotador", "label": "Sabotador do Túnel"},
@@ -59,8 +59,8 @@ static func districts_for_saga(saga_id: int) -> Array:
 					"pos": Vector2(2100, -90),
 					"text": "📍 Zona B — Pantanal Numere (secundária)",
 					"warp_name": "WarpPantanal",
-					"warp_pos": Vector2(1700, 70),
-					"warp_target": Vector2(4200, 70),
+					"warp_pos": Vector2(1700, 16),
+					"warp_target": Vector2(4200, 16),
 					"warp_label": "Atalho → Gourmet",
 					"fillers": [
 						{"name": "MacacoAmbient_B", "pos": Vector2(2300, 35), "id": "macaco_pantano", "label": "Macaco do Nevoeiro"},
@@ -76,8 +76,8 @@ static func districts_for_saga(saga_id: int) -> Array:
 					"pos": Vector2(4300, -90),
 					"text": "📍 Zona C — Floresta Gourmet (secundária)",
 					"warp_name": "WarpGourmet",
-					"warp_pos": Vector2(3900, 70),
-					"warp_target": Vector2(5600, 70),
+					"warp_pos": Vector2(3900, 16),
+					"warp_target": Vector2(5600, 16),
 					"warp_label": "Atalho → Portão Final",
 					"fillers": [
 						{"name": "JavaliAmbient_B", "pos": Vector2(4500, 40), "id": "javali_gourmet", "label": "Javali Gourmet"},
@@ -93,8 +93,8 @@ static func districts_for_saga(saga_id: int) -> Array:
 					"pos": Vector2(5600, -90),
 					"text": "📍 Zona D — Torre / Ilha Zevil",
 					"warp_name": "WarpTorre",
-					"warp_pos": Vector2(5500, 70),
-					"warp_target": Vector2(200, 70),
+					"warp_pos": Vector2(5500, 16),
+					"warp_target": Vector2(200, 16),
 					"warp_label": "Atalho → Túnel",
 					"fillers": [
 						{"name": "CompetidorAmbient_A", "pos": Vector2(5800, 30), "id": "candidato_sabotador", "label": "Competidor de Zevil"},

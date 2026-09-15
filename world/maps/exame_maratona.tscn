@@ -286,7 +286,7 @@ script = ExtResource("11_decor")
 [node name="Hud" parent="." unique_id=43447494 instance=ExtResource("2_hud")]
 
 [node name="Player" parent="." unique_id=393247167 instance=ExtResource("1_player")]
-position = Vector2(0, 0)
+position = Vector2(80, 16)
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=1162544110]
 position_smoothing_enabled = true
