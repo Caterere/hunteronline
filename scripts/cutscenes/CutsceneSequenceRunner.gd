@@ -104,12 +104,6 @@ func _iniciar(tree: SceneTree, steps: Array[Dictionary], nome: String, callback_
 		StoryManager.set_pacing_state(StoryManager.StoryPacingState.CUTSCENE)
 
 	StoryCutsceneManager.em_cutscene = true
-	# #region agent log
-	var _f0 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
-	if _f0 == null: _f0 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
-	else: _f0.seek_end()
-	if _f0: _f0.store_line(JSON.stringify({"hypothesisId":"A,C","location":"CutsceneSequenceRunner.gd:_iniciar","message":"sequence_start","data":{"nome":nome,"steps":steps.size(),"em_cutscene":true,"player_found":_player_cache!=null},"timestamp":Time.get_ticks_msec()})); _f0.close()
-	# #endregion
 	sequencia_iniciada.emit(_nome_sequencia)
 	print("[CutsceneSequenceRunner] 🎬 INICIANDO SEQUÊNCIA: %s (%d passos)" % [_nome_sequencia, _steps.size()])
 
@@ -127,14 +121,6 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 	match tipo:
 		StepType.LOCK_INPUT:
 			var travar: bool = bool(step.get("lock", true))
-			# #region agent log
-			var _f1 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
-			if _f1 == null: _f1 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
-			else: _f1.seek_end()
-			var _ct = false
-			if _player_cache != null and "controles_travados" in _player_cache: _ct = _player_cache.controles_travados
-			if _f1: _f1.store_line(JSON.stringify({"hypothesisId":"A,C","location":"CutsceneSequenceRunner.gd:LOCK_INPUT","message":"lock_input_step","data":{"lock":travar,"idx":_current_step_idx,"prev_controles_travados":_ct,"em_cutscene":StoryCutsceneManager.em_cutscene},"timestamp":Time.get_ticks_msec()})); _f1.close()
-			# #endregion
 			if _player_cache != null and _player_cache.has_method("travar_controles"):
 				_player_cache.travar_controles(travar)
 			_avancar(tree)
@@ -203,24 +189,19 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 			_avancar(tree)
 
 		StepType.CAMERA_ZOOM:
+			# Aceita float OU Vector2 — StoryCutsceneManager usa Vector2(x, x).
+			# float(Vector2) crashava e deixava LOCK_INPUT preso (player travado).
 			var zoom_raw = step.get("zoom", 1.2)
-			# #region agent log
-			var _f2 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
-			if _f2 == null: _f2 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
-			else: _f2.seek_end()
-			if _f2: _f2.store_line(JSON.stringify({"hypothesisId":"A","location":"CutsceneSequenceRunner.gd:CAMERA_ZOOM","message":"camera_zoom_before_cast","data":{"idx":_current_step_idx,"zoom_type":typeof(zoom_raw),"zoom_str":str(zoom_raw),"is_vector2":zoom_raw is Vector2,"is_float":zoom_raw is float,"em_cutscene":StoryCutsceneManager.em_cutscene},"timestamp":Time.get_ticks_msec()})); _f2.close()
-			# #endregion
-			var zoom_val: float = float(zoom_raw)
-			# #region agent log
-			var _f2b = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
-			if _f2b == null: _f2b = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
-			else: _f2b.seek_end()
-			if _f2b: _f2b.store_line(JSON.stringify({"hypothesisId":"A","location":"CutsceneSequenceRunner.gd:CAMERA_ZOOM","message":"camera_zoom_after_cast","data":{"zoom_val":zoom_val},"timestamp":Time.get_ticks_msec()})); _f2b.close()
-			# #endregion
+			var zoom_target := Vector2(1.2, 1.2)
+			if zoom_raw is Vector2:
+				zoom_target = zoom_raw as Vector2
+			else:
+				var z: float = float(zoom_raw)
+				zoom_target = Vector2(z, z)
 			var duracao: float = float(step.get("duration", 0.5))
 			if _camera_cache != null:
 				var tween = create_tween()
-				tween.tween_property(_camera_cache, "zoom", Vector2(zoom_val, zoom_val), duracao).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+				tween.tween_property(_camera_cache, "zoom", zoom_target, duracao).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 				await tween.finished
 			_avancar(tree)
 
@@ -239,12 +220,6 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 
 			var visual_diag = tree.get_first_node_in_group("visual_dialogue_ui")
 			var diag_box = tree.get_first_node_in_group("dialogue_box") as DialogueBox
-			# #region agent log
-			var _f3 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
-			if _f3 == null: _f3 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
-			else: _f3.seek_end()
-			if _f3: _f3.store_line(JSON.stringify({"hypothesisId":"B","location":"CutsceneSequenceRunner.gd:DIALOGUE","message":"dialogue_step","data":{"idx":_current_step_idx,"speaker":speaker,"auto":tempo_auto,"has_diag_box":diag_box!=null,"has_visual":visual_diag!=null,"use_bubble":bool(step.get("use_bubble",false))},"timestamp":Time.get_ticks_msec()})); _f3.close()
-			# #endregion
 
 			if bubble_target != null and is_instance_valid(bubble_target) and step.get("use_bubble", false):
 				var ComicBalloon = load("res://scripts/ui/ComicBalloon.gd")
@@ -435,12 +410,6 @@ func _avancar(tree: SceneTree) -> void:
 
 func _finalizar(tree: SceneTree) -> void:
 	print("[CutsceneSequenceRunner] 🏁 SEQUÊNCIA CONCLUÍDA: %s" % _nome_sequencia)
-	# #region agent log
-	var _f4 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
-	if _f4 == null: _f4 = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
-	else: _f4.seek_end()
-	if _f4: _f4.store_line(JSON.stringify({"hypothesisId":"A,C","location":"CutsceneSequenceRunner.gd:_finalizar","message":"sequence_finalize","data":{"nome":_nome_sequencia,"idx":_current_step_idx},"timestamp":Time.get_ticks_msec()})); _f4.close()
-	# #endregion
 
 	# Restaurar câmera original suavemente
 	if _camera_cache != null and is_instance_valid(_camera_cache):

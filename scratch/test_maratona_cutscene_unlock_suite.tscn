@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ctestmaratonunlock01"]
+
+[ext_resource type="Script" path="res://scratch/test_maratona_cutscene_unlock_suite.gd" id="1"]
+
+[node name="TestMaratonaCutsceneUnlock" type="Node"]
+script = ExtResource("1")

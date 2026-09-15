@@ -24,12 +24,6 @@ static func executar_maratona_hunter(tree: SceneTree, gon: NPC, killua: NPC, leo
 
 	em_cutscene = true
 	print("[Cutscene] Iniciando Sequência do Exame Hunter: Encontro dos 4 Amigos...")
-	# #region agent log
-	var _fm = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.READ_WRITE)
-	if _fm == null: _fm = FileAccess.open("/opt/cursor/logs/debug.log", FileAccess.WRITE)
-	else: _fm.seek_end()
-	if _fm: _fm.store_line(JSON.stringify({"hypothesisId":"A,C","location":"StoryCutsceneManager.gd:executar_maratona_hunter","message":"maratona_cutscene_requested","data":{"em_cutscene":true,"gon_ok":gon!=null,"zoom_payload":"Vector2(1.2,1.2)"},"timestamp":Time.get_ticks_msec()})); _fm.close()
-	# #endregion
 
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
