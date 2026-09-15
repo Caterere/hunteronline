@@ -833,13 +833,33 @@ func usar_hatsu(slot_index: int) -> bool:
 	if hatsu.objetivo != HatsuData.ObjetivoPrincipal.DANO:
 		if HatsuProgressionManager != null:
 			var m_res = HatsuProgressionManager.conceder_mastery_xp(hatsu.hatsu_id, 0, {"level": PlayerData.attributes.get("nivel", 1) if PlayerData != null else 1})
-			if m_res.get("subiu_nivel", false) and combat_system != null:
+			if combat_system != null:
 				if m_res.get("mastered", false):
-					combat_system._mostrar_texto_flutuante("★ %s MASTERED (100)!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
-				else:
-					combat_system._mostrar_texto_flutuante("⭐ %s MASTERY %d!" % [hatsu.nome.to_upper(), int(hatsu.mastery)], Color(1.0, 0.85, 0.3))
+					combat_system._mostrar_texto_flutuante("★ %s MASTERED!" % hatsu.nome.to_upper(), Color(1.0, 0.95, 0.2))
+				elif m_res.get("rank_subiu", false):
+					combat_system._mostrar_texto_flutuante(
+						"◆ %s RANK %d · %s" % [hatsu.nome.to_upper(), int(m_res.get("rank_novo", 1)), hatsu.obter_nome_rank_maestria()],
+						Color(1.0, 0.75, 0.25)
+					)
+				elif m_res.get("subiu_nivel", false):
+					var marco: Dictionary = m_res.get("proximo_marco", {})
+					combat_system._mostrar_texto_flutuante(
+						"⭐ %s M%d → %s (%d)" % [
+							hatsu.nome.to_upper(),
+							int(hatsu.mastery),
+							str(marco.get("titulo", "")),
+							int(marco.get("faltam", 0))
+						],
+						Color(0.85, 0.9, 1.0)
+					)
 	else:
-		hatsu.adicionar_mastery_xp(1.0)
+		var before_rank := hatsu.obter_rank_maestria()
+		var m_hit := hatsu.adicionar_mastery_xp(1.0)
+		if combat_system != null and m_hit.get("rank_subiu", false):
+			combat_system._mostrar_texto_flutuante(
+				"◆ %s RANK %d!" % [hatsu.nome.to_upper(), int(m_hit.get("rank_novo", before_rank))],
+				Color(1.0, 0.75, 0.25)
+			)
 
 	print("=================================")
 	print("[HatsuSystem] Executou com sucesso: ", hatsu.nome, " (Lv. ", hatsu.nivel_evolucao_hatsu, ")")

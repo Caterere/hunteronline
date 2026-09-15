@@ -166,6 +166,7 @@ Para evitar que o jogador troque instantaneamente de Hatsu no meio de um combate
 | **Custo de Criação** | `HATSU_CREATION_JENNY_COST` | **5.000 Jenny** | Money sink proporcional aos ganhos pós-Greed Island. |
 | **Potencial Inicial** | `INITIAL_POWER_RATIO` | **0.30** (30%) | Torna o Hatsu recém-nascido um rascunho a ser lapidado. |
 | **Mastery Máxima** | `MAX_MASTERY` | **100.0** | Marco visual clássico de maestria (★ MASTERED). |
+| **Ranks de Evolução** | M0/20/40/60/80/100 | **6 marcos** | Meta curta: Rank 4 (M60) = combate sério; 100 = ápice opcional. |
 | **Eficiência de Aura Máx** | `MAX_AURA_EFFICIENCY_BONUS` | **0.20** (-20%) | Redução significativa sem quebrar o sistema de energia. |
 | **Redução Cooldown Máx** | `MAX_COOLDOWN_REDUCTION_BONUS` | **0.20** (-20%) | Melhora o ritmo do combate de forma controlada. |
 | **Bônus de Alcance Máx** | `MAX_RANGE_BONUS` | **0.20** (+20%) | Facilita acertar inimigos ágeis com técnicas lapidadas. |

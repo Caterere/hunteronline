@@ -42,3 +42,20 @@ Hold-to-charge nos slots 1–4; a barra escala um parâmetro diferente por categ
 | Especialização | `RISK` | Poder ↔ custo de aura |
 
 Implementação: `HatsuData.FeelMode` + `HatsuSystem._executar_feel_canalizado` + HUD com rótulo por tipo.
+
+### 3.3 Evolução do mesmo Hatsu (anti-grind)
+Maestria em **6 ranks** com meta curta e legível no inspetor `[H]`:
+
+| Rank | Mastery | Nome | Sensação |
+|------|---------|------|----------|
+| 1 | M0 | Despertar | rascunho (~30% poder) |
+| 2 | M20 | Prática | conjuração começa a fluir |
+| 3 | M40 | Afiação | feel do tipo responde |
+| 4 | M60 | Domínio | **meta de combate sério** |
+| 5 | M80 | Virtuose | polish |
+| 6 | M100 | ★ Mestre | ápice opcional / instantâneo |
+
+- Barra do inspetor = progresso até o **próximo marco**, não 0–100 opaco
+- Toast grande só em **rank up**; entre marcos o float mostra “faltam N”
+- Curva de XP mais rápida no início; 81–100 é prestígio, não obrigação
+

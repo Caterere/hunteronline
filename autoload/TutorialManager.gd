@@ -285,6 +285,12 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"icone": "⬡",
 		"conteudo": "Cada tipo canaliza um parâmetro diferente: Intensificação=poder (PWR), Emissão=mira/alcance (ALC), Transformação=duração (DUR), Conjuração=materialização (MAT), Manipulação=controle (CTRL), Especialização=risco (RISK)."
 	},
+	"hatsu_evolucao_maestria": {
+		"titulo": "Evolução do mesmo Hatsu",
+		"categoria": "Hatsu",
+		"icone": "◆",
+		"conteudo": "6 ranks: Despertar→Prática→Afiação→Domínio→Virtuose→★ Mestre (M0/20/40/60/80/100). Cada marco desbloqueia conjuração mais rápida, menos aura e mais alcance. Rank 4 (M60) já basta pra caça séria; 100 é prestígio, não obrigação. Veja o próximo unlock no inspetor [H]."
+	},
 	"hatsu_slots_equip": {
 		"titulo": "Slots e Archive",
 		"categoria": "Hatsu",
@@ -695,6 +701,8 @@ func disparar_tutorial_contextual(tipo: String) -> void:
 		"hatsu_feel_manipulacao": "hatsu_feel_por_tipo",
 		"hatsu_feel_especializacao": "hatsu_feel_por_tipo",
 		"hatsu_feel_por_tipo": "hatsu_feel_por_tipo",
+		"hatsu_evolucao": "hatsu_evolucao_maestria",
+		"hatsu_mastery": "hatsu_evolucao_maestria",
 		"hatsu_explicacao": "hatsu_conceito",
 	}
 	if once_map.has(tipo_clean) and PlayerData != null and PlayerData.tem_conhecimento(String(once_map[tipo_clean])):
@@ -749,6 +757,10 @@ func disparar_tutorial_contextual(tipo: String) -> void:
 			titulo = "⬡ FEEL POR TIPO"
 			msg = "Cada tipo Nen canaliza um parâmetro: PWR, ALC, DUR, MAT, CTRL ou RISK. Segure o slot e solte no momento certo."
 			PlayerData.desbloquear_conhecimento("hatsu_feel_por_tipo")
+		"hatsu_evolucao", "hatsu_mastery":
+			titulo = "◆ EVOLUÇÃO DO HATSU"
+			msg = "O mesmo Hatsu sobe em 6 ranks (M20/40/60/80/100). Rank 4 = combate sério; ★ Mestre é ápice opcional. No [H] veja o próximo desbloqueio e quantos pontos faltam."
+			PlayerData.desbloquear_conhecimento("hatsu_evolucao_maestria")
 		"hatsu_explicacao":
 			titulo = "📖 EXPLICAÇÃO DO HATSU"
 			msg = "Todo Hatsu que você cria ou equipa ganha uma explicação: tipo, forma, votos e como canalizar. Consulte no menu [H]."

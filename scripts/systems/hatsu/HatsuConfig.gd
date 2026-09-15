@@ -52,20 +52,28 @@ const MAX_COOLDOWN_REDUCTION_BONUS: float = 0.20
 const MAX_RANGE_BONUS: float = 0.20
 
 # --- 5. CURVA DE PROGRESSÃO DE MASTERY (XP POR NÍVEL) ---
-# Tabela de faixas de nível para cálculo do XP necessário para avançar cada nível de Mastery:
-# - 0 a 20:   100 XP / nível (Iniciação / Progressão rápida)
-# - 21 a 50:  250 XP / nível (Praticante / Moderada)
-# - 51 a 80:  500 XP / nível (Especialista / Lenta)
-# - 81 a 100: 1000 XP / nível (Mestre / Ápice difícil)
+# Desenhada em MARCOS (ranks a cada 20) pra evolução do mesmo Hatsu ser legível:
+# - 0–20  (Despertar→Prática):   80 XP / nível  — fase rápida, feedback imediato
+# - 21–40 (Prática→Afiação):    180 XP / nível — afiar a técnica
+# - 41–60 (Afiação→Domínio):    320 XP / nível — meta de combate sério
+# - 61–80 (Domínio→Virtuose):   450 XP / nível — polish
+# - 81–100 (Virtuose→★ Mestre): 700 XP / nível — ápice OPCIONAL (não obrigatório)
+# O jogador deve sentir Rank 4 (M60) como "Hatsu pronto"; 100 é prestígio.
 static func get_xp_for_mastery_level(current_mastery_level: int) -> float:
 	if current_mastery_level < 20:
-		return 100.0
-	elif current_mastery_level < 50:
-		return 250.0
+		return 80.0
+	elif current_mastery_level < 40:
+		return 180.0
+	elif current_mastery_level < 60:
+		return 320.0
 	elif current_mastery_level < 80:
-		return 500.0
+		return 450.0
 	else:
-		return 1000.0
+		return 700.0
+
+
+## Limiares de rank (espelha HatsuData) — UI / tutoriais.
+const MASTERY_RANK_THRESHOLDS: Array[int] = [0, 20, 40, 60, 80, 100]
 
 # --- 6. ANTI-FARM & RELEVÂNCIA DE ALVOS ---
 # Fator de ganho de Mastery XP por dano causado (base: 1 XP para cada 50 de dano efetivo).

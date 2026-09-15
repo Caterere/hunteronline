@@ -17,6 +17,7 @@ func _run_suite() -> void:
 	_check_explain()
 	_check_feel_modes()
 	_check_charge_math()
+	_check_mastery_roadmap()
 	_check_factory()
 	_check_wiring()
 	_check_tutorials()
@@ -125,6 +126,45 @@ func _check_charge_math() -> void:
 	_assert(m1 > m0, "carga escala")
 
 
+func _check_mastery_roadmap() -> void:
+	print("-- Mastery roadmap --")
+	var h := HatsuData.new()
+	h.nome = "Ko Growing"
+	h.mastery = 0.0
+	var m0 := h.obter_proximo_marco_maestria()
+	_assert(int(m0.get("rank_atual", 0)) == 1, "rank inicial 1")
+	_assert(int(m0.get("mastery_alvo", 0)) == 20, "proximo marco M20")
+	_assert(int(m0.get("faltam", -1)) == 20, "faltam 20 no despertar")
+	_assert("Despertar" in str(m0.get("fase", "")) or "rápido" in str(m0.get("fase", "")), "fase despertar")
+
+	h.mastery = 19.0
+	var res := h.adicionar_mastery_xp(HatsuConfig.get_xp_for_mastery_level(19))
+	_assert(res.get("rank_subiu", false), "rank sobe ao cruzar M20")
+	_assert(int(res.get("rank_novo", 0)) == 2, "rank novo = 2")
+	_assert(h.obter_nome_rank_maestria() == "Prática", "nome rank Prática")
+
+	h.mastery = 55.0
+	var m60 := h.obter_proximo_marco_maestria()
+	_assert(int(m60.get("mastery_alvo", 0)) == 60, "meta dominio M60")
+	_assert("séria" in str(m60.get("dica", "")) or "Domínio" in str(m60.get("titulo", "")), "dica dominio")
+
+	h.mastery = 100.0
+	var done := h.obter_proximo_marco_maestria()
+	_assert(bool(done.get("completo", false)), "mastered completo")
+	_assert(h.obter_roadmap_maestria_linhas().size() == 6, "roadmap 6 ranks")
+	_assert("Evolução" in h.obter_texto_evolucao_maestria() or "Rank" in h.obter_texto_evolucao_maestria(), "texto evolucao")
+
+	# Curva: início mais rápido que ápice (anti-tedioso)
+	_assert(HatsuConfig.get_xp_for_mastery_level(5) < HatsuConfig.get_xp_for_mastery_level(85), "xp early < xp late")
+	_assert(HatsuConfig.get_xp_for_mastery_level(5) <= 100.0, "fase despertar leve")
+
+	var eq := _read("res://ui/Hatsu/HatsuEquipUI.gd")
+	_assert("obter_proximo_marco_maestria" in eq, "equip mostra proximo marco")
+	_assert("obter_roadmap_maestria_linhas" in eq, "equip mostra roadmap")
+	var tm := _read("res://autoload/TutorialManager.gd")
+	_assert("hatsu_evolucao_maestria" in tm, "tutorial evolucao")
+
+
 func _check_factory() -> void:
 	print("-- Factory --")
 	var hm = root.get_node_or_null("HatsuManager") if root != null else null
@@ -196,6 +236,9 @@ func _check_tutorials() -> void:
 	_assert('"categoria": "Hatsu"' in tm, "categoria Hatsu no guia")
 	_assert("hatsu_feel_emissao" in tm, "contextual emissao")
 	_assert("hatsu_feel_transformacao" in tm, "contextual transformacao")
+	_assert("hatsu_evolucao" in tm, "contextual evolucao")
 	_assert("once_map" in tm, "once-gate")
 	var kit := _read("res://scripts/systems/hatsu/HatsuExplainKit.gd")
 	_assert("hatsu_feel_por_tipo" in kit, "explain kit artigo feel")
+	_assert("hatsu_evolucao_maestria" in kit, "explain kit artigo evolucao")
+	_assert("obter_texto_evolucao_maestria" in kit, "explain inclui evolucao")

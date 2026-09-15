@@ -1007,13 +1007,158 @@ func obter_rank_maestria() -> int:
 
 func obter_nome_rank_maestria() -> String:
 	match obter_rank_maestria():
-		1: return "Iniciante (Cru)"
-		2: return "Intermediário I"
-		3: return "Intermediário II"
-		4: return "Avançado I"
-		5: return "Avançado II"
-		6: return "Mestre (Instantâneo)"
-		_: return "Mestre Transcendental"
+		1: return "Despertar"
+		2: return "Prática"
+		3: return "Afiação"
+		4: return "Domínio"
+		5: return "Virtuose"
+		6: return "★ Mestre"
+		_: return "★ Mestre"
+
+
+## Limiar de mastery (0–100) onde o rank começa.
+static func limiar_rank_maestria(rank: int) -> int:
+	match clampi(rank, 1, 6):
+		1: return 0
+		2: return 20
+		3: return 40
+		4: return 60
+		5: return 80
+		6: return 100
+	return 0
+
+
+func obter_fase_maestria() -> String:
+	## Texto curto: o que o jogador deve sentir nesta faixa.
+	var m := int(mastery)
+	if m < 20:
+		return "Despertar rápido — cada combate conta"
+	if m < 40:
+		return "Prática — a técnica começa a responder"
+	if m < 60:
+		return "Afiação — poder e fluidez reais"
+	if m < 80:
+		return "Domínio — build pronta pra caça séria"
+	if m < 100:
+		return "Virtuose — lapidação fina (opcional)"
+	return "★ Mestre — conjuração plena"
+
+
+func obter_desbloqueio_rank(rank: int = -1) -> String:
+	## O que o jogador GANHA ao cruzar o marco (claro e concreto).
+	var r := rank if rank > 0 else obter_rank_maestria()
+	match r:
+		1:
+			return "Hatsu nasce a ~30% do potencial — ainda é um rascunho vivo."
+		2:
+			return "Conjuração −15% · aura −10% · alcance +10%. Canalizar fica mais ágil."
+		3:
+			return "Conjuração −25% · aura −10% · alcance +10%. Feel do tipo responde melhor."
+		4:
+			return "Conjuração −35% · aura −20% · alcance +15%. Marco de combate sério."
+		5:
+			return "Conjuração −45% · aura −20% · alcance +15%. Quase no ápice."
+		6:
+			return "Conjuração instantânea · aura −30% · alcance +20%. ★ MASTERED."
+	return ""
+
+
+func obter_proximo_marco_maestria() -> Dictionary:
+	## Próximo rank + progresso até ele (anti-tedioso: meta curta e legível).
+	if is_mastered():
+		return {
+			"completo": true,
+			"rank_atual": 6,
+			"rank_proximo": 6,
+			"mastery_atual": int(mastery),
+			"mastery_alvo": 100,
+			"faltam": 0,
+			"progresso_pct": 100.0,
+			"titulo": "★ Mestre",
+			"desbloqueio": obter_desbloqueio_rank(6),
+			"fase": obter_fase_maestria(),
+			"dica": "Este Hatsu está lapidado. Equipe, varie situações ou forje outro."
+		}
+	var rank_atual := obter_rank_maestria()
+	var rank_prox := mini(rank_atual + 1, 6)
+	var alvo := limiar_rank_maestria(rank_prox)
+	var base := limiar_rank_maestria(rank_atual)
+	var atual := int(mastery)
+	var span := maxi(1, alvo - base)
+	var done := clampi(atual - base, 0, span)
+	var faltam := maxi(0, alvo - atual)
+	return {
+		"completo": false,
+		"rank_atual": rank_atual,
+		"rank_proximo": rank_prox,
+		"mastery_atual": atual,
+		"mastery_alvo": alvo,
+		"faltam": faltam,
+		"progresso_pct": (float(done) / float(span)) * 100.0,
+		"titulo": obter_nome_rank_por_numero(rank_prox),
+		"desbloqueio": obter_desbloqueio_rank(rank_prox),
+		"fase": obter_fase_maestria(),
+		"dica": _dica_progressao_maestria(atual)
+	}
+
+
+static func obter_nome_rank_por_numero(rank: int) -> String:
+	match rank:
+		1: return "Despertar"
+		2: return "Prática"
+		3: return "Afiação"
+		4: return "Domínio"
+		5: return "Virtuose"
+		6: return "★ Mestre"
+	return "—"
+
+
+func _dica_progressao_maestria(m: int) -> String:
+	if m < 20:
+		return "Fase rápida: use o Hatsu em combates do seu nível — Rank 2 chega cedo."
+	if m < 40:
+		return "Alvos elite/boss dão mais mastery. Evite farm muito abaixo do seu nível."
+	if m < 60:
+		return "Meta recomendada: Rank 4 (M60) — daqui o Hatsu já sustenta caça séria."
+	if m < 80:
+		return "Você já está forte. 80–100 é polish de mestre, não obrigação."
+	return "Ápice opcional: cada nível é caro, mas o ★ Mestre torna a conjuração instantânea."
+
+
+func obter_roadmap_maestria_linhas() -> Array[String]:
+	## Lista curta pra UI / Guia — evolução do MESMO Hatsu, sem mistério.
+	var linhas: Array[String] = []
+	var atual := obter_rank_maestria()
+	for r in range(1, 7):
+		var limiar := limiar_rank_maestria(r)
+		var marcador := "●" if r < atual else ("▶" if r == atual else "○")
+		if is_mastered() and r == 6:
+			marcador = "★"
+		var nome := obter_nome_rank_por_numero(r)
+		linhas.append("%s M%02d %s — %s" % [marcador, limiar, nome, obter_desbloqueio_rank(r)])
+	return linhas
+
+
+func obter_texto_evolucao_maestria() -> String:
+	var marco := obter_proximo_marco_maestria()
+	var partes: Array[String] = []
+	partes.append("Evolução: Rank %d · %s (M%d/100)." % [
+		int(marco.get("rank_atual", 1)),
+		obter_nome_rank_maestria(),
+		int(mastery)
+	])
+	partes.append(str(marco.get("fase", "")))
+	if not bool(marco.get("completo", false)):
+		partes.append("Próximo: %s em M%d (%d restantes) — %s" % [
+			str(marco.get("titulo", "")),
+			int(marco.get("mastery_alvo", 0)),
+			int(marco.get("faltam", 0)),
+			str(marco.get("desbloqueio", ""))
+		])
+		partes.append(str(marco.get("dica", "")))
+	else:
+		partes.append(str(marco.get("desbloqueio", "")))
+	return " ".join(partes)
 
 
 func obter_fator_tempo_conjuracao_mastery() -> float:
@@ -1205,12 +1350,16 @@ func adicionar_mastery_xp(ganho_xp: float) -> Dictionary:
 	if is_mastered():
 		return {
 			"subiu_nivel": false,
+			"rank_subiu": false,
+			"rank_anterior": 6,
+			"rank_novo": 6,
 			"novo_nivel": int(mastery),
 			"mastered": true,
 			"xp_atual": 0.0,
 			"xp_necessario": 0.0
 		}
 
+	var rank_antes := obter_rank_maestria()
 	mastery_xp += ganho_xp
 	var subiu: bool = false
 	var cur_lvl: int = int(mastery)
@@ -1231,14 +1380,19 @@ func adicionar_mastery_xp(ganho_xp: float) -> Dictionary:
 		mastery_xp = 0.0
 		nivel_evolucao_hatsu = 100
 
+	var rank_depois := obter_rank_maestria()
 	var req_prox: float = HatsuConfig.get_xp_for_mastery_level(int(mastery)) if int(mastery) < int(max_m) else 0.0
 
 	return {
 		"subiu_nivel": subiu,
+		"rank_subiu": rank_depois > rank_antes,
+		"rank_anterior": rank_antes,
+		"rank_novo": rank_depois,
 		"novo_nivel": int(mastery),
 		"mastered": is_mastered(),
 		"xp_atual": mastery_xp,
-		"xp_necessario": req_prox
+		"xp_necessario": req_prox,
+		"proximo_marco": obter_proximo_marco_maestria()
 	}
 
 

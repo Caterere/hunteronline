@@ -664,24 +664,41 @@ func conceder_mastery_xp(hatsu_id: String, dano_causado: int, inimigo_context: D
 
 	hatsu_mastery_alterada.emit(hatsu_id, h.mastery, h.mastery_xp, h.is_mastered())
 
-	if res.get("subiu_nivel", false):
-		_exibir_notificacao_mastery(h, res.get("mastered", false))
+	# Celebra marco de rank (não spam de cada +1)
+	if res.get("rank_subiu", false) or res.get("mastered", false):
+		_exibir_notificacao_mastery(h, res.get("mastered", false), res)
+	elif res.get("subiu_nivel", false):
+		_exibir_notificacao_mastery_leve(h, res)
 
 	return res
 
 
-func _exibir_notificacao_mastery(h: HatsuData, mastered: bool) -> void:
-	var msg: String = ""
+func _exibir_notificacao_mastery_leve(h: HatsuData, res: Dictionary) -> void:
+	## Entre marcos: só log — o float de combate já mostra M→próximo.
+	## Evita spam de toast a cada +1.
+	var marco: Dictionary = res.get("proximo_marco", h.obter_proximo_marco_maestria())
+	print("[HatsuProgressionManager] ⭐ %s M%d · faltam %d p/ %s" % [
+		h.nome, int(h.mastery), int(marco.get("faltam", 0)), str(marco.get("titulo", ""))
+	])
+
+
+func _exibir_notificacao_mastery(h: HatsuData, mastered: bool, res: Dictionary = {}) -> void:
 	var rank: int = h.obter_rank_maestria()
 	var rank_nome: String = h.obter_nome_rank_maestria()
-	var mods: Dictionary = h.obter_modificadores_maestria()
+	var unlock: String = h.obter_desbloqueio_rank(rank)
+	var msg: String = ""
 	if mastered or rank >= 6:
-		msg = "━━━━━━━━━━━━━━━━━━━━\n★ HATSU MASTERED! (RANK 6 — MESTRE) ★\n━━━━━━━━━━━━━━━━━━━━\n'%s' atingiu a maestria suprema!\nConjuração Instantânea | Custo de Aura -30%% | Alcance +20%%" % h.nome
+		msg = "★ %s MASTERED — Rank 6\n%s\nÁpice alcançado. Pode lapidar outro Hatsu ou brilhar com este." % [h.nome, unlock]
 	else:
-		msg = "⭐ MASTERY DE HATSU: '%s' [Rank %d - %s] (Lv. %d/100)\nEficiência Aura: +%d%% | Redução Conjuração: -%d%%" % [
-			h.nome, rank, rank_nome, int(h.mastery),
-			int(mods.get("reducao_custo_pct", 0.0)),
-			int(mods.get("reducao_tempo_pct", 0.0))
+		var marco: Dictionary = res.get("proximo_marco", h.obter_proximo_marco_maestria())
+		msg = "◆ EVOLUÇÃO DE HATSU · %s\nRank %d — %s (M%d)\n%s\nPróximo: %s em M%d" % [
+			h.nome,
+			rank,
+			rank_nome,
+			int(h.mastery),
+			unlock,
+			str(marco.get("titulo", "—")),
+			int(marco.get("mastery_alvo", 0))
 		]
 
 	if EventBus != null and EventBus.has_signal("toast_enviado"):

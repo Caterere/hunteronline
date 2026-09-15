@@ -57,6 +57,8 @@ static func _compor(hatsu: HatsuData) -> String:
 	elif hatsu.activation_type == HatsuData.ActivationType.SUSTAINED:
 		partes.append("Habilidade sustentada: ative e desative no mesmo slot.")
 
+	partes.append(hatsu.obter_texto_evolucao_maestria())
+
 	match hatsu.categoria:
 		HatsuData.Categoria.INTENSIFICACAO:
 			partes.append("Intensificação reforça o corpo e o golpe físico — o poder nasce da aura concentrada no impacto.")
@@ -107,6 +109,12 @@ static func artigos_guia() -> Dictionary:
 			"categoria": "Hatsu",
 			"icone": "⬡",
 			"conteudo": "Cada tipo canaliza um parâmetro diferente: Intensificação=poder, Emissão=mira/alcance, Transformação=duração, Conjuração=materialização, Manipulação=controle, Especialização=risco.",
+		},
+		"hatsu_evolucao_maestria": {
+			"titulo": "Evolução do mesmo Hatsu",
+			"categoria": "Hatsu",
+			"icone": "◆",
+			"conteudo": "Seu Hatsu sobe em 6 ranks claros (M0→20→40→60→80→100). Rank 4 (Domínio/M60) já é combate sério; 80–100 é ápice opcional. No inspetor [H] veja o próximo desbloqueio e quantos pontos faltam — sem grind cego.",
 		},
 		"hatsu_slots_equip": {
 			"titulo": "Slots e Archive",
