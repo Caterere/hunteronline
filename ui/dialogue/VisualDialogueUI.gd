@@ -89,6 +89,8 @@ func _mostrar_proxima_fala() -> void:
 
 	if lbl_falante != null:
 		lbl_falante.text = "💬 " + falante.to_upper()
+	if AudioManager != null and AudioManager.has_method("tocar_murmur_dialogo"):
+		AudioManager.tocar_murmur_dialogo(falante.hash())
 
 	if lbl_texto != null:
 		lbl_texto.text = ""

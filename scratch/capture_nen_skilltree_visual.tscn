@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ccapturenenskill01"]
+
+[ext_resource type="Script" path="res://scratch/capture_nen_skilltree_visual.gd" id="1"]
+
+[node name="CaptureNenSkillTreeVisual" type="Node"]
+script = ExtResource("1")

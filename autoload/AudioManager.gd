@@ -33,9 +33,13 @@ var fade_tween: Tween = null
 var music_volume_linear: float = 0.85 # 0.0 a 1.0
 var sfx_volume_linear: float = 1.0
 var master_volume_linear: float = 1.0
+var ambient_volume_linear: float = 0.28
 
 var lobby_playlist_index: int = 0
 var last_detected_scene_path: String = ""
+var current_ambient_id: String = ""
+var ambient_player: AudioStreamPlayer = null
+var ambient_fade_tween: Tween = null
 
 # Dicionário de caminhos oficiais das faixas da pasta osts/
 const TRACKS: Dictionary = {
@@ -187,6 +191,23 @@ const SCENE_TRACKS: Dictionary = {
 	"res://world/maps/black_whale_1.tscn": "the_last_mission"
 }
 
+## Ambient procedural por bioma (sob a OST, volume baixo).
+const SCENE_AMBIENTS: Dictionary = {
+	"res://world/lobby.tscn": "ambient_city",
+	"res://world/maps/PlayerHouse.tscn": "ambient_city",
+	"res://world/maps/exame_maratona.tscn": "ambient_dungeon",
+	"res://world/maps/montanha_kukuroo.tscn": "ambient_forest",
+	"res://world/maps/arena_celestial.tscn": "ambient_arena",
+	"res://world/maps/CelestialTowerArena.tscn": "ambient_arena",
+	"res://world/maps/yorknew_city.tscn": "ambient_city",
+	"res://world/maps/greed_island.tscn": "ambient_forest",
+	"res://world/maps/ngl_formigas.tscn": "ambient_ruins",
+	"res://world/maps/associacao_hunter.tscn": "ambient_city",
+	"res://world/maps/continente_negro.tscn": "ambient_ruins",
+	"res://world/maps/black_whale_1.tscn": "ambient_dungeon",
+	"res://world/maps/regiao_vale_padokia.tscn": "ambient_forest",
+	"res://world/maps/dungeon_ruinas_zaban.tscn": "ambient_ruins",
+}
 # Mapeamento Temático Específico das 50 Missões Paralelas (PQs)
 const PARALLEL_QUEST_TRACKS: Dictionary = {
 	# Tier 1: Exame Hunter & Kukuroo (1 a 10)
@@ -268,10 +289,17 @@ func _ready() -> void:
 	player_a.finished.connect(_on_musica_finalizada)
 	player_b.finished.connect(_on_musica_finalizada)
 
+	# Canal de ambient (bioma) — independente da OST
+	ambient_player = AudioStreamPlayer.new()
+	ambient_player.name = "AmbientPlayer"
+	ambient_player.bus = "Master"
+	ambient_player.volume_db = -80.0
+	add_child(ambient_player)
+
 	# Conectar ao EventBus para disparar SFX automaticamente
 	_conectar_eventos_audio()
 	
-	print("[AudioManager] Inicializado com 28 faixas canônicas e Síntese Procedural de SFX.")
+	print("[AudioManager] Inicializado com 28 faixas canônicas, ambient por bioma e Síntese Procedural de SFX.")
 
 
 func _conectar_eventos_audio() -> void:
@@ -289,11 +317,30 @@ func _conectar_eventos_audio() -> void:
 		EventBus.enemy_staggered.connect(_on_enemy_staggered)
 
 
-func _on_combat_hit_landed(_atacante: Node, _alvo: Node, _dano: int, is_crit: bool) -> void:
-	if is_crit:
-		tocar_sfx_tipo("hit_crit", 1.15)
+func _on_combat_hit_landed(atacante: Node, alvo: Node, _dano: int, is_crit: bool) -> void:
+	var hit_tipo: String = "hit_crit" if is_crit else "hit_flesh"
+	var pos: Vector2 = Vector2.ZERO
+	var tem_pos := false
+	if alvo is Node2D and is_instance_valid(alvo):
+		pos = (alvo as Node2D).global_position
+		tem_pos = true
+	elif atacante is Node2D and is_instance_valid(atacante):
+		pos = (atacante as Node2D).global_position
+		tem_pos = true
+	if tem_pos:
+		tocar_sfx_posicional(hit_tipo, pos, 1.15 if is_crit else 0.95)
 	else:
-		tocar_sfx_tipo("hit_light", 0.90)
+		tocar_sfx_tipo(hit_tipo, 1.15 if is_crit else 0.90)
+
+	# Vocalização de dor do alvo se for inimigo
+	if alvo != null and is_instance_valid(alvo):
+		var es = alvo.get_node_or_null("EnemySystem")
+		if es == null and alvo.get_parent() != null:
+			es = alvo.get_parent().get_node_or_null("EnemySystem")
+		if es != null and es.has_method("obter_enemy_id_audio"):
+			tocar_mob_voz("hurt", str(es.obter_enemy_id_audio()), pos if tem_pos else Vector2.ZERO, tem_pos)
+		elif es != null and "enemy_id" in es:
+			tocar_mob_voz("hurt", str(es.enemy_id), pos if tem_pos else Vector2.ZERO, tem_pos)
 
 
 func _on_nen_level_up(_novo_nivel: int) -> void:
@@ -301,15 +348,23 @@ func _on_nen_level_up(_novo_nivel: int) -> void:
 
 
 func _on_quest_completed(_quest_id: String, _xp: int, _gold: int) -> void:
-	tocar_sfx_tipo("quest_complete", 1.10)
+	tocar_sfx_tipo("quest_stinger", 1.10)
 
 
 func _on_item_obtained(_item_id: String, _qtd: int) -> void:
 	tocar_sfx_tipo("item_pickup", 0.95)
 
 
-func _on_enemy_staggered(_enemy_node: Node) -> void:
-	tocar_sfx_tipo("stagger_break", 1.10)
+func _on_enemy_staggered(enemy_node: Node) -> void:
+	var pos: Vector2 = Vector2.ZERO
+	var tem_pos := false
+	if enemy_node is Node2D and is_instance_valid(enemy_node):
+		pos = (enemy_node as Node2D).global_position
+		tem_pos = true
+	if tem_pos:
+		tocar_sfx_posicional("stagger_break", pos, 1.10)
+	else:
+		tocar_sfx_tipo("stagger_break", 1.10)
 
 
 func _process(_delta: float) -> void:
@@ -331,6 +386,7 @@ func _ao_mudar_cena_detectada(scene_path: String) -> void:
 		tocar_musica_lobby()
 	elif SCENE_TRACKS.has(scene_path):
 		tocar_musica(SCENE_TRACKS[scene_path])
+	tocar_ambient_por_cena(scene_path)
 
 
 # ============================================================
@@ -412,6 +468,7 @@ func tocar_musica_por_cena(scene_path: String) -> void:
 		tocar_musica(SCENE_TRACKS[scene_path], 1.0)
 	elif scene_path == "res://world/lobby.tscn":
 		tocar_musica_lobby()
+	tocar_ambient_por_cena(scene_path)
 
 
 func parar_musica(fade_duration: float = 1.0) -> void:
@@ -631,4 +688,87 @@ func tocar_musica_boss(boss_nome: String = "") -> void:
 func tocar_ui_click(is_confirm: bool = false) -> void:
 	tocar_sfx_tipo("ui_confirm" if is_confirm else "ui_click", 0.8)
 
+
+# ============================================================
+# AMBIENT POR BIOMA + VOZES DE MOB + MURMUR
+# ============================================================
+
+func tocar_ambient_por_cena(scene_path: String) -> void:
+	var ambient_id: String = str(SCENE_AMBIENTS.get(scene_path, ""))
+	if ambient_id.is_empty():
+		# Heurística por path
+		var p: String = scene_path.to_lower()
+		if "yorknew" in p or "lobby" in p or "associacao" in p or "house" in p:
+			ambient_id = "ambient_city"
+		elif "arena" in p or "celestial" in p:
+			ambient_id = "ambient_arena"
+		elif "dungeon" in p or "ruina" in p or "zaban" in p or "exame" in p or "whale" in p:
+			ambient_id = "ambient_dungeon"
+		elif "ngl" in p or "continente" in p or "ruin" in p:
+			ambient_id = "ambient_ruins"
+		elif "kukuroo" in p or "greed" in p or "padokia" in p or "floresta" in p:
+			ambient_id = "ambient_forest"
+		else:
+			parar_ambient(0.6)
+			return
+	tocar_ambient(ambient_id)
+
+
+func tocar_ambient(ambient_id: String, fade_duration: float = 1.2) -> void:
+	if ambient_player == null:
+		return
+	if ambient_id == current_ambient_id and ambient_player.playing:
+		return
+	var stream: AudioStreamWAV = AudioSynthScript.obter_sfx(ambient_id)
+	if stream == null:
+		return
+	current_ambient_id = ambient_id
+	if ambient_fade_tween != null and ambient_fade_tween.is_valid():
+		ambient_fade_tween.kill()
+	var target_db: float = linear_to_db(clamp(ambient_volume_linear * master_volume_linear, 0.0001, 1.0))
+	ambient_player.stream = stream
+	ambient_player.volume_db = -80.0
+	ambient_player.play()
+	ambient_fade_tween = create_tween()
+	ambient_fade_tween.tween_property(ambient_player, "volume_db", target_db, fade_duration)
+
+
+func parar_ambient(fade_duration: float = 0.8) -> void:
+	if ambient_player == null or not ambient_player.playing:
+		current_ambient_id = ""
+		return
+	if ambient_fade_tween != null and ambient_fade_tween.is_valid():
+		ambient_fade_tween.kill()
+	ambient_fade_tween = create_tween()
+	ambient_fade_tween.tween_property(ambient_player, "volume_db", -80.0, fade_duration)
+	ambient_fade_tween.tween_callback(func():
+		if is_instance_valid(ambient_player):
+			ambient_player.stop()
+		current_ambient_id = ""
+	)
+
+
+func definir_volume_ambient(volume: float) -> void:
+	ambient_volume_linear = clamp(volume, 0.0, 1.0)
+	if ambient_player != null and ambient_player.playing:
+		ambient_player.volume_db = linear_to_db(clamp(ambient_volume_linear * master_volume_linear, 0.0001, 1.0))
+
+
+func tocar_mob_voz(acao: String, enemy_id: String, world_pos: Vector2 = Vector2.ZERO, posicional: bool = false) -> void:
+	var arch: String = AudioSynthScript.resolver_archetipo_mob(enemy_id)
+	var tipo: String = "mob_%s_%s" % [acao, arch]
+	# Fallback se ação inválida
+	if acao not in ["growl", "hurt", "death"]:
+		tipo = "mob_hurt_%s" % arch
+	if posicional:
+		tocar_sfx_posicional(tipo, world_pos, 0.95)
+	else:
+		tocar_sfx_tipo(tipo, 0.90)
+
+
+func tocar_murmur_dialogo(variante: int = -1) -> void:
+	var v: int = variante if variante >= 0 else randi() % 8
+	var stream: AudioStreamWAV = AudioSynthScript.obter_sfx("dialogue_murmur", v)
+	if stream != null:
+		tocar_sfx(stream, 0.55)
 

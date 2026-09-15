@@ -129,6 +129,17 @@ func _on_tecnica_btn_pressed(t: int) -> void:
 	if nen_system == null or not PlayerData.despertou_nen:
 		return
 
+	# Somente Gyo / Zetsu / En são toggleáveis
+	var ativas_ok := [
+		NenSystem.Tecnica.ZETSU,
+		NenSystem.Tecnica.GYO,
+		NenSystem.Tecnica.EN,
+	]
+	if not ativas_ok.has(t):
+		if EventBus != null:
+			EventBus.emit_toast("Técnica passiva — evolui na Árvore de Nen [N]", Color(0.75, 0.8, 0.95))
+		return
+
 	var ativa: bool = nen_system.tecnica_ativa(t)
 	if ativa:
 		nen_system.desativar_tecnica(t)
@@ -175,20 +186,31 @@ func _atualizar_nen_menu() -> void:
 	# Atualizar Botões Interativos de Técnicas
 	if container_tecnicas != null:
 		if nen_system != null and PlayerData.despertou_nen:
+			var ativas_ok := [
+				NenSystem.Tecnica.ZETSU,
+				NenSystem.Tecnica.GYO,
+				NenSystem.Tecnica.EN,
+			]
 			for t in botoes_tecnicas.keys():
 				var info = botoes_tecnicas[t]
 				var nome_t: String = nen_system.nome_tecnica(t)
 				var lvl_t: int = nen_system.obter_nivel_tecnica(t)
 				var ativa: bool = nen_system.tecnica_ativa(t)
+				var is_toggle: bool = ativas_ok.has(t)
 
-				info["label"].text = "%s Lv.%d" % [nome_t, lvl_t]
-				if ativa:
-					info["btn"].text = "🟢 ON"
+				info["label"].text = "%s Lv.%d%s" % [nome_t, lvl_t, "" if is_toggle else " (passiva)"]
+				if not is_toggle:
+					info["btn"].text = "PASSIVA"
+					info["btn"].modulate = Color(0.55, 0.6, 0.75, 1.0)
+					info["btn"].disabled = false
+				elif ativa:
+					info["btn"].text = "ON"
 					info["btn"].modulate = Color(0.3, 1.0, 0.4, 1.0)
+					info["btn"].disabled = false
 				else:
-					info["btn"].text = "⚪ ATIVAR"
+					info["btn"].text = "ATIVAR"
 					info["btn"].modulate = Color(0.8, 0.8, 0.8, 1.0)
-				info["btn"].disabled = false
+					info["btn"].disabled = false
 		else:
 			for t in botoes_tecnicas.keys():
 				var info = botoes_tecnicas[t]

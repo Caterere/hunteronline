@@ -277,12 +277,19 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 				else:
 					await tree.create_timer(2.0).timeout
 					if StoryManager != null:
-						StoryManager.register_choice(choice_id, "default")
+						var fallback_id: String = options[0].get("id", str(options[0])) if options[0] is Dictionary else str(options[0])
+						StoryManager.register_choice(choice_id, fallback_id)
 					diag_box.hide()
 					_avancar(tree)
 			else:
+				# Fallback headless / sem DialogueBox: registra 1ª opção e segue
+				var fallback: String = "default"
+				if not options.is_empty():
+					fallback = options[0].get("id", str(options[0])) if options[0] is Dictionary else str(options[0])
 				if StoryManager != null:
-					StoryManager.register_choice(choice_id, "default")
+					StoryManager.register_choice(choice_id, fallback)
+				if EventBus != null:
+					EventBus.emit_toast("%s — %s" % [speaker, prompt_text], Color(0.75, 0.85, 1.0))
 				_avancar(tree)
 
 		StepType.PLAY_ANIMATION:

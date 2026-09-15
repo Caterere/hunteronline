@@ -47,6 +47,9 @@ func _ready() -> void:
 		GameManager.set_flow_state(GameManager.GameFlowState.LOBBY)
 		GameManager.change_state(GameManager.GameState.IN_GAME)
 
+	# Garante TrainingSystem vivo no hub (mestres Wing/Biscuit)
+	TrainingSystem.obter_ou_criar(get_tree())
+
 	if AudioManager != null:
 		AudioManager.tocar_musica_lobby()
 

@@ -434,6 +434,21 @@ func complete_quest(quest: Quest) -> void:
 	if hud_notif != null and hud_notif.has_method("exibir_notificacao"):
 		hud_notif.exibir_notificacao("🏆 Missão Concluída: %s" % quest.quest_name)
 
+	# Toast de marco: deixa claro o que o jogador ganhou
+	if EventBus != null:
+		var partes: PackedStringArray = []
+		if quest.reward_xp > 0:
+			partes.append("+%d XP" % quest.reward_xp)
+		if quest.reward_gold > 0:
+			partes.append("+%d Jenny" % quest.reward_gold)
+		for reward in quest.reward_items:
+			if reward != null and reward.type == QuestReward.Type.ITEM:
+				partes.append("+%s" % str(reward.item_id))
+		var reward_txt: String = " · ".join(partes) if not partes.is_empty() else "Progresso da saga"
+		EventBus.emit_toast("🏆 %s — %s" % [quest.quest_name, reward_txt], Color(1.0, 0.88, 0.35))
+	if AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):
+		AudioManager.tocar_sfx_tipo("quest_complete", 1.0)
+
 	# Avançar para a próxima missão sequencial do arco
 	if StoryManager != null:
 		StoryManager.avancar_capitulo()

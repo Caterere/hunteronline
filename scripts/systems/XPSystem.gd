@@ -174,6 +174,14 @@ func _verificar_level_up() -> void:
 		print("NOVO LEVEL: %d / %d" % [level, ProgressionConfig.MAX_LEVEL])
 		print("=================================")
 
+		var antes := {
+			"vida_max": int(PlayerData.attributes.get("vida_max", 0)),
+			"forca": int(PlayerData.attributes.get("forca", 0)),
+			"defesa": int(PlayerData.attributes.get("defesa", 0)),
+			"velocidade": int(PlayerData.attributes.get("velocidade", 0)),
+			"aura_max": int(PlayerData.attributes.get("aura_max", 0)),
+		}
+
 		# 1. Atributos base aumentados automaticamente pela pipeline determinística
 		PlayerData.aplicar_nivel(
 			level
@@ -191,15 +199,29 @@ func _verificar_level_up() -> void:
 			level
 		)
 
+		var deltas: PackedStringArray = []
+		for k in ["vida_max", "forca", "defesa", "velocidade", "aura_max"]:
+			var d: int = int(PlayerData.attributes.get(k, 0)) - int(antes.get(k, 0))
+			if d != 0:
+				deltas.append("%s %+d" % [str(k).replace("_", " "), d])
+		if sp_ganhos > 0:
+			deltas.append("SP +%d" % sp_ganhos)
+		var delta_txt: String = ", ".join(deltas)
+
 		# Juice de level-up (áudio + toast + pop visual)
 		if AudioManager != null:
 			AudioManager.tocar_sfx_tipo("level_up", 1.25)
 		if EventBus != null:
-			EventBus.emit_toast("NÍVEL %d!" % level, Color(1.0, 0.85, 0.3))
+			var toast_msg: String = "NÍVEL %d!" % level
+			if not delta_txt.is_empty():
+				toast_msg = "NÍVEL %d! %s" % [level, delta_txt]
+			EventBus.emit_toast(toast_msg, Color(1.0, 0.85, 0.3))
 		if DamageNumberSystem != null:
 			var player_node = get_parent()
 			if player_node != null and player_node is Node2D:
 				DamageNumberSystem.spawn_texto(player_node, "LEVEL UP!", Color(1.0, 0.9, 0.35), 1.4, 1.2)
+				if not delta_txt.is_empty():
+					DamageNumberSystem.spawn_texto(player_node, delta_txt, Color(0.55, 1.0, 0.7), 1.1, 0.95)
 		if EventBus != null and EventBus.has_method("emit_camera_shake"):
 			EventBus.emit_camera_shake(0.35, 0.25)
 

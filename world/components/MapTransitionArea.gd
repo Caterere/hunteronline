@@ -30,9 +30,15 @@ const StoryGate = preload("res://world/components/StoryGate.gd")
 @export var required_story_stage: int = 0
 @export var required_all_arc_stages: bool = false
 
+@export_group("Evento de Viagem")
+@export var travel_event_enabled: bool = true
+@export var travel_event_id: String = ""  # vazio = escolhe por destino
+@export var travel_origin_label: String = "Região Atual"
+
 var story_gate = null
 var ja_trocando: bool = false
 var callback_dialogo_previo: Callable = Callable()
+var _pacing: StoryPacingManager = null
 
 
 func _ready() -> void:
@@ -143,7 +149,54 @@ func _executar_transicao() -> void:
 	print("[MapTransitionArea] Trocando de mapa suavemente para: ", target_scene_path)
 	print("=================================")
 
-	call_deferred("_mudar_cena")
+	if travel_event_enabled and not _ja_fez_evento_destino():
+		_rodar_evento_viagem_depois_transicao()
+	else:
+		call_deferred("_mudar_cena")
+
+
+func _ja_fez_evento_destino() -> bool:
+	var eid: String = _resolver_evento_id()
+	if eid.is_empty() or StoryManager == null:
+		return true
+	return StoryManager.get_story_flag("travel_event_%s" % eid, false)
+
+
+func _resolver_evento_id() -> String:
+	if not travel_event_id.is_empty():
+		return travel_event_id
+	# Heurística por destino canônico
+	var path_l: String = target_scene_path.to_lower()
+	if "exame" in path_l or "maratona" in path_l or "zaban" in path_l:
+		return "estrada_comerciante"
+	if "kukuroo" in path_l:
+		return "emboscada_leve"
+	if "arena" in path_l or "celestial" in path_l:
+		return "patrulha_associacao"
+	if "yorknew" in path_l or "greed" in path_l:
+		return "estrada_comerciante"
+	return ""
+
+
+func _rodar_evento_viagem_depois_transicao() -> void:
+	var eid: String = _resolver_evento_id()
+	if eid.is_empty():
+		call_deferred("_mudar_cena")
+		return
+
+	if _pacing == null or not is_instance_valid(_pacing):
+		_pacing = StoryPacingManager.new()
+		_pacing.name = "StoryPacingManager_Portal"
+		add_child(_pacing)
+
+	var destino_nome: String = portal_name if not portal_name.is_empty() else target_scene_path.get_file()
+	_pacing.iniciar_evento_viagem(
+		travel_origin_label,
+		destino_nome,
+		eid,
+		get_tree(),
+		func(): call_deferred("_mudar_cena")
+	)
 
 
 func _mudar_cena() -> void:

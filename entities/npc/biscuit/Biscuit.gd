@@ -170,12 +170,56 @@ func _on_opcao_conversar() -> void:
 
 func _on_opcao_treinar() -> void:
 	_fechar_menu_interacao()
+	var ts: TrainingSystem = TrainingSystem.obter_ou_criar(get_tree())
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui") if get_tree() != null else null
-	if visual_dialogue != null:
-		visual_dialogue.exibir_sequencia_falas([
+
+	if ts == null:
+		if visual_dialogue != null:
+			visual_dialogue.exibir_sequencia_falas([
+				{"falante": "Biscuit Krueger", "texto": "O dojo ainda não está preparado. Volte em breve!"}
+			])
+		return
+
+	# Preferência: Ren → Ko conforme nível
+	var ordem: Array[String] = ["ren_intensificacao", "fluxo_ko"]
+	var escolhido: String = ""
+	for tid in ordem:
+		var check: Dictionary = ts.pode_iniciar_treino(tid)
+		if check.get("pode", false):
+			escolhido = tid
+			break
+
+	if escolhido.is_empty():
+		# Todos concluídos ou nível baixo
+		var msgs: Array[Dictionary] = [
 			{"falante": "Biscuit Krueger", "texto": "Ken e Ryu são os pilares para sustentar seu Hatsu em combate!"},
-			{"falante": "Biscuit Krueger", "texto": "Ken é a união perfeita de Ten e Ren ao redor de todo o corpo para defesa máxima. Ryu é a distribuição percentual instantânea de aura (como 70% no ataque e 30% na defesa). Pratique sempre!"}
-		])
+		]
+		if ts.ja_concluiu_treino("ren_intensificacao") and ts.ja_concluiu_treino("fluxo_ko"):
+			msgs.append({"falante": "Biscuit Krueger", "texto": "Você já absorveu meus treinos avançados. Continue forjando seu Hatsu e refine na Árvore de Nen [N]!"})
+		elif int(PlayerData.attributes.get("nivel", 1)) < 15:
+			msgs.append({"falante": "Biscuit Krueger", "texto": "Volte no Nível 15 para o treino de Ren Explosivo. Corpo fraco, aura fraca!"})
+		else:
+			msgs.append({"falante": "Biscuit Krueger", "texto": "Ainda não. Cumpram os pré-requisitos de nível (Ren: 15 · Ko: 30) e voltem!"})
+		if visual_dialogue != null:
+			visual_dialogue.exibir_sequencia_falas(msgs)
+		return
+
+	var resultado: Dictionary = ts.executar_sessao_treino(escolhido, get_tree())
+	if visual_dialogue != null:
+		if resultado.get("sucesso", false):
+			visual_dialogue.exibir_sequencia_falas([
+				{"falante": "Biscuit Krueger", "texto": "Isso! Sessão dura: %s." % str(resultado.get("treino", ""))},
+				{"falante": "Biscuit Krueger", "texto": "Seu corpo mudou de verdade: %s. Não desperdice." % str(resultado.get("recompensa", ""))},
+			])
+			# Presente pós-treino Ren
+			if escolhido == "ren_intensificacao" and not PlayerData.tem_item(&"pingente_nen"):
+				PlayerData.adicionar_item(&"pingente_nen", 1)
+				if EventBus != null:
+					EventBus.emit_toast("🎁 Biscuit lhe deu: Pingente de Nen!", Color(1.0, 0.85, 0.35))
+		else:
+			visual_dialogue.exibir_sequencia_falas([
+				{"falante": "Biscuit Krueger", "texto": str(resultado.get("mensagem", "Ainda não."))},
+			])
 
 
 func _on_opcao_criar_hatsu() -> void:

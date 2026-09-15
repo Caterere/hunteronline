@@ -14,6 +14,7 @@ signal defesa_restaurada()
 
 const ComicBalloon = preload("res://scripts/ui/ComicBalloon.gd")
 const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd")
+const BiomeLootCatalogScript = preload("res://resource/item/BiomeLootCatalog.gd")
 
 
 # =========================================================
@@ -605,10 +606,11 @@ func take_damage(
 	health = max(health, 0)
 
 	# -----------------------------------------------------
-	# FEEDBACK VISUAL
+	# FEEDBACK VISUAL + ÁUDIO
 	# -----------------------------------------------------
 
 	_hit_flash()
+	_play_hurt_sfx(final_damage)
 
 
 
@@ -1015,10 +1017,41 @@ func _play_death_feel() -> void:
 			EventBus.emit_camera_shake(0.28, 0.16)
 
 	if AudioManager != null:
-		if AudioManager.has_method("tocar_sfx_posicional"):
+		var eid: String = obter_enemy_id_audio()
+		if AudioManager.has_method("tocar_mob_voz"):
+			AudioManager.tocar_mob_voz("death", eid, pos, true)
+		elif AudioManager.has_method("tocar_sfx_posicional"):
 			AudioManager.tocar_sfx_posicional("stagger_break", pos, 1.05)
 		else:
 			AudioManager.tocar_sfx_tipo("stagger_break", 1.05)
+
+
+func obter_enemy_id_audio() -> String:
+	if enemy_id != &"":
+		return str(enemy_id)
+	if enemy_data != null and enemy_data.enemy_id != &"":
+		return str(enemy_data.enemy_id)
+	if enemy_data != null and not str(enemy_data.enemy_name).is_empty():
+		return str(enemy_data.enemy_name)
+	return "beast"
+
+
+func _play_hurt_sfx(final_damage: int) -> void:
+	if AudioManager == null:
+		return
+	# Evita spam: só vocaliza em hits relevantes
+	if final_damage < 3:
+		return
+	var pos: Vector2 = Vector2.ZERO
+	var tem_pos := false
+	if enemy_body != null and is_instance_valid(enemy_body):
+		pos = enemy_body.global_position
+		tem_pos = true
+	# Chance / cooldown leve via frame — EventBus hit já toca hit_flesh
+	if randf() > 0.55:
+		return
+	if AudioManager.has_method("tocar_mob_voz"):
+		AudioManager.tocar_mob_voz("hurt", obter_enemy_id_audio(), pos, tem_pos)
 
 
 func _gerar_drop_loot() -> void:
@@ -1065,6 +1098,11 @@ func _gerar_drop_loot() -> void:
 				elif PlayerData != null:
 					PlayerData.adicionar_item(StringName(item_id), qtd)
 					print("[EnemySystem] LOOT COLETADO: %s x%d" % [item_id, qtd])
+
+	# Drop raro por bioma (1 item característico)
+	if world_parent != null:
+		var bonus: float = 0.05 if (enemy_data != null and enemy_data.is_boss) else 0.0
+		BiomeLootCatalogScript.tentar_drop_raro(world_parent, drop_pos, "", bonus)
 
 
 

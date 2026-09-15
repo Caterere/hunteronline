@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cdemonenskillvis01"]
+
+[ext_resource type="Script" path="res://scratch/demo_nen_skilltree_visual.gd" id="1"]
+
+[node name="DemoNenSkillTreeVisual" type="Node"]
+script = ExtResource("1")
