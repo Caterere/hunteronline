@@ -87,10 +87,11 @@ static func palette_for_saga(saga: int) -> Dictionary:
 				{"src": SRC_GRASS, "atlas": Vector2i(0, 0)},
 				{"src": SRC_PLAINS, "atlas": Vector2i(1, 1)},
 				[
-					{"src": SRC_WALLS, "atlas": Vector2i(0, 0)},
-					{"src": SRC_WATER, "atlas": Vector2i(0, 0)},
+					# Sem WALLS/WATER (physics) — só terreno/decoração walkable
 					{"src": SRC_TX_GRASS, "atlas": Vector2i(0, 0)},
 					{"src": SRC_PLAINS, "atlas": Vector2i(0, 0)},
+					{"src": SRC_GRASS, "atlas": Vector2i(0, 0)},
+					{"src": SRC_T1, "atlas": Vector2i(0, 0)},
 				]
 			)
 		2:
@@ -296,6 +297,9 @@ func _paint_territory() -> void:
 	layer.tile_set = _tileset
 	layer.z_index = -80
 	layer.y_sort_enabled = false
+	# Decorativo apenas — packs com WALLS/WATER não podem prender o player.
+	layer.collision_enabled = false
+	layer.navigation_enabled = false
 	# Filho do kit (não do mapa) — evita erro "parent busy" no add_child.
 	add_child(layer)
 	# Atrás de props do hub

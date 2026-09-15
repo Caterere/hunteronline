@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://ctestexamespawn01"]
+
+[ext_resource type="Script" path="res://scratch/test_exame_spawn_walkable_suite.gd" id="1"]
+
+[node name="TestExameSpawnWalkable" type="Node"]
+script = ExtResource("1")
