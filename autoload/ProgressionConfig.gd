@@ -28,13 +28,14 @@ const BASE_LEVEL: int = 1
 # ------------------------------------------------------------
 # 2. VALORES BASE (NÍVEL 1) & ALVOS ENDGAME (NÍVEL 1000)
 # ------------------------------------------------------------
-# Valores no Nível 1 (Humano / Aspirante inicial)
+# Valores no Nível 1 (Humano / Aspirante inicial) — metade do baseline antigo
+# para o early-game não ficar trivial demais.
 const BASE_STATS: Dictionary = {
-	"vida_max": 100.0,
-	"forca": 10.0,
-	"defesa": 10.0,
-	"velocidade": 10.0,
-	"aura_max": 100.0
+	"vida_max": 50.0,
+	"forca": 5.0,
+	"defesa": 5.0,
+	"velocidade": 5.0,
+	"aura_max": 50.0
 }
 
 # Metas no Nível 1000 (Ápice Absoluto / Endgame Supremo)

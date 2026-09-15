@@ -30,14 +30,14 @@ signal atributos_recalculados()
 
 var attributes: Dictionary = {
 
-	"vida": 100,
-	"vida_max": 100,
+	"vida": 50,
+	"vida_max": 50,
 
-	"forca": 10,
+	"forca": 5,
 
-	"defesa": 10,
+	"defesa": 5,
 
-	"velocidade": 10,
+	"velocidade": 5,
 
 	# ========================================================
 	# NEN
@@ -419,13 +419,13 @@ func reset() -> void:
 	}
 	aura_visual_profile = AuraVisualProfile.new()
 	attributes = {
-		"vida": 100,
-		"vida_max": 100,
-		"forca": 10,
-		"defesa": 10,
-		"velocidade": 10,
-		"aura": 100.0,
-		"aura_max": 100.0,
+		"vida": 50,
+		"vida_max": 50,
+		"forca": 5,
+		"defesa": 5,
+		"velocidade": 5,
+		"aura": 50.0,
+		"aura_max": 50.0,
 		"nivel_nen": 1,
 		"xp_nen": 0,
 		"nivel": 1,

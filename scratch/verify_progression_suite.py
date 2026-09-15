@@ -13,11 +13,11 @@ BASE_LEVEL = 1
 MAX_LEVEL = 1000
 
 BASE_STATS = {
-    "vida_max": 100,
-    "forca": 10,
-    "defesa": 10,
-    "velocidade": 10.0,
-    "aura_max": 100.0,
+    "vida_max": 50,
+    "forca": 5,
+    "defesa": 5,
+    "velocidade": 5.0,
+    "aura_max": 50.0,
 }
 
 TARGET_STATS_LEVEL_1000 = {
