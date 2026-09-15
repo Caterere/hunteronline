@@ -1133,7 +1133,11 @@ func obter_custo_feel_mult(charge_pct: float) -> float:
 
 
 func obter_explicacao() -> String:
-	return HatsuExplainKit.garantir_descricao(self)
+	## Evita dependência circular de class_name com HatsuExplainKit.
+	var kit = load("res://scripts/systems/hatsu/HatsuExplainKit.gd")
+	if kit != null and kit.has_method("garantir_descricao"):
+		return str(kit.garantir_descricao(self))
+	return String(descricao)
 
 
 

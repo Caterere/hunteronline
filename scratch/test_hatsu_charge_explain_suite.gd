@@ -2,11 +2,17 @@ extends SceneTree
 ## Suite: Hatsu charge/explain + feel por tipo Nen
 ## Run: godot --headless -s scratch/test_hatsu_charge_explain_suite.gd
 
+const HatsuExplainKitScript = preload("res://scripts/systems/hatsu/HatsuExplainKit.gd")
+
 var _passed := 0
 var _failed := 0
 
 
 func _init() -> void:
+	call_deferred("_run_suite")
+
+
+func _run_suite() -> void:
 	print("=== Hatsu Charge / Explain / Feel-por-tipo Suite ===")
 	_check_explain()
 	_check_feel_modes()
@@ -41,7 +47,7 @@ func _check_explain() -> void:
 	h.categoria = HatsuData.Categoria.INTENSIFICACAO
 	h.objetivo = HatsuData.ObjetivoPrincipal.DANO
 	h.forma = HatsuData.Forma.TOQUE
-	var d := HatsuExplainKit.garantir_descricao(h)
+	var d: String = HatsuExplainKitScript.garantir_descricao(h)
 	_assert(not d.is_empty(), "gera descricao")
 	_assert("Intensificação" in d or "aprimoramento" in d.to_lower() or "poder" in d.to_lower(), "menciona intensificacao/poder")
 	_assert(h.descricao == d, "persiste em descricao")
@@ -51,7 +57,7 @@ func _check_explain() -> void:
 	he.categoria = HatsuData.Categoria.EMISSAO
 	he.objetivo = HatsuData.ObjetivoPrincipal.DANO
 	he.forma = HatsuData.Forma.PROJETIL
-	var de := HatsuExplainKit.garantir_descricao(he)
+	var de: String = HatsuExplainKitScript.garantir_descricao(he)
 	_assert("alcance" in de.to_lower() or "mirar" in de.to_lower() or "Emissão" in de, "emissao explica mira/alcance")
 
 	var ht := HatsuData.new()
@@ -60,7 +66,7 @@ func _check_explain() -> void:
 	ht.objetivo = HatsuData.ObjetivoPrincipal.SUPORTE
 	ht.forma = HatsuData.Forma.PESSOAL
 	ht.duracao = 6.0
-	var dt := HatsuExplainKit.garantir_descricao(ht)
+	var dt: String = HatsuExplainKitScript.garantir_descricao(ht)
 	_assert("duração" in dt.to_lower() or "Transformação" in dt, "transformacao explica duracao")
 
 
@@ -121,7 +127,7 @@ func _check_charge_math() -> void:
 
 func _check_factory() -> void:
 	print("-- Factory --")
-	var hm = Engine.get_main_loop().root.get_node_or_null("HatsuManager")
+	var hm = root.get_node_or_null("HatsuManager") if root != null else null
 	if hm != null and hm.has_method("criar_hatsu"):
 		var forged: HatsuData = hm.criar_hatsu(
 			"Teste Pedra", HatsuData.Categoria.INTENSIFICACAO, HatsuData.Forma.TOQUE, [],
@@ -150,7 +156,7 @@ func _check_factory() -> void:
 	else:
 		var src := _read("res://autoload/HatsuManager.gd")
 		_assert("activation_type = HatsuData.ActivationType.CHARGED" in src, "factory CHARGED (src)")
-		_assert("FeelMode.RANGE_AIM" in src or "tempo_conjuracao_base = clampf" in src, "factory emissao/tempo (src)")
+		_assert("_aplicar_feel_canalizado_stats" in src, "factory feel stats helper (src)")
 		_assert("HatsuExplainKit.garantir_descricao" in src, "factory gera descricao (src)")
 		_assert("DURATION" in src or "duracao_buff" in src, "factory transform feel (src)")
 
