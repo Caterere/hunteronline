@@ -2,7 +2,13 @@
 
 **Companion to:** [`../bibles/PIXEL_ART_PRODUCTION_BIBLE.md`](../bibles/PIXEL_ART_PRODUCTION_BIBLE.md)  
 **Authority index:** [`../bibles/ART_PIPELINE_CANON.md`](../bibles/ART_PIPELINE_CANON.md)  
-**Character style lock:** [`../bibles/PIXEL_ART_STYLE_BIBLE.md`](../bibles/PIXEL_ART_STYLE_BIBLE.md)
+**Character style lock:** [`../bibles/PIXEL_ART_STYLE_BIBLE.md`](../bibles/PIXEL_ART_STYLE_BIBLE.md)  
+**Regen roadmap:** [`../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md`](../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md)
+
+> **Style Lock v2 (Quality Pass):** personagens de gameplay usam frame **96×96**,
+> corpo ~**40–44 px**, pés **Y≈84**, chibi ~2.5 cabeças, `detail: medium detail`.
+> Prompts antigos com “20 pixels tall / 48x48 character frame” são **legado** —
+> ao gerar personagem novo, preferir os números v2 da Style Bible.
 
 Este arquivo contém prompts prontos para o agente usar com PixelLab.
 **Não redefine** Style Lock nem a hierarquia visual — só operacionaliza.

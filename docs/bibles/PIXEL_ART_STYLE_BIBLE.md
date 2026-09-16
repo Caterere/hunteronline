@@ -1,191 +1,189 @@
 # BIBLE 16 — PIXEL ART STYLE LOCK & SPRITE GENERATION BIBLE
 ## Hunter Online — Single Source of Truth para PERSONAGENS 2D
 
-> **Escopo SSOT:** style lock de **personagens / NPCs / enemies humanoides** (48×48).
+> **Escopo SSOT:** style lock de **personagens / NPCs / enemies humanoides** (96×96).
 > **Mundo / tiles / props / pipeline:** ver
 > [`PIXEL_ART_PRODUCTION_BIBLE.md`](PIXEL_ART_PRODUCTION_BIBLE.md) +
 > [`ART_PIPELINE_CANON.md`](ART_PIPELINE_CANON.md).
 > **Prompts PixelLab:** [`../guides/PIXELLAB_PROMPT_LIBRARY.md`](../guides/PIXELLAB_PROMPT_LIBRARY.md).
+> **Roteiro de regeneração:** [`../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md`](../roadmap/CHARACTER_QUALITY_REGEN_ROADMAP.md).
 >
-> A frase “simplicidade = qualidade” aplica-se a **personagens**. O mundo pode (e deve)
-> ser mais rico — isso não autoriza detalhar o player além deste Style Lock.
+> **Upgrade 2026-09 (Quality Pass):** o budget de pixels do **corpo do personagem**
+> foi **dobrado** vs o lock antigo (20–22 → 40–44 px) para melhorar reconhecimento
+> de silhueta/identidade. Mantém-se **chibi ~2.5 cabeças**, tamanho uniforme entre
+> cast, e mundo continua podendo ser mais rico que o char.
 
 ---
 
-### 1. PRINCÍPIO SUPREMO: O STYLE ANCHOR DEFINITIVO
+### 1. PRINCÍPIO SUPREMO: RECONHECIMENTO + CONSISTÊNCIA
 
 O arquivo canônico do projeto é:
 ```
 res://assets/sprites/characters/player.png (style lock também em `assets/reference/player(3).png`)
 ```
-Toda e qualquer geração de sprite, seja via **PixelLab MCP**, **Gemini**, ferramentas procedurais ou trabalho manual, **DEVE** replicar rigorosamente a **linguagem de pixels** desta referência.
+Toda geração (PixelLab MCP, REST, procedural ou manual) **DEVE** seguir a **linguagem
+de pixels** desta referência — agora na escala 96×96 / corpo ~40–44 px.
 
-> [!CRITICAL]
-> **SIMPLICIDADE = QUALIDADE.**
-> No Hunter Online, "mais detalhado" NÃO significa melhor. "Mais legível", "mais consistente" e "fiel à escala do jogo" é o único critério de qualidade aceito. Se um detalhe não é estritamente necessário para identificar o personagem a 1x de zoom, **ELE NÃO DEVE EXISTIR**.
+> [!IMPORTANT]
+> **CABELO = IDENTIDADE #1 (fidelidade anime).**  
+> Em Hunter Online, a silhueta do **cabelo** é o principal sinal de quem é o personagem
+> (Gon, Killua, Hisoka, etc.). Outfit ajuda; cabelo errado = personagem errado.  
+> Depois: reconhecimento geral. Continua proibido: anatomia realista, esclera branca,
+> micro-fios, shading fotográfico. Detalhe extra só vale se melhorar legibilidade
+> (sobretudo cabelo/outfit icônico) sem quebrar o chibi uniforme.
 
 ---
 
-### 2. ANÁLISE NUMÉRICA E VISUAL EXAUSTIVA DA REFERÊNCIA
+### 1.1 FIDELIDADE DE CABELO (SSOT HxH)
 
-A análise pixel a pixel extraída diretamente da folha do jogador estabelece os limites matemáticos invioláveis:
+Ao gerar/regenerar qualquer personagem nomeado, o prompt **deve começar pelo cabelo**
+(forma, direção dos spikes, cor, o que NÃO é). Budget extra de pixels do Style Lock v2
+existe sobretudo para caber essas silhuetas.
 
-| Métrica | Valor Canônico (`player.png`) | Limite Máximo Aceitável | Sprites Reprovados (Ex: Gon / 68px) |
+| Personagem | Silhueta de cabelo obrigatória | Anti-padrões |
+| :--- | :--- | :--- |
+| **Gon** | Preto com leve tint verde-escuro nas bordas; **spikes altos e VERTICAIS** (porco-espinho para cima), crowning jagged; laterais mais curtos | Bola radial redonda; bob; spikes só laterais |
+| **Killua** | Prata/branco-lavanda gelado **para cima e para trás**, comprimentos irregulares; franja irregular na testa | Coroa curta uniforme; azul forte demais |
+| **Kurapika** | Loiro dourado curto em camadas, fios laterais mais longos emoldurando o rosto | Spike; bowl cut preto |
+| **Leorio** | Castanho escuro curto, topo um pouco volumoso/bagunçado | Spikes gelados; careca |
+| **Hisoka** | Magenta/rosa-choque **varrido para trás** em agulhas longas e pontudas; **sem pontas amarelas** | Coroa com tips amarelas; cabelo curto |
+| **Netero** | **Careca** + barba/bigode brancos volumosos | Cabelo no topo |
+| **Chrollo** | Bowl cut preto com franja + cruz na testa | Spikes; cabelo longo |
+| **Wing** | Escuro bagunçado / desalinhado | Corte militar limpo |
+| **Elena** | Castanho em coque baixo limpo | Solto longo |
+| **Satotz** | Cabelo oculto sob bowler | Spikes visíveis |
+
+**Fit geométrico:** personagens de cabelo volumoso podem usar até **~46 px de altura** e
+**~40 px de largura** (pés Y≈84). Não esmagar a silhueta do cabelo para caber em 34×42.
+
+---
+
+### 2. MÉTRICAS CANÔNICAS (Style Lock v2 — 96×96)
+
+| Métrica | Valor Canônico | Limite Aceitável | Reprovado |
 | :--- | :--- | :--- | :--- |
-| **Canvas do Frame** | **48×48 pixels** | **48×48 pixels** fixos | 68×68 px / 128×128 px |
-| **Altura do Personagem (Idle/Walk)** | **20 a 22 pixels** | **24 pixels** (com chapéu/cabelo) | 45 a 52 pixels (Ocupa frame todo) |
-| **Largura do Personagem (Idle/Walk)** | **13 a 15 pixels** | **18 pixels** (com capa/equipamento) | 22 a 32 pixels |
-| **Ocupação de Área no Frame** | **~12% a 15%** do canvas | **< 20%** do canvas | > 50% a 70% |
-| **Baseline dos Pés (Solo)** | **Y = 42** | **Y = 41 a 43** | Y = 46 a 47 (colado na borda) |
-| **Top Padding (Espaço Vazio Acima)** | **20 a 23 pixels livres** | **>= 18 pixels livres** | 0 a 2 pixels livres |
-| **Bottom Padding (Espaço Vazio Abaixo)**| **5 pixels livres** (Y=43..47) | **>= 4 pixels livres** | 0 a 1 pixel livre |
-| **Padding Lateral (Esquerda/Direita)**| **16 a 18 pixels livres** | **>= 12 pixels livres** | 4 a 8 pixels livres |
-| **Cores Únicas por Frame** | **7 a 11 cores** | **14 cores** | 30 a 50 cores |
-| **Cores Totais na Spritesheet** | **15 cores únicas** | **22 cores** | 50 a 120 cores |
-| **Proporção Corporal** | **Chibi / Estilizado (~2.5 cabeças)** | **2.2 a 2.6 cabeças** | 5 a 6 cabeças (Anatômico realista) |
+| **Canvas do Frame** | **96×96 pixels** | **96×96** fixos | 48×48 legado / 128×128 gameplay / 68×68 |
+| **Altura do Personagem (Idle/Walk)** | **44 a 46 pixels** | **48 px** (cabelo icônico / chapéu) | <36 px (pobre) ou >52 px (gigante) |
+| **Largura do Personagem (Idle/Walk)** | **26 a 30 pixels** | **36 px** (capa/arma) | >40 px |
+| **Ocupação de Área no Frame** | **~18% a 28%** | **< 35%** | >50% |
+| **Baseline dos Pés (Solo)** | **Y = 84** | **Y = 82 a 86** | colado na borda inferior |
+| **Top Padding** | **36 a 44 px livres** | **≥ 28 px** | <20 px |
+| **Bottom Padding** | **10 a 12 px** (Y=86..95) | **≥ 8 px** | <4 px |
+| **Padding Lateral** | **30 a 36 px** por lado | **≥ 24 px** | <16 px |
+| **Cores Únicas por Frame** | **12 a 20 cores** | **24 cores** | >32 cores |
+| **Cores Totais na Spritesheet** | **18 a 28 cores** | **36 cores** | >48 cores |
+| **Proporção Corporal** | **Chibi (~2.5 cabeças)** | **2.2 a 2.7 cabeças** | 4+ cabeças realistas |
+
+#### Folha 8 direções
+- Idle/walk direcional: **768×96** (8 frames × 96)
+- Ordem: S, SE, E, NE, N, NW, W, SW
+
+#### Legado 48×48
+- Sprites `*_8dir.png` em 384×48 são **legado pré-Quality Pass**.
+- Novos commits de personagem **devem** sair em 96×96.
+- Validação: `tools/validate_sprite_style.gd` usa as métricas v2.
 
 ---
 
-### 3. ANATOMIA PIXEL A PIXEL DO SPRITE CANÔNICO
+### 3. ANATOMIA PIXEL A PIXEL (escala dobrada)
 
 #### 3.1. Cabeça e Rosto
-- **Altura da Cabeça:** 12 a 13 pixels (incluindo cabelo) — representa ~60% da altura total do personagem.
-- **Rosto (Pele Visível):** Apenas 5 a 6 pixels de altura por 7 a 8 pixels de largura.
-- **Olhos:** Dois pontos verticais de **1 pixel de largura por 2 pixels de altura** (`#21110d` ou preto `#000000`), separados por exatamente **3 pixels de pele**.
-- **PROIBIÇÕES ABSOLUTAS NO ROSTO:**
-  - ❌ NENHUM branco nos olhos (esclera).
-  - ❌ NENHUM brilho/reflexo na pupila.
-  - ❌ NENHUM nariz desenhado (sem ponto de nariz, sem sombra de fossa nasal).
-  - ❌ NENHUMA boca desenhada em estado de repouso/idle.
-  - ❌ NENHUMA sobrancelha detalhada ou blush/bochechas rosadas.
+- **Altura da Cabeça:** 22 a 26 px (cabelo incluso) — ~55–60% da altura do boneco.
+- **Rosto (pele):** 10 a 12 px alt × 14 a 16 px larg.
+- **Olhos:** blocos **2×3 ou 2×4 px** escuros (`#21110d` / `#000000`), separados por **5–7 px** de pele.
+- **PROIBIÇÕES NO ROSTO:**
+  - ❌ Esclera branca / brilho de pupila
+  - ❌ Nariz desenhado no idle
+  - ❌ Boca detalhada no idle (exceto expressões de animação pontual)
+  - ❌ Blush / sobrancelha realista
 
 #### 3.2. Cabelo
-- Representado por **massas e agrupamentos sólidos de pixels** (grandes blocos).
-- Composto por:
-  - 1 Tom Base (`#573a23`).
-  - 1 Tom de Sombra em bloco (`#402717`).
-  - Pouquíssimos pixels de contorno/profundidade (`#21110d`).
-- **PROIBIÇÕES NO CABELO:**
-  - ❌ NENHUM fio de cabelo individual.
-  - ❌ NENHUM gradiente ou iluminação especular linear.
-  - ❌ NENHUM contorno interno excessivo entre mechas minúsculas.
+- Massas sólidas com **2–3 tons** (base + sombra + contorno pontual).
+- Silhueta deve ser o **principal ID** do personagem (Gon spikes, Killua gel, etc.).
+- ❌ Fios individuais, gradiente especular, mechas microscópicas.
 
 #### 3.3. Tronco e Roupas
-- **Tronco visível:** Apenas 3 a 4 pixels de altura por 7 a 9 pixels de largura.
-- **Pernas e Botas:** Apenas 4 a 5 pixels de altura.
-- **Mãos:** Pequenos blocos de 2×2 pixels de pele nas laterais.
-- **PROIBIÇÕES NAS ROUPAS:**
-  - ❌ NENHUMA dobra ou ruga de tecido.
-  - ❌ NENHUMA costura, fivela microscópica ou botões individuais.
-  - ❌ NENHUM degradê suave de sombreamento.
+- Tronco visível: ~8 a 12 px alt × 14 a 20 px larg.
+- Pernas/botas: ~8 a 12 px alt.
+- Mãos: blocos ~3×3 / 4×4 px.
+- Acessórios icônicos **permitidos e desejados** (bastão, alfinete, chapéu, capa curta)
+  desde que caibam no bbox.
+- ❌ Dobrinhas densas, costuras micro, botões 1px espalhados.
 
-#### 3.4. Sombra Projetada no Solo
-- Uma elipse plana de sombra de contato sob os pés, em Y=41 e Y=42.
-- Cor: `#0c0e19` com 50% de opacidade (`#0c0e1980`).
-- Largura da elipse: 11 a 13 pixels; Altura: 2 pixels.
-
----
-
-### 4. PALETA MESTRA CANÔNICA (15 CORES)
-
-Arquivo de paleta mestre gerado em: `res://assets/sprites/characters/master_palette.png`
-
-| Hex | Nome / Função | Amostra de Uso |
-| :--- | :--- | :--- |
-| `#573a23` | Cabelo / Madeira Base | Massa principal de cabelo |
-| `#402717` | Cabelo Sombra | Sombra inferior e recorte de mechas |
-| `#21110d` | Cabelo Profundo / Olhos | Olhos verticais (1×2) e vãos mais escuros |
-| `#c1ac8f` | Pele Clara / Base | Testa, bochechas, mãos |
-| `#ac7b5d` | Pele Sombra | Queixo, pescoço, contorno lateral do rosto |
-| `#9a5c42` | Pele Transição | Sombra profunda de dobra facial/pescoço |
-| `#a4a8b5` | Tecido / Metal Claro | Camisa base, reflexos cinza |
-| `#787e97` | Tecido / Metal Sombra | Sombra de tecido neutro / armadura |
-| `#2c65b5` | Tecido / Acento Azul Base | Calças, túnica azul |
-| `#1d438a` | Tecido / Acento Azul Sombra | Sombra da calça, divisão de pernas |
-| `#0d205e` | Tecido Azul Profundo | Vinco entre pernas |
-| `#ffffff` | Brilho Máximo / Lâmina | Fio de corte da adaga / reflexo de arma |
-| `#dbd2c7` | Metal Médio | Corpo de lâminas / fivelas simples |
-| `#000000` | Contorno Externo Principal | Silhueta do personagem, cabelo exterior |
-| `#0c0e19` | Contorno Secundário / Sombra de Solo | Contorno de tecido e elipse no chão (com alpha 0.5) |
+#### 3.4. Sombra de Solo
+- Elipse sob os pés em **Y=82–84**.
+- Cor `#0c0e19` ~50% alpha.
+- Largura ~22–28 px; altura 3–4 px.
 
 ---
 
-### 5. SEPARAÇÃO ENTRE ESTILO E PERSONAGEM
+### 4. PALETA MESTRA
 
-Ao gerar novos personagens (ex: "Hunter Veterano", "Examinador", "Mercador", "Guarda Real"):
+Arquivo: `res://assets/sprites/characters/master_palette.png`
 
-- **O que MUDA:**
-  - Cor do cabelo, silhueta do chapéu ou capacete.
-  - Paleta de cores da roupa (ex: verde, vinho, couro marrom, armadura metálica).
-  - Acessório característico (ex: cajado simples, mochila de 3×4 px, espada embainhada).
-- **O que NUNCA MUDA:**
-  - Canvas 48×48 com personagem de 20-22 px de altura.
-  - Baseline com pés em Y=42.
-  - Olhos de 1×2 pixels sem esclera branca.
-  - 1 a 2 níveis de sombra por material (máximo 11-13 cores por frame).
-  - Cabeça ocupando ~55-60% da altura do boneco.
-  - Contornos nítidos de 1 pixel sem anti-aliasing no corpo.
+A paleta mestre de 15 cores base permanece como âncora de **família cromática**.
+No lock v2, personagens nomeados podem usar **tons extras de identidade**
+(ex.: verde Gon, azul Killua, vermelho Hisoka) desde que o total por frame
+respeite o teto de cores da tabela acima.
 
 ---
 
-### 6. GUIA DE INTEGRAÇÃO PIXELLAB MCP
+### 5. O QUE MUDA / O QUE NÃO MUDA ENTRE PERSONAGENS
 
-Quando o agente ou desenvolvedor invocar o MCP `pixellab`, as seguintes regras são **mandatórias**:
+- **Muda:** cor/silhueta de cabelo, outfit, acessório, proporção leve de ombros.
+- **Nunca muda:** frame 96×96, altura-alvo ~40–44, pés Y≈84, chibi ~2.5 cabeças,
+  olhos sem esclera, outline 1px nítido, alpha binário no corpo.
 
-#### 6.1. Ferramenta Principal: `create_character`
+---
+
+### 6. INTEGRAÇÃO PIXELLAB MCP
+
+#### 6.1 Pipeline híbrido (obrigatório para NPCs únicos)
+
+1. `create_image_pixen` — identidade south em **96×96**, `detail: medium detail`
+2. Fit geométrico ~40–44 px / pés Y≈84 (`pixellab_regen_cast_v96_stylelock.py`)
+3. `create_character` `mode=v3` + `reference_image_base64` = south fitted, `size: 96`
 
 ```json
 {
   "name": "NomeDoPersonagem",
-  "description": "retro 16-bit 48x48 rpg sprite, tiny low detail character, chibi 2.5 heads proportion, 20 pixels tall character centered inside 48x48 transparent frame, simple chunky shapes, dot eyes no sclera, flat shading, basic outline, 2 colors per material, game sprite",
-  "mode": "standard",
-  "size": 48,
-  "detail": "low detail",
-  "shading": "flat shading",
+  "description": "retro 16-bit rpg sprite, chibi 2.5 heads, readable identity silhouette, about 42 pixels tall character centered in 96x96 transparent frame, chunky shapes, dark block eyes no sclera, flat/basic shading, single color black outline, game sprite",
+  "mode": "v3",
+  "size": 96,
+  "detail": "medium detail",
   "outline": "single color black outline",
-  "view": "low top-down",
-  "n_directions": 4,
-  "proportions": "{\"type\": \"preset\", \"name\": \"chibi\"}"
+  "view": "low top-down"
 }
 ```
 
 > [!WARNING]
-> - **NUNCA** use `size: 68` ou `size: 128` para personagens de gameplay. O padrão é estritamente `size: 48`.
-> - **NUNCA** use `detail: "medium detail"` ou `"high detail"`.
-> - **NUNCA** use `shading: "detailed shading"`.
-> - Se o personagem gerado ocupar mais de 25 pixels verticais no canvas, ele deve ser rejeitado imediatamente.
+> - **NÃO** usar `size: 48` para personagens novos de gameplay.
+> - **NÃO** usar high detail / shading fotográfico / proporção realistic.
+> - Se o corpo ficar <36 px ou >52 px após fit, regenerar.
+> - Não usar `v3` + referência do **player** para NPCs únicos (clona identidade).
 
-#### 6.2. Quantização e Limpeza de Paleta: `reduce_colors`
-
-Caso um sprite retorne com variações de cor excessivas:
-- Use `reduce_colors` com `palette_image_base64` apontando para `res://assets/sprites/characters/master_palette.png`.
-- Defina `dithering: "none"`.
-- Nunca use dithering ordenado para personagens do jogo.
+#### 6.2 Quantização
+- `reduce_colors` / quantização local sem dithering se estourar paleta.
+- Alpha binário no corpo.
 
 ---
 
-### 7. CHECKLIST DE ACEITAÇÃO (GATE INTRANSIGENTE)
+### 7. CHECKLIST DE ACEITAÇÃO (GATE)
 
-Antes de aprovar e commitar qualquer sprite novo para `assets/sprites/`:
-
-- [ ] **Frame 48×48:** Dimensão total é múltiplo exato de 48×48.
-- [ ] **Escala e Bounding Box:** Altura em repouso entre 19 e 24 px; largura entre 12 e 18 px.
-- [ ] **Baseline dos Pés:** Pés descansando entre Y=41 e Y=43.
-- [ ] **Headroom Superior:** Pelo menos 18 a 22 pixels transparentes no topo do frame.
-- [ ] **Margens Laterais:** Pelo menos 12 a 16 pixels transparentes de cada lado.
-- [ ] **Rosto:** Olhos estilizados em ponto (1×2 px); sem boca, sem nariz, sem esclera.
-- [ ] **Shading:** Flat ou basic shading em blocos; máximo de 1 tom de luz e 1 tom de sombra por material.
-- [ ] **Sem Gradientes / Sem Dithering:** Cores chapadas em agrupamentos legíveis.
-- [ ] **Alpha Binário:** Alpha 1.0 em todo o corpo (sem anti-aliasing suave em bordas).
-- [ ] **Densidade de Cores:** Máximo de 14 cores por frame e 22 cores na folha completa.
-- [ ] **Validação Automatizada:** Executou e foi aprovado por `tools/validate_sprite_style.gd`.
+- [ ] Frame **96×96** (folha 8dir = 768×96)
+- [ ] Altura idle **40–48 px**; largura **24–36 px**
+- [ ] Pés em **Y=82–86**
+- [ ] Top padding ≥ 28 px; laterais ≥ 24 px
+- [ ] Olhos em bloco escuro sem esclera
+- [ ] Chibi ~2.5 cabeças; silhueta reconhecível do personagem
+- [ ] ≤24 cores/frame; ≤36 na folha
+- [ ] Sem anti-aliasing suave no corpo
+- [ ] `tools/validate_sprite_style.gd` aprovado
 
 ---
 
-### 8. COMANDO DE AUDITORIA AUTOMATIZADA
+### 8. AUDITORIA
 
-Para validar qualquer folha de sprites contra o Style Lock:
-
-```powershell
-& "C:\Users\Ditec\Downloads\Godot_v4.4-stable_win64.exe\Godot_v4.4-stable_win64_console.exe" --headless -s "tools/validate_sprite_style.gd" -- "caminho/do/sprite.png"
+```bash
+godot --headless -s tools/validate_sprite_style.gd -- "res://assets/sprites/characters/<sprite>.png"
 ```

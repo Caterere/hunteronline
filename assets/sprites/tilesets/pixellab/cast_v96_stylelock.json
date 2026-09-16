@@ -1,0 +1,54 @@
+{
+  "batch": "cast_v96_hair_pass",
+  "created_at": 1789170927.7153533,
+  "characters": [
+    {
+      "name": "npc_killua",
+      "ok": true,
+      "character_id": "2e6de700-df1b-4d60-97ed-91a6c5dab82f",
+      "pixen_job": "f198385c-6166-4c6f-804b-5ac0cb10fdf6",
+      "fitted_h": 46,
+      "sheet": "assets/sprites/characters/npc_killua_8dir.png"
+    },
+    {
+      "name": "npc_kurapika",
+      "ok": true,
+      "character_id": "7c35ca87-0e15-49ca-8ea7-407769f8a1cf",
+      "pixen_job": "56edf866-42e3-44e5-8940-09c168b40c0f",
+      "fitted_h": 46,
+      "sheet": "assets/sprites/characters/npc_kurapika_8dir.png"
+    },
+    {
+      "name": "npc_leorio",
+      "ok": true,
+      "character_id": "c8b5866b-8f87-4e74-8b98-9fcd6a71a3db",
+      "pixen_job": "12f2d8b4-3788-4304-af49-80aa1454a7ec",
+      "fitted_h": 46,
+      "sheet": "assets/sprites/characters/npc_leorio_8dir.png"
+    },
+    {
+      "name": "npc_hisoka",
+      "ok": true,
+      "character_id": "bb2a7b1b-a21f-4d48-b04f-f0e6ab5bc4f3",
+      "pixen_job": "7aa60ae6-d4dd-4e65-a841-4a40ca6bb824",
+      "fitted_h": 46,
+      "sheet": "assets/sprites/characters/npc_hisoka_8dir.png"
+    },
+    {
+      "name": "npc_netero",
+      "ok": true,
+      "character_id": "b305001b-f79e-4e97-9cfd-bec1b9e59361",
+      "pixen_job": "c301e1c1-20fd-44b7-9d94-77fc5b916f98",
+      "fitted_h": 42,
+      "sheet": "assets/sprites/characters/npc_netero_8dir.png"
+    },
+    {
+      "name": "npc_chrollo",
+      "ok": true,
+      "character_id": "d0e6be7a-8946-41aa-a5d2-09acc8609e9b",
+      "pixen_job": "77c8b747-9201-4158-8d4b-b9f1e3500a72",
+      "fitted_h": 46,
+      "sheet": "assets/sprites/characters/npc_chrollo_8dir.png"
+    }
+  ]
+}
