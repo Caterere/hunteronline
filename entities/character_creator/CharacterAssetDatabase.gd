@@ -13,7 +13,8 @@ extends RefCounted
 
 const HAIR_STYLES: Array[Dictionary] = [
 	{"id": "hair_gon_01", "name": "Espetado Hunter (Gon)", "layer": "hair_front", "color": Color(0.08, 0.12, 0.08, 1.0)},
-	{"id": "hair_killua_01", "name": "Desfiado Rebelde (Killua)", "layer": "hair_front", "color": Color(0.92, 0.94, 0.98, 1.0)},
+	{"id": "hair_killua_01", "name": "Desfiado Rebelde (Killua)", "layer": "hair_front", "color": Color(0.92, 0.94, 0.98, 1.0), "preview": "res://assets/sprites/characters/creator_variants/killua_style_preview.png"},
+	{"id": "hair_killua_spiky_02", "name": "Killua Spiky Branco", "layer": "hair_front", "color": Color(0.95, 0.96, 0.99, 1.0), "preview": "res://assets/sprites/characters/creator_variants/player_variant_hair_killua.png"},
 	{"id": "hair_kurapika_01", "name": "Médio Sedoso (Kurapika)", "layer": "hair_front", "color": Color(0.98, 0.88, 0.35, 1.0)},
 	{"id": "hair_leorio_01", "name": "Curto Social (Leorio)", "layer": "hair_front", "color": Color(0.12, 0.10, 0.08, 1.0)},
 	{"id": "hair_ponytail_01", "name": "Rabo de Cavalo Marcial", "layer": "hair_front", "color": Color(0.2, 0.15, 0.1, 1.0)},
@@ -22,7 +23,7 @@ const HAIR_STYLES: Array[Dictionary] = [
 ]
 
 const SHIRT_STYLES: Array[Dictionary] = [
-	{"id": "shirt_hunter_01", "name": "Camiseta Hunter Verde", "color": Color(0.18, 0.58, 0.25, 1.0)},
+	{"id": "shirt_hunter_01", "name": "Camiseta Hunter Verde", "color": Color(0.18, 0.58, 0.25, 1.0), "preview": "res://assets/sprites/characters/creator_variants/player_variant_outfit_hunter.png"},
 	{"id": "shirt_tank_01", "name": "Regata de Treino Azul", "color": Color(0.15, 0.35, 0.75, 1.0)},
 	{"id": "shirt_suit_01", "name": "Camisa Social com Gravata", "color": Color(0.95, 0.95, 0.95, 1.0)},
 	{"id": "shirt_hoodie_01", "name": "Moletom Casual", "color": Color(0.55, 0.25, 0.65, 1.0)},
