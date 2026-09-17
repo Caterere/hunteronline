@@ -1,6 +1,8 @@
 class_name QuestManager
 extends Node
 
+const MissionObjectiveResolverScript = preload("res://scripts/missions/MissionObjectiveResolver.gd")
+
 signal objective_activated(quest: Quest, objective_index: int, objective: QuestObjective)
 signal enemies_synchronized(objective_desc: String, required: int, alive: int, spawned: int)
 
@@ -55,15 +57,23 @@ func start_quest(quest: Quest) -> bool:
 
 
 func garantir_quest_do_arco(arco: int) -> Quest:
-	# Se já tem quest ativa na lista, retornar
+	# Preferir a quest canônica da etapa atual (não a 1ª side-quest da lista)
+	var etapa: int = PlayerData.etapa_quest_arco if PlayerData != null else 1
+	var expected := CanonQuestCatalog.obter_quest_da_etapa(arco, etapa)
+	if expected != null:
+		for q in active_quests:
+			if q == null:
+				continue
+			var rp := str(q.resource_path) if "resource_path" in q else ""
+			if rp == expected.resource_path or q.quest_name == expected.quest_name:
+				return q
+		start_quest(expected)
+		return expected
+
 	if not active_quests.is_empty() and active_quests[0] != null:
 		return active_quests[0]
 
-	var etapa: int = PlayerData.etapa_quest_arco if PlayerData != null else 1
-	var nova_quest := CanonQuestCatalog.obter_quest_da_etapa(arco, etapa)
-	if nova_quest == null:
-		nova_quest = CanonQuestCatalog.obter_ou_criar_quest_arco(arco)
-
+	var nova_quest := CanonQuestCatalog.obter_ou_criar_quest_arco(arco)
 	if nova_quest != null:
 		start_quest(nova_quest)
 		return nova_quest
@@ -100,21 +110,11 @@ func register_npc_visit(npc_id: StringName) -> void:
 			continue
 
 		var objective: QuestObjective = quest.objectives[active_idx]
-		if objective.type != QuestObjective.Type.VISIT:
+		if objective.type != QuestObjective.Type.VISIT and objective.type != QuestObjective.Type.PERSUASION:
 			continue
 
-		var target_str := str(objective.target_npc_id).to_lower()
-		var target_name_str := objective.target_npc_name.to_lower()
-
-		var corresponde: bool = (
-			target_str == id_str
-			or target_str in id_str
-			or id_str in target_str
-			or target_name_str in id_str
-			or id_str in target_name_str
-		)
-
-		if not corresponde:
+		# Matching estrito (mesmo critério do GPS) — evita completar com NPC errado
+		if not MissionObjectiveResolverScript.npc_matches_objective(id_str, id_str, objective):
 			continue
 
 		var progress := PlayerData.get_quest_objective_progress(quest, active_idx)
@@ -630,26 +630,22 @@ func _give_rewards(quest: Quest) -> void:
 # CONSULTAS DE ESTADO E REQUISITOS (STORY GATES & GPS)
 # =========================================================
 
+func get_focus_quest() -> Quest:
+	return MissionObjectiveResolverScript.get_focus_quest()
+
+
 func get_active_objective() -> QuestObjective:
-	if active_quests.is_empty() or active_quests[0] == null:
+	var q: Quest = MissionObjectiveResolverScript.get_focus_quest()
+	if q == null:
 		return null
-	var q: Quest = active_quests[0]
-	for i in range(q.objectives.size()):
-		var obj: QuestObjective = q.objectives[i]
-		if PlayerData.get_quest_objective_progress(q, i) < obj.required_amount:
-			return obj
-	return null
+	return MissionObjectiveResolverScript.get_pending_objective(q)
 
 
 func get_active_objective_index() -> int:
-	if active_quests.is_empty() or active_quests[0] == null:
+	var q: Quest = MissionObjectiveResolverScript.get_focus_quest()
+	if q == null:
 		return -1
-	var q: Quest = active_quests[0]
-	for i in range(q.objectives.size()):
-		var obj: QuestObjective = q.objectives[i]
-		if PlayerData.get_quest_objective_progress(q, i) < obj.required_amount:
-			return i
-	return -1
+	return MissionObjectiveResolverScript.get_pending_objective_index(q)
 
 
 func is_all_active_objectives_completed() -> bool:

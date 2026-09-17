@@ -91,11 +91,13 @@ func _test_hud_scale_const() -> void:
 func _test_gps_no_story_gate_while_pending() -> void:
 	print("-- GPS static --")
 	var gsrc := FileAccess.get_file_as_string("res://ui/hud/MissionGPSIndicator.gd")
-	assert_test("_tentar_alvo_por_marcadores_capitulo" in gsrc, "GPS usa marcadores de capítulo")
-	assert_test("_tentar_alvo_por_ancora_distrito" in gsrc, "GPS usa âncora de distrito")
-	assert_test("ja_no_mapa_certo" in gsrc, "GPS só roteia portal fora do mapa certo")
+	assert_test("MissionObjectiveResolverScript.resolve" in gsrc, "GPS usa MissionObjectiveResolver")
+	var rsrc := FileAccess.get_file_as_string("res://scripts/missions/MissionObjectiveResolver.gd")
+	assert_test("_find_travel_portal" in rsrc, "resolver roteia portal de viagem")
+	assert_test("_find_search_zone" in rsrc, "resolver usa zona de busca")
+	assert_test("allow_story_gate" in rsrc, "resolver separa story_gate de viagem")
 	var qhud := FileAccess.get_file_as_string("res://ui/hud/QuestHUD.gd")
-	assert_test("Zona do Objetivo" in qhud, "QuestHUD fallback = zona do objetivo")
+	assert_test("MissionObjectiveResolverScript.resolve" in qhud, "QuestHUD sincronizado com resolver")
 	var qmgr := FileAccess.get_file_as_string("res://scripts/missions/QuestManager.gd")
 	assert_test("progresso < obj.required_amount" in qmgr, "QuestManager não spam de progresso parcial")
 

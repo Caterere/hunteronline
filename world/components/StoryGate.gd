@@ -50,16 +50,23 @@ func can_advance() -> bool:
 func get_unmet_requirements() -> Array[String]:
 	var pendencias: Array[String] = []
 
+	# Manter StoryManager alinhado ao progresso canônico do PlayerData
+	if StoryManager != null and PlayerData != null:
+		if int(PlayerData.arco_atual) != int(StoryManager.current_saga):
+			StoryManager.current_saga = int(PlayerData.arco_atual)
+		if int(PlayerData.etapa_quest_arco) != int(StoryManager.current_chapter):
+			StoryManager.current_chapter = max(1, int(PlayerData.etapa_quest_arco))
+
 	if StoryManager != null:
-		return StoryManager.obter_pendencias_gate(required_arc, required_stage_min, required_all_arc_stages)
+		pendencias.append_array(StoryManager.obter_pendencias_gate(required_arc, required_stage_min, required_all_arc_stages))
 	elif PlayerData != null:
 		# Fallback legado
 		if PlayerData.arco_atual < required_arc:
 			pendencias.append("Necessário alcançar o Arco %d da História" % required_arc)
 			return pendencias
 		if PlayerData.arco_atual > required_arc:
-			return pendencias
-		if required_all_arc_stages:
+			pass
+		elif required_all_arc_stages:
 			var total_etapas = CanonQuestCatalog.obter_total_quests_do_arco(required_arc)
 			if PlayerData.etapa_quest_arco < total_etapas:
 				pendencias.append("Conclua todas as %d fases do Arco %d (Progresso atual: %d/%d)" % [
@@ -70,10 +77,14 @@ func get_unmet_requirements() -> Array[String]:
 				required_stage_min, required_arc, PlayerData.etapa_quest_arco, required_stage_min
 			])
 
-	# 3. Validação de Objetivos da Quest Ativa Atual
-	if QuestSystem != null and not QuestSystem.active_quests.is_empty():
-		var q: Quest = QuestSystem.active_quests[0]
-		if q != null:
+	# 3. Validação de Objetivos da Quest Ativa (focus canônico)
+	if QuestSystem != null:
+		var q: Quest = null
+		if QuestSystem.has_method("get_focus_quest"):
+			q = QuestSystem.get_focus_quest()
+		elif not QuestSystem.active_quests.is_empty():
+			q = QuestSystem.active_quests[0]
+		if q != null and PlayerData != null:
 			for i in range(q.objectives.size()):
 				var obj: QuestObjective = q.objectives[i]
 				var prog: int = PlayerData.get_quest_objective_progress(q, i)
