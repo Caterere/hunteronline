@@ -123,6 +123,12 @@ func adicionar_xp(
 		xp_necessario()
 	)
 
+	if EventBus != null and valor_final > 0:
+		if origem.to_lower().contains("nen"):
+			EventBus.nen_xp_gained.emit(valor_final, xp)
+		else:
+			EventBus.player_xp_gained.emit(valor_final)
+
 	# Feedback flutuante de XP (Maple-style)
 	if DamageNumberSystem != null and valor_final > 0:
 		var player_node = get_parent()
@@ -192,6 +198,8 @@ func _verificar_level_up() -> void:
 		var sp_ganhos: int = ProgressionConfig.obter_skill_points_por_level(level)
 		PlayerData.nen_skill_points += sp_ganhos
 		skill_points_changed.emit(PlayerData.nen_skill_points)
+		if EventBus != null and sp_ganhos > 0:
+			EventBus.player_skill_points_gained.emit(sp_ganhos)
 
 		print("+%d SKILL POINT (Total: %d)" % [sp_ganhos, PlayerData.nen_skill_points])
 

@@ -50,7 +50,7 @@ func _construir_ui() -> void:
 	panel_container = PanelContainer.new()
 	panel_container.custom_minimum_size = Vector2(240, 52)
 	panel_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel_container.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 3))
+	panel_container.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 4))
 	center.add_child(panel_container)
 
 	var margin := MarginContainer.new()
@@ -101,7 +101,7 @@ func _construir_ui() -> void:
 	lbl_hp_val.text = "100 / 100"
 	lbl_hp_val.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl_hp_val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	HunterUIStyle.aplicar_fonte_pixel(lbl_hp_val, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_pixel(lbl_hp_val, 7, HunterUIStyle.COLOR_GLASS_TEXT)
 	hbox_phase.add_child(lbl_hp_val)
 
 	# Linha 2: Barra de HP com Ghost Bar (Damage Catch-Up)

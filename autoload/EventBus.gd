@@ -24,10 +24,12 @@ signal player_damaged(current_hp: int, max_hp: int, damage_taken: int)
 signal player_healed(current_hp: int, max_hp: int, amount: int)
 signal player_stat_changed(stat_name: String, new_value: Variant)
 signal player_died()
+signal player_xp_gained(amount: int)
+signal player_skill_points_gained(amount: int)
 
 # ------------------------------------------------------------
 # 2. EVENTOS DE NEN
-# ------------------------------------------------------------dw
+# ------------------------------------------------------------
 signal nen_technique_activated(tech_name: String)
 signal nen_technique_deactivated(tech_name: String)
 signal nen_aura_changed(current_aura: float, max_aura: float)

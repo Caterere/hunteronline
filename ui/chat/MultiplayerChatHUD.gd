@@ -14,8 +14,14 @@ const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 
 const MAX_CHAT_CHARS: int = 120
 const MAX_LOG_LINES: int = 40
-const LOG_WIDTH: float = 200.0
-const LOG_HEIGHT: float = 72.0
+const LOG_WIDTH: float = 260.0
+const LOG_HEIGHT: float = 100.0
+
+const COLOR_COMBAT_XP := Color(1.0, 0.92, 0.45, 1.0)
+const COLOR_COMBAT_SP := Color(0.45, 0.82, 1.0, 1.0)
+const COLOR_COMBAT_JENNY := Color(1.0, 0.82, 0.28, 1.0)
+const COLOR_COMBAT_LOOT := Color(1.0, 0.72, 0.38, 1.0)
+const COLOR_COMBAT_NEN_XP := Color(0.75, 0.55, 1.0, 1.0)
 
 var vbox_log: VBoxContainer = null
 var scroll_log: ScrollContainer = null
@@ -23,7 +29,7 @@ var line_input: LineEdit = null
 var btn_canal: Button = null
 var lbl_counter: Label = null
 var canal_atual: String = "local"
-var canais: Array[String] = ["local", "party", "geral"]
+var canais: Array[String] = ["combat", "local", "party", "geral"]
 var _chat_open: bool = false
 
 
@@ -44,7 +50,7 @@ func _ready() -> void:
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	panel.add_theme_stylebox_override(
 		"panel",
-		HunterUIStyle.criar_style_card_interno(Color(0.08, 0.09, 0.12, 0.82), 2)
+		HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 3)
 	)
 	add_child(panel)
 
@@ -108,6 +114,76 @@ func _ready() -> void:
 	hbox_in.add_child(lbl_counter)
 
 	_conectar_network_chat()
+	_conectar_combat_log()
+
+
+func _conectar_combat_log() -> void:
+	if EventBus == null:
+		return
+	if not EventBus.player_xp_gained.is_connected(_on_player_xp_gained):
+		EventBus.player_xp_gained.connect(_on_player_xp_gained)
+	if not EventBus.player_skill_points_gained.is_connected(_on_player_skill_points_gained):
+		EventBus.player_skill_points_gained.connect(_on_player_skill_points_gained)
+	if not EventBus.jenny_changed.is_connected(_on_jenny_changed):
+		EventBus.jenny_changed.connect(_on_jenny_changed)
+	if not EventBus.item_obtained.is_connected(_on_item_obtained):
+		EventBus.item_obtained.connect(_on_item_obtained)
+	if EventBus.has_signal("nen_xp_gained") and not EventBus.nen_xp_gained.is_connected(_on_nen_xp_gained):
+		EventBus.nen_xp_gained.connect(_on_nen_xp_gained)
+
+
+func _exit_combat_log_connections() -> void:
+	if EventBus == null:
+		return
+	if EventBus.player_xp_gained.is_connected(_on_player_xp_gained):
+		EventBus.player_xp_gained.disconnect(_on_player_xp_gained)
+	if EventBus.player_skill_points_gained.is_connected(_on_player_skill_points_gained):
+		EventBus.player_skill_points_gained.disconnect(_on_player_skill_points_gained)
+	if EventBus.jenny_changed.is_connected(_on_jenny_changed):
+		EventBus.jenny_changed.disconnect(_on_jenny_changed)
+	if EventBus.item_obtained.is_connected(_on_item_obtained):
+		EventBus.item_obtained.disconnect(_on_item_obtained)
+	if EventBus.has_signal("nen_xp_gained") and EventBus.nen_xp_gained.is_connected(_on_nen_xp_gained):
+		EventBus.nen_xp_gained.disconnect(_on_nen_xp_gained)
+
+
+func _on_player_xp_gained(amount: int) -> void:
+	if amount <= 0:
+		return
+	adicionar_sistema("Gained %d XP" % amount, COLOR_COMBAT_XP)
+
+
+func _on_player_skill_points_gained(amount: int) -> void:
+	if amount <= 0:
+		return
+	adicionar_sistema("Gained %d SP" % amount, COLOR_COMBAT_SP)
+
+
+func _on_jenny_changed(_new_amount: int, delta: int) -> void:
+	if delta <= 0:
+		return
+	adicionar_sistema("Looted Jenny x%d" % delta, COLOR_COMBAT_JENNY)
+
+
+func _on_item_obtained(item_id: String, quantity: int) -> void:
+	if quantity <= 0:
+		return
+	var label: String = _formatar_nome_item(item_id)
+	adicionar_sistema("Looted %s x%d" % [label, quantity], COLOR_COMBAT_LOOT)
+
+
+func _on_nen_xp_gained(amount: int, _current_xp: int) -> void:
+	if amount <= 0:
+		return
+	adicionar_sistema("Gained %d Nen XP" % amount, COLOR_COMBAT_NEN_XP)
+
+
+static func _formatar_nome_item(item_id: String) -> String:
+	if Economy != null and Economy.ITEM_CATALOGO.has(item_id):
+		var entry: Dictionary = Economy.ITEM_CATALOGO[item_id]
+		if entry.has("nome"):
+			return str(entry["nome"])
+	return item_id.replace("_", " ").capitalize()
 
 
 func _conectar_network_chat() -> void:
@@ -122,6 +198,7 @@ func _exit_tree() -> void:
 	var nm := get_node_or_null("/root/NetworkManager")
 	if nm != null and nm.chat_message_received.is_connected(_on_network_chat):
 		nm.chat_message_received.disconnect(_on_network_chat)
+	_exit_combat_log_connections()
 	_fechar_contexto_chat()
 
 
@@ -179,6 +256,7 @@ func _alternar_canal() -> void:
 	var idx: int = canais.find(canal_atual)
 	canal_atual = canais[(idx + 1) % canais.size()]
 	btn_canal.text = "[%s]" % canal_atual.capitalize()
+	_atualizar_filtro_log()
 
 
 func _on_texto_alterado(_t: String) -> void:
@@ -215,6 +293,15 @@ func _on_network_chat(autor: String, canal: String, msg: String) -> void:
 	adicionar_mensagem(autor, canal, msg)
 
 
+func adicionar_sistema(msg: String, cor: Color, canal: String = "combat") -> void:
+	if vbox_log == null:
+		return
+	var limpo: String = msg.strip_edges()
+	if limpo.is_empty():
+		return
+	_adicionar_linha_log(limpo, cor, canal)
+
+
 func adicionar_mensagem(autor: String, canal: String, msg: String) -> void:
 	if vbox_log == null:
 		return
@@ -222,27 +309,47 @@ func adicionar_mensagem(autor: String, canal: String, msg: String) -> void:
 	if limpo.is_empty():
 		return
 
+	var texto: String = "[%s] %s: %s" % [canal.substr(0, 1).to_upper(), autor, limpo]
+	var cor: Color = HunterUIStyle.COLOR_GLASS_TEXT
+	if canal == "party":
+		cor = HunterUIStyle.COLOR_AURA_CYAN
+	elif canal == "geral":
+		cor = HunterUIStyle.COLOR_GOLD_LIGHT
+	_adicionar_linha_log(texto, cor, canal)
+
+
+func _adicionar_linha_log(texto: String, cor: Color, canal: String) -> void:
 	var lbl := Label.new()
-	lbl.text = "[%s] %s: %s" % [canal.substr(0, 1).to_upper(), autor, limpo]
+	lbl.text = texto
 	lbl.add_theme_font_size_override("font_size", 5)
 	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl.custom_minimum_size = Vector2(LOG_WIDTH - 8.0, 0.0)
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lbl.clip_text = false
-
-	var cor: Color = HunterUIStyle.COLOR_TEXT_PRIMARY
-	if canal == "party":
-		cor = HunterUIStyle.COLOR_AURA_CYAN
-	elif canal == "geral":
-		cor = HunterUIStyle.COLOR_TEXT_GOLD
 	lbl.add_theme_color_override("font_color", cor)
-
+	lbl.set_meta("log_canal", canal)
+	lbl.visible = _linha_visivel(canal)
 	vbox_log.add_child(lbl)
 	while vbox_log.get_child_count() > MAX_LOG_LINES:
 		var old: Node = vbox_log.get_child(0)
 		vbox_log.remove_child(old)
 		old.queue_free()
+	call_deferred("_rolar_chat_para_fim")
 
+
+func _linha_visivel(canal_linha: String) -> bool:
+	if canal_atual == "combat":
+		return canal_linha == "combat"
+	return canal_linha == canal_atual or canal_linha == "combat"
+
+
+func _atualizar_filtro_log() -> void:
+	if vbox_log == null:
+		return
+	for child in vbox_log.get_children():
+		if child is Label:
+			var canal_linha: String = str(child.get_meta("log_canal", "local"))
+			child.visible = _linha_visivel(canal_linha)
 	call_deferred("_rolar_chat_para_fim")
 
 
