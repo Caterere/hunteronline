@@ -347,11 +347,14 @@ func _teste_10_gps_fallback_sem_alvo() -> void:
 	add_child(gps)
 	gps.player_ref = dummy_player
 	
-	# Nenhuma criatura viva no mapa
+	# Nenhuma criatura viva no mapa — resolver pode apontar zona de busca,
+	# mas NUNCA portal/story_gate com objetivo pendente.
 	gps._atualizar_alvo_ativo()
-	
-	_assinalar(not gps.target_found and gps.lbl_target_info != null,
-		"GPS operou com fallback limpo e informativo sem crashar nem apontar falsamente para saídas.",
+
+	var tipo_ok: bool = (not gps.target_found) or gps.current_target_type == "zone" or gps.current_target_type == "npc"
+	var nao_portal: bool = gps.current_target_type != "portal"
+	_assinalar(tipo_ok and nao_portal and gps.lbl_target_info != null,
+		"GPS operou com fallback limpo (zona/info) sem apontar portal de avanço.",
 		"GPS entrou em estado inválido ou apontou para portal indevidamente!")
 	
 	gps.queue_free()

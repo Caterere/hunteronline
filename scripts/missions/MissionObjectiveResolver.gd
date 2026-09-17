@@ -128,8 +128,8 @@ static func resolve(tree: SceneTree, player: Node2D = null) -> Dictionary:
 	var obj: QuestObjective = quest.objectives[pendente_idx]
 	result["objective"] = obj
 	var prog: int = PlayerData.get_quest_objective_progress(quest, pendente_idx) if PlayerData != null else 0
-	var req: int = max(1, obj.required_amount)
-	var faltam: int = max(1, req - prog)
+	var req: int = maxi(1, obj.required_amount)
+	var faltam: int = maxi(1, req - prog)
 	result["progress"] = prog
 	result["required"] = req
 	result["remaining"] = faltam
@@ -503,11 +503,11 @@ static func _find_enemy_target(tree: SceneTree, cur_scn: Node, player: Node2D, o
 	var filtered: Array[Node2D] = []
 	for e in living:
 		var esys = e.get_node_or_null("EnemySystem")
-		if esys != null and ("is_dead" in esys and esys.is_dead):
+		if esys != null and bool(esys.get("is_dead")):
 			continue
-		var e_id := str(esys.enemy_id).to_lower() if esys != null and "enemy_id" in esys else ""
-		var e_nome := str(esys.enemy_name).to_lower() if esys != null and "enemy_name" in esys else ""
-		var score := _score_enemy_match(e_id, e_nome, e.name, obj)
+		var e_id := str(esys.get("enemy_id")).to_lower() if esys != null else ""
+		var e_nome := str(esys.get("enemy_name")).to_lower() if esys != null else ""
+		var score := _score_enemy_match(e_id, e_nome, str(e.name), obj)
 		# score >= 2 = match específico; score 1 = "any"
 		if score >= 2 or (score >= 1 and (enemy_type_str.is_empty() or enemy_type_str == "any" or enemy_type_str == "monstro" or enemy_type_str == "inimigo")):
 			filtered.append(e)
@@ -553,8 +553,8 @@ static func _find_enemy_target(tree: SceneTree, cur_scn: Node, player: Node2D, o
 	if closest == null:
 		return {"found": false}
 	var es = closest.get_node_or_null("EnemySystem")
-	if es != null and "enemy_name" in es and not str(es.enemy_name).is_empty():
-		display = str(es.enemy_name)
+	if es != null and not str(es.get("enemy_name")).is_empty():
+		display = str(es.get("enemy_name"))
 	return {
 		"found": true,
 		"node": closest,
@@ -685,8 +685,8 @@ static func _find_travel_portal(cur_scn: Node, expected_map: String, allow_story
 		if t is MapTransitionArea:
 			if allow_story_gate == false and t.story_gate != null:
 				continue
-			var target_p := t.target_scene_path.to_lower()
-			var t_name := t.name.to_lower()
+			var target_p: String = str(t.target_scene_path).to_lower()
+			var t_name: String = str(t.name).to_lower()
 			if "interior" in target_p or "casa" in target_p or "retorno" in t_name or "lobby" in target_p:
 				continue
 			return t
@@ -703,8 +703,8 @@ static func _find_advance_portal(cur_scn: Node) -> Node2D:
 
 	for t in transicoes:
 		if t is MapTransitionArea:
-			var t_name := t.name.to_lower()
-			var target_p := t.target_scene_path.to_lower()
+			var t_name: String = str(t.name).to_lower()
+			var target_p: String = str(t.target_scene_path).to_lower()
 			if "retorno" in t_name or "lobby" in target_p or "interior" in target_p or "casa" in target_p:
 				continue
 			return t
@@ -828,10 +828,11 @@ static func _fill_distance_suffix(result: Dictionary, player: Node2D) -> void:
 	var dist: float = player.global_position.distance_to(result["position"])
 	if dist <= ARRIVAL_DISTANCE:
 		return
-	var metros := max(1, int(dist / 10.0))
-	var seta := direction_arrow((result["position"] - player.global_position).normalized())
-	result["gps_label"] = "%s ➔ %s (%dm)" % [result["gps_label"], seta, metros]
-	result["hud_action"] = "%s — %s (%dm)" % [result["hud_action"], seta, metros]
+	var metros: int = maxi(1, int(dist / 10.0))
+	var pos: Vector2 = result["position"] as Vector2
+	var seta: String = direction_arrow((pos - player.global_position).normalized())
+	result["gps_label"] = "%s ➔ %s (%dm)" % [str(result["gps_label"]), seta, metros]
+	result["hud_action"] = "%s — %s (%dm)" % [str(result["hud_action"]), seta, metros]
 
 
 static func direction_arrow(dir: Vector2) -> String:

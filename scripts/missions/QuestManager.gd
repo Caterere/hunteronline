@@ -1,6 +1,8 @@
 class_name QuestManager
 extends Node
 
+const MissionObjectiveResolverScript = preload("res://scripts/missions/MissionObjectiveResolver.gd")
+
 signal objective_activated(quest: Quest, objective_index: int, objective: QuestObjective)
 signal enemies_synchronized(objective_desc: String, required: int, alive: int, spawned: int)
 
@@ -112,7 +114,7 @@ func register_npc_visit(npc_id: StringName) -> void:
 			continue
 
 		# Matching estrito (mesmo critério do GPS) — evita completar com NPC errado
-		if not MissionObjectiveResolver.npc_matches_objective(id_str, id_str, objective):
+		if not MissionObjectiveResolverScript.npc_matches_objective(id_str, id_str, objective):
 			continue
 
 		var progress := PlayerData.get_quest_objective_progress(quest, active_idx)
@@ -629,21 +631,21 @@ func _give_rewards(quest: Quest) -> void:
 # =========================================================
 
 func get_focus_quest() -> Quest:
-	return MissionObjectiveResolver.get_focus_quest()
+	return MissionObjectiveResolverScript.get_focus_quest()
 
 
 func get_active_objective() -> QuestObjective:
-	var q: Quest = MissionObjectiveResolver.get_focus_quest()
+	var q: Quest = MissionObjectiveResolverScript.get_focus_quest()
 	if q == null:
 		return null
-	return MissionObjectiveResolver.get_pending_objective(q)
+	return MissionObjectiveResolverScript.get_pending_objective(q)
 
 
 func get_active_objective_index() -> int:
-	var q: Quest = MissionObjectiveResolver.get_focus_quest()
+	var q: Quest = MissionObjectiveResolverScript.get_focus_quest()
 	if q == null:
 		return -1
-	return MissionObjectiveResolver.get_pending_objective_index(q)
+	return MissionObjectiveResolverScript.get_pending_objective_index(q)
 
 
 func is_all_active_objectives_completed() -> bool:

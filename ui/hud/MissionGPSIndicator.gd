@@ -6,6 +6,8 @@ extends Node2D
 # Consome MissionObjectiveResolver — fonte única de verdade.
 # ============================================================
 
+const MissionObjectiveResolverScript = preload("res://scripts/missions/MissionObjectiveResolver.gd")
+
 var player_ref: CharacterBody2D = null
 var current_target_node: Node2D = null
 var current_target_pos: Vector2 = Vector2.ZERO
@@ -112,7 +114,7 @@ func _atualizar_alvo_ativo() -> void:
 	if tree == null:
 		return
 
-	var resolved: Dictionary = MissionObjectiveResolver.resolve(tree, player_ref)
+	var resolved: Dictionary = MissionObjectiveResolverScript.resolve(tree, player_ref)
 
 	if resolved.get("secret", false):
 		if lbl_target_info:

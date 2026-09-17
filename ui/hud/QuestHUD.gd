@@ -6,6 +6,7 @@ extends PanelContainer
 # ============================================================
 
 const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
+const MissionObjectiveResolverScript = preload("res://scripts/missions/MissionObjectiveResolver.gd")
 
 var lbl_arco: Label
 var lbl_quest_nome: Label
@@ -137,7 +138,7 @@ func _atualizar_hud() -> void:
 		return
 
 	var player := _obter_player()
-	var resolved: Dictionary = MissionObjectiveResolver.resolve(tree, player)
+	var resolved: Dictionary = MissionObjectiveResolverScript.resolve(tree, player)
 
 	if resolved.get("is_lobby", false):
 		lbl_arco.text = "🏛️ PRAÇA CENTRAL (LOBBY)"
