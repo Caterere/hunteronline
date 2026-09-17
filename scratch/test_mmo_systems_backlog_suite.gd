@@ -70,16 +70,30 @@ func _test_duty_finder() -> void:
 
 func _test_gourmet() -> void:
 	print("\n[2] GourmetCooking...")
+	if PlayerData != null:
+		PlayerData.attributes["nivel_nen"] = maxi(3, int(PlayerData.attributes.get("nivel_nen", 0)))
+		PlayerData.faccao_atual = "gourmet"
+	if FactionManager != null:
+		FactionManager.faccao_atual = "gourmet"
+		FactionManager.ingressar_faccao("gourmet")
+		# Garantir mesmo se requisito falhar
+		FactionManager.faccao_atual = "gourmet"
+		if PlayerData != null:
+			PlayerData.faccao_atual = "gourmet"
+	if Economy != null:
+		Economy.definir_gold(2000)
 	GourmetCooking.garantir_writs_diarios(true)
 	_ok(GourmetCooking.obter_writs().size() >= 1, "daily writs")
 	GourmetCooking.coletar_ingrediente("carne_javali", 5)
 	GourmetCooking.coletar_ingrediente("erva_nen", 5)
 	GourmetCooking.coletar_ingrediente("temperos_raros", 2)
+	var check: Dictionary = GourmetCooking.pode_cozinhar("banquete_magico")
+	_ok(bool(check.get("ok", false)), "pode_cozinhar banquete (%s)" % str(check.get("erro", "")))
 	var cooked: Dictionary = GourmetCooking.cozinhar("banquete_magico")
-	_ok(bool(cooked.get("ok", false)), "cook banquete_magico")
+	_ok(bool(cooked.get("ok", false)), "cook banquete_magico (%s)" % str(cooked.get("erro", "")))
 	var food_id := str(cooked.get("food_id", "food_banquete_magico"))
 	var consumed: Dictionary = GourmetCooking.consumir_comida(food_id)
-	_ok(bool(consumed.get("ok", false)), "consume food buff")
+	_ok(bool(consumed.get("ok", false)), "consume food buff (%s)" % str(consumed.get("erro", "")))
 
 
 func _test_territory() -> void:

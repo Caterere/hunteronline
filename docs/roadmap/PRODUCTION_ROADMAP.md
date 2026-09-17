@@ -49,7 +49,7 @@ Itens de quests investigativas, NPCs vivos, eventos de facção, Style Lock Pixe
    - [x] Master server registry UDP 7780 + announce
    - [x] Matchmaking filas (`MatchmakingQueue` + `DutyFinderSystem` + linha `QUEUE|` no registry)
    - [x] Autosave VPS periódico (`ServerStorageManager.persist_all_peers_periodic`)
-   - [ ] Compressão / cap de taxa VPS
+   - [x] Compressão DEFLATE + `snapshot_send_hz` / `snapshot_compress` (`ServerConfig`)
    - [x] **PREREQ-2:** revive de aliados (canalização 3s) — ver backlog MMO
    - [x] **PREREQ-1:** sync binário compacto via `NetworkProtocol` — ver backlog MMO
 4. **Progressão** — soft-caps XP/Jenny `[x]`

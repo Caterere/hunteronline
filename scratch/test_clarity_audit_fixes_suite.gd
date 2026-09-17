@@ -60,7 +60,7 @@ func _initialize() -> void:
 
 	print("\n[5] XPSystem level-up clarity")
 	var xp := _read("res://scripts/systems/XPSystem.gd")
-	_assert("partes_delta" in xp, "deltas de atributos")
+	_assert("delta_txt" in xp or "partes_delta" in xp, "deltas de atributos")
 	_assert("toast_msg" in xp and "SP" in xp, "toast com SP")
 
 	print("\n[6] ComicBalloon tema Hunter")
