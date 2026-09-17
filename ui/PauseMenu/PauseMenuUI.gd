@@ -102,7 +102,7 @@ func _construir_ui() -> void:
 
 	# Painel Centralizado
 	painel_principal = PanelContainer.new()
-	painel_principal.custom_minimum_size = Vector2(250, 230)
+	painel_principal.custom_minimum_size = Vector2(250, 280)
 	painel_principal.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 4))
 	center_container.add_child(painel_principal)
 
@@ -151,6 +151,8 @@ func _construir_ui() -> void:
 	btn_salvar = _criar_botao("💾 Salvar Jogo", vbox, _on_salvar_pressed)
 	btn_lobby = _criar_botao("🏛️ Salvar e Voltar ao Lobby", vbox, _on_lobby_pressed)
 	btn_jornal = _criar_botao("📜 Jornal de Missoes [J]", vbox, _on_jornal_pressed)
+	_criar_botao("📋 Menu Hunter / Sistemas [TAB]", vbox, _on_hunter_menu_pressed)
+	_criar_botao("🏆 Conquistas [K]", vbox, _on_conquistas_pressed)
 	_criar_botao("🏰 Hall da Guilda", vbox, _on_guild_pressed)
 	btn_menu_principal = _criar_botao("🚪 Salvar e Sair p/ Menu", vbox, _on_menu_principal_pressed)
 	btn_sair_desktop = _criar_botao("❌ Salvar e Sair do Jogo", vbox, _on_sair_desktop_pressed)
@@ -239,6 +241,36 @@ func _on_jornal_pressed() -> void:
 	var journal = QuestJournalUI.obter_ou_criar(get_tree())
 	if journal != null and journal.has_method("abrir"):
 		journal.abrir()
+
+
+func _on_hunter_menu_pressed() -> void:
+	fechar()
+	if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
+		TutorialManager.disparar_tutorial_contextual("sistemas")
+	var menu = get_tree().root.get_node_or_null("HunterMenuUI")
+	if menu == null:
+		menu = get_tree().get_first_node_in_group("hunter_menu")
+	if menu != null:
+		if menu.has_method("abrir"):
+			menu.abrir()
+		elif menu.has_method("alternar"):
+			menu.alternar()
+		elif "visible" in menu:
+			menu.visible = true
+	elif EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("Abra o Menu Hunter com [TAB] — Status, Inventário, Nen, Hatsu e Guia.", Color(0.95, 0.85, 0.4))
+
+
+func _on_conquistas_pressed() -> void:
+	fechar()
+	var achiv = get_tree().root.get_node_or_null("AchievementsUI")
+	if achiv == null:
+		achiv = get_tree().get_first_node_in_group("achievements_ui")
+	if achiv != null and achiv.has_method("toggle_menu"):
+		if not achiv.visible:
+			achiv.toggle_menu()
+	elif EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("Conquistas: tecla [K]", Color(0.95, 0.85, 0.4))
 
 
 func _on_guild_pressed() -> void:

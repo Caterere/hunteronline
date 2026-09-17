@@ -2,15 +2,20 @@ extends CanvasLayer
 
 # ============================================================
 # HUNTER ONLINE - INVENTORY UI (TECLA I)
+# Equipamento + ItemExplainKit (stats/lore/tooltips).
 # ============================================================
 
 const EquipmentCatalogScript = preload("res://resource/item/EquipmentCatalog.gd")
+const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
+const ItemLoreTooltipScript = preload("res://ui/common/ItemLoreTooltip.gd")
+const ItemExplainKitScript = preload("res://ui/common/ItemExplainKit.gd")
 
 var panel_main: PanelContainer
 var container_grid: GridContainer
 var container_equip: VBoxContainer
 var lbl_detalhes: Label
 var item_selecionado: String = ""
+var lore_tooltip: ItemLoreTooltip
 
 
 func _ready() -> void:
@@ -25,6 +30,8 @@ func alternar_inventario() -> void:
 	get_tree().paused = visible
 	if visible:
 		_atualizar_inventario()
+	elif lore_tooltip != null:
+		lore_tooltip.esconder()
 
 
 func _construir_ui() -> void:
@@ -55,7 +62,7 @@ func _construir_ui() -> void:
 	var lbl_titulo := Label.new()
 	lbl_titulo.text = "INVENTÁRIO & EQUIPAMENTO"
 	lbl_titulo.add_theme_font_size_override("font_size", 11)
-	lbl_titulo.add_theme_color_override("font_color", Color(1, 0.85, 0.25, 1))
+	lbl_titulo.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_GOLD)
 	lbl_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_titulo)
 
@@ -64,13 +71,11 @@ func _construir_ui() -> void:
 	hbox_content.add_theme_constant_override("separation", 8)
 	vbox.add_child(hbox_content)
 
-	# Equipamento (Esq)
 	container_equip = VBoxContainer.new()
 	container_equip.custom_minimum_size = Vector2(140, 0)
 	container_equip.add_theme_constant_override("separation", 2)
 	hbox_content.add_child(container_equip)
 
-	# Grid de itens (Centro)
 	container_grid = GridContainer.new()
 	container_grid.columns = 3
 	container_grid.custom_minimum_size = Vector2(180, 0)
@@ -78,19 +83,23 @@ func _construir_ui() -> void:
 	container_grid.add_theme_constant_override("v_separation", 4)
 	hbox_content.add_child(container_grid)
 
-	# Detalhes (Dir)
 	var detalhes_box := VBoxContainer.new()
 	detalhes_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	detalhes_box.add_theme_constant_override("separation", 4)
 	hbox_content.add_child(detalhes_box)
 
+	var scroll_det := ScrollContainer.new()
+	scroll_det.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll_det.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	detalhes_box.add_child(scroll_det)
+
 	lbl_detalhes = Label.new()
-	lbl_detalhes.text = "Selecione um item."
+	lbl_detalhes.text = "Selecione um item para ver nome, stats, trade-offs e lore."
 	lbl_detalhes.add_theme_font_size_override("font_size", 8)
 	lbl_detalhes.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 	lbl_detalhes.autowrap_mode = TextServer.AUTOWRAP_WORD
-	lbl_detalhes.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	detalhes_box.add_child(lbl_detalhes)
+	lbl_detalhes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll_det.add_child(lbl_detalhes)
 
 	var btn_equip := Button.new()
 	btn_equip.text = "Equipar / Trocar"
@@ -107,11 +116,15 @@ func _construir_ui() -> void:
 	detalhes_box.add_child(btn_unequip)
 
 	var lbl_fechar := Label.new()
-	lbl_fechar.text = "[Pressione I para Fechar]"
-	lbl_fechar.add_theme_font_size_override("font_size", 8)
-	lbl_fechar.add_theme_color_override("font_color", Color(0.5, 0.6, 0.7, 1))
+	lbl_fechar.text = "[I Fechar] · Hover = tip rápido · Clique = detalhes"
+	lbl_fechar.add_theme_font_size_override("font_size", 7)
+	lbl_fechar.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
 	lbl_fechar.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_fechar)
+
+	lore_tooltip = ItemLoreTooltipScript.new() as ItemLoreTooltip
+	lore_tooltip.visible = false
+	add_child(lore_tooltip)
 
 
 func _atualizar_inventario() -> void:
@@ -152,7 +165,6 @@ func _atualizar_inventario() -> void:
 	var inv: Dictionary = PlayerData.inventory
 	var tem_algo := false
 	for item_id in inv.keys():
-		# Ignora chaves internas não-numéricas (ex: equipamentos_upgrade, itens legado)
 		var raw = inv[item_id]
 		if typeof(raw) != TYPE_INT and typeof(raw) != TYPE_FLOAT:
 			continue
@@ -161,18 +173,19 @@ func _atualizar_inventario() -> void:
 			continue
 		tem_algo = true
 		var id_str: String = str(item_id)
-		var btn := Button.new()
-		btn.custom_minimum_size = Vector2(52, 24)
-		var label_curto: String = id_str.left(8)
-		if EquipmentCatalogScript.eh_equipamento(id_str):
-			label_curto = EquipmentCatalogScript.obter_nome(id_str).left(8)
-			if PlayerData.esta_equipado(id_str):
-				label_curto = "*" + label_curto
-		btn.text = "%s x%d" % [label_curto, qtd]
-		btn.add_theme_font_size_override("font_size", 7)
-		HunterUIStyle.aplicar_estilo_botao(btn, HunterUIStyle.COLOR_BORDER_GREEN)
-		btn.pressed.connect(func(): _selecionar_item(id_str))
-		container_grid.add_child(btn)
+		var item = ItemExplainKitScript.resolver_item(id_str)
+		var btn2 := Button.new()
+		btn2.custom_minimum_size = Vector2(52, 24)
+		btn2.text = ItemExplainKitScript.rotulo_botao(id_str, qtd, item)
+		if EquipmentCatalogScript.eh_equipamento(id_str) and PlayerData.esta_equipado(id_str):
+			btn2.text = "*" + btn2.text
+		btn2.tooltip_text = ItemExplainKitScript.nome_exibicao(id_str, item)
+		btn2.add_theme_font_size_override("font_size", 7)
+		HunterUIStyle.aplicar_estilo_botao(btn2, HunterUIStyle.COLOR_BORDER_GREEN)
+		btn2.pressed.connect(func(): _selecionar_item(id_str))
+		btn2.mouse_entered.connect(_on_item_hover.bind(id_str, btn2))
+		btn2.mouse_exited.connect(_on_item_unhover)
+		container_grid.add_child(btn2)
 
 	if not tem_algo:
 		lbl_detalhes.text = "Alforje vazio. Derrote inimigos, complete quests ou fale com mestres."
@@ -181,11 +194,12 @@ func _atualizar_inventario() -> void:
 func _selecionar_item(item_id: String) -> void:
 	item_selecionado = item_id
 	var qtd: int = PlayerData.obter_item_quantidade(StringName(item_id))
+	var explained: String = ItemExplainKitScript.formatar_detalhes(item_id, qtd)
 	if EquipmentCatalogScript.eh_equipamento(item_id):
 		var eq_flag: String = " [EQUIPADO]" if PlayerData.esta_equipado(item_id) else ""
-		lbl_detalhes.text = EquipmentCatalogScript.obter_descricao_completa(item_id) + "\nQtd: %d%s" % [qtd, eq_flag]
+		lbl_detalhes.text = explained + eq_flag
 	else:
-		lbl_detalhes.text = "Item: %s\nQuantidade: %d" % [item_id.to_upper(), qtd]
+		lbl_detalhes.text = explained
 
 
 func _on_equipar_selecionado() -> void:
@@ -195,7 +209,10 @@ func _on_equipar_selecionado() -> void:
 	var res: Dictionary = PlayerData.equipar_item(item_selecionado)
 	lbl_detalhes.text = str(res.get("mensagem", ""))
 	if EquipmentCatalogScript.eh_equipamento(item_selecionado):
-		lbl_detalhes.text += "\n\n" + EquipmentCatalogScript.obter_descricao_completa(item_selecionado)
+		lbl_detalhes.text += "\n\n" + ItemExplainKitScript.formatar_detalhes(
+			item_selecionado,
+			PlayerData.obter_item_quantidade(StringName(item_selecionado))
+		)
 	_atualizar_inventario()
 
 
@@ -207,3 +224,19 @@ func _on_desequipar_selecionado() -> void:
 	var res: Dictionary = PlayerData.desequipar_slot(slot)
 	lbl_detalhes.text = str(res.get("mensagem", ""))
 	_atualizar_inventario()
+
+
+func _on_item_hover(item_id: String, btn: Control) -> void:
+	if lore_tooltip == null:
+		return
+	var item = ItemExplainKitScript.resolver_item(item_id)
+	if item == null:
+		lore_tooltip.esconder()
+		return
+	var pos := btn.get_global_rect().position + Vector2(0, btn.size.y + 2)
+	lore_tooltip.mostrar_na_posicao(pos, item)
+
+
+func _on_item_unhover() -> void:
+	if lore_tooltip != null:
+		lore_tooltip.esconder()
