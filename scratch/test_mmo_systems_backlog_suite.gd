@@ -26,7 +26,21 @@ func _ready() -> void:
 		for f in _failures:
 			print("   ❌ ", f)
 	print("================================================================================\n")
+	_cleanup_before_quit()
+	await get_tree().process_frame
 	get_tree().quit(0 if _passed == _total else 1)
+
+
+func _cleanup_before_quit() -> void:
+	# Evita SIGSEGV no teardown headless com RaidInstance em Engine.meta
+	if DutyFinderSystem != null and DutyFinderSystem.has_method("cancel_queue"):
+		DutyFinderSystem.cancel_queue()
+	if Engine.has_meta("active_raid_instance"):
+		Engine.remove_meta("active_raid_instance")
+	if Engine.has_meta("active_raid_id"):
+		Engine.remove_meta("active_raid_id")
+	if PartyManager != null and PartyManager.has_method("sair_modo_raid"):
+		PartyManager.sair_modo_raid()
 
 
 func _ok(cond: bool, label: String) -> void:

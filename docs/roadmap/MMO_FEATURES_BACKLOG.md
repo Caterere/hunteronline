@@ -146,17 +146,18 @@ flowchart LR
 
 ## Ordem sugerida de execução
 
-1. **PREREQ-1** — sync binário / compressão estável em `NetworkProtocol` + coordenador.
+1. **PREREQ-1** — sync binário / compressão estável em `NetworkProtocol` + coordenador. ✅
 2. **PREREQ-2** — revive aliado (canalização 3s) ✅
 3. **A5** — contratos rotativos + Star Hunter ✅
-4. **S3** — raid 8 vertical (1 masmorra).
-5. **S2** — Arena ranqueada + 1ª temporada.
-6. **S1** — Leilão Yorknew (economia server-side estável).
-7. **S4** — Greed Island duelo de cartas.
+4. **S3** — raid 8 vertical (1 masmorra). ✅
+5. **S2** — Arena ranqueada + 1ª temporada. ✅
+6. **S1** — Leilão Yorknew (economia server-side estável). ✅
+7. **S4** — Greed Island duelo de cartas. ✅
 8. **A6** — Guildas + Nen Contracts. ✅
 9. **A7** — Blacklist open hunt. ✅
 10. **A8** — Gourmet life skills. ✅
-11. **B11** — Meta territorial faccional.
+11. **B9–B14** — Mail/Friends, Duty Finder, Territory, Travel skins, Season Pass, Nen stones. ✅
+12. **Ops VPS** — `public_host` / auth de contas reais (quando contratar host) — checklist em `SERVER_SETUP.md`
 
 ---
 
