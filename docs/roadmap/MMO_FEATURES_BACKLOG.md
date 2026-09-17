@@ -125,12 +125,12 @@ flowchart LR
 
 | ID | Sistema | Inspiração | Adaptação HxH | Deps | Nota |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | RelationshipSystem hoje é NPC |
-| B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | DutyFinderSystem stub + fill offline + raid wire |
+| B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | RelationshipSystem hoje é NPC | **`IMPLEMENTED`** — `AssociationMailSystem` + `HunterFriendsSystem` + UI + PauseMenu/HunterMenu |
+| B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | **`IMPLEMENTED`** — `DutyFinderSystem` + `MatchmakingQueue` + registry `QUEUE\|` stub |
 | B11 | Territory wars | New World / GW2 WvW | Rotas Associação×Máfia×Salteadores | LiveEventManager | TerritoryWarSystem meta semanal |
 | B12 | Mounts / dirigível | FFXIV mounts | Skins via `TravelSystem` | TravelSystem | TravelSystem.unlock_skin (cosmético) |
 | B13 | Seasons / battle pass | Destiny / Lost Ark | Temporada de caçada + códex parcial | LIVE_OPS_CONTENT | SeasonPassSystem cosmético only |
-| B14 | Sockets / Nen stones | WoW/PoE | Gems no enhance +10 | Blacksmith | Risco de power creep |
+| B14 | Sockets / Nen stones | WoW/PoE | Gems no enhance +10 | Blacksmith | **`IMPLEMENTED`** — `NenStoneSystem` + Forja (+10, 1 socket, sem tipo duplicado) |
 | B15 | Corpse run / gear loss | classic WoW | **Evitar** | — | Conflita com death soft + duelos sem pena |
 
 ---
