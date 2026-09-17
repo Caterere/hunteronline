@@ -34,6 +34,7 @@ func _ready() -> void:
 	_garantir_dialogue_ui()
 	_garantir_spawn_points()
 	_configurar_inimigos_zonas()
+	_alinhar_atores_ao_corredor()
 	_configurar_portal_conclusao()
 	_configurar_portal_retorno_lobby()
 	_garantir_quest_ativa()
@@ -235,3 +236,29 @@ func _densificar_zonas_exame() -> void:
 	# Mantém gancho local para expansões específicas do arco 1.
 	if get_node_or_null("PlacaDistritoTunel") == null:
 		push_warning("[ExameMaratonaMap] SagaDistrictKit não aplicou distritos — verifique class_name.")
+
+
+## NPCs/inimigos do .tscn estavam em Y extremos (-300..-900) fora do corredor walkable (Y≈0).
+## GPS apontava certo, mas o jogador não alcançava. Alinha ao path tiles.
+func _alinhar_atores_ao_corredor() -> void:
+	const Y_PATH := -20.0
+	var atores: Array[String] = [
+		"Tonpa", "Nicol", "Bodoro", "Hanzo", "Gon", "Killua", "Kurapika", "Leorio",
+		"Gittarackur", "Satotz", "Pokkle", "Ponzu", "Hisoka", "Menchi", "Buhara", "Netero",
+		"InimigoMaratona1", "InimigoMaratona2", "InimigoMaratona3",
+		"MonstroPantanal1", "MonstroPantanal2", "MonstroPantanal3", "MonstroPantanal4",
+		"JavaliGreatStamp1", "JavaliGreatStamp2",
+		"GuiaCapituloSaga", "PlacaObjetivoCapitulo",
+	]
+	for nome in atores:
+		var n = get_node_or_null(nome)
+		if n != null and n is Node2D:
+			var node := n as Node2D
+			if absf(node.position.y - Y_PATH) > 56.0:
+				node.position.y = Y_PATH
+	# Âncoras de distrito / placas geradas pelo kit
+	for child in get_children():
+		if child is Node2D and (str(child.name).begins_with("Placa") or str(child.name).begins_with("Warp")):
+			var c := child as Node2D
+			if absf(c.position.y - Y_PATH) > 80.0:
+				c.position.y = Y_PATH

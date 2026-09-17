@@ -938,6 +938,8 @@ func _entregar_xp() -> void:
 			" para ",
 			last_attacker.name
 		)
+		if EventBus != null and xp_reward > 0:
+			EventBus.emit_toast("+%d XP" % xp_reward, Color(0.45, 0.85, 1.0))
 
 	else:
 

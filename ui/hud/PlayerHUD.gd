@@ -82,6 +82,7 @@ var chat_hud = null
 # Onboarding / Tutorial Prompt (Fase 5)
 var tutorial_panel: PanelContainer = null
 var lbl_tutorial: Label = null
+var lbl_controles_tip: Label = null
 var _pos_inicial_player: Vector2 = Vector2.ZERO
 
 
@@ -96,6 +97,7 @@ func _ready() -> void:
 	_criar_chat_hud()
 	_criar_painel_hatsu_slots()
 	_criar_nen_quick_action_bar()
+	_criar_barra_controles()
 	_instanciar_menus_auxiliares()
 	_conectar_event_bus()
 	_conectar_player_e_sistemas()
@@ -130,6 +132,34 @@ func _criar_nen_quick_action_bar() -> void:
 		nen_action_bar = NenQuickActionBarScript.new()
 		nen_action_bar.name = "NenQuickActionBar"
 		add_child(nen_action_bar)
+
+
+func _criar_barra_controles() -> void:
+	# Faixa inferior: o que cada tecla faz no early game (sem redesenhar o HUD)
+	var tip := Label.new()
+	tip.name = "ControlesTip"
+	tip.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	tip.offset_left = -150.0
+	tip.offset_right = 150.0
+	tip.offset_top = -28.0
+	tip.offset_bottom = -8.0
+	tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	HunterUIStyle.aplicar_fonte_pixel(tip, 7, Color(0.85, 0.88, 0.92, 0.92))
+	tip.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	tip.scale = Vector2(HUD_SCALE, HUD_SCALE)
+	add_child(tip)
+	lbl_controles_tip = tip
+	_atualizar_barra_controles()
+
+
+func _atualizar_barra_controles() -> void:
+	if lbl_controles_tip == null:
+		return
+	if PlayerData != null and PlayerData.despertou_nen:
+		lbl_controles_tip.text = "⚔ Clique ataca · Segure=pesado · Espaço esquiva · [Q]+3 Zetsu · [Q]+4 Gyo · [Q]+R En · 1-4 Hatsu"
+	else:
+		lbl_controles_tip.text = "⚔ Clique ataca · Segure=pesado · Espaço esquiva · Fale com Wing no Lobby p/ despertar Nen"
 
 
 func _criar_party_hud() -> void:
@@ -696,6 +726,7 @@ func _process(_delta: float) -> void:
 func _atualizar_hud() -> void:
 
 	_atualizar_header_e_gold()
+	_atualizar_barra_controles()
 	_atualizar_hp()
 	_atualizar_aura()
 	_atualizar_xp()
