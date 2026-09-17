@@ -46,8 +46,8 @@ static func districts_for_saga(saga_id: int) -> Array:
 					"warp_target": Vector2(1900, 16),
 					"warp_label": "Atalho → Pantanal",
 					"fillers": [
-						{"name": "SabotadorAmbient_B", "pos": Vector2(900, 40), "id": "candidato_sabotador", "label": "Sabotador do Túnel"},
-						{"name": "SabotadorAmbient_C", "pos": Vector2(1300, -30), "id": "candidato_sabotador", "label": "Candidato Hostil"},
+						{"name": "SabotadorAmbient_B", "pos": Vector2(900, 40), "id": "candidato_exame", "label": "Sabotador do Túnel"},
+						{"name": "SabotadorAmbient_C", "pos": Vector2(1300, -30), "id": "candidato_exame", "label": "Candidato Hostil"},
 					],
 					"npcs": [
 						{"name": "ExaminadorSatotzHint", "pos": Vector2(1500, -60), "npc": "Guia do Túnel", "fala": "Satotz espera na saída. Mantenha o ritmo — o pantanal come os lentos.", "ids": ["npc_viajante_scout"]},
@@ -63,8 +63,8 @@ static func districts_for_saga(saga_id: int) -> Array:
 					"warp_target": Vector2(4200, 16),
 					"warp_label": "Atalho → Gourmet",
 					"fillers": [
-						{"name": "MacacoAmbient_B", "pos": Vector2(2300, 35), "id": "macaco_pantano", "label": "Macaco do Nevoeiro"},
-						{"name": "MacacoAmbient_C", "pos": Vector2(2900, -25), "id": "macaco_pantano", "label": "Predador do Pantanal"},
+						{"name": "MacacoAmbient_B", "pos": Vector2(2300, 35), "id": "criatura_pantanal", "label": "Macaco do Nevoeiro"},
+						{"name": "MacacoAmbient_C", "pos": Vector2(2900, -25), "id": "criatura_pantanal", "label": "Predador do Pantanal"},
 					],
 					"npcs": [
 						{"name": "SobreviventePantanal", "pos": Vector2(2600, -70), "npc": "Candidato Ferido", "fala": "Hisoka caça no nevoeiro... não olhe para trás se ouvir cartas.", "ids": ["npc_viajante_scout"]},
@@ -97,7 +97,7 @@ static func districts_for_saga(saga_id: int) -> Array:
 					"warp_target": Vector2(200, 16),
 					"warp_label": "Atalho → Túnel",
 					"fillers": [
-						{"name": "CompetidorAmbient_A", "pos": Vector2(5800, 30), "id": "candidato_sabotador", "label": "Competidor de Zevil"},
+						{"name": "CompetidorAmbient_A", "pos": Vector2(5800, 30), "id": "candidato_exame", "label": "Competidor de Zevil"},
 					],
 					"npcs": [
 						{"name": "JuizFinalExame", "pos": Vector2(5950, -60), "npc": "Oficial do Exame", "fala": "Além deste portão só passa quem sobreviveu às 24 etapas.", "ids": ["npc_viajante_scout"]},
@@ -606,6 +606,18 @@ static func _spawn_nen_sensors_for_saga(mapa: Node2D, saga_id: int) -> void:
 		return
 	match saga_id:
 		1:
+			# Pista da etapa 7 (farsa do macaco) — sempre no corredor; sem Gyo obrigatório
+			# para não soft-lock quem ainda não despertou Nen.
+			var farsa = NenSensorFactory.criar_gyo(
+				mapa, "GyoPistaFarsaMacaco", Vector2(2400, -20),
+				&"farsa_macaco", "O Macaco Farsante",
+				"Um homem ferido com rosto de macaco mente sobre Satotz. Investigue a farsa.",
+				"Manipulação", 1, Color(0.95, 0.55, 0.35, 0.95)
+			)
+			if farsa != null:
+				farsa.requer_gyo = false
+				farsa.nivel_gyo_minimo = 0
+
 			if PlayerData != null and PlayerData.despertou_nen:
 				NenSensorFactory.criar_gyo(
 					mapa, "GyoPistaTunelAura", Vector2(800, -20),
@@ -626,7 +638,7 @@ static func _spawn_nen_sensors_for_saga(mapa: Node2D, saga_id: int) -> void:
 			NenSensorFactory.criar_zetsu(
 				mapa, "ZetsuArbustoPantanal", Vector2(2200, -80),
 				&"exame_arbusto_pantanal", "Arbusto do Nevoeiro",
-				Vector2(150, 100), &"macaco_pantano", "Macaco Alertado"
+				Vector2(150, 100), &"criatura_pantanal", "Macaco Alertado"
 			)
 			NenSensorFactory.criar_zetsu(
 				mapa, "ZetsuTrilhaGourmet", Vector2(4800, 80),

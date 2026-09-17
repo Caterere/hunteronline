@@ -141,8 +141,8 @@ static func config_for_saga(saga_id: int) -> Dictionary:
 					{"name": "PlacaTorre", "pos": Vector2(5200, -70), "text": "📍 Torre dos Truques / Ilha Zevil"},
 				],
 				"ambient": [
-					{"name": "SabotadorAmbient_A", "pos": Vector2(500, 40), "id": "candidato_sabotador", "label": "Candidato Sabotador"},
-					{"name": "MacacoAmbient_A", "pos": Vector2(2000, 30), "id": "macaco_pantano", "label": "Macaco do Pântano"},
+					{"name": "SabotadorAmbient_A", "pos": Vector2(500, 40), "id": "candidato_exame", "label": "Candidato Sabotador"},
+					{"name": "MacacoAmbient_A", "pos": Vector2(2000, 30), "id": "criatura_pantanal", "label": "Macaco do Pântano"},
 					{"name": "JavaliAmbient_A", "pos": Vector2(4200, 40), "id": "javali_gourmet", "label": "Javali Gourmet"},
 				],
 				"bosses": [

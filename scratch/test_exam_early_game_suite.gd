@@ -53,9 +53,14 @@ func _test_control_tips_wiring() -> void:
 	assert_test("_criar_barra_controles" in hud, "PlayerHUD tem barra de controles")
 	assert_test("[Q]+3 Zetsu" in hud or "Zetsu" in hud, "tip menciona Zetsu")
 	var nen := FileAccess.get_file_as_string("res://ui/hud/NenQuickActionBar.gd")
-	assert_test("SEGURE [Q]" in nen, "Nen bar explica hold Q")
+	assert_test("SEGURE [Q]" in nen and "Z/G/X" in nen, "Nen bar explica hold Q + atalhos")
+	var tut := FileAccess.get_file_as_string("res://autoload/TutorialManager.gd")
+	assert_test("alternar entre Ten" not in tut and "[Q]" in tut, "tutorial nen_despertar atualizado (sem [N] cycle falso)")
 	var enemy := FileAccess.get_file_as_string("res://scripts/systems/EnemySystem/EnemySystem.gd")
 	assert_test("emit_toast" in enemy and "+%d XP" in enemy, "kill mostra toast de XP")
+	var dist := FileAccess.get_file_as_string("res://world/components/SagaDistrictKit.gd")
+	assert_test("farsa_macaco" in dist, "district kit spawna farsa_macaco")
+	assert_test("macaco_pantano" not in dist or dist.count("criatura_pantanal") >= 2, "ambient pantanal usa criatura_pantanal")
 
 
 func _test_corridor_align_code() -> void:
@@ -121,6 +126,13 @@ func _test_exam_map_actors_and_gps() -> void:
 	# Expected map
 	var expected := MissionObjectiveResolverScript.get_expected_map_path(q1)
 	assert_test("exame_maratona" in expected, "mapa esperado = exame_maratona")
+
+	# Etapa 7: pista farsa_macaco (spawnada no densify do mapa)
+	var farsa = mapa.get_node_or_null("GyoPistaFarsaMacaco")
+	assert_test(farsa != null, "pista farsa_macaco spawnada no Exame")
+	if farsa != null:
+		assert_test(str(farsa.clue_id) == "farsa_macaco", "clue_id = farsa_macaco")
+		assert_test(farsa.requer_gyo == false, "farsa_macaco sem soft-lock de Gyo")
 
 	gps.queue_free()
 	mapa.queue_free()
