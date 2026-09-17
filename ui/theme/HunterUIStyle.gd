@@ -44,8 +44,8 @@ const COLOR_TEXT_CYAN           := Color(0.10, 0.35, 0.48, 1.0) # Tint Nen escur
 const COLOR_TEXT_MUTED          := Color(0.38, 0.28, 0.18, 1.0) # Texto apagado
 
 # HUD MMO — painéis vidro escuro (combate / chat / alvo)
-const COLOR_GLASS_BG            := Color(0.05, 0.06, 0.08, 0.72)
-const COLOR_GLASS_BORDER          := Color(0.55, 0.58, 0.62, 0.85)
+const COLOR_GLASS_BG            := Color(0.05, 0.06, 0.08, 0.58)
+const COLOR_GLASS_BORDER          := Color(0.62, 0.66, 0.72, 0.90)
 const COLOR_GLASS_TEXT            := Color(0.92, 0.93, 0.95, 1.0)
 
 # 1.1 HIERARQUIA TIPOGRÁFICA (VIEWPORT 960x540)
