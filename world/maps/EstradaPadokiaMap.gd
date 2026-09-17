@@ -40,6 +40,7 @@ func _ready() -> void:
 	_posicionar_player()
 	_criar_elementos_interativos()
 	_densificar_vida_estrada()
+	_instanciar_sensores_nen_estrada()
 	_criar_zona_protecao_escolta()
 	_criar_grande_ponte()
 	_conectar_ciclo_noturno()
@@ -130,6 +131,43 @@ func _posicionar_player() -> void:
 			wpm.posicionar_player_no_spawn(player)
 
 
+
+
+func _instanciar_sensores_nen_estrada() -> void:
+	if PlayerData != null and PlayerData.despertou_nen:
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaCarrocaAura", Vector2(260, 350),
+			&"estrada_carroca_aura", "Aura na Carroça",
+			"Resíduo de Nen na madeira — mercadores usaram Shu para reforçar o eixo.",
+			"Shu", 1, Color(0.85, 0.75, 0.45, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaRiachoPedras", Vector2(520, 480),
+			&"estrada_riacho_pedras", "Pedras do Riacho",
+			"Runas apagadas sob a ponte. Gyo revela o fluxo de aura que alimentava o marco antigo.",
+			"Conjuração", 1, Color(0.4, 0.9, 1.0, 0.9)
+		)
+	else:
+		var dica = NenSensorFactory.criar_gyo(
+			self, "GyoPistaMarcoEstrada", Vector2(455, 155),
+			&"estrada_marco_leve", "Vibração no Marco",
+			"O marco de pedra pulsa levemente — um Hunter com Gyo enxergaria o padrão completo.",
+			"Emissão", 1, Color(0.75, 0.85, 1.0, 0.85)
+		)
+		if dica != null:
+			dica.requer_gyo = false
+			dica.nivel_gyo_minimo = 0
+
+	NenSensorFactory.criar_ko(
+		self, "KoObstaclePedregulhoPonte", Vector2(370, 410),
+		"Pedregulho Sob a Ponte", &"pocao_aura"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuMataLateralEstrada", Vector2(180, 280),
+		&"estrada_mata_salteadores", "Mata Lateral da Estrada",
+		Vector2(130, 90),
+		&"ladrao_estrada", "Salteador Emboscado"
+	)
 
 
 func _densificar_vida_estrada() -> void:
