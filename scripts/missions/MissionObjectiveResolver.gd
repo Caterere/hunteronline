@@ -800,8 +800,8 @@ static func _fill_action_labels(result: Dictionary, player: Node2D, passo: Strin
 			result["gps_label"] = ("🎒 [E] Colete [%s]!" % nome) if near else ("%s: Colete [%s]" % [passo, nome])
 			result["gps_color"] = Color(1.0, 0.85, 0.3, 1.0)
 		"clue":
-			result["hud_action"] = ("🔍 [GYO] Examine %s!" % nome) if near else ("🔍 Investigue %s com GYO" % nome)
-			result["gps_label"] = ("🔍 [GYO] Examine [%s]!" % nome) if near else ("%s: Investigue [%s]" % [passo, nome])
+			result["hud_action"] = ("🔍 [E] Examine %s!" % nome) if near else ("🔍 Investigue %s — Gyo [G] / [Q]+4 ajuda" % nome)
+			result["gps_label"] = ("🔍 [E] Examine [%s]!" % nome) if near else ("%s: Investigue [%s] (Gyo [G])" % [passo, nome])
 			result["gps_color"] = Color(0.2, 0.9, 1.0, 1.0)
 		"stealth":
 			result["hud_action"] = ("🥷 [ZETSU] Atravesse %s!" % nome) if near else ("🥷 Atravesse %s com ZETSU" % nome)

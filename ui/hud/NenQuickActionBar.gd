@@ -64,13 +64,13 @@ func _construir_ui() -> void:
 	margin.add_child(vbox)
 
 	lbl_instrucao = Label.new()
-	lbl_instrucao.text = "NEN ATIVO — ZETSU · GYO · EN  ([Q]+tecla)"
+	lbl_instrucao.text = "SEGURE [Q] → 3 Zetsu · 4 Gyo · R En  (atalhos Z/G/X)"
 	lbl_instrucao.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	HunterUIStyle.aplicar_fonte_licenca(lbl_instrucao, 9, HunterUIStyle.COLOR_AURA_CYAN)
 	vbox.add_child(lbl_instrucao)
 
 	var lbl_passivas := Label.new()
-	lbl_passivas.text = "Ten/Ren/Shu/Ko/Ken/Ryu = passivas"
+	lbl_passivas.text = "X = Off  |  Ten/Ren/Shu/Ko = passivas na árvore [N]"
 	lbl_passivas.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	HunterUIStyle.aplicar_fonte_licenca(lbl_passivas, 7, Color(0.55, 0.6, 0.7))
 	vbox.add_child(lbl_passivas)

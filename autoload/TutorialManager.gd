@@ -655,7 +655,7 @@ func disparar_tutorial_contextual(tipo: String) -> void:
 	match tipo_clean:
 		"nen_despertar":
 			titulo = "🥋 DESPERTAR DE NEN"
-			msg = "Você abriu seus poros de Nen! Use a tecla [N] para alternar entre Ten (Defesa), Ren (Ataque) e Zetsu (Cura e Furtividade)."
+			msg = "Nen aberto! Segure [Q] e use 3=Zetsu, 4=Gyo, R=En (ou atalhos Z/G/X). Ten/Ren/Shu são passivas na árvore [N]. Hatsu nos slots 1–4."
 			PlayerData.desbloquear_conhecimento("nen_4_principios")
 		"perfect_dodge":
 			titulo = "⚡ PERFECT DODGE"
