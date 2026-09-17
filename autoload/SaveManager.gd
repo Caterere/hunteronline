@@ -19,6 +19,7 @@ signal jogo_salvo(slot: int)
 signal jogo_carregado(slot: int)
 
 const ContentVersionConfigScript = preload("res://scripts/core/ContentVersionConfig.gd")
+const NenStoneSystemScript = preload("res://scripts/systems/equipment/NenStoneSystem.gd")
 
 var current_slot: int = 1
 
@@ -35,8 +36,14 @@ func obter_caminho_tmp(slot: int) -> String:
 	return "user://savegame_slot_%d.tmp" % slot
 
 
+const ROTATING_BACKUP_SLOTS := 3
+
 func obter_caminho_bak(slot: int) -> String:
-	return "user://savegame_slot_%d.bak" % slot
+	return obter_caminho_bak_rotating(slot, 1)
+
+
+func obter_caminho_bak_rotating(slot: int, index: int) -> String:
+	return "user://savegame_slot_%d.bak.%d" % [slot, index]
 
 
 func obter_caminho_legado(slot: int) -> String:
@@ -228,6 +235,9 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"nen_contract_data": NenContractManager.salvar_dados() if NenContractManager != null else {},
 		"secret_bosses_data": SecretBossManager.salvar_dados() if SecretBossManager != null else {},
 		"gourmet_data": GourmetCooking.salvar_dados() if GourmetCooking != null else {},
+		"association_mail_data": AssociationMailSystem.salvar_dados() if AssociationMailSystem != null else {},
+		"hunter_friends_data": HunterFriendsSystem.salvar_dados() if HunterFriendsSystem != null else {},
+		"nen_stone_data": NenStoneSystemScript.salvar_dados(),
 		"time_data": {
 			"hour": TimeManager.current_hour,
 			"minute": TimeManager.current_minute,
@@ -247,8 +257,6 @@ func salvar_jogo(slot: int = -1) -> bool:
 	var tmp_path := obter_caminho_tmp(slot)
 	var final_path := obter_caminho_slot(slot)
 	var bak_path := obter_caminho_bak(slot)
-
-	# 1. Escrever no arquivo temporário (.tmp)
 	var tmp_file := FileAccess.open(tmp_path, FileAccess.WRITE)
 	if tmp_file == null:
 		push_error("[SaveManager] Erro ao abrir arquivo temporário: " + tmp_path)
@@ -271,16 +279,27 @@ func salvar_jogo(slot: int = -1) -> bool:
 		DirAccess.remove_absolute(tmp_path)
 		return false
 
-	# 3. Criar Backup .bak do save anterior se existir
+	# 3. Rotacionar backups (.bak.1 → .bak.2 → .bak.3) e gravar save anterior em .bak.1
 	if FileAccess.file_exists(final_path):
 		var old_file := FileAccess.open(final_path, FileAccess.READ)
 		if old_file != null:
 			var old_str := old_file.get_as_text()
 			old_file.close()
-			var bak_file := FileAccess.open(bak_path, FileAccess.WRITE)
-			if bak_file != null:
-				bak_file.store_string(old_str)
-				bak_file.close()
+			for i in range(ROTATING_BACKUP_SLOTS, 1, -1):
+				var src := obter_caminho_bak_rotating(slot, i - 1)
+				var dst := obter_caminho_bak_rotating(slot, i)
+				if FileAccess.file_exists(src):
+					DirAccess.rename_absolute(src, dst)
+			var bak1 := FileAccess.open(obter_caminho_bak_rotating(slot, 1), FileAccess.WRITE)
+			if bak1 != null:
+				bak1.store_string(old_str)
+				bak1.close()
+			# Legado single .bak (compat)
+			var legacy_bak := "user://savegame_slot_%d.bak" % slot
+			var lb := FileAccess.open(legacy_bak, FileAccess.WRITE)
+			if lb != null:
+				lb.store_string(old_str)
+				lb.close()
 
 	# 4. Gravar arquivo final com segurança atÃ´mica
 	var target_file := FileAccess.open(final_path, FileAccess.WRITE)
@@ -324,18 +343,24 @@ func carregar_jogo(slot: int = -1) -> bool:
 			f.close()
 			path_utilizado = save_path
 
-	# Fallback para Backup .bak se primário falhou ou está corrompido
+	# Fallback para backups rotativos / legado se primário falhou ou está corrompido
 	var test_json := JSON.new()
 	if json_string.is_empty() or test_json.parse(json_string) != OK:
-		if FileAccess.file_exists(bak_path):
-			print("[SaveManager] Tentando restaurar a partir do backup: ", bak_path)
-			var f_bak := FileAccess.open(bak_path, FileAccess.READ)
-			if f_bak != null:
-				var bak_str := f_bak.get_as_text()
-				f_bak.close()
-				if test_json.parse(bak_str) == OK:
-					json_string = bak_str
-					path_utilizado = bak_path
+		var backup_paths: Array[String] = []
+		for i in range(1, ROTATING_BACKUP_SLOTS + 1):
+			backup_paths.append(obter_caminho_bak_rotating(slot, i))
+		backup_paths.append("user://savegame_slot_%d.bak" % slot)
+		for bp in backup_paths:
+			if json_string.is_empty() or test_json.parse(json_string) != OK:
+				if FileAccess.file_exists(bp):
+					print("[SaveManager] Tentando restaurar a partir do backup: ", bp)
+					var f_bak := FileAccess.open(bp, FileAccess.READ)
+					if f_bak != null:
+						var bak_str := f_bak.get_as_text()
+						f_bak.close()
+						if test_json.parse(bak_str) == OK:
+							json_string = bak_str
+							path_utilizado = bp
 
 		if json_string.is_empty() and FileAccess.file_exists(legacy_path):
 			var f_leg := FileAccess.open(legacy_path, FileAccess.READ)
@@ -646,6 +671,11 @@ func carregar_jogo(slot: int = -1) -> bool:
 		SecretBossManager.carregar_dados(data.get("secret_bosses_data", {}))
 	if GourmetCooking != null and data.has("gourmet_data"):
 		GourmetCooking.carregar_dados(data.get("gourmet_data", {}))
+	if AssociationMailSystem != null:
+		AssociationMailSystem.carregar_dados(data.get("association_mail_data", {}))
+	if HunterFriendsSystem != null:
+		HunterFriendsSystem.carregar_dados(data.get("hunter_friends_data", {}))
+	NenStoneSystemScript.carregar_dados(data.get("nen_stone_data", {}))
 
 	# Coleções, Memória de NPCs, Eventos Vivos e Rotas (Fase L)
 	if CollectionManager != null and data.has("collections"):
@@ -697,6 +727,13 @@ func deletar_save(slot: int) -> void:
 	var pb := obter_caminho_bak(slot)
 	if FileAccess.file_exists(pb):
 		DirAccess.remove_absolute(pb)
+	for i in range(1, ROTATING_BACKUP_SLOTS + 1):
+		var pr := obter_caminho_bak_rotating(slot, i)
+		if FileAccess.file_exists(pr):
+			DirAccess.remove_absolute(pr)
+	var legacy_single := "user://savegame_slot_%d.bak" % slot
+	if FileAccess.file_exists(legacy_single):
+		DirAccess.remove_absolute(legacy_single)
 	var p2 := obter_caminho_legado(slot)
 	if FileAccess.file_exists(p2):
 		DirAccess.remove_absolute(p2)

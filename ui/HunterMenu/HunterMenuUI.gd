@@ -1279,6 +1279,53 @@ func _atualizar_conteudo_faccoes() -> void:
 
 		factions_list_container.add_child(p_fac)
 
+	var hb_soc := HBoxContainer.new()
+	hb_soc.add_theme_constant_override("separation", 4)
+	factions_list_container.add_child(hb_soc)
+
+	var btn_mail := Button.new()
+	btn_mail.text = "✉️ Correio da Associação"
+	btn_mail.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_mail, HunterUIStyle.COLOR_BORDER_GOLD)
+	btn_mail.pressed.connect(func(): PauseMenuUI._abrir_correio_associacao())
+	hb_soc.add_child(btn_mail)
+
+	var btn_friends := Button.new()
+	btn_friends.text = "👥 Lista de Caçadores"
+	btn_friends.add_theme_font_size_override("font_size", 4)
+	HunterUIStyle.aplicar_estilo_botao(btn_friends, HunterUIStyle.COLOR_BORDER_GREEN)
+	btn_friends.pressed.connect(_on_abrir_lista_cacadores_pressed)
+	hb_soc.add_child(btn_friends)
+
+	if HunterFriendsSystem != null:
+		var lbl_f := Label.new()
+		lbl_f.text = "Amigos: %d | Pedidos: %d" % [
+			HunterFriendsSystem.friends.size(),
+			HunterFriendsSystem.incoming_requests.size(),
+		]
+		lbl_f.add_theme_font_size_override("font_size", 3)
+		lbl_f.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
+		factions_list_container.add_child(lbl_f)
+
+
+func _on_abrir_lista_cacadores_pressed() -> void:
+	if HunterFriendsSystem == null:
+		return
+	var lines: PackedStringArray = []
+	for f in HunterFriendsSystem.listar_amigos():
+		lines.append("• %s%s" % [
+			str(f.get("name", "")),
+			(" — %s" % str(f.get("note", ""))) if not str(f.get("note", "")).is_empty() else "",
+		])
+	for rid in HunterFriendsSystem.incoming_requests.keys():
+		var req: Dictionary = HunterFriendsSystem.incoming_requests[rid]
+		lines.append("[Pedido] %s (aceitar no stub offline)" % str(req.get("name", rid)))
+	var body := "Lista de Caçadores (B9)\n\n"
+	body += "\n".join(lines) if not lines.is_empty() else "(Nenhum amigo ainda — use pedidos via multiplayer futuro.)"
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast(body.substr(0, mini(body.length(), 120)), Color(0.7, 0.9, 1.0))
+	print("[HunterFriends]\n", body)
+
 
 func _atualizar_conteudo_guia() -> void:
 	if guide_list_container == null:

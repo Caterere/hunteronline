@@ -151,6 +151,7 @@ func _construir_ui() -> void:
 	btn_salvar = _criar_botao("💾 Salvar Jogo", vbox, _on_salvar_pressed)
 	btn_lobby = _criar_botao("🏛️ Salvar e Voltar ao Lobby", vbox, _on_lobby_pressed)
 	btn_jornal = _criar_botao("📜 Jornal de Missoes [J]", vbox, _on_jornal_pressed)
+	_criar_botao("✉️ Correio da Associação", vbox, _on_correio_pressed)
 	_criar_botao("📋 Menu Hunter / Sistemas [TAB]", vbox, _on_hunter_menu_pressed)
 	_criar_botao("🏆 Conquistas [K]", vbox, _on_conquistas_pressed)
 	_criar_botao("🏰 Hall da Guilda", vbox, _on_guild_pressed)
@@ -241,6 +242,29 @@ func _on_jornal_pressed() -> void:
 	var journal = QuestJournalUI.obter_ou_criar(get_tree())
 	if journal != null and journal.has_method("abrir"):
 		journal.abrir()
+
+
+func _on_correio_pressed() -> void:
+	fechar()
+	_abrir_correio_associacao()
+
+
+static func _abrir_correio_associacao() -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	var existing = tree.root.get_node_or_null("AssociationMailUI")
+	if existing == null:
+		var scn = load("res://ui/Mail/AssociationMailUI.tscn")
+		if scn == null:
+			return
+		existing = scn.instantiate()
+		existing.name = "AssociationMailUI"
+		tree.root.add_child(existing)
+	if existing.has_method("abrir"):
+		existing.abrir()
+	elif "visible" in existing:
+		existing.visible = true
 
 
 func _on_hunter_menu_pressed() -> void:

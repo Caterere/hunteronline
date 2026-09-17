@@ -70,6 +70,9 @@ GourmetCooking="*res://autoload/GourmetCooking.gd"
 DutyFinderSystem="*res://autoload/DutyFinderSystem.gd"
 TerritoryWarSystem="*res://autoload/TerritoryWarSystem.gd"
 SeasonPassSystem="*res://autoload/SeasonPassSystem.gd"
+AssociationMailSystem="*res://autoload/AssociationMailSystem.gd"
+HunterFriendsSystem="*res://autoload/HunterFriendsSystem.gd"
+ContentHotReload="*res://scripts/core/ContentHotReload.gd"
 
 [display]
 
