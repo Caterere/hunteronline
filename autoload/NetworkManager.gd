@@ -74,6 +74,7 @@ var _snapshot_packets_recv: int = 0
 const MatchmakingQueueScript = preload("res://scripts/network/MatchmakingQueue.gd")
 
 var _server_autosave_timer: float = 0.0
+var _snapshot_sec_timer: float = 0.0
 var _snapshot_bytes_sent_sec_acc: int = 0
 var _snapshot_bytes_raw_sec_acc: int = 0
 var _snapshot_packets_sent_sec_acc: int = 0
@@ -585,7 +586,7 @@ func _tick_server_autosave(delta: float) -> void:
 	if _server_autosave_timer < interval:
 		return
 	_server_autosave_timer = 0.0
-	var n := server_storage.persist_all_peers_periodic(session.peers, world_coordinator)
+	var n: int = int(server_storage.persist_all_peers_periodic(session.peers, world_coordinator))
 	if n > 0:
 		print("[NetworkManager] 💾 Autosave servidor: %d jogador(es)" % n)
 	var q := DutyFinderSystem.get_queue_status() if DutyFinderSystem != null else {}
