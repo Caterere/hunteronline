@@ -49,10 +49,10 @@ func _test_jenny_direct_grant() -> void:
 		assert_test(false, "Economy/PlayerData disponíveis")
 		return
 
-	var before: int = int(PlayerData.attributes.get("gold", 0))
+	var before: int = Economy.obter_gold()
 	LootDropScript.spawn_jenny(self, Vector2(40, 20), 77)
 	await get_tree().process_frame
-	var after: int = int(PlayerData.attributes.get("gold", 0))
+	var after: int = Economy.obter_gold()
 	assert_test(after == before + 77, "Jenny +77 imediato (antes=%d depois=%d)" % [before, after])
 	var leftover := 0
 	for c in get_children():
@@ -67,23 +67,11 @@ func _test_item_direct_grant() -> void:
 		assert_test(false, "PlayerData disponível")
 		return
 	var item_id := &"pocao_hp"
-	var before: int = 0
-	if PlayerData.has_method("contar_item"):
-		before = int(PlayerData.contar_item(item_id))
-	elif PlayerData.has_method("get_item_count"):
-		before = int(PlayerData.get_item_count(item_id))
-
+	var before: int = int(PlayerData.inventory.get(item_id, 0))
 	LootDropScript.spawn_item_drop(self, Vector2(10, 10), "pocao_hp")
 	await get_tree().process_frame
-
-	if PlayerData.has_method("contar_item"):
-		var after: int = int(PlayerData.contar_item(item_id))
-		assert_test(after >= before + 1, "item +1 no inventário (antes=%d depois=%d)" % [before, after])
-	elif PlayerData.has_method("get_item_count"):
-		var after2: int = int(PlayerData.get_item_count(item_id))
-		assert_test(after2 >= before + 1, "item +1 no inventário (antes=%d depois=%d)" % [before, after2])
-	else:
-		assert_test(true, "item grant chamado (API inventário sem contador público)")
+	var after: int = int(PlayerData.inventory.get(item_id, 0))
+	assert_test(after >= before + 1, "item +1 no inventário (antes=%d depois=%d)" % [before, after])
 
 
 func _test_enemy_system_wiring() -> void:

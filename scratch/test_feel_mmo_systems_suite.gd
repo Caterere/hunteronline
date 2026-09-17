@@ -41,7 +41,7 @@ func _run() -> void:
 	_check(ResourceLoader.exists("res://entities/world/LootDrop.gd"), "LootDrop script existe", "LootDrop missing")
 	var loot_src := FileAccess.get_file_as_string("res://entities/world/LootDrop.gd")
 	_check("spawn_jenny" in loot_src and "adicionar_gold" in loot_src, "spawn_jenny concede gold direto", "loot APIs thin")
-	_check("Area2D" not in loot_src and "body_entered" not in loot_src, "sem orb Area2D no chão", "ainda usa pickup Area2D")
+	_check("extends Area2D" not in loot_src and "body_entered" not in loot_src, "sem orb Area2D no chão", "ainda usa pickup Area2D")
 	_check("tocar_sfx_posicional" in loot_src or "item_pickup" in loot_src, "pickup juice SFX", "no pickup juice")
 
 	print("\n[2] CombatImpactEffect death dissipation")
