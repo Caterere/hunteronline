@@ -43,7 +43,12 @@ const COLOR_TEXT_GOLD           := Color(0.32, 0.20, 0.08, 1.0) # Destaque bronz
 const COLOR_TEXT_CYAN           := Color(0.10, 0.35, 0.48, 1.0) # Tint Nen escuro
 const COLOR_TEXT_MUTED          := Color(0.38, 0.28, 0.18, 1.0) # Texto apagado
 
-# 1.1 HIERARQUIA TIPOGRÁFICA (VIEWPORT 640x360)
+# HUD MMO — painéis vidro escuro (combate / chat / alvo)
+const COLOR_GLASS_BG            := Color(0.05, 0.06, 0.08, 0.72)
+const COLOR_GLASS_BORDER          := Color(0.55, 0.58, 0.62, 0.85)
+const COLOR_GLASS_TEXT            := Color(0.92, 0.93, 0.95, 1.0)
+
+# 1.1 HIERARQUIA TIPOGRÁFICA (VIEWPORT 960x540)
 const FONT_SIZE_TITLE           := 13 # Cabeçalhos principais e nomes de chefes (Teko)
 const FONT_SIZE_SUBTITLE        := 10 # Subtítulos, abas e nomes de regiões (Rajdhani)
 const FONT_SIZE_HEADING         := 10 # Cabeçalhos de seção e títulos de cards (Rajdhani)
@@ -160,6 +165,21 @@ static func criar_style_painel_principal(cor_borda: Color = COLOR_BORDER_GOLD, r
 	style.shadow_color = Color(0, 0, 0, 0.5)
 	style.shadow_size = 3
 	style.shadow_offset = Vector2(0, 1)
+	return style
+
+
+static func criar_style_glass_panel(border: Color = COLOR_GLASS_BORDER, radius: int = 3) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = COLOR_GLASS_BG
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = border
+	style.corner_radius_top_left = radius
+	style.corner_radius_top_right = radius
+	style.corner_radius_bottom_right = radius
+	style.corner_radius_bottom_left = radius
 	return style
 
 

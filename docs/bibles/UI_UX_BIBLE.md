@@ -55,7 +55,7 @@ O jogador nunca deve ficar perdido sem saber para onde ir:
 
 | Elemento de UI / UX | Status | Detalhes & Componentes |
 | :--- | :--- | :--- |
-| **HUD 640x360 Não-Poluída** | `[IMPLEMENTED]` | Margens e escala pixel art limpas em `PlayerHUD.gd` |
+| **HUD 960x540 Não-Poluída** | `[IMPLEMENTED]` | Viewport 16:9; margens e escala em `PlayerHUD.gd` + painéis vidro MMO |
 | **TargetHUD com Ghost Bar** | `[IMPLEMENTED]` | Barra de atraso gradual (`hp_ghost_bar`) para leitura de dano |
 | **ConditionTrackerUI** | `[IMPLEMENTED]` | Rastreador modular recolhível com contador de requisitos |
 | **Prompt Dinâmico de Interação [E]** | `[IMPLEMENTED]` | `InteractionComponent.gd` com balão flutuante animado |

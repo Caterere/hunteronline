@@ -207,7 +207,7 @@ func _criar_card_jogador_top_left() -> void:
 
 	player_card_panel = PanelContainer.new()
 	player_card_panel.custom_minimum_size = Vector2(148, 28)
-	player_card_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_licenca_hunter())
+	player_card_panel.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 4))
 	root.add_child(player_card_panel)
 
 	var margin := MarginContainer.new()
@@ -226,18 +226,18 @@ func _criar_card_jogador_top_left() -> void:
 
 	lbl_player_header = Label.new()
 	lbl_player_header.text = "★ LICENÇA HUNTER"
-	HunterUIStyle.aplicar_fonte_licenca(lbl_player_header, 9, HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_licenca(lbl_player_header, 9, HunterUIStyle.COLOR_GLASS_TEXT)
 	lbl_player_header.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_header.add_child(lbl_player_header)
 
 	lbl_player_level_badge = Label.new()
 	lbl_player_level_badge.text = "Nv.1"
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_player_level_badge, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_player_level_badge, 7, HunterUIStyle.COLOR_GLASS_TEXT)
 	hbox_header.add_child(lbl_player_level_badge)
 
 	lbl_gold = Label.new()
 	lbl_gold.text = "💰0"
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_gold, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_gold, 7, HunterUIStyle.COLOR_GOLD_LIGHT)
 	hbox_header.add_child(lbl_gold)
 
 	var hbox_sub := HBoxContainer.new()
@@ -245,13 +245,13 @@ func _criar_card_jogador_top_left() -> void:
 
 	lbl_player_affinity = Label.new()
 	lbl_player_affinity.text = "◈ Nen: Adormecido"
-	HunterUIStyle.aplicar_fonte_licenca(lbl_player_affinity, 8, HunterUIStyle.COLOR_TEXT_CYAN)
+	HunterUIStyle.aplicar_fonte_licenca(lbl_player_affinity, 8, HunterUIStyle.COLOR_AURA_CYAN)
 	lbl_player_affinity.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	hbox_sub.add_child(lbl_player_affinity)
 
 	lbl_sp_badge = Label.new()
 	lbl_sp_badge.text = "⚡0 SP"
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_sp_badge, 6, HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_sp_badge, 6, HunterUIStyle.COLOR_AURA_CYAN)
 	lbl_sp_badge.visible = false
 	hbox_sub.add_child(lbl_sp_badge)
 

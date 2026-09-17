@@ -54,7 +54,7 @@ func _construir_ui() -> void:
 	offset_right = -6.0
 	scale = Vector2(0.75, 0.75)
 
-	add_theme_stylebox_override("panel", HunterUIStyle.criar_style_quest_tracker())
+	add_theme_stylebox_override("panel", HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 3))
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 5)
@@ -87,7 +87,7 @@ func _construir_ui() -> void:
 
 	btn_toggle = Button.new()
 	btn_toggle.text = "−"
-	HunterUIStyle.aplicar_fonte_pixel(btn_toggle, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_pixel(btn_toggle, 7, HunterUIStyle.COLOR_GLASS_TEXT)
 	btn_toggle.custom_minimum_size = Vector2(13, 13)
 	HunterUIStyle.aplicar_estilo_botao(btn_toggle, HunterUIStyle.COLOR_BORDER_SUBTLE)
 	btn_toggle.pressed.connect(_toggle_expandir)
@@ -105,7 +105,7 @@ func _construir_ui() -> void:
 
 	lbl_objetivo = Label.new()
 	lbl_objetivo.text = "- Carregando objetivo..."
-	HunterUIStyle.aplicar_fonte_pixel(lbl_objetivo, 7, HunterUIStyle.COLOR_TEXT_PRIMARY)
+	HunterUIStyle.aplicar_fonte_pixel(lbl_objetivo, 7, HunterUIStyle.COLOR_GLASS_TEXT)
 	lbl_objetivo.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox_detalhes.add_child(lbl_objetivo)
 
