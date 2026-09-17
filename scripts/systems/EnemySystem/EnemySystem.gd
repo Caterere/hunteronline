@@ -1076,13 +1076,11 @@ func _gerar_drop_loot() -> void:
 	else:
 		qtd_gold = maxi(5, int(round(float(randi_range(12, 36) * enemy_lv) * 0.45)))
 
-	# Loot no chão (RO / Tibia) — sem auto-grant silencioso
-	if world_parent != null and qtd_gold > 0:
+	# Loot direto ao jogador (sem orbs no chão — coleta Area2D era quebrada)
+	if qtd_gold > 0:
 		LootDrop.spawn_jenny(world_parent, drop_pos, qtd_gold)
-	elif qtd_gold > 0 and Economy != null:
-		Economy.adicionar_gold(qtd_gold)
 
-	# Processar Tabela de Drops (GDD Vol 8) — itens também no chão
+	# Processar Tabela de Drops (GDD Vol 8) — itens direto no inventário
 	if enemy_data != null and not enemy_data.drop_table.is_empty():
 		for drop_info in enemy_data.drop_table:
 			var chance: float = float(drop_info.get("chance", 0.5))
@@ -1091,15 +1089,11 @@ func _gerar_drop_loot() -> void:
 				var qtd: int = int(drop_info.get("quantidade", 1))
 				if item_id.is_empty():
 					continue
-				if world_parent != null:
-					for _i in range(maxi(1, qtd)):
-						LootDrop.spawn_item_drop(world_parent, drop_pos, String(item_id))
-					print("[EnemySystem] LOOT NO CHÃO: %s x%d" % [item_id, qtd])
-				elif PlayerData != null:
-					PlayerData.adicionar_item(StringName(item_id), qtd)
-					print("[EnemySystem] LOOT COLETADO: %s x%d" % [item_id, qtd])
+				for _i in range(maxi(1, qtd)):
+					LootDrop.spawn_item_drop(world_parent, drop_pos, String(item_id))
+				print("[EnemySystem] LOOT DIRETO: %s x%d" % [item_id, qtd])
 
-	# Drop raro por bioma (1 item característico)
+	# Drop raro por bioma (1 item característico) — também direto
 	if world_parent != null:
 		var bonus: float = 0.05 if (enemy_data != null and enemy_data.is_boss) else 0.0
 		BiomeLootCatalogScript.tentar_drop_raro(world_parent, drop_pos, "", bonus)
