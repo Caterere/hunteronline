@@ -86,10 +86,9 @@ static func tentar_drop_raro(parent: Node, world_pos: Vector2, scene_path: Strin
 	elif PlayerData != null:
 		PlayerData.adicionar_item(StringName(drop_id), 1)
 
+	# Toast raro específico do bioma (além do feedback genérico do LootDrop)
 	if EventBus != null:
 		EventBus.emit_toast("💎 %s" % str(info.get("toast", "Drop raro!")), Color(1.0, 0.85, 0.35))
-	if AudioManager != null and AudioManager.has_method("tocar_sfx_posicional"):
-		AudioManager.tocar_sfx_posicional("item_pickup", world_pos, 1.1)
 
 	return {
 		"sucesso": true,

@@ -37,10 +37,11 @@ func _check(c: bool, ok: String, fail: String) -> void:
 
 
 func _run() -> void:
-	print("\n[1] LootDrop APIs")
+	print("\n[1] LootDrop APIs (grant direto)")
 	_check(ResourceLoader.exists("res://entities/world/LootDrop.gd"), "LootDrop script existe", "LootDrop missing")
 	var loot_src := FileAccess.get_file_as_string("res://entities/world/LootDrop.gd")
-	_check("func setup_gold" in loot_src and "spawn_jenny" in loot_src, "setup_gold + spawn_jenny", "loot APIs thin")
+	_check("spawn_jenny" in loot_src and "adicionar_gold" in loot_src, "spawn_jenny concede gold direto", "loot APIs thin")
+	_check("extends Area2D" not in loot_src and "body_entered" not in loot_src, "sem orb Area2D no chão", "ainda usa pickup Area2D")
 	_check("tocar_sfx_posicional" in loot_src or "item_pickup" in loot_src, "pickup juice SFX", "no pickup juice")
 
 	print("\n[2] CombatImpactEffect death dissipation")
@@ -136,4 +137,6 @@ func _run() -> void:
 
 	var enemy_src := FileAccess.get_file_as_string("res://scripts/systems/EnemySystem/EnemySystem.gd")
 	_check("_play_death_feel" in enemy_src and "LootDrop.spawn_jenny" in enemy_src,
-		"EnemySystem death feel + ground loot", "enemy death/loot not wired")
+		"EnemySystem death feel + Jenny direto", "enemy death/loot not wired")
+	_check("LOOT DIRETO" in enemy_src or "Loot direto" in enemy_src or "sem orbs no chão" in enemy_src,
+		"EnemySystem documenta grant direto", "ainda fala em loot no chão")
