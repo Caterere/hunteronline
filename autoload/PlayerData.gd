@@ -929,6 +929,9 @@ func adicionar_item(
 
 	inventory[item_id] += quantidade
 
+	if EventBus != null:
+		EventBus.item_obtained.emit(String(item_id), quantidade)
+
 	print(
 		"Item adicionado: ",
 		item_id,

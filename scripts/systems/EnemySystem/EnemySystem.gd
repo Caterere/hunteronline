@@ -301,6 +301,8 @@ func _ready() -> void:
 		max_health
 	)
 
+	_anexar_nameplate()
+
 
 	# -----------------------------------------------------
 	# DEBUG
@@ -1210,6 +1212,19 @@ func get_xp_reward() -> int:
 func get_nen_xp_reward() -> int:
 
 	return nen_xp_reward
+
+
+func _anexar_nameplate() -> void:
+	if enemy_body == null:
+		return
+	if enemy_body.get_node_or_null("EnemyNameplate") != null:
+		return
+	var np_script := load("res://entities/components/EnemyNameplate.gd")
+	if np_script == null:
+		return
+	var np: Node = np_script.new()
+	np.name = "EnemyNameplate"
+	enemy_body.add_child(np)
 
 
 func get_level() -> int:
