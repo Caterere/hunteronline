@@ -110,6 +110,14 @@ func describe() -> String:
 					desc_base = "🔍 [G] Gyo — Eco da Carta 002"
 				"sopro_arcanjo":
 					desc_base = "🔍 [G] Gyo — Sopro do Arcanjo (Carta 017)"
+				"fabrica_d2_gyro":
+					desc_base = "🔍 [G] Gyo — Fábrica Clandestina de D2"
+				"nascimento_rei_meruem":
+					desc_base = "🔍 [G] Gyo — Vestígio do Nascimento do Rei"
+				"portas_knov":
+					desc_base = "🔍 [G] Gyo — Portas Dimensionais de Knov"
+				"chuva_dragoes_zeno":
+					desc_base = "🔍 [G] Gyo — Marcas da Chuva de Dragões"
 				"pista_furto_janela", "pista_furto_pegada", "pista_furto_esconderijo":
 					desc_base = "🔍 [G] Gyo — Pista do furto '%s'" % cid.replace("pista_furto_", "").capitalize()
 				_:
@@ -130,6 +138,8 @@ func describe() -> String:
 					desc_base = "🥷 [Z] Zetsu — Subestação do Apagão"
 				"greed_ginasio_vestibulo":
 					desc_base = "🥷 [Z] Zetsu — Vestíbulo do Ginásio"
+				"fronteira_goruto":
+					desc_base = "🥷 [Z] Zetsu — Fronteira Fortificada de Goruto"
 				_:
 					desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
 

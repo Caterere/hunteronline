@@ -1052,182 +1052,182 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Formigas Chimera 1/48: O Encontro na Floresta com Kite"
-					q.description = "Desembarque na fronteira da NGL (Neo-Green Life) e reencontre o experiente Caçador de Contratos Kite."
+					q.description = "ORDEM: Fale com Kite na fronteira NGL. Formigas depois — um objetivo de cada vez."
 					q.reward_xp = 70000
 					q.reward_gold = 1000000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite (Caçador de Contratos)")]
 
 				2:
 					q.quest_name = "Formigas Chimera 2/48: A Roleta do Crazy Slots"
-					q.description = "Observe a foice e o rifle de Nen imprevisíveis do palhaço falante Crazy Slots de Kite."
+					q.description = "ORDEM: Fale com Kite de novo (Crazy Slots). Depois derrote formigas soldado (GPS)."
 					q.reward_xp = 75000
 					q.reward_gold = 1100000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
 
 				3:
 					q.quest_name = "Formigas Chimera 3/48: Patrulhas de Formigas Soldado"
-					q.description = "Elimine 5 formigas soldado mutantes que atacam os postos avançados da floresta."
+					q.description = "ORDEM: Derrote 5 formigas soldado (GPS). Espaço de combate. Depois [G] Fábrica D2."
 					q.reward_xp = 80000
 					q.reward_gold = 1200000
 					q.objectives = [_criar_obj_kill(&"formiga_soldado", 5)]
 
 				4:
 					q.quest_name = "Formigas Chimera 4/48: A Fábrica Clandestina de D2"
-					q.description = "Investigue o laboratório subterrâneo onde o tirano Gyro produzia a droga ilícita D2."
+					q.description = "ORDEM: [G] Inspecione a Fábrica D2 de Gyro. Depois Rammot (GPS)."
 					q.reward_xp = 85000
 					q.reward_gold = 1300000
 					q.objectives = [_criar_obj_investigate(&"fabrica_d2_gyro")]
 
 				5:
 					q.quest_name = "Formigas Chimera 5/48: A Emboscada da Formiga Rammot"
-					q.description = "Derrote Rammot, a formiga híbrida com penas que despertou aura após ser golpeada."
+					q.description = "ORDEM: Derrote 2 formigas oficiais / Rammot (GPS). Depois volte a Kite."
 					q.reward_xp = 90000
 					q.reward_gold = 1400000
 					q.objectives = [_criar_obj_kill(&"formiga_oficial", 2)]
 
 				6:
 					q.quest_name = "Formigas Chimera 6/48: A Inseminação de Nen no Formigueiro"
-					q.description = "Descubra que as formigas oficiais começaram a abrir os nós de aura de todo o exército da Rainha."
+					q.description = "ORDEM: Fale com Kite — oficiais abriram nós de aura. Depois colinas (GPS)."
 					q.reward_xp = 95000
 					q.reward_gold = 1500000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
 
 				7:
 					q.quest_name = "Formigas Chimera 7/48: O Avanço pelas Colinas de NGL"
-					q.description = "Derrote esquadrões de formigas soldado em direção à árvore-castelo do ninho principal."
+					q.description = "ORDEM: Derrote 4 formigas nas colinas (GPS). Sem rush ao ninho."
 					q.reward_xp = 100000
 					q.reward_gold = 1600000
 					q.objectives = [_criar_obj_kill(&"formiga_soldado", 4)]
 
 				8:
 					q.quest_name = "Formigas Chimera 8/48: A Aura Monstruosa de Neferpitou"
-					q.description = "Sinta a intenção assassina avermelhada da Guarda Real Neferpitou emanando do ninho."
+					q.description = "ORDEM: Fale com Kite — sinta a aura de Pitou. Prepare fuga. Sem atacar a Guarda Real ainda."
 					q.reward_xp = 105000
 					q.reward_gold = 1700000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
 
 				9:
 					q.quest_name = "Formigas Chimera 9/48: O Sacrifício Heróico de Kite"
-					q.description = "Kite perde o braço para repelir o salto supersônico de Pitou e manda os garotos fugirem."
+					q.description = "ORDEM: Fale com Kite (último aviso). Depois Killua cobre a fuga — GPS."
 					q.reward_xp = 110000
 					q.reward_gold = 1800000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
 
 				10:
 					q.quest_name = "Formigas Chimera 10/48: A Fuga Desesperada de Killua"
-					q.description = "Killua nocauteia Gon à força e corre em disparada até a fronteira para salvar sua vida."
+					q.description = "ORDEM: Fale com Killua na fronteira e fuja. Depois base Peijin (Netero)."
 					q.reward_xp = 115000
 					q.reward_gold = 1900000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				11:
 					q.quest_name = "Formigas Chimera 11/48: A Chegada da Tropa de Extermínio"
-					q.description = "Encontre o Presidente Isaac Netero, Morel e Knov na base militar de Peijin."
+					q.description = "ORDEM: Fale com Netero na base Peijin. Depois Morel. Um mentor de cada vez."
 					q.reward_xp = 120000
 					q.reward_gold = 2000000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				12:
 					q.quest_name = "Formigas Chimera 12/48: A Provação de Morel e Knov"
-					q.description = "Demonstre sua resolução inabalável perante o cachimbo de Morel e as portas de Knov."
+					q.description = "ORDEM: Fale com Morel e prove resolução. Depois Knuckle e Shoot."
 					q.reward_xp = 125000
 					q.reward_gold = 2100000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel Mackernasey")]
 
 				13:
 					q.quest_name = "Formigas Chimera 13/48: Os Discípulos Knuckle e Shoot"
-					q.description = "Aceite o desafio dos amuletos de madeira contra os discípulos de Morel para ganhar o direito de retornar."
+					q.description = "ORDEM: Fale com Knuckle e Shoot (amuletos). Sem pular — GPS."
 					q.reward_xp = 130000
 					q.reward_gold = 2200000
 					q.objectives = [_criar_obj_visit(&"knuckle", "Knuckle Bine"), _criar_obj_visit(&"shoot", "Shoot McMahon")]
 
 				14:
 					q.quest_name = "Formigas Chimera 14/48: O Hatsu A.P.R. (Hakoware) de Knuckle"
-					q.description = "Compreenda a mecânica de empréstimo de aura com juros de 10% e declaração de falência de Nen."
+					q.description = "ORDEM: Fale com Knuckle — entenda A.P.R. / juros. Depois Shoot (Rafflesia)."
 					q.reward_xp = 135000
 					q.reward_gold = 2300000
 					q.objectives = [_criar_obj_visit(&"knuckle", "Knuckle Bine")]
 
 				15:
 					q.quest_name = "Formigas Chimera 15/48: O Hotel Rafflesia de Shoot"
-					q.description = "Enfrente as três mãos flutuantes e a gaiola dimensional de Shoot em combate de alta agilidade."
+					q.description = "ORDEM: Fale com Shoot (mãos flutuantes). Depois [G] nascimento do Rei."
 					q.reward_xp = 140000
 					q.reward_gold = 2400000
 					q.objectives = [_criar_obj_visit(&"shoot", "Shoot McMahon")]
 
 				16:
 					q.quest_name = "Formigas Chimera 16/48: O Nascimento Prematuro de Meruem"
-					q.description = "O Rei das Formigas Meruem rasga o ventre da Rainha e parte para a República de Goruto Oriental."
+					q.description = "ORDEM: [G] Inspecione o Vestígio do Nascimento do Rei. Depois Morel no ninho."
 					q.reward_xp = 145000
 					q.reward_gold = 2500000
 					q.objectives = [_criar_obj_investigate(&"nascimento_rei_meruem")]
 
 				17:
 					q.quest_name = "Formigas Chimera 17/48: O Resgate no Ninho da Rainha"
-					q.description = "Morel e os médicos encontram a Rainha moribunda e resgatam o embrião da pequena irmã do Rei."
+					q.description = "ORDEM: Fale com Morel (resgate). Depois [Z] Fronteira Goruto."
 					q.reward_xp = 150000
 					q.reward_gold = 2600000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
 
 				18:
 					q.quest_name = "Formigas Chimera 18/48: Infiltração em Goruto Oriental"
-					q.description = "Cruze a fronteira fortificada de Goruto Oriental sob estado de vigilância marcial absoluta."
+					q.description = "ORDEM: [Z] Atravesse a Fronteira Goruto em Zetsu. Sem Zetsu = alerta. Depois guardas Peijin."
 					q.reward_xp = 155000
 					q.reward_gold = 2700000
 					q.objectives = [_criar_obj_stealth(&"fronteira_goruto")]
 
 				19:
 					q.quest_name = "Formigas Chimera 19/48: A Seleção Humana de Peijin"
-					q.description = "Elimine 4 guardas de Peijin hipnotizados para salvar milhares de civis que marcham rumo ao palácio."
+					q.description = "ORDEM: Derrote 4 guardas de Peijin (GPS). Espaço de combate. Depois Killua (agulha)."
 					q.reward_xp = 160000
 					q.reward_gold = 2800000
 					q.objectives = [_criar_obj_kill(&"guarda_peijin", 4)]
 
 				20:
 					q.quest_name = "Formigas Chimera 20/48: A Remoção da Agulha de Illumi"
-					q.description = "Killua arranca a agulha de manipulação cravada em seu cérebro e liberta sua mente do medo!"
+					q.description = "ORDEM: Fale com Killua — remova a agulha. Depois Godspeed."
 					q.reward_xp = 165000
 					q.reward_gold = 2900000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				21:
 					q.quest_name = "Formigas Chimera 21/48: O Desenvolvimento do Godspeed (Kanmuru)"
-					q.description = "Killua programa descargas elétricas em seus nervos reflexos para se mover na velocidade do relâmpago."
+					q.description = "ORDEM: Fale com Killua (Godspeed). Depois [G] Portas do Knov."
 					q.reward_xp = 170000
 					q.reward_gold = 3000000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				22:
 					q.quest_name = "Formigas Chimera 22/48: O Hide and Seek (4ª Dimensão) de Knov"
-					q.description = "Crie portas dimensionais secretas conectadas aos cômodos sob o piso do Palácio Real de Peijin."
+					q.description = "ORDEM: [G] Inspecione as Portas Dimensionais de Knov. Depois Meruem / Gungi."
 					q.reward_xp = 175000
 					q.reward_gold = 3100000
 					q.objectives = [_criar_obj_investigate(&"portas_knov")]
 
 				23:
 					q.quest_name = "Formigas Chimera 23/48: A Partida de Gungi de Komugi"
-					q.description = "Observe o Rei Meruem jogando Gungi dia e noite nos aposentos reais contra a jovem cega Komugi."
+					q.description = "ORDEM: Fale com Meruem (Gungi). Não ataque fora da etapa. Depois reunião (Gon)."
 					q.reward_xp = 180000
 					q.reward_gold = 3200000
 					q.objectives = [_criar_obj_visit(&"meruem", "Rei Meruem")]
 
 				24:
 					q.quest_name = "Formigas Chimera 24/48: A Contagem Regressiva da Invasão"
-					q.description = "Reúna Gon, Killua, Knuckle, Shoot, Morel e Meleoron nas portas dimensionais para a hora zero."
+					q.description = "ORDEM: Fale com Gon e feche a equipe. Hora Zero depois — GPS."
 					q.reward_xp = 185000
 					q.reward_gold = 3300000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				25:
 					q.quest_name = "Formigas Chimera 25/48: A Hora Zero (00:00:00)"
-					q.description = "Emerja das portas no saguão central do palácio no exato instante em que o ataque aéreo tem início!"
+					q.description = "ORDEM: Fale com Morel na Hora Zero. Depois [G] Chuva de Dragões."
 					q.reward_xp = 190000
 					q.reward_gold = 3400000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
 
 				26:
 					q.quest_name = "Formigas Chimera 26/48: A Chuva de Dragões (Dragon Dive)"
-					q.description = "Testemunhe milhares de flechas colossais de Nen de Zeno Zoldyck destruindo o teto do palácio."
+					q.description = "ORDEM: [G] Inspecione as Marcas da Chuva de Dragões. Depois Youpi / escadas (GPS)."
 					q.reward_xp = 195000
 					q.reward_gold = 3500000
 					q.objectives = [_criar_obj_investigate(&"chuva_dragoes_zeno")]
