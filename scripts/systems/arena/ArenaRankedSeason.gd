@@ -107,6 +107,9 @@ static func _rollover_season(st: Dictionary, day: int) -> Dictionary:
 	if not peak_title.is_empty() and not titles.has(peak_title):
 		titles.append(peak_title)
 		_unlock_title(peak_title)
+	var season_skin := "arena_season_%d_banner" % season_n
+	if TravelSystem != null and TravelSystem.has_method("unlock_skin"):
+		TravelSystem.unlock_skin(season_skin)
 
 	return {
 		"season_id": season_n + 1,
@@ -216,6 +219,8 @@ static func report_match(won: bool, opponent_mmr: int = DEFAULT_MMR, floor: int 
 		_upsert_leaderboard(st, opponent_name, opponent_mmr, 0, 0, floor)
 
 	_save_state(st)
+	if won and SeasonPassSystem != null and SeasonPassSystem.has_method("notify_ranked_win"):
+		SeasonPassSystem.notify_ranked_win()
 	return {
 		"won": won,
 		"delta": delta,

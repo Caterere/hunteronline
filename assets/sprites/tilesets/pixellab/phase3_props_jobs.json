@@ -1,0 +1,62 @@
+{
+  "batch": "phase3_props",
+  "created_at": 1789059552.158557,
+  "objects": [
+    {
+      "out": "phase3_fence_wood.png",
+      "id": "711d79f0-8365-4e62-a384-e0381ab16361",
+      "queue": "id: 711d79f0-8365-4e62-a384-e0381ab16361\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of appro",
+      "result": "status: completed\nid: 711d79f0-8365-4e62-a384-e0381ab16361\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of approved phase2 trees/rocks. Reusable wooden fence segment, old but maintained: two posts + horizontal boards, subtle cracks, darker joints, simple ground shadow. Side-facing segment for path borders. Compact readable prop ~48x32.\nsize: 48x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:59\ndownload: https://api.pixellab.ai/mcp/map-objects/711d79f0-8365-4e62-a38",
+      "path": "assets/sprites/objects/phase3_fence_wood.png"
+    },
+    {
+      "out": "phase3_fence_wood_post.png",
+      "id": "12046c58-fbe9-4bb7-9b7f-18c4bf28878c",
+      "queue": "id: 12046c58-fbe9-4bb7-9b7f-18c4bf28878c\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of appro",
+      "result": "status: completed\nid: 12046c58-fbe9-4bb7-9b7f-18c4bf28878c\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of approved phase2 trees/rocks. Single wooden fence post / end post with small ground contact, worn wood, subtle cracks, soft shadow. Compact 32x32 prop.\nsize: 32x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:59\ndownload: https://api.pixellab.ai/mcp/map-objects/12046c58-fbe9-4bb7-9b7f-18c4bf28878c/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., ob",
+      "path": "assets/sprites/objects/phase3_fence_wood_post.png"
+    },
+    {
+      "out": "phase3_signpost.png",
+      "id": "22398083-0d8c-4042-b546-8360c8e174c4",
+      "queue": "id: 22398083-0d8c-4042-b546-8360c8e174c4\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of appro",
+      "result": "status: completed\nid: 22398083-0d8c-4042-b546-8360c8e174c4\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of approved phase2 trees/rocks. Wooden path signpost: vertical post + blank rectangular sign board with clean EMPTY board area (no fake text). Worn edges, small metal nail dots, ground shadow. High top-down RPG navigation prop ~32x48.\nsize: 32x48px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:59\ndownload: https://api.pixellab.ai/mcp/map-objects/22398083-0d8c-4042-b5",
+      "path": "assets/sprites/objects/phase3_signpost.png"
+    },
+    {
+      "out": "phase3_barrel.png",
+      "id": "f5e3966e-0020-45cb-9c97-16e9238f0374",
+      "queue": "id: f5e3966e-0020-45cb-9c97-16e9238f0374\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of appro",
+      "result": "status: completed\nid: f5e3966e-0020-45cb-9c97-16e9238f0374\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of approved phase2 trees/rocks. Wooden storage barrel, iron rings, subtle wood grain clusters, soft shadow. Top-down RPG prop, compact 32x32.\nsize: 32x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:59\ndownload: https://api.pixellab.ai/mcp/map-objects/f5e3966e-0020-45cb-9c97-16e9238f0374/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"f5e",
+      "path": "assets/sprites/objects/phase3_barrel.png"
+    },
+    {
+      "out": "phase3_crate.png",
+      "id": "957ab0f5-155f-43b0-ab1b-02b0601bbf03",
+      "queue": "id: 957ab0f5-155f-43b0-ab1b-02b0601bbf03\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of appro",
+      "result": "status: completed\nid: 957ab0f5-155f-43b0-ab1b-02b0601bbf03\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of approved phase2 trees/rocks. Wooden shipping crate with simple planks and corner bands, soft shadow. Top-down RPG prop 32x32.\nsize: 32x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:59\ndownload: https://api.pixellab.ai/mcp/map-objects/957ab0f5-155f-43b0-ab1b-02b0601bbf03/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"957ab0f5-155f-43",
+      "path": "assets/sprites/objects/phase3_crate.png"
+    },
+    {
+      "out": "phase3_crate_large.png",
+      "id": "f63db17e-f0ad-4c87-a829-f9abbbd23228",
+      "queue": "id: f63db17e-f0ad-4c87-a829-f9abbbd23228\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of appro",
+      "result": "status: completed\nid: f63db17e-f0ad-4c87-a829-f9abbbd23228\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of approved phase2 trees/rocks. Larger wooden crate / stacked crate look, same wood family as small crate, soft shadow. Top-down RPG prop 40x32.\nsize: 40x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:59\ndownload: https://api.pixellab.ai/mcp/map-objects/f63db17e-f0ad-4c87-a829-f9abbbd23228/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"",
+      "path": "assets/sprites/objects/phase3_crate_large.png"
+    },
+    {
+      "out": "phase3_well.png",
+      "id": "c6333b26-8600-459b-9ab8-1f0e339d2fa4",
+      "queue": "id: c6333b26-8600-459b-9ab8-1f0e339d2fa4\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of appro",
+      "result": "status: completed\nid: c6333b26-8600-459b-9ab8-1f0e339d2fa4\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of approved phase2 trees/rocks. Stone village well with circular stone rim, wooden winch crossbar, bucket hint, soft shadow. Memorable but compact top-down RPG prop 48x48.\nsize: 48x48px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:59\ndownload: https://api.pixellab.ai/mcp/map-objects/c6333b26-8600-459b-9ab8-1f0e339d2fa4/download\n\nhint: place_map_object(map_id=\"<map>\"",
+      "path": "assets/sprites/objects/phase3_well.png"
+    },
+    {
+      "out": "phase3_lantern_post.png",
+      "id": "2b70fa50-946c-48ee-ad53-d71efba29953",
+      "queue": "id: 2b70fa50-946c-48ee-ad53-d71efba29953\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of appro",
+      "result": "status: completed\nid: 2b70fa50-946c-48ee-ad53-d71efba29953\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG props. Hard pixel edges, dark outlines, top-left lighting, soft oval ground shadow. Medium environmental detail, readable silhouette. No photographic texture, no anti-aliasing, no isometric 3D cubes unless natural for the prop. Transparent background. Match density of approved phase2 trees/rocks. Wooden roadside lantern post with warm lantern head, simple pole, soft shadow. Top-down RPG prop 32x48. Not a character.\nsize: 32x48px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:59\ndownload: https://api.pixellab.ai/mcp/map-objects/2b70fa50-946c-48ee-ad53-d71efba29953/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., obj",
+      "path": "assets/sprites/objects/phase3_lantern_post.png"
+    }
+  ]
+}

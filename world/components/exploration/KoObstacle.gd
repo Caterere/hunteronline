@@ -17,6 +17,8 @@ signal destruido(objeto: Node)
 @export var obstacle_name: String = "Parede de Rocha Maciça"
 @export var durabilidade: float = 1.0
 @export var item_recompensa_id: StringName = &""
+## Se preenchido, quebrar com KO registra INVESTIGATE neste clue_id.
+@export var clue_id_on_break: StringName = &""
 
 var foi_destruido: bool = false
 @onready var sprite: Sprite2D = get_node_or_null("Sprite2D")
@@ -72,6 +74,18 @@ func destruir_com_ko() -> void:
 	if EventBus != null:
 		EventBus.emit_camera_shake(0.3, 0.2)
 		EventBus.emit_toast("💥 Obstáculo Quebrado com KO! (+50 Nen XP)", Color(1.0, 0.85, 0.2, 1.0))
+
+	# Wire investigativo: KO conta como pista decifrada quando clue_id_on_break está setado
+	if not clue_id_on_break.is_empty():
+		var quest_mgr = Engine.get_main_loop().root.get_node_or_null("/root/QuestSystem") if Engine.get_main_loop() else null
+		if quest_mgr != null and quest_mgr.has_method("register_investigation"):
+			quest_mgr.register_investigation(clue_id_on_break)
+		if PlayerData != null:
+			var cid := str(clue_id_on_break)
+			if not cid.is_empty() and not PlayerData.segredos_descobertos.has(cid):
+				PlayerData.segredos_descobertos.append(cid)
+		if EventBus != null:
+			EventBus.emit_toast("🔍 KO revelou a pista: %s" % str(clue_id_on_break).replace("_", " "), Color(0.95, 0.75, 0.35))
 	
 	# Feedback visual e sonoro de quebra de rocha
 	if collision != null:

@@ -124,3 +124,25 @@ func load_world_state() -> Dictionary:
 		return {}
 
 	return json.data
+
+
+func persist_all_peers_periodic(session_peers: Dictionary, world_coordinator: Variant = null) -> int:
+	## Salva todos os peers online conhecidos; retorna quantidade gravada.
+	if session_peers.is_empty():
+		return 0
+	var saved := 0
+	for peer_id in session_peers.keys():
+		var info: Dictionary = session_peers[peer_id]
+		if not (info is Dictionary):
+			continue
+		var c_id := str(info.get("character_id", info.get("id", "peer_%s" % str(peer_id))))
+		if c_id.is_empty():
+			continue
+		var payload := info.duplicate(true)
+		if world_coordinator != null and world_coordinator.has_method("get_player_position"):
+			var pos: Vector2 = world_coordinator.get_player_position(int(peer_id))
+			payload["position"] = [pos.x, pos.y]
+		payload["peer_id"] = int(peer_id)
+		if save_player_state(c_id, payload) == OK:
+			saved += 1
+	return saved

@@ -3,6 +3,7 @@ extends Node
 
 const HatsuVisual = preload("res://scripts/visual/HatsuVisual.gd")
 const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit.gd")
+const HitStopManager = preload("res://scripts/combat/HitStopManager.gd")
 
 # ============================================================
 # HUNTER ONLINE - HATSU SYSTEM (MOTOR DE COMBATE E VOWS)
@@ -472,6 +473,10 @@ func usar_hatsu(slot_index: int) -> bool:
 		hatsu_falhou.emit(slot_index, "Slot %d bloqueado" % slot_id)
 		return false
 
+	# Se já está canalizando, ignore novo input
+	if slot_states[slot_index] == SlotState.ACTIVATING:
+		return false
+
 	var hatsu: HatsuData = PlayerData.obter_hatsu_slot(slot_index)
 	if hatsu == null:
 		hatsu_falhou.emit(slot_index, "Nenhum Hatsu equipado")
@@ -573,6 +578,29 @@ func usar_hatsu(slot_index: int) -> bool:
 	if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
 		cd *= 0.75
 
+	# --- Canalização / telegraph (feel) ---
+	_definir_estado_slot(slot_index, SlotState.ACTIVATING)
+	var cast_t: float = clampf(hatsu.obter_tempo_conjuracao_final(), 0.18, 1.05)
+	match hatsu.categoria:
+		HatsuData.Categoria.INTENSIFICACAO:
+			cast_t *= 0.85
+		HatsuData.Categoria.EMISSAO:
+			cast_t *= 1.10
+		HatsuData.Categoria.CONJURACAO:
+			cast_t *= 1.05
+		_:
+			pass
+	if owner_body != null:
+		HatsuSignatureKit.telegraph_cast(owner_body, hatsu, cast_t)
+	if combat_system != null:
+		var cor_carga: Color = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
+		combat_system._mostrar_texto_flutuante("⚡ Canalizando %s…" % hatsu.nome, cor_carga)
+	if owner_body != null and is_instance_valid(owner_body) and owner_body.get_tree() != null:
+		await owner_body.get_tree().create_timer(cast_t).timeout
+	if owner_body == null or not is_instance_valid(owner_body):
+		_definir_estado_slot(slot_index, SlotState.READY)
+		return false
+
 	# Transição de Estado do Slot
 	var is_sustained: bool = (hatsu.activation_type in [HatsuData.ActivationType.SUSTAINED, HatsuData.ActivationType.TRANSFORMATION, HatsuData.ActivationType.OVERRIDE_LIBRARY])
 	if is_sustained:
@@ -608,6 +636,13 @@ func usar_hatsu(slot_index: int) -> bool:
 			or hatsu.activation_type == HatsuData.ActivationType.OVERRIDE_LIBRARY \
 			or hatsu.core_component == HatsuComponentLibrary.CoreType.ABSORPTION:
 			HatsuSignatureKit.play(kind, owner_body, owner_body.get_parent(), hatsu.nome)
+		else:
+			var raw_vp: VisualProfile = hatsu.obter_visual_profile()
+			var vp: VisualProfile = PlayerData.aura_visual_profile.blend_with_hatsu(raw_vp) if PlayerData.aura_visual_profile != null else raw_vp
+			HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
+			var shake_amt: float = 0.42 if hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO else 0.32
+			HitStopManager.aplicar_screen_shake(shake_amt)
+			HitStopManager.aplicar_hitstop(HitStopManager.HitIntensity.HATSU, 0.12)
 
 	# Executar habilidade por Objetivo & Categoria
 	_executar_por_objetivo(hatsu, eficiencia)
@@ -649,6 +684,23 @@ func usar_hatsu(slot_index: int) -> bool:
 	print("OBJETIVO: ", hatsu.objetivo, " | EFICIÊNCIA: ", int(eficiencia * 100), "% | ARQUÉTIPO: ", HatsuData.obter_nome_arquetipo(hatsu.arquetipo))
 	print("=================================")
 	return true
+
+
+
+
+func _aplicar_feel_impacto_hatsu(enemy_sys: Node, dano: int, direcao: Vector2, forca: float, hatsu: HatsuData = null) -> void:
+	if enemy_sys == null:
+		return
+	if enemy_sys.has_method("take_damage"):
+		enemy_sys.take_damage(dano, direcao, forca, owner_body)
+	var intens = HitStopManager.HitIntensity.HATSU
+	if hatsu != null and hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO:
+		HitStopManager.aplicar_screen_shake(0.55)
+	else:
+		HitStopManager.aplicar_screen_shake(0.38)
+	HitStopManager.aplicar_hitstop(intens)
+	if EventBus != null and EventBus.has_method("emit_camera_shake"):
+		EventBus.emit_camera_shake(0.35, 0.18)
 
 
 func _aplicar_efeitos_juramentos(hatsu: HatsuData) -> void:
@@ -875,7 +927,7 @@ func _aplicar_dano_area_imediato(hatsu: HatsuData, dano_val: int, raio_val: floa
 				var enemy_sys = e.get_node_or_null("EnemySystem")
 				if enemy_sys != null and enemy_sys.has_method("take_damage"):
 					var dir: Vector2 = (e.global_position - owner_body.global_position).normalized()
-					enemy_sys.take_damage(dano_val, dir, 200.0, owner_body)
+					_aplicar_feel_impacto_hatsu(enemy_sys, dano_val, dir, 200.0, hatsu)
 					print("[Hatsu Dano Área] Atingiu ", e.name, " com Dano: ", dano_val)
 					_processar_hit_mastery(hatsu, dano_val, enemy_sys)
 
@@ -890,7 +942,7 @@ func _aplicar_dano_toque_imediato(hatsu: HatsuData, dano_val: int, dir_atk: Vect
 			if dist <= alcance_val:
 				var enemy_sys = e.get_node_or_null("EnemySystem")
 				if enemy_sys != null and enemy_sys.has_method("take_damage"):
-					enemy_sys.take_damage(dano_val, dir_atk, 220.0, owner_body)
+					_aplicar_feel_impacto_hatsu(enemy_sys, dano_val, dir_atk, 220.0, hatsu)
 					print("[Hatsu Golpe Toque] Atingiu ", e.name, " com Dano: ", dano_val)
 					_processar_hit_mastery(hatsu, dano_val, enemy_sys)
 
@@ -1348,7 +1400,7 @@ func _executar_controle(hatsu: HatsuData, eficiencia: float) -> void:
 			if enemy_sys != null:
 				var dano_hatsu: int = int(_calcular_dano_hatsu(hatsu, eficiencia, enemy) * 0.5)
 				var dir: Vector2 = (enemy.global_position - owner_body.global_position).normalized()
-				enemy_sys.take_damage(dano_hatsu, dir, 220.0, owner_body)
+				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, dir, 220.0, hatsu)
 				print("[Hatsu Controle] Stun/Paralisia em ", enemy.name)
 	)
 
@@ -1503,7 +1555,7 @@ func _criar_golpe_remoto_emissao(hatsu: HatsuData, eficiencia: float) -> void:
 		var dano: int = _calcular_dano_hatsu(hatsu, eficiencia, alvo_proximo)
 		var enemy_sys = alvo_proximo.get_node_or_null("EnemySystem")
 		if enemy_sys != null:
-			enemy_sys.take_damage(dano, dir, 250.0, owner_body)
+			_aplicar_feel_impacto_hatsu(enemy_sys, dano, dir, 250.0, hatsu)
 			print("[Soco Remoto] Impacto sob ", alvo_proximo.name, " Dano: ", dano)
 
 
@@ -1552,7 +1604,7 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 			var enemy_sys = enemy.get_node_or_null("EnemySystem")
 			if enemy_sys != null:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
-				enemy_sys.take_damage(dano_hatsu, direcao, 120.0, owner_body)
+				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, 120.0, hatsu)
 				if is_instance_valid(area):
 					HatsuVisual.spawn_impact_effect(area.global_position, vp, owner_body.get_parent())
 					area.queue_free()
@@ -1603,7 +1655,7 @@ func _criar_explosao_area(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 			if enemy_sys != null:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
 				var dir: Vector2 = (enemy.global_position - owner_body.global_position).normalized()
-				enemy_sys.take_damage(dano_hatsu, dir, 150.0, owner_body)
+				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, dir, 150.0, hatsu)
 	)
 
 	var timer := owner_body.get_tree().create_timer(0.2)
@@ -1646,7 +1698,7 @@ func _criar_golpe_direto(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 			var enemy_sys = enemy.get_node_or_null("EnemySystem")
 			if enemy_sys != null:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
-				enemy_sys.take_damage(dano_hatsu, direcao, 200.0, owner_body)
+				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, 200.0, hatsu)
 				HatsuVisual.spawn_impact_effect(enemy.global_position, vp, owner_body.get_parent())
 	)
 

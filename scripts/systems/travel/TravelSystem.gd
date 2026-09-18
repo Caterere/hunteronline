@@ -159,9 +159,54 @@ func execute_travel(from_region: Variant, to_region: Variant, _tree: SceneTree =
 # PERSISTÊNCIA SERIALIZÁVEL
 # ============================================================
 
+
+
+# ============================================================
+# SKINS DE VIAGEM (B12) — cosmético only
+# ============================================================
+
+signal skin_unlocked(skin_id: String)
+signal active_skin_changed(skin_id: String)
+
+var unlocked_skins: Array[String] = ["default"]
+var active_skin: String = "default"
+
+
+func unlock_skin(skin_id: String) -> bool:
+	skin_id = skin_id.strip_edges()
+	if skin_id.is_empty():
+		return false
+	if not unlocked_skins.has(skin_id):
+		unlocked_skins.append(skin_id)
+		skin_unlocked.emit(skin_id)
+		print("[TravelSystem] 🎨 Skin de viagem desbloqueada: '%s'" % skin_id)
+	return true
+
+
+func has_skin(skin_id: String) -> bool:
+	return unlocked_skins.has(skin_id)
+
+
+func set_active_skin(skin_id: String) -> bool:
+	if not has_skin(skin_id):
+		return false
+	active_skin = skin_id
+	active_skin_changed.emit(skin_id)
+	return true
+
+
+func get_active_skin() -> String:
+	return active_skin
+
+
+func list_skins() -> Array:
+	return unlocked_skins.duplicate()
+
 func serializar() -> Dictionary:
 	return {
-		"unlocked_routes": unlocked_routes.duplicate()
+		"unlocked_routes": unlocked_routes.duplicate(),
+		"unlocked_skins": unlocked_skins.duplicate(),
+		"active_skin": active_skin,
 	}
 
 
@@ -169,3 +214,11 @@ func deserializar(data: Dictionary) -> void:
 	unlocked_routes.clear()
 	for r in data.get("unlocked_routes", []):
 		unlocked_routes.append(str(r))
+	unlocked_skins.clear()
+	unlocked_skins.append("default")
+	for s in data.get("unlocked_skins", []):
+		var sid := str(s)
+		if not unlocked_skins.has(sid):
+			unlocked_skins.append(sid)
+	var ask := str(data.get("active_skin", "default"))
+	active_skin = ask if unlocked_skins.has(ask) else "default"

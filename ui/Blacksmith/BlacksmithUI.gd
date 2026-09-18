@@ -1,6 +1,8 @@
 class_name BlacksmithUI
 extends CanvasLayer
 
+const NenStoneSystemScript = preload("res://scripts/systems/equipment/NenStoneSystem.gd")
+
 const EquipmentCatalogScript = preload("res://resource/item/EquipmentCatalog.gd")
 
 var panel_main: PanelContainer
@@ -142,8 +144,19 @@ func _preencher_upgrade(container: Control) -> void:
 					_atualizar_ui()
 			)
 		else:
-			btn.text = "%s +10 (MÁXIMO)" % EquipmentCatalogScript.obter_nome(id_str)
-			btn.disabled = true
+			var pedra := NenStoneSystemScript.pedra_equipada(id_str)
+			if pedra.is_empty():
+				btn.text = "%s +10 — Encaixar Pedra Nen" % EquipmentCatalogScript.obter_nome(id_str)
+				btn.pressed.connect(func(): _mostrar_menu_pedras(id_str))
+			else:
+				var meta := NenStoneSystemScript.obter_meta(pedra)
+				btn.text = "%s +10 [%s]" % [EquipmentCatalogScript.obter_nome(id_str), str(meta.get("nome", pedra))]
+				btn.pressed.connect(func():
+					var rem := NenStoneSystemScript.remover(id_str)
+					if bool(rem.get("ok", false)) and EventBus != null:
+						EventBus.emit_toast("Pedra removida.", Color(0.8, 0.9, 1.0))
+					_atualizar_ui()
+				)
 
 		btn.add_theme_font_size_override("font_size", 5)
 		container.add_child(btn)
@@ -153,6 +166,29 @@ func _preencher_upgrade(container: Control) -> void:
 		lbl.text = "Nenhum equipamento para melhorar. Craft ou treine com mestres."
 		lbl.add_theme_font_size_override("font_size", 5)
 		container.add_child(lbl)
+
+
+func _mostrar_menu_pedras(item_id: String) -> void:
+	for stone in NenStoneSystemScript.listar_pedras():
+		var sid := str(stone.get("id", ""))
+		if sid.is_empty():
+			continue
+		var sub := Button.new()
+		sub.text = "Encaixar %s" % str(stone.get("nome", sid))
+		sub.add_theme_font_size_override("font_size", 4)
+		sub.pressed.connect(func():
+			var res := NenStoneSystemScript.encaixar(item_id, sid)
+			if bool(res.get("ok", false)):
+				if EventBus != null:
+					EventBus.emit_toast("Pedra encaixada!", Color(0.6, 0.85, 1.0))
+				if SaveManager != null:
+					SaveManager.salvar_jogo()
+			elif EventBus != null:
+				EventBus.emit_toast("Forja: %s" % str(res.get("reason", "falhou")), Color(1.0, 0.45, 0.35))
+			_atualizar_ui()
+		)
+		vbox_content.add_child(sub)
+
 
 func _preencher_crafting(container: Control) -> void:
 	for info in EquipmentCatalogScript.listar_crafts():

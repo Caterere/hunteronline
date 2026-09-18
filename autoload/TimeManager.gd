@@ -141,3 +141,7 @@ func obter_hora() -> int:
 func obter_fase() -> int:
 	return current_phase
 
+
+
+func obter_dia() -> int:
+	return current_day

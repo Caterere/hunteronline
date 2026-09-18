@@ -1465,8 +1465,13 @@ func atualizar_exibicao() -> void:
 	_localizar_skill_tree()
 	_atualizar_badge_pontos()
 	_atualizar_inspector()
+	_atualizar_estado_bloqueio()
 	if map_viewport != null:
 		map_viewport.queue_redraw()
+	# Tip de primeira abertura após despertar Nen
+	if PlayerData != null and PlayerData.despertou_nen:
+		if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
+			TutorialManager.disparar_tutorial_contextual("nen_arvore")
 
 
 func _sincronizar_node_buttons() -> void:

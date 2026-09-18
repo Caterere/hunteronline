@@ -1,0 +1,45 @@
+{
+  "character": {
+    "id": "8937fc48-91f8-44aa-a968-d9c096f5966a",
+    "name": "Idle",
+    "prompt": "traveling hunter apprentice with brown travel cloak, small backpack, short messy brown hair, leather boots, Padokia road traveler. NEW identity different from reference. retro 16-bit 48x48 rpg sprite, tiny low detail character, chibi 2.5 heads, 20 pixels tall character centered inside 48x48 transparent frame, simple chunky shapes, DOT EYES 1x2 no white sclera, no mouth, no nose, flat shading, basic outline, 2 colors per material, game sprite",
+    "size": {
+      "width": 48,
+      "height": 48
+    },
+    "directions": 8,
+    "view": "low top-down"
+  },
+  "spritesheet": {
+    "path": "npc_calibration_viajante-Idle.png",
+    "cell_size": {
+      "width": 48,
+      "height": 48
+    },
+    "sheet_size": {
+      "width": 384,
+      "height": 48
+    },
+    "columns": 8,
+    "pivot": "cell-center",
+    "rows": [
+      {
+        "row": 0,
+        "type": "rotations",
+        "frame_count": 8,
+        "directions": [
+          "south",
+          "south-east",
+          "east",
+          "north-east",
+          "north",
+          "north-west",
+          "west",
+          "south-west"
+        ]
+      }
+    ]
+  },
+  "export_version": "1.0",
+  "export_date": "2026-09-10T16:21:26.054312+00:00"
+}

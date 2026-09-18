@@ -215,10 +215,10 @@ func _test_arena_density() -> void:
 	_ok(wing != null and wing.position.x >= 900.0, "Wing alinhado ao dojo (x>=900)")
 
 	var fillers := 0
-	for n in ["LutadorAmbient_A", "LutadorAmbient_B", "LutadorAmbient_C", "LutadorAmbient_D"]:
+	for n in ["LutadorAmbient_A", "LutadorAmbient_B", "LutadorAmbient_C", "LutadorAmbient_D", "LutadorAmbient_G", "LutadorAmbient_H"]:
 		if mapa.get_node_or_null(n) != null:
 			fillers += 1
-	_ok(fillers >= 4, "4 lutadores ambient (%d)" % fillers)
+	_ok(fillers >= 6, "6+ lutadores ambient (%d)" % fillers)
 
 	var placas := 0
 	for n in ["PlacaAndar1", "PlacaAndar50", "PlacaAndar100", "PlacaAndar190", "PlacaAndar200"]:
@@ -237,6 +237,19 @@ func _test_arena_density() -> void:
 		or mapa.get_node_or_null("TorneioAndaresTrigger") != null,
 		"Tower UI ou trigger de torneio presente"
 	)
+
+	var specs_ok := 0
+	for n in ["LutadorTreinoA", "LutadorTreinoB", "ArbitroRingue", "MedicoArena", "ApostadorNervoso", "FanHisoka"]:
+		if mapa.get_node_or_null(n) != null:
+			specs_ok += 1
+	_ok(specs_ok >= 6, "6 espectadores/staff ambient (%d)" % specs_ok)
+	_ok(mapa.get_node_or_null("PropsEstruturaArena") != null, "Props estrutura Arena")
+	_ok(mapa.get_node_or_null("PropsEstruturaArena/PosteTreino_Dojo") != null, "Poste treino dojo")
+
+	var recep = mapa.get_node_or_null("Recepcionista")
+	_ok(recep != null and "Wing" in str(recep.fala_padrao), "Recepcionista aponta Wing/próximo passo")
+	var zushi = mapa.get_node_or_null("Zushi")
+	_ok(zushi != null and "Wing" in str(zushi.fala_padrao), "Zushi aponta Wing")
 
 	var marcos = mapa.get("_marcos_notificados")
 	_ok(marcos != null and typeof(marcos) == TYPE_DICTIONARY, "_marcos_notificados inicializado")

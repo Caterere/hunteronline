@@ -1,6 +1,6 @@
 extends State
 
-@export var dodge_speed: float = 350.0
+@export var dodge_speed: float = 270.0
 @export var dodge_duration: float = 0.25
 
 var dodge_direction: Vector2 = Vector2.ZERO
