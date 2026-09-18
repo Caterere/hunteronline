@@ -20,6 +20,25 @@ enum Kind {
 }
 
 
+static func telegraph_cast(caster: Node2D, hatsu: HatsuData, cast_time: float = 0.35) -> void:
+	if caster == null or not is_instance_valid(caster):
+		return
+	var parent: Node = caster.get_parent() if caster.get_parent() != null else caster
+	var cor: Color = Color(0.95, 0.85, 0.35)
+	var raio: float = 46.0
+	if hatsu != null:
+		if NenAffinityData != null:
+			cor = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
+		raio = clampf(28.0 + float(hatsu.alcance) * 0.08, 36.0, 72.0)
+	_spawn_cast_ring(parent, caster.global_position, raio, cor, maxf(0.12, cast_time))
+	var bus = _event_bus()
+	if bus != null and bus.has_method("emit_camera_shake"):
+		bus.emit_camera_shake(0.18, 0.12)
+	var audio = _audio_manager()
+	if audio != null and audio.has_method("tocar_sfx_tipo"):
+		audio.tocar_sfx_tipo("hatsu_cast", 0.92)
+
+
 static func play(kind: Kind, caster: Node2D, parent: Node = null, subtitle: String = "") -> void:
 	if caster == null or not is_instance_valid(caster):
 		return

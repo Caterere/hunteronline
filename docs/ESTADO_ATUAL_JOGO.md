@@ -28,8 +28,9 @@
 - [x] Vila Padokia +4 NPCs vivos + rumores úteis (Gyo/Zetsu/En/SP)
 - [x] **ContentDirector** agora materializa NPCs/inimigos/encontros (antes só dados+print)
 - [x] Toasts do Exame com direção GPS / próximo passo concreto
-- [ ] Feel Hatsu em combate (aguardando respostas do Luiz)
-- [ ] Densidade saga Exame/Kukuroo/Arena (próximo bloco)
+- [x] Feel Hatsu: canalização (`obter_tempo_conjuracao_final`) + telegraph + hitstop/shake no impacto
+- [x] Gate narrativo: toast GI→Biscuit + tip `hatsu_desbloqueio` ao liberar Slot 1
+- [ ] Densidade saga Kukuroo/Arena (próximo)
 - [ ] Polish raid solo-friendly (D, sem priorizar LAN)
 
 ---
