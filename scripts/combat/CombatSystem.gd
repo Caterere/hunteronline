@@ -215,7 +215,7 @@ func tentar_ataque_pesado(direcao: Vector2) -> bool:
 	if AudioManager != null:
 		AudioManager.tocar_punch()
 
-	CombatImpactEffect.spawn_swing_arc(owner_body, owner_body.global_position, ultima_direcao, 42.0, Color(1.0, 0.85, 0.25), true)
+	CombatImpactEffect.spawn_swing_arc(owner_body, owner_body.global_position, ultima_direcao, 42.0, Color(1.0, 0.9, 0.55), true)
 
 	_disparar_hitbox_ataque(ultima_direcao)
 	_enviar_ataque_rede_se_cliente(true)
@@ -435,7 +435,8 @@ func _on_attack_hit(
 		if is_heavy_attack:
 			EventBus.emit_hitstop(0.18)
 			EventBus.emit_directional_shake(0.65, 0.35, ultima_direcao)
-			CombatImpactEffect.spawn_blunt_impact(enemy, target_pos, 1.8, Color(1.0, 0.85, 0.2))
+			# Golpe carregado: slash forte — sem anel/bola de impacto blunt
+			CombatImpactEffect.spawn_slash(enemy, target_pos, ultima_direcao, Color(1.0, 0.9, 0.45))
 			CombatImpactEffect.spawn_dust_kickup(enemy, target_pos, ultima_direcao * 90.0)
 		elif is_crit or combo_step == 2:
 			EventBus.emit_hitstop(0.12)
@@ -659,8 +660,7 @@ func tentar_esquivar(
 	if AudioManager != null:
 		AudioManager.tocar_dodge()
 
-	if owner_body != null:
-		CombatImpactEffect.spawn_dust_kickup(owner_body, owner_body.global_position, direcao_esquiva * 120.0)
+	# Rastro residual fica a cargo do Player (_atualizar_dash_trail)
 
 	if hatsu_system != null and hatsu_system.has_method("registrar_esquiva_perfeita"):
 		hatsu_system.registrar_esquiva_perfeita()
