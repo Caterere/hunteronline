@@ -236,6 +236,34 @@ func _densificar_zonas_exame() -> void:
 	# Mantém gancho local para expansões específicas do arco 1.
 	if get_node_or_null("PlacaDistritoTunel") == null:
 		push_warning("[ExameMaratonaMap] SagaDistrictKit não aplicou distritos — verifique class_name.")
+	_popular_sensores_nen_exame()
+
+
+func _popular_sensores_nen_exame() -> void:
+	# Pista sempre legível no início — reforça que Gyo existe antes do despertar formal.
+	var marca = NenSensorFactory.criar_gyo(
+		self, "GyoPistaMarcaSabotador", Vector2(420, -20),
+		&"exame_marca_sabotador", "Marca de Sabotagem no Chão",
+		"Riscos no piso indicam que alguém derrubou candidatos à frente. Com Gyo, a aura do culpado ainda brilha.",
+		"Manipulação", 1, Color(0.9, 0.45, 0.35, 0.9)
+	)
+	if marca != null:
+		marca.requer_gyo = false
+		marca.nivel_gyo_minimo = 0
+
+	if PlayerData != null and PlayerData.despertou_nen:
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaPortaoChegada", Vector2(5600, -20),
+			&"exame_portao_chegada", "Pressão no Portão Final",
+			"Netero deixou uma camada de aura no portão — só quem dominou Gyo percebe o aviso silencioso.",
+			"Emissão", 2, Color(0.55, 0.85, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaFlorestaGourmet", Vector2(4100, -20),
+			&"exame_gourmet_rastro", "Rastro de Caça Gourmet",
+			"Fragmentos de aura de Menchi e Buhara marcam onde os javalis foram domados.",
+			"Intensificação", 1, Color(1.0, 0.65, 0.25, 0.9)
+		)
 
 
 ## NPCs/inimigos do .tscn estavam em Y extremos (-300..-900) fora do corredor walkable (Y≈0).

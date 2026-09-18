@@ -419,6 +419,18 @@ func _instanciar_sensores_nen_floresta() -> void:
 			"Um selo rudimentar de Nen foi gravado na pedra musgosa. Exige foco de Gyo para ler o padrão.",
 			"Conjuração", 2, Color(0.55, 0.7, 1.0, 0.9)
 		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoClueCogumeloAura", Vector2(320, 420),
+			&"floresta_cogumelo_aura", "Cogumelos Luminescentes",
+			"Esporos carregados de Nen reagem ao Gyo — indicam um ninho de feras a leste.",
+			"Emissão", 1, Color(0.65, 1.0, 0.45, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoClueTroncoQuebrado", Vector2(520, 260),
+			&"floresta_tronco_quebrado", "Tronco Quebrado por Ko",
+			"Marcas de impacto concentrado — um Hunter usou Ko para abrir caminho às ruínas.",
+			"Intensificação", 1, Color(0.9, 0.5, 0.3, 0.9)
+		)
 
 	# Segunda rocha KO bloqueando baú/atalho oeste
 	NenSensorFactory.criar_ko(

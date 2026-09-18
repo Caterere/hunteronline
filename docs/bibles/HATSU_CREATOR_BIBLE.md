@@ -32,7 +32,7 @@ Esta Bible documenta a arquitetura do **Hatsu Creator**, o pipeline unificado de
 | **Juramentos e Condições (Vows)** | `IMPLEMENTED` | `HatsuData.condicoes` | Multiplicadores exponenciais de dano e área balanceados por restrições severas. |
 | **Execução Unificada (Player / Inimigos)** | `IMPLEMENTED` | `CombatEngine.gd` | Inimigos e jogadores processam habilidades exatamente pela mesma engine. |
 | **Shader & Efeitos Visuais Personalizados**| `PARTIAL` | `ui/hatsu/HatsuCreatorUI.gd` | Cores e partículas ativas; editor de curva de ruído em polimento estético. |
-| **Contratos de Nen Entre Caçadores** | `PLANNED` | `NenContractManager` | Vínculos de juramento cooperativos entre membros de guilda. |
+| **Contratos de Nen Entre Caçadores** | `IMPLEMENTED` | `NenContractManager` | Vínculos de juramento cooperativos entre membros de guilda. |
 | **Slots Ilimitados de Criação Concorrente** | `DEFERRED` | N/A | Descartado; limite de 4 slots ativos preserva o foco tático e o equilíbrio do jogo. |
 | **Feitiços Mágicos Genéricos em Armas** | `LEGACY` | Antigo `WeaponSkillData` | Substituído integralmente pelo modelo canônico de Hatsu. |
 

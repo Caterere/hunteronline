@@ -247,6 +247,11 @@ func _iniciar_raid_vertical() -> void:
 	if not RaidCatalogScript.has_raid("ruins_zaban_vertical"):
 		return
 	_raid_catalog_entry = RaidCatalogScript.get_raid("ruins_zaban_vertical")
+	# Preferir RaidInstance vinda do Duty Finder (B10) se já estiver ativa
+	if Engine.has_meta("active_raid_instance"):
+		var existing = Engine.get_meta("active_raid_instance")
+		if existing != null and is_instance_valid(existing) and existing is RaidInstance:
+			raid_instance = existing
 	var members: Array[int] = []
 	if PartyManager != null and PartyManager.has_method("obter_membros"):
 		for m in PartyManager.obter_membros():
@@ -258,20 +263,22 @@ func _iniciar_raid_vertical() -> void:
 		members = [local_id]
 	if PartyManager != null and PartyManager.has_method("entrar_modo_raid"):
 		PartyManager.entrar_modo_raid()
-	raid_instance = RaidInstanceScript.new()
-	if not raid_instance.start_raid("ruins_zaban_vertical", members, _raid_catalog_entry):
-		push_warning("[DungeonRuinasZaban] Falha ao iniciar raid vertical")
-		raid_instance = null
-		if PartyManager != null and PartyManager.has_method("sair_modo_raid"):
-			PartyManager.sair_modo_raid()
-		return
+	if raid_instance == null:
+		raid_instance = RaidInstanceScript.new()
+		if not raid_instance.start_raid("ruins_zaban_vertical", members, _raid_catalog_entry):
+			push_warning("[DungeonRuinasZaban] Falha ao iniciar raid vertical")
+			raid_instance = null
+			if PartyManager != null and PartyManager.has_method("sair_modo_raid"):
+				PartyManager.sair_modo_raid()
+			return
+		Engine.set_meta("active_raid_instance", raid_instance)
 	if raid_instance.has_method("desbloquear_checkpoint"):
 		raid_instance.desbloquear_checkpoint("entrada")
-	if raid_instance.has_signal("phase_changed"):
+	if raid_instance.has_signal("phase_changed") and not raid_instance.phase_changed.is_connected(_on_raid_phase_changed):
 		raid_instance.phase_changed.connect(_on_raid_phase_changed)
-	if raid_instance.has_signal("enrage_started"):
+	if raid_instance.has_signal("enrage_started") and not raid_instance.enrage_started.is_connected(_on_raid_enrage):
 		raid_instance.enrage_started.connect(_on_raid_enrage)
-	if raid_instance.has_signal("raid_wiped"):
+	if raid_instance.has_signal("raid_wiped") and not raid_instance.raid_wiped.is_connected(_on_raid_wiped):
 		raid_instance.raid_wiped.connect(_on_raid_wiped)
 	if EventBus != null and EventBus.has_signal("player_died"):
 		if not EventBus.player_died.is_connected(_on_raid_player_died):
@@ -279,7 +286,6 @@ func _iniciar_raid_vertical() -> void:
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
 		hud.exibir_notificacao("⚔️ Raid: %s — 3 fases · wipe → checkpoint" % str(_raid_catalog_entry.get("title", "Ruínas de Zaban")))
-
 
 func _process(delta: float) -> void:
 	if _wipe_cooldown > 0.0:

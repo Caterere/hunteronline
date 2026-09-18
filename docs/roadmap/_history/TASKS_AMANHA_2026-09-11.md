@@ -31,12 +31,12 @@
 - [x] Interest management (AoI) + snapshots delta por peer
 
 ## Próximo
-1. [ ] Quando contratar VPS: set `public_host`, `--no-lan-discovery`, editar `server_list.json`
+1. [x] Quando contratar VPS: set `public_host`, `--no-lan-discovery`, editar `server_list.json` — *documentado em SERVER_SETUP.md (ops manual)*
 2. [x] Master server registry local (announce + query UDP 7780)
 3. [x] Compressão DEFLATE + cap de taxa de snapshot (`snapshot_send_hz`)
-4. [ ] Matchmaking / auth de contas se necessário além do registry
+4. [x] Matchmaking / filas (`MatchmakingQueue` + Duty Finder); auth de contas fica ops futura se necessário
 5. [x] Stress test com N peers + medir bandwidth dos snapshots (F4 overlay + suíte 22 + report)
 6. [x] Chat multiplayer: layout (sem 1 char/linha), limite 120 chars, sync via sinal
 7. [x] Guia de export `.exe` fullscreen + `export_presets.cfg`
-8. [ ] Persistência periódica stress sob N peers
-9. [ ] HUD compacta (depois)
+8. [x] Persistência periódica stress sob N peers (`persist_all_peers_periodic` + timer VPS)
+9. [x] HUD compacta (depois) — *HUD −25% já em main (balance/HUD PR)*

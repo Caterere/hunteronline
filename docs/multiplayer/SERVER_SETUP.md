@@ -132,6 +132,13 @@ New-NetFirewallRule -DisplayName "Hunter MMORPG Discovery (Broadcast UDP)" -Dire
    - Overlay **F4** mostra `SNAP: Hz | KB/s | ratio | pkt/s`.
    - Relatório headless: `res://scratch/test_snapshot_bandwidth_stress_suite.tscn`.
 5. **Master registry (opcional):** UDP `7780` — `./iniciar_servidor_lan.sh -- --master-registry 7780` e game servers com `--master-announce --master-host <ip>`.
+6. **Checklist VPS produção:**
+   - [ ] Binário Godot 4.6 headless no VPS (`HunterServer.tscn`)
+   - [ ] `config/server_config.json`: `public_host`, `enable_lan_discovery: false`, `save_interval_sec` (60+)
+   - [ ] Firewall: UDP **7777** (jogo) aberto; **7780** só se usar registry público
+   - [ ] `user://server_saves/` com backup off-site periódico
+   - [ ] Monitor TPS/F4 + logs de autosave `[NetworkManager] 💾 Autosave servidor`
+   - [ ] Clientes: `server_list.json` com IP/DNS do VPS + `GAME_VERSION` compatível
 
 ---
 
@@ -168,6 +175,7 @@ user://server_saves/
 ```
 
 - Quando o jogador se desconecta voluntariamente ou perde conexão, o servidor grava imediatamente o estado atual no disco.
+- **`persist_all_peers_periodic`:** a cada `save_interval_sec` (padrão 60s), o `NetworkManager` no modo dedicado grava todos os peers da sessão via `ServerStorageManager` (posição incluída quando `ServerWorldCoordinator` está ativo).
 - Ao reconectar, o jogador retoma seu HP, aura, inventário e posição exata onde estava no mapa.
 
 ---

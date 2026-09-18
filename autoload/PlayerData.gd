@@ -1386,9 +1386,14 @@ func desbloquear_conhecimento(conhecimento_id: String, categoria: String = "") -
 	if not conhecimentos_desbloqueados.has(conhecimento_id):
 		conhecimentos_desbloqueados.append(conhecimento_id)
 		print("[PlayerData] 📖 NOVO CONHECIMENTO DESBLOQUEADO: ", conhecimento_id, " (Cat: ", categoria, ")")
+		var titulo_exibicao := conhecimento_id.replace("_", " ").capitalize()
+		if TutorialManager != null and TutorialManager.has_method("obter_artigo"):
+			var art: Dictionary = TutorialManager.obter_artigo(conhecimento_id)
+			if not art.is_empty() and art.has("titulo"):
+				titulo_exibicao = str(art.get("titulo", titulo_exibicao))
 		if EventBus != null:
 			EventBus.tutorial_knowledge_unlocked.emit(conhecimento_id, categoria)
-			EventBus.emit_toast("📖 Novo Conhecimento: " + conhecimento_id.replace("_", " ").capitalize(), Color(0.4, 0.9, 1.0))
+			EventBus.emit_toast("📖 Novo Conhecimento: " + titulo_exibicao, Color(0.4, 0.9, 1.0))
 		return true
 	return false
 
