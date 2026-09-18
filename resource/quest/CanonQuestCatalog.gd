@@ -1234,154 +1234,154 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				27:
 					q.quest_name = "Formigas Chimera 27/48: O Encontro nas Escadarias Centrais"
-					q.description = "Depare-se com o titã Menthuthuyoupi transformando seu corpo em carapaça bélica no topo da escada."
+					q.description = "ORDEM: Fale com Shoot na escadaria. Youpi à frente — GPS um passo. Sem rush."
 					q.reward_xp = 200000
 					q.reward_gold = 3600000
 					q.objectives = [_criar_obj_visit(&"shoot", "Shoot")]
 
 				28:
 					q.quest_name = "Formigas Chimera 28/48: A Fumaça Deep Purple de Morel"
-					q.description = "Morel cria uma prisão de fumaça impenetrável para isolar o líder espiritual Shaiapouf."
+					q.description = "ORDEM: Fale com Morel — Deep Purple isola Pouf. Depois Knuckle (Youpi)."
 					q.reward_xp = 205000
 					q.reward_gold = 3700000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
 
 				29:
 					q.quest_name = "Formigas Chimera 29/48: O Ataque Frenético de Shoot e Knuckle"
-					q.description = "Shoot voa sobre sua gaiola e Knuckle ativa o A.P.R. desferindo o primeiro golpe em Youpi."
+					q.description = "ORDEM: Fale com Knuckle — A.P.R. no Youpi. Depois fúria / Killua (GPS)."
 					q.reward_xp = 210000
 					q.reward_gold = 3800000
 					q.objectives = [_criar_obj_visit(&"knuckle", "Knuckle")]
 
 				30:
 					q.quest_name = "Formigas Chimera 30/48: A Fúria Vulcânica de Youpi"
-					q.description = "Youpi aprende a canalizar sua cólera descontrolada em canhões de pura destruição explosiva."
+					q.description = "ORDEM: Fale com Knuckle — aguente a fúria. Depois Killua (Godspeed)."
 					q.reward_xp = 215000
 					q.reward_gold = 3900000
 					q.objectives = [_criar_obj_visit(&"knuckle", "Knuckle")]
 
 				31:
 					q.quest_name = "Formigas Chimera 31/48: A Intervenção do Relâmpago de Killua"
-					q.description = "Killua ativa Kanmuru (Godspeed) e paralisa Youpi no ar com uma sequência fulminante de raios!"
+					q.description = "ORDEM: Fale com Killua (Kanmuru). Depois derrote Youpi (GPS)."
 					q.reward_xp = 220000
 					q.reward_gold = 4000000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				32:
 					q.quest_name = "Formigas Chimera 32/48: A Derrota de Menthuthuyoupi"
-					q.description = "Neutralize o guerreiro supremo da Guarda Real Youpi no pátio dos escombros!"
+					q.description = "ORDEM: Derrote Youpi (GPS na escadaria). Espaço de combate. Depois Pouf."
 					q.reward_xp = 230000
 					q.reward_gold = 4200000
 					q.objectives = [_criar_obj_kill(&"youpi", 1)]
 
 				33:
 					q.quest_name = "Formigas Chimera 33/48: O Casulo Espiritual de Shaiapouf"
-					q.description = "Derrote os clones microscópicos do conspirador Shaiapouf que tentam assassinar Komugi!"
+					q.description = "ORDEM: Derrote Shaiapouf (GPS). Proteja Komugi. Depois Gon / Blythe."
 					q.reward_xp = 235000
 					q.reward_gold = 4400000
 					q.objectives = [_criar_obj_kill(&"shaiapouf", 1)]
 
 				34:
 					q.quest_name = "Formigas Chimera 34/48: A Sala de Operação do Dr. Blythe"
-					q.description = "Gon entra no quarto real e encontra Neferpitou chorando enquanto opera o corpo ferido de Komugi."
+					q.description = "ORDEM: Fale com Gon — Pitou opera Komugi. Espere. Sem atacar ainda."
 					q.reward_xp = 240000
 					q.reward_gold = 4600000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				35:
 					q.quest_name = "Formigas Chimera 35/48: A Espera Sombria de Gon"
-					q.description = "Gon senta-se de braços cruzados sob um fluxo de aura negra, dando a Pitou 1 hora para salvar a garota."
+					q.description = "ORDEM: Fale com Gon — aguarde a cirurgia. Depois Netero / tumba (GPS)."
 					q.reward_xp = 245000
 					q.reward_gold = 4800000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				36:
 					q.quest_name = "Formigas Chimera 36/48: O Voo de Netero e Meruem até a Tumba"
-					q.description = "Netero conduz o Rei Meruem de dirigível até a tumba desértica usada para testes de armas nucleares."
+					q.description = "ORDEM: Fale com Netero — tumba nuclear. Depois [G] Guanyin."
 					q.reward_xp = 250000
 					q.reward_gold = 5000000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				37:
 					q.quest_name = "Formigas Chimera 37/48: O Guanyin Bodhisattva de 100 Tipos"
-					q.description = "Testemunhe Netero invocando a estátua dourada e desferindo milhares de palmas na velocidade do som!"
+					q.description = "ORDEM: [G] Inspecione o Guanyin Bodhisattva. Depois fale com Netero (Mão Zero)."
 					q.reward_xp = 260000
 					q.reward_gold = 5200000
 					q.objectives = [_criar_obj_investigate(&"buda_guanyin_netero")]
 
 				38:
 					q.quest_name = "Formigas Chimera 38/48: A Mão Zero de Netero"
-					q.description = "Netero reúne toda a sua energia vital e dispara um raio estonteante de Nen pelas costas do Buda."
+					q.description = "ORDEM: Fale com Netero — Mão Zero. Depois [G] Rosa Pobre."
 					q.reward_xp = 270000
 					q.reward_gold = 5500000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				39:
 					q.quest_name = "Formigas Chimera 39/48: A Rosa Pobre (Poor Man's Rose)"
-					q.description = "Netero para seu coração com os dedos e detona a ogiva venenosa em miniatura sob a terra."
+					q.description = "ORDEM: [G] Inspecione a Rosa Pobre. Depois Gon / marcha até Pitou (GPS)."
 					q.reward_xp = 280000
 					q.reward_gold = 5800000
 					q.objectives = [_criar_obj_investigate(&"explosao_rosa_pobre")]
 
 				40:
 					q.quest_name = "Formigas Chimera 40/48: A Marcha Fúnebre até Peijin"
-					q.description = "Pitou encerra a cirurgia de Komugi e marcha ao lado de Gon até o local onde Kite foi mantido."
+					q.description = "ORDEM: Fale com Gon — marcha com Pitou. Depois a verdade sobre Kite."
 					q.reward_xp = 285000
 					q.reward_gold = 6000000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				41:
 					q.quest_name = "Formigas Chimera 41/48: A Verdade Irreparável sobre Kite"
-					q.description = "Pitou ativa suas marionetes e declara: 'A alma daquele homem já se foi... Eu terei que te matar agora'."
+					q.description = "ORDEM: Fale com Gon — Kite se foi. Depois juramento (Gon Adulto)."
 					q.reward_xp = 290000
 					q.reward_gold = 6200000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				42:
 					q.quest_name = "Formigas Chimera 42/48: O Juramento Supremo de Gon (Gon Adulto)"
-					q.description = "'Não me importo se este for o meu fim... Vou usar tudo o que um dia teria!'. O corpo de Gon transmuta-se em poder absoluto!"
+					q.description = "ORDEM: Fale com Gon — juramento. Depois derrote Neferpitou (GPS)."
 					q.reward_xp = 310000
 					q.reward_gold = 6500000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				43:
 					q.quest_name = "Formigas Chimera 43/48: O Jajanken da Aniquilação de Pitou"
-					q.description = "Derrote Neferpitou com impactos colossais de Jajanken que fazem a floresta inteira tremer!"
+					q.description = "ORDEM: Derrote Neferpitou (GPS). Espaço de combate. Depois Killua."
 					q.reward_xp = 330000
 					q.reward_gold = 7000000
 					q.objectives = [_criar_obj_kill(&"neferpitou", 1)]
 
 				44:
 					q.quest_name = "Formigas Chimera 44/48: A Chegada em Lágrimas de Killua"
-					q.description = "Killua chega ao campo de batalha devastado e encontra o corpo calcinado de Gon desmoronando."
+					q.description = "ORDEM: Fale com Killua no campo. Depois Meruem (En fotônico)."
 					q.reward_xp = 340000
 					q.reward_gold = 7200000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				45:
 					q.quest_name = "Formigas Chimera 45/48: O En Fotônico do Rei Ressuscitado"
-					q.description = "Meruem retorna ao palácio banhado em luz fotônica procurando a memória de seu amor no escuro."
+					q.description = "ORDEM: Fale com Meruem — En fotônico / memória. Depois Morel (sobreviventes)."
 					q.reward_xp = 350000
 					q.reward_gold = 7500000
 					q.objectives = [_criar_obj_visit(&"meruem", "Rei Meruem")]
 
 				46:
 					q.quest_name = "Formigas Chimera 46/48: A Redenção dos Sobreviventes"
-					q.description = "Welfin e as formigas que recuperaram memórias humanas encontram refúgio na cidade de Meteor City."
+					q.description = "ORDEM: Fale com Morel — sobreviventes. Depois última partida de Gungi."
 					q.reward_xp = 360000
 					q.reward_gold = 7800000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
 
 				47:
 					q.quest_name = "Formigas Chimera 47/48: A Última Partida de Gungi no Escuro"
-					q.description = "Testemunhe o abraço final de Meruem e Komugi enquanto a escuridão os acolhe em repouso eterno."
+					q.description = "ORDEM: Fale com Meruem — última partida. Depois evacuação (Morel)."
 					q.reward_xp = 380000
 					q.reward_gold = 8000000
 					q.objectives = [_criar_obj_visit(&"meruem", "Rei Meruem")]
 
 				48:
 					q.quest_name = "Formigas Chimera 48/48: A Evacuação Geral & O Coma de Gon"
-					q.description = "Conclua a evacuação do continente e transporte Gon em suporte vital crítico para a sede da Associação Hunter."
+					q.description = "ORDEM: Fale com Morel — evacue. Portal Associação abre. Sem rush no coma de Gon."
 					q.reward_xp = 400000
 					q.reward_gold = 9000000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]

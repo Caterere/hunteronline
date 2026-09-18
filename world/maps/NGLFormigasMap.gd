@@ -19,6 +19,7 @@ var _marcos_notificados: Dictionary = {
 	"fabrica": false,
 	"peijin": false,
 	"palacio": false,
+	"escadaria": false,
 	"tumba": false
 }
 
@@ -56,17 +57,21 @@ func _process(_delta: float) -> void:
 		_marcos_notificados["fabrica"] = true
 		_toast_zona(hud, "🏭 Fábrica D2 — [G] laboratório Gyro. Depois Rammot / ninho (GPS).")
 
-	elif px >= 1800 and px < 2600 and not _marcos_notificados["peijin"]:
+	elif px >= 1800 and px < 2500 and not _marcos_notificados["peijin"]:
 		_marcos_notificados["peijin"] = true
 		_toast_zona(hud, "🎖️ Base Peijin — Netero → Morel → Knuckle/Shoot. Um mentor de cada vez.")
 
-	elif px >= 2600 and px < 3600 and not _marcos_notificados["palacio"]:
+	elif px >= 2500 and px < 3100 and not _marcos_notificados["palacio"]:
 		_marcos_notificados["palacio"] = true
-		_toast_zona(hud, "🏛️ Palácio Peijin — [Z] fronteira Goruto · [G] portas Knov. Guarda Real à frente.")
+		_toast_zona(hud, "🏛️ Palácio Peijin — [Z] Goruto · [G] portas Knov. Hora Zero depois.")
 
-	elif px >= 3600 and not _marcos_notificados["tumba"]:
+	elif px >= 3100 and px < 3700 and not _marcos_notificados["escadaria"]:
+		_marcos_notificados["escadaria"] = true
+		_toast_zona(hud, "⚔️ Escadaria — Youpi → Pouf → Pitou. GPS um de cada vez. Sem rush.")
+
+	elif px >= 3700 and not _marcos_notificados["tumba"]:
 		_marcos_notificados["tumba"] = true
-		_toast_zona(hud, "🪦 Tumba — Meruem / Netero. Portal Associação só após as 48 etapas.")
+		_toast_zona(hud, "🪦 Tumba — [G] Guanyin → [G] Rosa Pobre → Meruem. Portal após etapa 48.")
 
 
 func _toast_zona(hud: Node, msg: String) -> void:
@@ -147,7 +152,7 @@ func _popular_npcs_arco6() -> void:
 		if "npc_name" in netero_n:
 			netero_n.npc_name = "Presidente Isaac Netero"
 		if "fala_padrao" in netero_n:
-			netero_n.fala_padrao = "ORDEM: Fale comigo → Morel → Knuckle/Shoot. Invasão só quando o GPS mandar. Sem rush."
+			netero_n.fala_padrao = "ORDEM: Early — Morel → Knuckle/Shoot. Late — [G] Guanyin na tumba → Rosa Pobre. Sem rush."
 
 	# 4. Morel Mackernasey
 	if get_node_or_null("Morel") == null:
@@ -161,7 +166,7 @@ func _popular_npcs_arco6() -> void:
 		if "npc_name" in morel_n:
 			morel_n.npc_name = "Morel Mackernasey"
 		if "fala_padrao" in morel_n:
-			morel_n.fala_padrao = "ORDEM: Prove resolução comigo → depois Knuckle e Shoot. Deep Purple na hora zero. Um de cada vez."
+			morel_n.fala_padrao = "ORDEM: Early — resolução → Knuckle/Shoot. Mid — Deep Purple isola Pouf. Late — evacuação (etapa 48)."
 
 	# 5. Knuckle Bine
 	if get_node_or_null("Knuckle") == null:
@@ -175,7 +180,7 @@ func _popular_npcs_arco6() -> void:
 		if "npc_name" in knuckle_n:
 			knuckle_n.npc_name = "Knuckle Bine"
 		if "fala_padrao" in knuckle_n:
-			knuckle_n.fala_padrao = "ORDEM: Fale comigo (A.P.R.) → Shoot. Sem recuar no GPS. Juros de aura — um passo."
+			knuckle_n.fala_padrao = "ORDEM: A.P.R. primeiro. Mid — golpe em Youpi (GPS). Não recuem. Um passo."
 
 	# 6. Shoot McMahon
 	if get_node_or_null("Shoot") == null:
@@ -189,9 +194,9 @@ func _popular_npcs_arco6() -> void:
 		if "npc_name" in shoot_n:
 			shoot_n.npc_name = "Shoot McMahon"
 		if "fala_padrao" in shoot_n:
-			shoot_n.fala_padrao = "ORDEM: Fale comigo (Hotel Rafflesia) → depois GPS (nascimento / Goruto). Sem pular."
+			shoot_n.fala_padrao = "ORDEM: Rafflesia early. Mid — escadaria / Youpi (GPS). Sem pular a Guarda Real."
 
-	# 7. Gon (reunião pré-invasão)
+	# 7. Gon (reunião + Pitou late)
 	if get_node_or_null("Gon") == null:
 		var scn_gon = load("res://entities/npc/gon/Gon.tscn")
 		var gon
@@ -208,9 +213,9 @@ func _popular_npcs_arco6() -> void:
 		if "npc_name" in gon_n:
 			gon_n.npc_name = "Gon Freecss"
 		if "fala_padrao" in gon_n:
-			gon_n.fala_padrao = "ORDEM: Reunião na porta do Knov quando o GPS pedir. Pitou depois. Sem rush sozinho."
+			gon_n.fala_padrao = "ORDEM: Early — reunião Knov. Late — espere Pitou (GPS) → juramento → derrote Pitou. Sem rush sozinho."
 
-	# 8. Rei Meruem (Aposentos / Gungi)
+	# 8. Rei Meruem (Aposentos / Gungi / final)
 	if get_node_or_null("MeruemReiNPC") == null:
 		var meruem = scn_npc.instantiate()
 		meruem.name = "MeruemReiNPC"
@@ -222,7 +227,7 @@ func _popular_npcs_arco6() -> void:
 		if "npc_name" in meruem_n:
 			meruem_n.npc_name = "Rei Meruem"
 		if "fala_padrao" in meruem_n:
-			meruem_n.fala_padrao = "ORDEM: Observe o Gungi (GPS). Não ataque o Rei fora da etapa. Portal Associação só após 48."
+			meruem_n.fala_padrao = "ORDEM: Gungi (GPS). Late — En fotônico → última partida. Não ataque fora da etapa. Portal após 48."
 
 
 func _configurar_inimigos() -> void:
@@ -270,8 +275,11 @@ func _spawn_fillers_combate_ngl() -> void:
 		{"name": "GuardaPeijin_B", "pos": Vector2(2700, 40), "id": &"guarda_peijin", "label": "Guarda de Peijin B", "mission": true, "etapa": 19},
 		{"name": "GuardaPeijin_C", "pos": Vector2(2850, -30), "id": &"guarda_peijin", "label": "Guarda de Peijin C", "mission": true, "etapa": 19},
 		{"name": "GuardaPeijin_D", "pos": Vector2(3000, 50), "id": &"guarda_peijin", "label": "Guarda de Peijin D", "mission": true, "etapa": 19},
+		{"name": "YoupiAmbient_A", "pos": Vector2(3180, 45), "id": &"guarda_peijin", "label": "Soldado da Escadaria", "mission": false, "etapa": -1},
+		{"name": "PoufScout_A", "pos": Vector2(3400, -40), "id": &"guarda_peijin", "label": "Clone-Vigia de Pouf", "mission": false, "etapa": -1},
 		{"name": "FormigaAmbient_A", "pos": Vector2(500, 50), "id": &"formiga_soldado", "label": "Patrulha da Fronteira", "mission": false, "etapa": -1},
-		{"name": "FormigaAmbient_B", "pos": Vector2(3200, -40), "id": &"guarda_peijin", "label": "Vigia do Palácio", "mission": false, "etapa": -1},
+		{"name": "FormigaAmbient_B", "pos": Vector2(3550, 40), "id": &"guarda_peijin", "label": "Vigia do Palácio Late", "mission": false, "etapa": -1},
+		{"name": "TumbaScout_A", "pos": Vector2(4000, -30), "id": &"guarda_peijin", "label": "Eco da Tumba", "mission": false, "etapa": -1},
 	]
 	for f in fillers:
 		if get_node_or_null(f["name"]) != null:
@@ -295,14 +303,57 @@ func _spawn_fillers_combate_ngl() -> void:
 					QuestSystem.registrar_spawn_posicao_missao(es.enemy_id, f["pos"], 6, es.quest_etapa, -1, null, es.enemy_name)
 		add_child(mob)
 
+	_garantir_chefes_guarda_real()
+
+
+func _garantir_chefes_guarda_real() -> void:
+	var scn_enemy = load("res://scripts/systems/EnemySystem/Enemy.tscn")
+	if scn_enemy == null:
+		return
+	var bosses := [
+		{"name": "YoupiInimigo", "pos": Vector2(3250, -20), "id": &"youpi", "label": "Menthuthuyoupi (Guarda Real)", "etapa": 32},
+		{"name": "ShaiapoufInimigo", "pos": Vector2(3450, -30), "id": &"shaiapouf", "label": "Shaiapouf (Guarda Real)", "etapa": 33},
+	]
+	for b in bosses:
+		if get_node_or_null(b["name"]) != null:
+			var existing = get_node_or_null(b["name"])
+			var es_ex = existing.get_node_or_null("EnemySystem") if existing != null else null
+			if es_ex != null:
+				es_ex.is_mission_enemy = true
+				es_ex.quest_arc = 6
+				es_ex.quest_etapa = int(b["etapa"])
+				es_ex.enemy_id = b["id"]
+				es_ex.enemy_name = b["label"]
+				if not es_ex.died.is_connected(QuestSystem.register_enemy_kill):
+					es_ex.died.connect(QuestSystem.register_enemy_kill)
+			continue
+		var mob = scn_enemy.instantiate()
+		mob.name = b["name"]
+		mob.position = b["pos"]
+		mob.add_to_group("enemy")
+		mob.add_to_group("enemies")
+		var es = mob.get_node_or_null("EnemySystem")
+		if es != null:
+			es.is_mission_enemy = true
+			es.quest_arc = 6
+			es.quest_etapa = int(b["etapa"])
+			es.enemy_id = b["id"]
+			es.enemy_name = b["label"]
+			if not es.died.is_connected(QuestSystem.register_enemy_kill):
+				es.died.connect(QuestSystem.register_enemy_kill)
+			if QuestSystem != null:
+				QuestSystem.registrar_spawn_posicao_missao(es.enemy_id, b["pos"], 6, es.quest_etapa, -1, null, es.enemy_name)
+		add_child(mob)
+
 
 func _densificar_ngl() -> void:
 	var placas := [
 		{"name": "PlacaNGLFronteira", "pos": Vector2(200, -90), "text": "📍 Fronteira — Kite → Formigas"},
 		{"name": "PlacaNGLFabrica", "pos": Vector2(1300, -100), "text": "📍 Fábrica D2 — [G] Gyro"},
 		{"name": "PlacaNGLPeijin", "pos": Vector2(2000, -110), "text": "📍 Peijin — Netero → Mentores"},
-		{"name": "PlacaNGLPalacio", "pos": Vector2(2900, -100), "text": "📍 Palácio — [Z] Goruto · Knov"},
-		{"name": "PlacaNGLTumba", "pos": Vector2(3800, -110), "text": "📍 Tumba — Meruem → Associação"},
+		{"name": "PlacaNGLPalacio", "pos": Vector2(2750, -100), "text": "📍 Palácio — [Z] Goruto · Knov"},
+		{"name": "PlacaNGLEscadaria", "pos": Vector2(3250, -100), "text": "📍 Escadaria — Youpi → Pouf → Pitou"},
+		{"name": "PlacaNGLTumba", "pos": Vector2(3850, -110), "text": "📍 Tumba — Guanyin → Rosa → Associação"},
 	]
 	for p in placas:
 		if get_node_or_null(p["name"]) != null:
@@ -334,8 +385,11 @@ func _popular_walkers_ngl() -> void:
 		{"name": "SoldadoPeijinA", "pos": Vector2(1850, 40), "npc": "Soldado de Peijin", "fala": "Netero → Morel → Knuckle/Shoot. A.P.R. e Rafflesia antes da invasão. GPS um de cada vez.", "ids": ["npc_guarda_fronteira"], "r": 38.0},
 		{"name": "MedicoCampo", "pos": Vector2(2150, 50), "npc": "Médico de Campo", "fala": "Após o nascimento do Rei, Morel vai ao ninho. [Z] em Goruto quando o GPS pedir.", "ids": ["npc_viajante_scout"], "r": 36.0},
 		{"name": "InfiltradoGoruto", "pos": Vector2(2650, -50), "npc": "Infiltrado de Goruto", "fala": "ORDEM: [Z] Fronteira Goruto. Sem Zetsu = alerta. Depois guardas de Peijin (GPS).", "ids": ["npc_guarda_fronteira"], "r": 40.0},
-		{"name": "ObservadorPalacio", "pos": Vector2(3100, 40), "npc": "Observador do Palácio", "fala": "[G] Portas do Knov → Gungi com Meruem → Hora Zero. Sem rush na Guarda Real.", "ids": ["npc_viajante_scout"], "r": 38.0},
-		{"name": "EvacuacaoTumba", "pos": Vector2(3900, 40), "npc": "Oficial de Evacuação", "fala": "Portal Associação trancado até a etapa 48. Siga o GPS até Meruem / Netero.", "ids": ["npc_guarda_fronteira"], "r": 34.0},
+		{"name": "ObservadorPalacio", "pos": Vector2(2950, 40), "npc": "Observador do Palácio", "fala": "[G] Portas do Knov → Gungi → Hora Zero. Depois escadaria Youpi. Sem rush.", "ids": ["npc_viajante_scout"], "r": 38.0},
+		{"name": "SoldadoEscadaria", "pos": Vector2(3200, 50), "npc": "Soldado da Escadaria", "fala": "ORDEM: Youpi (GPS) → Pouf → Pitou com Gon. Killua cobre com Godspeed. Um chefe de cada vez.", "ids": ["npc_guarda_fronteira"], "r": 36.0},
+		{"name": "MedicoCirurgia", "pos": Vector2(3500, 45), "npc": "Médico de Campo (Blythe)", "fala": "Pitou opera Komugi. Gon espera (GPS). Não ataque Pitou antes da etapa do juramento.", "ids": ["npc_viajante_scout"], "r": 34.0},
+		{"name": "EvacuacaoTumba", "pos": Vector2(3900, 40), "npc": "Oficial de Evacuação", "fala": "ORDEM: [G] Guanyin → [G] Rosa Pobre → Meruem final. Portal Associação só na etapa 48.", "ids": ["npc_guarda_fronteira"], "r": 34.0},
+		{"name": "SobreviventeTumba", "pos": Vector2(4100, -40), "npc": "Sobrevivente da Tumba", "fala": "Após a Rosa, Meruem volta em En fotônico. Última partida de Gungi — GPS. Sem rush no portal.", "ids": ["npc_viajante_scout"], "r": 32.0},
 	]
 	for w in walkers:
 		if get_node_or_null(w["name"]) != null:
@@ -368,8 +422,11 @@ func _plantar_props_ngl() -> void:
 		{"name": "PosteFabrica", "pos": Vector2(1350, 20), "tex": "res://assets/sprites/objects/phase3_lantern_post.png"},
 		{"name": "RochaColinas", "pos": Vector2(1550, 25), "tex": "res://assets/sprites/objects/phase2_rock_boulder.png"},
 		{"name": "LanternaPeijin", "pos": Vector2(2100, 20), "tex": "res://assets/sprites/objects/hunter_road_lantern.png"},
-		{"name": "MonolitoPalacio", "pos": Vector2(3000, 20), "tex": "res://assets/sprites/objects/nen_stone_monolith.png"},
+		{"name": "MonolitoPalacio", "pos": Vector2(2800, 20), "tex": "res://assets/sprites/objects/nen_stone_monolith.png"},
+		{"name": "RochaEscadaria", "pos": Vector2(3280, 25), "tex": "res://assets/sprites/objects/phase2_rock_boulder.png"},
+		{"name": "PosteEscadaria", "pos": Vector2(3480, 20), "tex": "res://assets/sprites/objects/phase3_lantern_post.png"},
 		{"name": "MarcoTumba", "pos": Vector2(3850, 25), "tex": "res://assets/sprites/objects/marco_pedra_milestone.png"},
+		{"name": "MonolitoTumba", "pos": Vector2(4050, 20), "tex": "res://assets/sprites/objects/nen_stone_monolith.png"},
 	]
 	for s in specs:
 		var n := Node2D.new()
@@ -385,7 +442,7 @@ func _plantar_props_ngl() -> void:
 		root.add_child(n)
 
 
-## Gyo/Ko/Zetsu alinhados ao CanonQuestCatalog (arco 6).
+## Gyo/Ko/Zetsu alinhados ao CanonQuestCatalog (arco 6) — early + mid/late.
 func _instanciar_sensores_nen_ngl() -> void:
 	if PlayerData != null and PlayerData.despertou_nen:
 		NenSensorFactory.criar_gyo(
@@ -418,6 +475,24 @@ func _instanciar_sensores_nen_ngl() -> void:
 			"Aura avermelhada do ninho. Fale com Kite. Se o GPS mandar fugir — fuja.",
 			"Especialização", 2, Color(1.0, 0.35, 0.35, 0.9)
 		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoEscadariaYoupi", Vector2(3220, -40),
+			&"escadaria_youpi", "Escadaria Central (Youpi)",
+			"Carapaça bélica residual. Fale com Shoot/Knuckle, depois derrote Youpi (GPS).",
+			"Intensificação", 2, Color(0.95, 0.45, 0.25, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoBudaGuanyin", Vector2(3920, -50),
+			&"buda_guanyin_netero", "Guanyin Bodhisattva (Netero)",
+			"Resíduo dourado das 100 Tipos. Fale com Netero, depois [G] Rosa Pobre.",
+			"Especialização", 3, Color(1.0, 0.85, 0.35, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoRosaPobre", Vector2(4080, -40),
+			&"explosao_rosa_pobre", "Rosa Pobre (Poor Man's Rose)",
+			"Queima nuclear residual. Netero detona a ogiva. Depois Meruem / En fotônico (GPS).",
+			"Conjuração", 3, Color(0.85, 0.25, 0.35, 0.9)
+		)
 		NenSensorFactory.criar_ko(
 			self, "KoBarreiraFabrica", Vector2(1400, 35),
 			"Barreira Rachada da Fábrica D2", &"pocao_aura", &"ngl_ko_fabrica"
@@ -425,6 +500,10 @@ func _instanciar_sensores_nen_ngl() -> void:
 		NenSensorFactory.criar_ko(
 			self, "KoPilastraPalacio", Vector2(2950, 35),
 			"Pilastra Rachada do Palácio", &"elixir_aura"
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoRochaTumba", Vector2(4000, 35),
+			"Rocha Fundida da Tumba", &"pocao_aura", &"ngl_ko_tumba"
 		)
 
 	NenSensorFactory.criar_zetsu(
@@ -441,6 +520,11 @@ func _instanciar_sensores_nen_ngl() -> void:
 		self, "ZetsuCorredorPalacio", Vector2(3300, -30),
 		&"ngl_corredor_palacio", "Corredor do Palácio Real",
 		Vector2(140, 90), &"guarda_peijin", "Guarda Alertado"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuVestibuloTumba", Vector2(3950, -20),
+		&"ngl_vestibulo_tumba", "Vestíbulo da Tumba Nuclear",
+		Vector2(140, 90), &"guarda_peijin", "Eco Alertado"
 	)
 
 
