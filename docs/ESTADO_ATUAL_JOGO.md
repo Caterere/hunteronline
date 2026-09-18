@@ -1,73 +1,13 @@
 # Hunter Online — Estado Atual do Jogo (Handoff para Agente)
 
-> **Data do snapshot:** 2026-09-18 (auditoria progressão arcos 1–9)  
-> **Branch de trabalho:** `cursor/arcs-progression-audit-dab2`  
-> **Branch base histórico:** `main` @ `548a152` (PR #52 Yorknew bugfix)  
+> **Data do snapshot:** 2026-09-18  
+> **Branch base:** `main` @ `d399349` (merge PR #49 — HUD glass / combat log / FOV 960×540)  
 > **Objetivo deste doc:** handoff completo para outro agent continuar o trabalho sem redescobrir o projeto.  
 > **Regra de ouro:** código e cenas vencem docs desatualizados. Em conflito design vs código → preferir código e reportar.
 
 ---
 
-## 0. Decisões de produto (Luiz — 2026-09-18)
-
-| Tema | Decisão |
-| :--- | :--- |
-| Escopo sessão | **A B C D** (early clarity, Nen no mundo, sagas densas, co-op polish leve). Arte (**E**) fica com o Luiz. |
-| PR #48 Tier B | **Mergiar** (feito neste branch). |
-| Dor early | Assuntos **vagos** + mapa vazio + tutorial Nen fraco → **também**: move speed alto demais (rush, sem espaço pra Hatsu, objetivos misturados). |
-| Ritmo sagas | Até **Arena Celestial**: mais rápido/compacto. **Yorknew / Greed Island+**: mais longos, imersivos, difíceis, muita caminhada. |
-| Nen no mundo | Semiaberto/missões; **não** forçar no lobby. |
-| Hatsu | Feel com **espaço de combate** (speeds ↓) + polish afinidades na ordem Intensificação→Emissão→Transformação→Conjuração→Manipulação→Especialização. Unlock **Biscuit**. |
-| Mapa vivo | NPCs andando + estruturas + marcador **?** / **!** pequeno stylized em NPCs de quest. |
-| Tom NPC | **Mentor direto** (diz o que fazer). |
-| Raid Ruínas | **Polish solo feito** (telegraph legível, wipe, pacing). |
-| Multiplayer | **Solo-first**; LAN depois. |
-| Tom | Sandbox MMO com HxH adaptado. |
-
-### Backlog explícito (não esquecer)
-- [x] **Raid Ruínas de Zaban — polish solo** (telegraph, wipe legível, pacing)
-- [x] Densidade Kukuroo / Arena (NPCs andando + falas diretas + props)
-- [x] **Trilha B — Nen no mundo** (sensores Floresta/Ruínas + 2 quests investigativas)
-- [x] **Yorknew imersão** (walkers, falas diretas, clues canônicos plantados, etapas 1–8/13/21 claras)
-- [x] **Greed Island imersão** (densidade Antokiba→Castelo, clues canônicos, ORDEM early + Bomber/Cova)
-- [x] **Greed Island mid/late polish** (Hisoka/Killua no mapa, ORDEM 9–36, demônios missão, toasts Aliança/Ginásio/Bomber)
-- [x] **NGL imersão early** (Fronteira→Peijin densificado, clues canônicos 4/16/18/22/26, ORDEM 1–26)
-- [x] **NGL mid/late polish** (Escadaria/Tumba, Guanyin/Rosa Pobre, Youpi/Pouf garantidos, ORDEM 27–48)
-- [x] **Associação / Alluka imersão** (Auditório→Tribuna, cela_alluka, Alluka NPC, ORDEM 1–20)
-- [x] **Continente Negro imersão** (Acampamento→Topo, clues Mobius/Brion/Hellbell/Horizonte, ORDEM 1–22)
-- [x] **Black Whale / Sucessão imersão** (Convés1→Profundos, clues assassinato/Heil-Ly/Besta, ORDEM 1–26)
-- [x] **Yorknew ORDEM mid/late** (etapas 9–34 + clues `copia_kortopi` / `memoria_pakunoda` / `fita_ging` / `galpao_machinobunaga`)
-- [x] **Validação ritmo Yorknew→Whale** (battery suites + `test_session_abcd_final_smoke_suite` 31/31)
-- [x] **Co-op polish leve** (raid solo polish já shipado; suite assertions verdes — exit 134 = leak conhecido)
-
-### Progresso desta sessão
-- [x] Merge PR #48
-- [x] Tutorial Nen + Wing + quest Padokia clara + vila viva
-- [x] ContentDirector spawns reais + toasts Exame
-- [x] Feel Hatsu (canalização + impacto) + gate Biscuit
-- [x] **Move speed ↓** player (~112) + enemies (~58) + dodge; CD inimigo ↑ — espaço pra Hatsu / menos rush
-- [x] **QuestMarkerBillboard** (? / !) em NPCs com objetivo/oferta/entrega
-- [x] Mentores mais diretos (Elena/Wing) + quest Padokia “um de cada vez”
-- [x] Telegraph Hatsu diferenciado por afinidade (ordem pedida)
-- [x] **Densidade Kukuroo** — walkers + props + falas diretas + toasts de zona com próximo passo
-- [x] **Densidade Arena** — espectadores/staff + props + placas com próximo passo
-- [x] **Raid solo polish** — telegraph AoE ~1.2s, enrage warning 60s, wipe solo → checkpoint, adds reduzidos
-- [x] **Nen no mundo (Trilha B)** — Floresta/Ruínas densificados; quests “Trilha de Aura” + “Selos do Guardião”; Ko registra INVESTIGATE; factory com props reais
-- [x] **Yorknew imersão** — walkers/props/placas intermediárias; Gyo/Zetsu canônicos (`antiguidade_mercado`, `cofre_vazio_leilao`, `requiem_chrollo`, `apagao_yorknew`); falas diretas; canon etapas early com ORDEM
-- [x] **Greed Island imersão** — densificação completa + clues (`livro_greed`, `desfiladeiro_biscuit`, `explosao_bomber`, `armadilha_cova_gon`, `quiz_100_cartas`); mentores ORDEM; suite `test_greed_island_immersion_suite`
-- [x] **Greed Island mid/late** — Hisoka/Killua spawn; ORDEM etapas 9–36; toasts Aliança/Ginásio/Bomber; Gyo porto/ginásio/carta002/sopro; demônios/golems missão; walkers mid/late
-- [x] **NGL imersão early** — densificação Fronteira→Tumba; clues (`fabrica_d2_gyro`, `nascimento_rei_meruem`, `fronteira_goruto`, `portas_knov`, `chuva_dragoes_zeno`); ORDEM 1–26; suite `test_ngl_formigas_immersion_suite`
-- [x] **NGL mid/late** — toast Escadaria; Gyo Guanyin/Rosa/Youpi; Youpi/Pouf garantidos; ORDEM 27–48; walkers escadaria/tumba
-- [x] **Associação / Alluka** — densificação Auditório→Tribuna; `cela_alluka`; Alluka NPC; mission mordomos/agulhas; ORDEM 1–20; suite `test_associacao_alluka_immersion_suite`
-- [x] **Continente Negro** — densificação Acampamento→Topo; clues canon; Cheadle/GingTopo; ORDEM 1–22; suite `test_continente_negro_immersion_suite`
-- [x] **Black Whale / Sucessão** — densificação Convés1→Máfia→Aposentos→Profundos; clues (`primeiro_assassinato_kakin`, `seita_heilly`, `besta_tserriednich`, `aposentos_tserriednich`); Hisoka/Cheadle; Chrollo persuasion; ORDEM 1–26; suite `test_black_whale_immersion_suite`
-- [x] **Fechamento A–D** — Yorknew ORDEM 34/34 + clues mid/late; smoke `test_session_abcd_final_smoke_suite` (arcos 4–9); battery imersão 0 fails; merge PR #51
-- [x] **Bugfix pós-merge** — Yorknew: Killua/Silva faltavam (etapas 16–17); fillers mafioso/clone; `chrollo_boss` id; suite progression match
-- [x] **Auditoria arcos 1–9** — suites `test_arcs_1_3_and_edge_audit_suite` (16/16) + `test_arcs_5_9_progression_audit_suite` (88/88); plantio IDs canônicos Exame/Kukuroo/Arena + Netero no Exame
-
----
-
-## 0b. Como usar este handoff (leia primeiro)
+## 0. Como usar este handoff (leia primeiro)
 
 1. Ler `Hunter Online — AGENTS.md` na raiz (regras de escopo, MODIFY DON'T REBUILD, save compatibility).
 2. Design canônico SSOT: `docs/bibles/` (não `.agent/docs/bibles/` — essas são só pontes).
@@ -253,17 +193,16 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 3. **Corrigir docs desatualizados pontuais** (ex.: README viewport 640×360 vs 960×540; checkboxes do PRODUCTION_ROADMAP vs código).
 
 ### P1 — Qualidade de gameplay (maior ROI)
-1. ~~**Densidade de sensores Nen no mundo**~~ — feito (Floresta/Ruínas + factory props + Ko clue).
-2. ~~**Quests investigativas**~~ — “Trilha de Aura na Floresta” + “Selos do Guardião Ancestral” no `PadokiaQuestCatalog`.
-3. **Retune fino early-game** — balance de stats/Jenny se economia ainda inflar; legibilidade do Exame.
-4. **Combat feel / silhuetas** — garantir arquétipos fast/ambusher/tank legíveis no early.
-5. **HUD/combat log** — validar FOV 960×540; ajustar opacidade/legibilidade se necessário.
+1. **Densidade de sensores Nen no mundo** — mais `GyoInspectable` / `ZetsuSensorZone` / `KoObstacle` em clareiras e acampamentos (já era o “quality gap” #1 nas auditorias).
+2. **Quests investigativas** (não só “mate X”) usando Gyo/Ko/Zetsu — estender catálogos existentes, não criar mission system novo.
+3. **Retune fino early-game** — balance de stats/Jenny se economia ainda inflar; legibilidade do Exame (já melhorou nos PRs #47/#43, validar em play humano).
+4. **Combat feel / silhuetas** — variedade de criaturas já parcialmente feita; garantir arquétipos fast/ambusher/tank legíveis no early.
+5. **HUD/combat log** — PR #49 entregou glass + log; validar FOV 960×540 em desktop e mobile-like window; ajustar opacidade/legibilidade se necessário.
 
 ### P2 — Conteúdo de sagas (profundidade, não sistemas novos)
-1. Validar play humano Kukuroo/Arena/Floresta/Ruínas densificados.
-2. Raid vertical Continente Negro (depois de Ruínas Zaban solo polish — feito).
-3. ~~Yorknew~~ / ~~GI~~ / ~~NGL~~ / ~~Associação/Alluka~~ / ~~Continente Negro~~ / ~~Black Whale~~ — densificados + clues + ORDEM **100%** arcos 4–9. Sessão A–D fechada (merge PR #51).
-4. Suites: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`, `test_nen_mundo_floresta_ruinas_suite`, `test_yorknew_density_xp_suite`, `test_greed_island_immersion_suite`, `test_ngl_formigas_immersion_suite`, `test_associacao_alluka_immersion_suite`, `test_continente_negro_immersion_suite`, `test_black_whale_immersion_suite`, `test_session_abcd_final_smoke_suite`, `test_arcs_1_3_and_edge_audit_suite`, `test_arcs_5_9_progression_audit_suite`.
+1. Enriquecer capítulos das sagas 1–3 (Exame, Kukuroo, Arena) com densidade de NPCs/POIs/eventos já previstos no `SagaModuleCatalog`.
+2. Raid vertical Continente Negro (depois de Ruínas Zaban estável).
+3. Yorknew/Kukuroo “densificados” já marcados `[x]` no roadmap — validar play, não reimplementar.
 
 ### P3 — Multiplayer produção (só se o foco for host público)
 1. Contratar/configurar VPS: `public_host`, `--no-lan-discovery`, `config/server_list.json`.
@@ -290,11 +229,10 @@ Escolha **uma** trilha por sessão (escopo pequeno — AGENTS.md):
 - Feedback de Nen no primeiro combate.
 - Suites: `scratch/test_exam_early_game_suite`, `test_exame_spawn_walkable_suite`, `test_mission_objective_gps_suite`, `test_p0_play_smoke_suite`.
 
-### Trilha B — “Nen no mundo” ✅ (sessão atual)
-- Sensores Gyo/Ko/Zetsu densos em Floresta + Ruínas.
-- Quests: `obter_quest_investigacao_floresta` + `obter_quest_investigacao_ruinas`.
-- Suite: `scratch/test_nen_mundo_floresta_ruinas_suite`.
-- Próximo refinamento: play humano + mais clareiras na Estrada/Vale se necessário.
+### Trilha B — “Nen no mundo”
+- Plantar sensores + 1–2 quests investigativas na Floresta/Ruínas.
+- SFX/feedback Gyo já existe (`gyo_detect`); garantir uso.
+- Factory: `world/components/exploration/NenSensorFactory.gd`.
 
 ### Trilha C — “Fechar #48 com critério”
 - Mergiar só o que passa suites e não polui pilares.

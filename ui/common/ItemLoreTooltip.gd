@@ -2,28 +2,24 @@
 extends PanelContainer
 
 # ============================================================
-# HUNTER ONLINE - ITEM LORE TOOLTIP
+# HUNTER ONLINE - ITEM LORE TOOLTIP (FASE G — TASK 6.3)
 # ============================================================
 #
-# Tooltip rico com estética madeira/pergaminho da Associação Hunter:
-# - Nome, raridade, tipo, descrição
-# - Stats de equipamento e trade-offs
-# - Citações / origem de relíquias
+# Componente de tooltip rico com estética canônica da Associação Hunter:
+# - Nome do Item & Badge de Raridade / Relíquia Histórica
+# - Painel de Trade-offs (Prós & Contras de Gameplay)
+# - Citações lendárias e registros de expedição
 # ============================================================
-
-const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 
 var lbl_nome: Label
 var lbl_raridade: Label
 var lbl_tipo: Label
 var lbl_descricao: Label
-var lbl_stats: Label
 var panel_tradeoff: PanelContainer
 var lbl_tradeoff: Label
 var panel_lore: PanelContainer
 var lbl_quote: Label
 var lbl_origem: Label
-
 
 func _init() -> void:
 	z_index = 100
@@ -32,11 +28,20 @@ func _init() -> void:
 
 
 func _construir_ui() -> void:
-	custom_minimum_size = Vector2(168, 90)
-	add_theme_stylebox_override(
-		"panel",
-		HunterUIStyle.criar_style_painel_principal(HunterUIStyle.COLOR_BORDER_GOLD, 3)
-	)
+	custom_minimum_size = Vector2(160, 90)
+
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.06, 0.07, 0.10, 0.96)
+	style.border_width_left = 1
+	style.border_width_top = 1
+	style.border_width_right = 1
+	style.border_width_bottom = 1
+	style.border_color = Color(0.85, 0.70, 0.25, 1.0) # Dourado Hunter
+	style.corner_radius_top_left = 4
+	style.corner_radius_top_right = 4
+	style.corner_radius_bottom_right = 4
+	style.corner_radius_bottom_left = 4
+	add_theme_stylebox_override("panel", style)
 
 	var margin := MarginContainer.new()
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -51,11 +56,13 @@ func _construir_ui() -> void:
 	vbox.add_theme_constant_override("separation", 3)
 	margin.add_child(vbox)
 
+	# Linha 1: Nome do Item
 	lbl_nome = Label.new()
 	lbl_nome.add_theme_font_size_override("font_size", 6)
-	lbl_nome.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_GOLD)
+	lbl_nome.add_theme_color_override("font_color", Color(1.0, 0.90, 0.35, 1.0))
 	vbox.add_child(lbl_nome)
 
+	# Linha 2: Raridade e Tipo
 	var hbox_sub := HBoxContainer.new()
 	hbox_sub.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(hbox_sub)
@@ -67,32 +74,28 @@ func _construir_ui() -> void:
 	var sep := Label.new()
 	sep.text = " • "
 	sep.add_theme_font_size_override("font_size", 4)
-	sep.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
+	sep.add_theme_color_override("font_color", Color(0.5, 0.5, 0.6))
 	hbox_sub.add_child(sep)
 
 	lbl_tipo = Label.new()
 	lbl_tipo.add_theme_font_size_override("font_size", 4)
-	lbl_tipo.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_CYAN)
+	lbl_tipo.add_theme_color_override("font_color", Color(0.7, 0.8, 0.9))
 	hbox_sub.add_child(lbl_tipo)
 
+	# Linha 3: Descrição
 	lbl_descricao = Label.new()
 	lbl_descricao.add_theme_font_size_override("font_size", 4)
-	lbl_descricao.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_SECONDARY)
+	lbl_descricao.add_theme_color_override("font_color", Color(0.85, 0.85, 0.90))
 	lbl_descricao.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox.add_child(lbl_descricao)
 
-	lbl_stats = Label.new()
-	lbl_stats.add_theme_font_size_override("font_size", 4)
-	lbl_stats.add_theme_color_override("font_color", HunterUIStyle.COLOR_REN)
-	lbl_stats.autowrap_mode = TextServer.AUTOWRAP_WORD
-	vbox.add_child(lbl_stats)
-
+	# Seção de Trade-off (Gameplay)
 	panel_tradeoff = PanelContainer.new()
 	panel_tradeoff.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style_t := StyleBoxFlat.new()
-	style_t.bg_color = Color(0.55, 0.38, 0.18, 0.55)
+	style_t.bg_color = Color(0.12, 0.08, 0.06, 0.85)
 	style_t.border_width_left = 1
-	style_t.border_color = HunterUIStyle.COLOR_GOLD
+	style_t.border_color = Color(0.95, 0.45, 0.20, 1.0)
 	panel_tradeoff.add_theme_stylebox_override("panel", style_t)
 	vbox.add_child(panel_tradeoff)
 
@@ -105,16 +108,17 @@ func _construir_ui() -> void:
 
 	lbl_tradeoff = Label.new()
 	lbl_tradeoff.add_theme_font_size_override("font_size", 4)
-	lbl_tradeoff.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
+	lbl_tradeoff.add_theme_color_override("font_color", Color(1.0, 0.75, 0.4))
 	lbl_tradeoff.autowrap_mode = TextServer.AUTOWRAP_WORD
 	m_t.add_child(lbl_tradeoff)
 
+	# Seção de Lore e Citações Históricas
 	panel_lore = PanelContainer.new()
 	panel_lore.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style_l := StyleBoxFlat.new()
-	style_l.bg_color = Color(0.42, 0.55, 0.48, 0.45)
+	style_l.bg_color = Color(0.04, 0.08, 0.10, 0.90)
 	style_l.border_width_left = 1
-	style_l.border_color = HunterUIStyle.COLOR_BORDER_GREEN
+	style_l.border_color = Color(0.3, 0.8, 1.0, 0.8)
 	panel_lore.add_theme_stylebox_override("panel", style_l)
 	vbox.add_child(panel_lore)
 
@@ -132,13 +136,13 @@ func _construir_ui() -> void:
 
 	lbl_quote = Label.new()
 	lbl_quote.add_theme_font_size_override("font_size", 4)
-	lbl_quote.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_SECONDARY)
+	lbl_quote.add_theme_color_override("font_color", Color(0.85, 0.95, 1.0))
 	lbl_quote.autowrap_mode = TextServer.AUTOWRAP_WORD
 	vbox_l.add_child(lbl_quote)
 
 	lbl_origem = Label.new()
 	lbl_origem.add_theme_font_size_override("font_size", 3)
-	lbl_origem.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
+	lbl_origem.add_theme_color_override("font_color", Color(0.55, 0.75, 0.85))
 	vbox_l.add_child(lbl_origem)
 
 
@@ -149,32 +153,28 @@ func configurar_com_item(item: ItemData) -> void:
 
 	lbl_nome.text = item.nome_item
 	lbl_descricao.text = item.descricao
-	lbl_descricao.visible = not item.descricao.strip_edges().is_empty()
 
-	lbl_raridade.text = item.raridade if not item.raridade.is_empty() else "Comum"
+	# Raridade e cores
+	lbl_raridade.text = item.raridade
 	match item.raridade.to_lower():
 		"muito raro", "reliquia":
-			lbl_raridade.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
+			lbl_raridade.add_theme_color_override("font_color", Color(1.0, 0.80, 0.2))
 		"raro":
-			lbl_raridade.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
+			lbl_raridade.add_theme_color_override("font_color", Color(0.3, 0.85, 1.0))
 		_:
-			lbl_raridade.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
+			lbl_raridade.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
 
-	lbl_tipo.text = ItemExplainKit.rotulo_tipo(item)
+	# Tipo
+	lbl_tipo.text = "Equipamento" if item is EquipmentData else ("Chave" if item.tipo == 0 else "Item Especial")
 
-	var stats := ItemExplainKit.formatar_stats_equipamento(item)
-	if not stats.is_empty():
-		lbl_stats.visible = true
-		lbl_stats.text = "⚔️ %s" % stats
-	else:
-		lbl_stats.visible = false
-
-	if item is EquipmentData and not (item as EquipmentData).trade_off_descricao.is_empty():
+	# Trade-off (se for equipamento)
+	if item is EquipmentData and not item.trade_off_descricao.is_empty():
 		panel_tradeoff.visible = true
-		lbl_tradeoff.text = "⚖️ TRADE-OFF:\n" + (item as EquipmentData).trade_off_descricao
+		lbl_tradeoff.text = "⚖️ TRADE-OFF:\n" + item.trade_off_descricao
 	else:
 		panel_tradeoff.visible = false
 
+	# Lore & Citação
 	if not item.lore_quote.is_empty() or not item.lore_origin.is_empty():
 		panel_lore.visible = true
 		lbl_quote.text = item.lore_quote

@@ -94,11 +94,8 @@ func _configurar_audio_e_hud() -> void:
 		audio_mgr.tocar_bgm("forest_theme")
 
 	var hud = get_tree().get_first_node_in_group("player_hud")
-	var msg := "🌲 Floresta dos Vestígios — Fale com a Herbalista. [G] Gyo / [Z] Zetsu nos acampamentos."
-	if PlayerData != null and not PlayerData.despertou_nen:
-		msg = "🌲 Floresta — Explore com cuidado. Desperte Nen com Wing (Arena) para ver pistas Gyo."
 	if hud and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao(msg)
+		hud.exibir_notificacao("🌲 Floresta dos Vestígios — Feras & Mistérios Ancestrais")
 
 
 func _posicionar_player() -> void:
@@ -191,32 +188,55 @@ func _criar_elementos_floresta() -> void:
 		arvore.add_child(inter)
 		add_child(arvore)
 
-	# 2. Herbalista da Associação (NPC — mentor direto + VISIT quest)
+	# 2. Herbalista da Associação (NPC de Apoio)
 	if get_node_or_null("HerbalistaFloresta") == null:
-		var scn_npc = load("res://entities/npc/NPC.tscn")
-		var herb
-		if scn_npc != null:
-			herb = scn_npc.instantiate()
-			herb.name = "HerbalistaFloresta"
-			herb.position = Vector2(450, 310)
-			herb.npc_name = "Herbalista"
-			herb.fala_padrao = "Ordem direta: 1) Ative [G] Gyo nas Raízes Pulsantes da Árvore. 2) Siga as Pegadas Predatórias ao sul. 3) [Z] Zetsu no Acampamento Norte. 4) Volte falar comigo."
-			NpcSpriteBinder.aplicar(herb, ["npc_herbalista_floresta", "npc_viajante_scout"])
-			var living := LivingNPCBehavior.new()
-			living.name = "LivingNPCBehavior"
-			living.npc_nome = "Herbalista"
-			living.tipo_marcador = "quest"
-			living.hierarchy = LivingNPCBehavior.NPCHierarchy.IMPORTANT
-			living.raio_patrulha = 28.0
-			herb.add_child(living)
-			add_child(herb)
-			_wire_herbalista_quest(herb)
+		var herb := StaticBody2D.new()
+		herb.name = "HerbalistaFloresta"
+		herb.position = Vector2(450, 310)
+
+		var col := CollisionShape2D.new()
+		var circ := CircleShape2D.new()
+		circ.radius = 5.0
+		col.shape = circ
+		col.position = Vector2(0, -2)
+		herb.add_child(col)
+
+		var spr := Sprite2D.new()
+		if ResourceLoader.exists("res://assets/sprites/characters/npc_herbalista_floresta_8dir.png"):
+			spr.texture = load("res://assets/sprites/characters/npc_herbalista_floresta_8dir.png")
+			spr.hframes = 8
+			spr.vframes = 1
+			spr.frame = 0
 		else:
-			# Fallback estático (não deve acontecer)
-			herb = StaticBody2D.new()
-			herb.name = "HerbalistaFloresta"
-			herb.position = Vector2(450, 310)
-			add_child(herb)
+			spr.texture = load("res://assets/sprites/characters/player.png")
+			spr.hframes = 6
+			spr.vframes = 10
+			spr.frame = 0
+		spr.position = Vector2(0, -17)
+		spr.modulate = Color.WHITE
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		herb.add_child(spr)
+
+		var lbl := Label.new()
+		lbl.text = "Herbalista\n[E] Conversar"
+		lbl.position = Vector2(-45, -28)
+		lbl.custom_minimum_size = Vector2(90, 14)
+		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 7, Color(0.7, 1.0, 0.7))
+		lbl.add_theme_color_override("font_shadow_color", Color.BLACK)
+		herb.add_child(lbl)
+
+		var inter = InteractionComponent.new()
+		inter.name = "InteractionComponent"
+		inter.interaction_text = "[E] Falar com Herbalista"
+		inter.interaction_radius = 24.0
+		inter.interacted.connect(func(_p):
+			var hud = get_tree().get_first_node_in_group("player_hud")
+			if hud and hud.has_method("exibir_notificacao"):
+				hud.exibir_notificacao("🌿 Herbalista: 'As feras e sentinelas usam guarda densa. Aplique combos rápidos ou golpes fortes para quebrar a defesa e deixá-las vulneráveis!'")
+		)
+		herb.add_child(inter)
+		add_child(herb)
 
 	# 3. Barreira de Rocha Quebrável com KO (Bloqueando atalho)
 	if get_node_or_null("KoObstacleFloresta") == null:
@@ -281,41 +301,6 @@ func _criar_elementos_floresta() -> void:
 
 	_instanciar_sensores_nen_floresta()
 	_instanciar_baus_clareira()
-	_iniciar_quest_investigacao_floresta()
-
-
-func _wire_herbalista_quest(herb: Node) -> void:
-	# Reforço: visita canônica + oferta da quest investigativa
-	var inter = herb.get_node_or_null("InteractionComponent")
-	if inter == null:
-		return
-	if not inter.interacted.is_connected(_on_herbalista_interacted):
-		inter.interacted.connect(_on_herbalista_interacted)
-
-
-func _on_herbalista_interacted(_player: Node = null) -> void:
-	if QuestSystem != null:
-		QuestSystem.register_npc_visit(&"herbalista")
-	_iniciar_quest_investigacao_floresta()
-	if EventBus != null and PlayerData != null and PlayerData.despertou_nen:
-		EventBus.emit_toast("🌿 Herbalista: [G] Raízes → Pegadas sul → [Z] Acampamento Norte → volte.", Color(0.45, 1.0, 0.55))
-
-
-func _iniciar_quest_investigacao_floresta() -> void:
-	if PlayerData == null or not PlayerData.despertou_nen:
-		return
-	if QuestSystem == null or not QuestSystem.has_method("start_quest"):
-		return
-	var PadokiaQuestCatalogScript = load("res://resource/quest/PadokiaQuestCatalog.gd")
-	if PadokiaQuestCatalogScript == null:
-		return
-	var q = PadokiaQuestCatalogScript.obter_quest_investigacao_floresta()
-	if q == null:
-		return
-	if PlayerData.is_quest_active(q) or PlayerData.is_quest_completed(q):
-		return
-	QuestSystem.start_quest(q)
-	print("[FlorestaVestigiosMap] Quest investigativa iniciada: ", q.quest_name)
 
 
 func _instanciar_baus_clareira() -> void:
@@ -419,13 +404,13 @@ func _instanciar_sensores_nen_floresta() -> void:
 		NenSensorFactory.criar_gyo(
 			self, "GyoClueArvoreRaizes", Vector2(360, 280),
 			&"floresta_aura_raizes", "Raízes Pulsantes de Nen",
-			"As raízes da Árvore Milenar vibram com aura antiga. Próximo: siga as Pegadas Predatórias ao sul ([G]).",
+			"As raízes da Árvore Milenar vibram com aura antiga. Alguém treinou Intensificação aqui recentemente.",
 			"Intensificação", 1, Color(0.35, 1.0, 0.55, 0.9)
 		)
 		NenSensorFactory.criar_gyo(
 			self, "GyoCluePegadasSul", Vector2(460, 500),
 			&"floresta_pegadas_fera", "Pegadas de Aura Predatória",
-			"Rastros de aura seguem às Ruínas. Próximo: [Z] Zetsu no Acampamento Norte — depois volte à Herbalista.",
+			"Rastros de aura se dirigem às Ruínas de Zaban. A presa — ou o caçador — passou há pouco.",
 			"Emissão", 1, Color(0.95, 0.55, 0.25, 0.9)
 		)
 		NenSensorFactory.criar_gyo(
@@ -434,42 +419,14 @@ func _instanciar_sensores_nen_floresta() -> void:
 			"Um selo rudimentar de Nen foi gravado na pedra musgosa. Exige foco de Gyo para ler o padrão.",
 			"Conjuração", 2, Color(0.55, 0.7, 1.0, 0.9)
 		)
-		NenSensorFactory.criar_gyo(
-			self, "GyoClueCogumeloAura", Vector2(320, 420),
-			&"floresta_cogumelo_aura", "Cogumelos Luminescentes",
-			"Esporos carregados de Nen reagem ao Gyo — indicam um ninho de feras a leste.",
-			"Emissão", 1, Color(0.65, 1.0, 0.45, 0.9)
-		)
-		NenSensorFactory.criar_gyo(
-			self, "GyoClueTroncoQuebrado", Vector2(520, 260),
-			&"floresta_tronco_quebrado", "Tronco Quebrado por Ko",
-			"Marcas de impacto concentrado — um Hunter usou Ko para abrir caminho às ruínas.",
-			"Intensificação", 1, Color(0.9, 0.5, 0.3, 0.9)
-		)
-		NenSensorFactory.criar_gyo(
-			self, "GyoClueFonteOculta", Vector2(240, 180),
-			&"floresta_fonte_oculta", "Fonte de Aura Oculta",
-			"Água com resíduo de Nen. A Herbalista usa este local para preparar tônicos — confirme a trilha sul depois.",
-			"Transmutação", 1, Color(0.4, 0.85, 1.0, 0.9)
-		)
-		NenSensorFactory.criar_gyo(
-			self, "GyoClueTrilhaRuinas", Vector2(400, 560),
-			&"floresta_trilha_ruinas", "Limiar das Ruínas",
-			"Pressão de aura ancestral à frente. Entre nas Ruínas só depois de concluir a trilha da Herbalista.",
-			"Especialização", 2, Color(0.85, 0.55, 1.0, 0.9)
-		)
 
-	# Rochas KO — atalho oeste + quebra investigativa
+	# Segunda rocha KO bloqueando baú/atalho oeste
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleAtalhoOeste", Vector2(120, 220),
-		"Rocha Rachada do Atalho Oeste", &"pocao_aura", &"floresta_ko_atalho"
-	)
-	NenSensorFactory.criar_ko(
-		self, "KoObstacleClareiraSul", Vector2(500, 480),
-		"Rocha do Atalho Sul", &"elixir_aura"
+		"Rocha Rachada do Atalho Oeste", &"pocao_aura"
 	)
 
-	# Acampamentos / predadores com Zetsu (marcador visual já vem da factory zone)
+	# Acampamentos de salteadores / predadores com Zetsu
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuAcampamentoNorte", Vector2(280, 140),
 		&"acampamento_salteadores_norte", "Acampamento de Salteadores",
@@ -481,12 +438,6 @@ func _instanciar_sensores_nen_floresta() -> void:
 		&"clareira_predadores_leste", "Clareira de Predadores Sensíveis",
 		Vector2(150, 110),
 		&"lobo_sombras", "Fera das Sombras Alertada"
-	)
-	NenSensorFactory.criar_zetsu(
-		self, "ZetsuTrilhaSul", Vector2(400, 540),
-		&"trilha_sul_ferais", "Trilha Sul Vigilada",
-		Vector2(130, 90),
-		&"lobo_sombras", "Sentinela da Trilha"
 	)
 
 

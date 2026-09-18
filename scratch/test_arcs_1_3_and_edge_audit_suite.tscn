@@ -1,4 +1,0 @@
-[gd_scene load_steps=2 format=3]
-[ext_resource type="Script" path="res://scratch/test_arcs_1_3_and_edge_audit_suite.gd" id="1"]
-[node name="TestArcs13EdgeAudit" type="Node"]
-script = ExtResource("1")

@@ -4,12 +4,7 @@ extends RefCounted
 # ============================================================
 # HUNTER ONLINE — Factory de sensores Nen no mundo
 # Instancia Gyo / Ko / Zetsu com colisão pronta (sem novos sistemas).
-# Preferir sprites de props PixelLab em vez de player.png.
 # ============================================================
-
-const TEX_GYO_FALLBACK := "res://assets/sprites/objects/nen_stone_monolith.png"
-const TEX_KO_FALLBACK := "res://assets/sprites/objects/phase2_rock_boulder.png"
-const TEX_PLAYER_SHEET := "res://assets/sprites/characters/player.png"
 
 
 static func criar_gyo(
@@ -45,21 +40,13 @@ static func criar_gyo(
 
 	var spr := Sprite2D.new()
 	spr.name = "Sprite2D"
-	spr.centered = true
-	spr.position = Vector2(0, -10)
-	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	if ResourceLoader.exists(TEX_GYO_FALLBACK):
-		spr.texture = load(TEX_GYO_FALLBACK)
-		spr.scale = Vector2(0.55, 0.55)
-		spr.modulate = Color(cor.r, cor.g, cor.b, 0.72)
-	else:
-		spr.texture = load(TEX_PLAYER_SHEET)
-		spr.hframes = 6
-		spr.vframes = 10
-		spr.frame = 0
-		spr.position = Vector2(0, -8)
-		spr.modulate = Color(cor.r, cor.g, cor.b, 0.55)
-		spr.scale = Vector2(0.55, 0.55)
+	spr.texture = load("res://assets/sprites/characters/player.png")
+	spr.hframes = 6
+	spr.vframes = 10
+	spr.frame = 0
+	spr.position = Vector2(0, -8)
+	spr.modulate = Color(cor.r, cor.g, cor.b, 0.55)
+	spr.scale = Vector2(0.55, 0.55)
 	gyo.add_child(spr)
 
 	parent.add_child(gyo)
@@ -71,8 +58,7 @@ static func criar_ko(
 	nome: String,
 	pos: Vector2,
 	obstacle_name: String,
-	recompensa: StringName = &"",
-	clue_id_on_break: StringName = &""
+	recompensa: StringName = &""
 ) -> KoObstacle:
 	if parent.get_node_or_null(nome) != null:
 		return parent.get_node_or_null(nome) as KoObstacle
@@ -82,7 +68,6 @@ static func criar_ko(
 	ko.position = pos
 	ko.obstacle_name = obstacle_name
 	ko.item_recompensa_id = recompensa
-	ko.clue_id_on_break = clue_id_on_break
 
 	var col := CollisionShape2D.new()
 	var box := RectangleShape2D.new()
@@ -93,36 +78,13 @@ static func criar_ko(
 
 	var spr := Sprite2D.new()
 	spr.name = "Sprite2D"
-	spr.centered = true
-	spr.position = Vector2(0, -12)
-	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	if ResourceLoader.exists(TEX_KO_FALLBACK):
-		spr.texture = load(TEX_KO_FALLBACK)
-		spr.scale = Vector2(0.9, 0.85)
-		spr.modulate = Color(0.72, 0.62, 0.48, 1.0)
-	elif ResourceLoader.exists(TEX_GYO_FALLBACK):
-		spr.texture = load(TEX_GYO_FALLBACK)
-		spr.scale = Vector2(0.7, 0.6)
-		spr.modulate = Color(0.62, 0.52, 0.42, 1.0)
-	else:
-		spr.texture = load(TEX_PLAYER_SHEET)
-		spr.hframes = 6
-		spr.vframes = 10
-		spr.frame = 0
-		spr.position = Vector2(0, -10)
-		spr.modulate = Color(0.62, 0.52, 0.42, 1.0)
+	spr.texture = load("res://assets/sprites/characters/player.png")
+	spr.hframes = 6
+	spr.vframes = 10
+	spr.frame = 0
+	spr.position = Vector2(0, -10)
+	spr.modulate = Color(0.62, 0.52, 0.42, 1.0)
 	ko.add_child(spr)
-
-	# Hint visual: KO necessário
-	var lbl := Label.new()
-	lbl.name = "KoHintLabel"
-	lbl.text = "💥 KO — %s" % obstacle_name
-	lbl.position = Vector2(-60, -36)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 5)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.8, 0.35, 0.95))
-	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
-	ko.add_child(lbl)
 
 	parent.add_child(ko)
 	return ko

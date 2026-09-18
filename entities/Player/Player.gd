@@ -11,15 +11,15 @@ var _direcao_olhar: Vector2 = Vector2.DOWN
 @onready var nen_beast_system: NenBeastSystem = get_node_or_null("NenBeastSystem") as NenBeastSystem
 
 @export_category("Variables")
-@export var _move_speed: float = 112.0
+@export var _move_speed: float = 160.0
 @export var _friction: float = 0.35 # Resposta ágil e parada limpa sem patinar
 @export var _acceleration: float = 0.30 # Aceleração 8-direcional precisa e imediata
 
 @export_group("Attack Lunge / Game Feel")
 @export var attack_lunge_enabled: bool = true
-@export var attack_dash_distance: float = 18.0
+@export var attack_dash_distance: float = 24.0
 @export var attack_dash_duration: float = 0.14
-@export var attack_dash_speed: float = 200.0
+@export var attack_dash_speed: float = 260.0
 
 var _attack_lunge_timer: float = 0.0
 var _attack_lunge_total: float = 0.14
@@ -305,17 +305,16 @@ func esta_em_sprint() -> bool:
 
 func _obter_velocidade_atual() -> float:
 	var vel_attr: float = float(PlayerData.attributes.get("velocidade", 10))
-	# Early-game mais lento: espaço para Nen/Hatsu e leitura de objetivos
-	var spd: float = _move_speed + (vel_attr * 0.28)
-
+	var spd: float = _move_speed + (vel_attr * 0.4)
+	
 	em_sprint = false
 	var sprint_pressed = Input.is_key_pressed(KEY_SHIFT) or (InputMap.has_action("sprint") and Input.is_action_pressed("sprint"))
 	if sprint_pressed and not _is_attacking:
 		em_sprint = true
-		spd = 148.0 + (vel_attr * 0.40)
+		spd = 110.0 + (vel_attr * 0.7)
 
 	if hatsu_system != null and hatsu_system.esta_godspeed():
-		spd *= 2.2 # Velocidade Divina (Kanmuru) do Killua!
+		spd *= 2.4 # Velocidade Divina (Kanmuru) do Killua!
 	return spd
 
 

@@ -23,7 +23,6 @@ signal servers_updated(servers: Array)
 signal query_failed(reason: String)
 
 const DEFAULT_REGISTRY_PORT: int = 7780
-const MatchmakingQueueScript = preload("res://scripts/network/MatchmakingQueue.gd")
 const SERVER_TTL_SEC: float = 12.0
 const ANNOUNCE_INTERVAL: float = 4.0
 
@@ -153,10 +152,6 @@ func stop() -> void:
 		_udp = null
 
 
-func send_aux_line(text: String) -> void:
-	_send_raw(text)
-
-
 func _send_raw(text: String) -> void:
 	if _udp == null or text.is_empty():
 		return
@@ -172,23 +167,6 @@ func _handle_packet(text: String, from_ip: String, from_port: int) -> void:
 		if mode != "registry":
 			return
 		_reply_list(from_ip, from_port)
-	elif text.begins_with("QUEUE|"):
-		if mode == "registry":
-			var q := MatchmakingQueueScript.parse_registry_queue_line(text)
-			if not q.is_empty():
-				_servers["queue:%s" % q.get("duty_id", "")] = {
-					"id": "queue:%s" % q.get("duty_id", ""),
-					"name": "Fila %s" % q.get("duty_id", ""),
-					"host": "",
-					"port": 0,
-					"players": int(q.get("filled", 0)),
-					"max_players": int(q.get("needed", 0)),
-					"region": "queue",
-					"version": "",
-					"last_seen_ms": Time.get_ticks_msec(),
-					"source": "queue",
-				}
-				servers_updated.emit(get_server_list())
 	elif text == "LIST_BEGIN":
 		if mode == "query":
 			_last_query_result.clear()

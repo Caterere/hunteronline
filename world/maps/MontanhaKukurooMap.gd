@@ -51,26 +51,23 @@ func _process(_delta: float) -> void:
 
 	if px >= 0 and px < 600 and not _marcos_notificados["portao"]:
 		_marcos_notificados["portao"] = true
-		_toast_zona(hud, "⛰️ Portão da Testagem — Fale com Zebro, depois [E] no Portão (4t).")
+		if hud and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("⛰️ Portão da Testagem — Montanha Kukuroo (República de Padokia)")
 
 	elif px >= 600 and px < 1800 and not _marcos_notificados["alameda"]:
 		_marcos_notificados["alameda"] = true
-		_toast_zona(hud, "🌲 Alameda — Derrote Mike, fale com Canary. Use [Z] nos arbustos.")
+		if hud and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🌲 Alameda das Árvores Proibidas — Cuidado com os Cães de Guarda!")
 
 	elif px >= 1800 and px < 3000 and not _marcos_notificados["mansao"]:
 		_marcos_notificados["mansao"] = true
-		_toast_zona(hud, "🏰 Mansão — Fale com Gotoh e passe o teste das moedas.")
+		if hud and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🏰 Mansão dos Mordomos Zoldyck — Mordomo-Chefe Gotoh")
 
 	elif px >= 3000 and not _marcos_notificados["trono"]:
 		_marcos_notificados["trono"] = true
-		_toast_zona(hud, "👑 Trono — Fale com Silva, depois com Killua. Saída → Arena.")
-
-
-func _toast_zona(hud: Node, msg: String) -> void:
-	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao(msg)
-	elif EventBus != null:
-		EventBus.emit_toast(msg, Color(0.7, 0.95, 0.65))
+		if hud and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("👑 Sala do Trono dos Assassinos — Silva Zoldyck")
 
 
 func _garantir_dialogue_ui() -> void:
@@ -103,7 +100,7 @@ func _popular_npcs_arco2() -> void:
 		guia.name = "GuiaTurismo"
 		guia.position = Vector2(50, -50)
 		guia.npc_name = "Guia de Turismo de Padokia"
-		guia.fala_padrao = "Ordem direta: 1) Fale com Zebro. 2) Empurre o Portão [E]. 3) Suba a alameda até Canary. Não explore aleatório — um objetivo de cada vez."
+		guia.fala_padrao = "Bem-vindo a Padokia! A montanha adiante pertence à temível família de assassinos Zoldyck. Poucos entram e quase ninguém retorna!"
 		NpcSpriteBinder.aplicar(guia, ["npc_viajante_scout"])
 		add_child(guia)
 
@@ -113,18 +110,15 @@ func _popular_npcs_arco2() -> void:
 		zebro.name = "Zebro"
 		zebro.position = Vector2(200, -100)
 		zebro.npc_name = "Guarda Zebro"
-		zebro.fala_padrao = "Sou Zebro. Agora: vá até o Portão da Testagem e pressione [E]. Abra com força própria — sem isso a alameda não libera."
+		zebro.fala_padrao = "Sou Zebro, guarda do Portão da Testagem da família Zoldyck. Se quiser entrar, precisa abrir o portão com sua própria força!"
 		NpcSpriteBinder.aplicar(zebro, ["npc_guarda_fronteira"])
 		add_child(zebro)
 
 	# 2. Portão da Testagem (Objeto de Interação)
-	if get_node_or_null("PortaoTestagem") == null and get_node_or_null("Portao_Testagem") == null:
+	if get_node_or_null("PortaoTestagem") == null:
 		var portao := StaticBody2D.new()
-		# Nome com underscore casa target_npc_id portao_testagem no resolver/auditoria.
-		portao.name = "Portao_Testagem"
+		portao.name = "PortaoTestagem"
 		portao.position = Vector2(400, -50)
-		portao.add_to_group("npc")
-		portao.set_meta("npc_name", "Portão da Testagem (Testing Gate)")
 
 		var col := CollisionShape2D.new()
 		var rect := RectangleShape2D.new()
@@ -182,7 +176,7 @@ func _popular_npcs_arco2() -> void:
 		canary.name = "Canary"
 		canary.position = Vector2(1200, 100)
 		canary.npc_name = "Mordoma Canary"
-		canary.fala_padrao = "Sou Canary. Próximo passo: derrote o Cão Mike se ainda estiver ativo, fale comigo, depois siga à Mansão (Gotoh). [Z] nos arbustos evita alerta."
+		canary.fala_padrao = "Eu sou Canary, mordoma aprendiz. Não posso permitir que visitantes passem desta alameda... Mas se seus sentimentos por Killua forem reais, talvez eu feche os olhos."
 		NpcSpriteBinder.aplicar(canary, ["npc_mordoma_canary", "npc_discipulo_zushi"])
 		add_child(canary)
 
@@ -192,7 +186,7 @@ func _popular_npcs_arco2() -> void:
 		gotoh.name = "Gotoh"
 		gotoh.position = Vector2(2400, -150)
 		gotoh.npc_name = "Mordomo-Chefe Gotoh"
-		gotoh.fala_padrao = "Sou Gotoh. Faça o teste das moedas agora. Sem passar, a Sala do Trono (Silva) permanece fechada. Sem rodeios."
+		gotoh.fala_padrao = "Bem-vindo à Mansão Zoldyck. Sou Gotoh, o mordomo-chefe. Antes de ver o jovem mestre Killua, você precisa passar no meu teste de moedas."
 		NpcSpriteBinder.aplicar(gotoh, ["npc_mordomo_gotoh", "enemy_mordomo_zoldyck"])
 		add_child(gotoh)
 
@@ -202,7 +196,7 @@ func _popular_npcs_arco2() -> void:
 		silva.name = "Silva"
 		silva.position = Vector2(3400, -200)
 		silva.npc_name = "Silva Zoldyck"
-		silva.fala_padrao = "Sou Silva. Killua pode sair sob uma condição: jamais traia seus amigos. Fale com Killua ao lado e use o portal para a Arena Celestial."
+		silva.fala_padrao = "Eu sou Silva Zoldyck, chefe da família de assassinos. Killua pode sair, mas sob uma condição: jamais traia seus amigos."
 		NpcSpriteBinder.aplicar(silva, ["npc_silva_zoldyck", "npc_netero"])
 		add_child(silva)
 
@@ -218,7 +212,7 @@ func _popular_npcs_arco2() -> void:
 		killua.name = "Killua"
 		killua.position = Vector2(3500, -180)
 		killua.npc_name = "Killua Zoldyck"
-		killua.fala_padrao = "Gon! Resgate feito. Vá ao PortalArenaCelestial agora — próxima saga: Arena / Nen com Wing."
+		killua.fala_padrao = "Gon! Vocês realmente vieram me buscar! Vamos logo sair daqui antes que meu irmão Milluki tente algo. Próxima parada: Arena Celestial!"
 		add_child(killua)
 
 
@@ -272,8 +266,6 @@ func _densificar_alameda_kukuroo() -> void:
 			{"name": "MordomoAmbient_C", "pos": Vector2(2100, 60), "label": "Sentinela do Jardim"},
 			{"name": "MordomoAmbient_D", "pos": Vector2(2800, -40), "label": "Guarda da Mansão"},
 			{"name": "MordomoAmbient_E", "pos": Vector2(3200, 50), "label": "Vigia do Trono"},
-			{"name": "MordomoAmbient_F", "pos": Vector2(1000, -30), "label": "Patrulha da Alameda Sul"},
-			{"name": "MordomoAmbient_G", "pos": Vector2(2600, 70), "label": "Olheiro do Jardim Norte"},
 		]
 		for f in fillers:
 			if get_node_or_null(f["name"]) != null:
@@ -291,10 +283,10 @@ func _densificar_alameda_kukuroo() -> void:
 			add_child(mob)
 
 	var placas := [
-		{"name": "PlacaKukuPortao", "pos": Vector2(250, -70), "text": "📍 Portão — Zebro → [E] no Portão"},
-		{"name": "PlacaKukuAlameda", "pos": Vector2(1200, -90), "text": "📍 Alameda — Mike → Canary"},
-		{"name": "PlacaKukuMansao", "pos": Vector2(2400, -110), "text": "📍 Mansão — Gotoh (moedas)"},
-		{"name": "PlacaKukuTrono", "pos": Vector2(3400, -90), "text": "📍 Trono — Silva → Killua → Arena"},
+		{"name": "PlacaKukuPortao", "pos": Vector2(250, -70), "text": "📍 Portão da Testagem — 4 toneladas"},
+		{"name": "PlacaKukuAlameda", "pos": Vector2(1200, -90), "text": "📍 Alameda das Árvores Proibidas"},
+		{"name": "PlacaKukuMansao", "pos": Vector2(2400, -110), "text": "📍 Mansão dos Mordomos Zoldyck"},
+		{"name": "PlacaKukuTrono", "pos": Vector2(3400, -90), "text": "📍 Sala do Trono — Silva Zoldyck"},
 	]
 	for p in placas:
 		if get_node_or_null(p["name"]) != null:
@@ -312,16 +304,12 @@ func _densificar_alameda_kukuroo() -> void:
 		marker.add_child(lbl)
 		add_child(marker)
 
-	# NPCs ambient caminhando (vida na montanha + falas diretas)
+	# NPCs ambient caminhando (vida na montanha)
 	var scn_npc = load("res://entities/npc/NPC.tscn")
 	if scn_npc != null:
 		var ambient_npcs := [
-			{"name": "JardineiroZoldyck", "pos": Vector2(900, 80), "npc": "Jardineiro da Família", "fala": "Mike patrulha a alameda. Mate-o, depois fale com Canary à frente.", "ids": ["npc_mordomo_zoldyck_ambient", "npc_viajante_scout"], "r": 52.0},
-			{"name": "AprendizMordomo", "pos": Vector2(1900, -70), "npc": "Aprendiz de Mordomo", "fala": "Gotoh exige precisão. Vá à Mansão e complete o teste das moedas — sem isso, sem trono.", "ids": ["npc_mordomo_zoldyck_ambient", "npc_mordomo_gotoh", "enemy_mordomo_zoldyck"], "r": 48.0},
-			{"name": "TuristaAssustado", "pos": Vector2(150, 40), "npc": "Turista Assustado", "fala": "Eu parei no Zebro. Você: Portão [E], depois suba. Não fique parado aqui.", "ids": ["npc_viajante_scout"], "r": 40.0},
-			{"name": "MensageiroZoldyck", "pos": Vector2(1600, 60), "npc": "Mensageiro da Mansão", "fala": "Recado do Gotoh: visitantes passam por Canary primeiro. Ordem clara.", "ids": ["npc_mordomo_zoldyck_ambient", "npc_guarda_fronteira"], "r": 56.0},
-			{"name": "CozinheiroMansao", "pos": Vector2(2550, 30), "npc": "Cozinheiro da Mansão", "fala": "Silva está no trono (leste). Depois de Gotoh, vá direto. Killua espera ao lado.", "ids": ["npc_mordomo_zoldyck_ambient", "npc_viajante_scout"], "r": 44.0},
-			{"name": "VigiaPortaoSul", "pos": Vector2(550, -80), "npc": "Vigia do Portão Sul", "fala": "Portão aberto? Então a alameda. Mike → Canary. Não volte sem Killua.", "ids": ["npc_guarda_fronteira"], "r": 50.0},
+			{"name": "JardineiroZoldyck", "pos": Vector2(900, 80), "npc": "Jardineiro da Família", "fala": "As árvores proibidas só abrem caminho a quem a família permite...", "ids": ["npc_mordomo_zoldyck_ambient", "npc_viajante_scout"]},
+			{"name": "AprendizMordomo", "pos": Vector2(1900, -70), "npc": "Aprendiz de Mordomo", "fala": "Gotoh exige precisão absoluta. Uma moeda caída é fracasso.", "ids": ["npc_mordomo_zoldyck_ambient", "npc_mordomo_gotoh", "enemy_mordomo_zoldyck"]},
 		]
 		for a in ambient_npcs:
 			if get_node_or_null(a["name"]) != null:
@@ -337,74 +325,13 @@ func _densificar_alameda_kukuroo() -> void:
 			living.npc_nome = a["npc"]
 			living.tipo_marcador = "ambient"
 			living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
-			living.raio_patrulha = float(a["r"])
+			living.raio_patrulha = 48.0
 			npc.add_child(living)
 			add_child(npc)
 
-	_plantar_props_estrutura_kukuroo()
 
-
-## Marcos de pedra + lanternas extras ao longo do path (leitura espacial).
-func _plantar_props_estrutura_kukuroo() -> void:
-	if get_node_or_null("PropsEstruturaKukuroo") != null:
-		return
-	var root := Node2D.new()
-	root.name = "PropsEstruturaKukuroo"
-	add_child(root)
-	var specs := [
-		{"name": "MarcoPedra_Portao", "pos": Vector2(320, 30), "tex": "res://assets/sprites/objects/marco_pedra_milestone.png"},
-		{"name": "MarcoPedra_Alameda", "pos": Vector2(1050, 50), "tex": "res://assets/sprites/objects/marco_pedra_milestone.png"},
-		{"name": "LanternaExtra_Alameda", "pos": Vector2(1550, -40), "tex": "res://assets/sprites/objects/kukuroo_stone_lantern.png"},
-		{"name": "LanternaExtra_Mansao", "pos": Vector2(2250, 40), "tex": "res://assets/sprites/objects/kukuroo_stone_lantern.png"},
-		{"name": "Monolito_Trono", "pos": Vector2(3100, 20), "tex": "res://assets/sprites/objects/nen_stone_monolith.png"},
-	]
-	for s in specs:
-		var n := Node2D.new()
-		n.name = s["name"]
-		n.position = s["pos"]
-		var spr := Sprite2D.new()
-		spr.centered = true
-		spr.position = Vector2(0, -12)
-		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		if ResourceLoader.exists(s["tex"]):
-			spr.texture = load(s["tex"])
-		n.add_child(spr)
-		root.add_child(n)
-
-
-## Sensores Nen: clues/zonas canônicas ORDEM + flavor Gyo/Ko/Zetsu.
+## Sensores Nen: Gyo pós-despertar + Zetsu na alameda (prática furtiva).
 func _instanciar_sensores_nen_kukuroo() -> void:
-	# Clues canônicas (sempre — GPS/auditoria não dependem de despertar).
-	NenSensorFactory.criar_gyo(
-		self, "GyoPesosZebro", Vector2(280, -20),
-		&"pesos_zebro", "Pesos de Treino de Zebro",
-		"Xícaras e chinelos de dezenas de quilos. Gyo marca o dormitório dos empregados.",
-		"Intensificação", 1, Color(0.85, 0.7, 0.4, 0.9)
-	)
-	NenSensorFactory.criar_gyo(
-		self, "GyoJogoMoedaGotoh", Vector2(2420, -130),
-		&"jogo_moeda_gotoh", "Moeda de Ouro de Gotoh",
-		"Resíduo de alta velocidade nas mãos do mordomo-chefe. Inspecione para o teste das moedas.",
-		"Materialização", 1, Color(1.0, 0.85, 0.3, 0.9)
-	)
-
-	# Zonas Zetsu canônicas ORDEM.
-	NenSensorFactory.criar_zetsu(
-		self, "ZetsuAlamedaMike", Vector2(1100, -100),
-		&"alameda_mike", "Alameda dos Cães de Caça",
-		Vector2(150, 100), &"mike", "Cão Mike Alertado"
-	)
-	NenSensorFactory.criar_zetsu(
-		self, "ZetsuMansaoMordomos", Vector2(2300, 90),
-		&"mansao_mordomos", "Mansão dos Mordomos",
-		Vector2(160, 110), &"mordomo_combate", "Sentinela Zoldyck Alertada"
-	)
-	NenSensorFactory.criar_zetsu(
-		self, "ZetsuCorredorTrono", Vector2(3100, -80),
-		&"kukuroo_corredor_trono", "Corredor do Trono",
-		Vector2(140, 100), &"mordomo_combate", "Guarda do Trono"
-	)
-
 	if PlayerData != null and PlayerData.despertou_nen:
 		NenSensorFactory.criar_gyo(
 			self, "GyoPistaPortaoAura", Vector2(400, -20),
@@ -428,6 +355,22 @@ func _instanciar_sensores_nen_kukuroo() -> void:
 			self, "KoPedraAlameda", Vector2(1600, 40),
 			"Pedra Selada da Alameda", &"pocao_aura"
 		)
+
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuArbustoAlameda", Vector2(1100, -100),
+		&"kukuroo_arbusto_alameda", "Arbusto Vigia da Alameda",
+		Vector2(150, 100), &"mordomo_combate", "Mordomo Alertado"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuJardimMansao", Vector2(2300, 90),
+		&"kukuroo_jardim_mansao", "Jardim dos Mordomos",
+		Vector2(160, 110), &"mordomo_combate", "Sentinela Zoldyck Alertada"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCorredorTrono", Vector2(3100, -80),
+		&"kukuroo_corredor_trono", "Corredor do Trono",
+		Vector2(140, 100), &"mordomo_combate", "Guarda do Trono"
+	)
 
 func _configurar_portal_conclusao() -> void:
 	var portal = get_node_or_null("PortalArenaCelestial") as MapTransitionArea

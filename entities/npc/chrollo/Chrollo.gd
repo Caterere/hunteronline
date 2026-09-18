@@ -22,8 +22,6 @@ func _ready() -> void:
 func _on_interacted(player: CharacterBody2D) -> void:
 	print("[Chrollo] Interagindo com o líder da Genei Ryodan...")
 	QuestSystem.register_npc_visit(&"chrollo")
-	if QuestSystem.has_method("register_persuasion"):
-		QuestSystem.register_persuasion(&"chrollo")
 
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
 
@@ -31,14 +29,8 @@ func _on_interacted(player: CharacterBody2D) -> void:
 		var falas: Array[Dictionary] = []
 		var nivel_nen = PlayerData.attributes.get("nivel_nen", 0) if PlayerData else 0
 		var ja_e_aranha = (PlayerData.faccao_atual == "genei_ryodan") if PlayerData else false
-		var arco = PlayerData.arco_atual if PlayerData else 1
 
-		if arco >= 9:
-			falas = [
-				{"falante": "Chrollo Lucilfer", "texto": "ORDEM: Hisoka está a bordo. Fale comigo → negocie trégua. Depois [Z] aposentos Tserriednich."},
-				{"falante": "Chrollo Lucilfer", "texto": "A Trupe não descansa até a cabeça do palhaço rolar — mas uma trégua provisória serve aos dois lados."}
-			]
-		elif ja_e_aranha:
+		if ja_e_aranha:
 			var rank_nome = FactionManager.obter_nome_rank_atual() if FactionManager else "Membro"
 			falas = [
 				{"falante": "Chrollo Lucilfer", "texto": "Bem-vindo de volta, meu caro companheiro da Aranha (%s)." % rank_nome},

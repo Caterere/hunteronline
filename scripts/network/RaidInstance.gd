@@ -15,7 +15,6 @@ const MAX_RAID_SIZE: int = 8
 
 signal phase_changed(phase_index: int, phase_id: String)
 signal enrage_started(seconds_remaining: float)
-signal enrage_warning(seconds_remaining: float)
 signal raid_wiped()
 signal raid_cleared(loot_seed: int)
 
@@ -26,10 +25,8 @@ var phases: Array[Dictionary] = []
 var current_phase_index: int = 0
 var enrage_seconds: float = 0.0
 var enrage_active: bool = false
-var enrage_warning_emitted: bool = false
 var wipe_count: int = 0
 var loot_seed: int = 0
-var is_solo: bool = false
 
 
 func start_raid(p_raid_id: String, members: Array[int], catalog_entry: Dictionary = {}) -> bool:
@@ -51,13 +48,8 @@ func start_raid(p_raid_id: String, members: Array[int], catalog_entry: Dictionar
 	current_phase_index = 0
 	enrage_seconds = float(catalog_entry.get("enrage_seconds", 480.0))
 	enrage_active = false
-	enrage_warning_emitted = false
 	wipe_count = 0
 	loot_seed = int(Time.get_ticks_msec()) ^ hash(p_raid_id)
-	is_solo = members.size() <= 1
-	# Solo: um pouco mais de tempo antes do enrage (pacing legível)
-	if is_solo:
-		enrage_seconds = maxf(enrage_seconds, enrage_seconds * 1.15)
 	iniciar_instancia(p_raid_id, members)
 	phase_changed.emit(0, str(phases[0].get("id", "phase_0")))
 	return true
@@ -77,9 +69,6 @@ func tick_enrage(delta: float) -> void:
 	if is_cleared or enrage_seconds <= 0.0:
 		return
 	enrage_seconds = maxf(0.0, enrage_seconds - delta)
-	if not enrage_warning_emitted and enrage_seconds <= 60.0 and not enrage_active:
-		enrage_warning_emitted = true
-		enrage_warning.emit(enrage_seconds)
 	if enrage_seconds <= 0.0 and not enrage_active:
 		enrage_active = true
 		enrage_started.emit(0.0)

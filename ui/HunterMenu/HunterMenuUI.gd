@@ -19,7 +19,7 @@ var hbox_header: HBoxContainer
 
 # Abas
 var tab_status: VBoxContainer
-var tab_inv: Control
+var tab_inv: ScrollContainer
 var tab_nen: Control
 var tab_hatsu: ScrollContainer
 var tab_license: VBoxContainer
@@ -158,41 +158,15 @@ func _criar_aba_status() -> void:
 	tab_status.add_child(lbl_status_attrs)
 
 
-var inv_detalhes_label: Label = null
-
 func _criar_aba_inventario() -> void:
-	tab_inv = VBoxContainer.new()
+	tab_inv = ScrollContainer.new()
 	tab_inv.name = "Inventário"
-	tab_inv.add_theme_constant_override("separation", 4)
 	tab_container.add_child(tab_inv)
-
-	var hbox_inv := HBoxContainer.new()
-	hbox_inv.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	hbox_inv.add_theme_constant_override("separation", 6)
-	tab_inv.add_child(hbox_inv)
-
-	var scroll_list := ScrollContainer.new()
-	scroll_list.custom_minimum_size = Vector2(200, 0)
-	scroll_list.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	hbox_inv.add_child(scroll_list)
 
 	inv_list_container = VBoxContainer.new()
 	inv_list_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inv_list_container.add_theme_constant_override("separation", 2)
-	scroll_list.add_child(inv_list_container)
-
-	var scroll_det := ScrollContainer.new()
-	scroll_det.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll_det.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	hbox_inv.add_child(scroll_det)
-
-	inv_detalhes_label = Label.new()
-	inv_detalhes_label.text = "Selecione um item para ver stats, trade-offs e lore."
-	inv_detalhes_label.add_theme_font_size_override("font_size", 4)
-	inv_detalhes_label.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
-	inv_detalhes_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	inv_detalhes_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll_det.add_child(inv_detalhes_label)
+	tab_inv.add_child(inv_list_container)
 
 
 var nen_skill_tree_ui_instance: NenSkillTreeUI = null
@@ -590,8 +564,6 @@ func _atualizar_aba_atual() -> void:
 				TutorialManager.notificar_aba_inventario_aberta()
 		"Nen Tree":
 			_atualizar_conteudo_nen()
-			if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
-				TutorialManager.disparar_tutorial_contextual("nen_arvore")
 		"Hatsu":
 			_atualizar_conteudo_hatsu()
 		"Licença":
@@ -600,8 +572,6 @@ func _atualizar_aba_atual() -> void:
 			_atualizar_conteudo_faccoes()
 		"Guia Hunter":
 			_atualizar_conteudo_guia()
-			if TutorialManager != null and TutorialManager.has_method("notificar_guia_aberto"):
-				TutorialManager.notificar_guia_aberto()
 		"Mapa":
 			_atualizar_conteudo_mapa()
 		"Aparência":
@@ -676,19 +646,15 @@ func _atualizar_conteudo_status() -> void:
 	var vel = int(PlayerData.attributes.get("velocidade", 10))
 	var gold = Economy.obter_gold()
 
-	var sp: int = PlayerData.nen_skill_points
 	lbl_status_attrs.text = (
-		"❤️ Vida: %d / %d  — resistência a dano\n" +
-		"⚡ Aura: %d / %d  — energia de Nen/Hatsu\n" +
-		"⚔️ Força: %d  — dano físico dos golpes\n" +
-		"🛡️ Defesa: %d  — redução de dano recebido\n" +
-		"👟 Velocidade: %d  — corrida e ritmo de ataque\n" +
-		"💠 SP Nen: %d  — gaste na Constelação [aba Nen Tree]\n" +
+		"❤️ Vida: %d / %d\n" +
+		"⚡ Aura: %d / %d\n" +
+		"⚔️ Força: %d\n" +
+		"🛡️ Defesa: %d\n" +
+		"👟 Velocidade: %d\n" +
 		"💰 Jenny: %d\n" +
-		"🔍 Segredos Descobertos: %d\n" +
-		"—\n" +
-		"Dica: sobe de nível → +1 SP e atributos aumentam. Abra o Guia Hunter para detalhes."
-	) % [hp, hp_max, aura, aura_max, forca, def, vel, sp, gold, PlayerData.segredos_descobertos.size()]
+		"🔍 Segredos Descobertos: %d"
+	) % [hp, hp_max, aura, aura_max, forca, def, vel, gold, PlayerData.segredos_descobertos.size()]
 
 
 func _atualizar_conteudo_inventario() -> void:
@@ -703,20 +669,14 @@ func _atualizar_conteudo_inventario() -> void:
 		lbl.add_theme_font_size_override("font_size", 4)
 		lbl.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
 		inv_list_container.add_child(lbl)
-		if inv_detalhes_label != null:
-			inv_detalhes_label.text = "Seu alforje está vazio. Colete poções, equipamentos e relíquias pelo mundo."
 		return
 
-	var primeiro := true
 	for item_id in PlayerData.inventory.keys():
-		var qtd = int(PlayerData.inventory[item_id])
-		if qtd <= 0:
-			continue
-		var sid := str(item_id)
-		var item: ItemData = ItemExplainKit.resolver_item(sid)
+		var qtd = PlayerData.inventory[item_id]
+		if qtd <= 0: continue
 		var p_item := PanelContainer.new()
 		p_item.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_card_interno(HunterUIStyle.COLOR_BORDER_SUBTLE, 2))
-
+		
 		var m := MarginContainer.new()
 		m.add_theme_constant_override("margin_left", 4)
 		m.add_theme_constant_override("margin_right", 4)
@@ -724,26 +684,23 @@ func _atualizar_conteudo_inventario() -> void:
 		m.add_theme_constant_override("margin_bottom", 2)
 		p_item.add_child(m)
 
-		var btn := Button.new()
-		btn.text = "%s  ×%d" % [ItemExplainKit.nome_exibicao(sid, item), qtd]
-		btn.flat = true
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.add_theme_font_size_override("font_size", 4)
-		btn.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
-		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.pressed.connect(_on_inventario_item_selecionado.bind(sid, qtd))
-		m.add_child(btn)
+		var hbox := HBoxContainer.new()
+		m.add_child(hbox)
+
+		var lbl := Label.new()
+		lbl.text = "• %s" % str(item_id).capitalize()
+		lbl.add_theme_font_size_override("font_size", 4)
+		lbl.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
+		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		hbox.add_child(lbl)
+
+		var lbl_q := Label.new()
+		lbl_q.text = "x%d" % qtd
+		lbl_q.add_theme_font_size_override("font_size", 4)
+		lbl_q.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
+		hbox.add_child(lbl_q)
 
 		inv_list_container.add_child(p_item)
-		if primeiro:
-			primeiro = false
-			_on_inventario_item_selecionado(sid, qtd)
-
-
-func _on_inventario_item_selecionado(item_id: String, qtd: int) -> void:
-	if inv_detalhes_label == null:
-		return
-	inv_detalhes_label.text = ItemExplainKit.formatar_detalhes(item_id, qtd)
 
 
 func _atualizar_conteudo_nen() -> void:
@@ -1279,53 +1236,6 @@ func _atualizar_conteudo_faccoes() -> void:
 
 		factions_list_container.add_child(p_fac)
 
-	var hb_soc := HBoxContainer.new()
-	hb_soc.add_theme_constant_override("separation", 4)
-	factions_list_container.add_child(hb_soc)
-
-	var btn_mail := Button.new()
-	btn_mail.text = "✉️ Correio da Associação"
-	btn_mail.add_theme_font_size_override("font_size", 4)
-	HunterUIStyle.aplicar_estilo_botao(btn_mail, HunterUIStyle.COLOR_BORDER_GOLD)
-	btn_mail.pressed.connect(func(): PauseMenuUI._abrir_correio_associacao())
-	hb_soc.add_child(btn_mail)
-
-	var btn_friends := Button.new()
-	btn_friends.text = "👥 Lista de Caçadores"
-	btn_friends.add_theme_font_size_override("font_size", 4)
-	HunterUIStyle.aplicar_estilo_botao(btn_friends, HunterUIStyle.COLOR_BORDER_GREEN)
-	btn_friends.pressed.connect(_on_abrir_lista_cacadores_pressed)
-	hb_soc.add_child(btn_friends)
-
-	if HunterFriendsSystem != null:
-		var lbl_f := Label.new()
-		lbl_f.text = "Amigos: %d | Pedidos: %d" % [
-			HunterFriendsSystem.friends.size(),
-			HunterFriendsSystem.incoming_requests.size(),
-		]
-		lbl_f.add_theme_font_size_override("font_size", 3)
-		lbl_f.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
-		factions_list_container.add_child(lbl_f)
-
-
-func _on_abrir_lista_cacadores_pressed() -> void:
-	if HunterFriendsSystem == null:
-		return
-	var lines: PackedStringArray = []
-	for f in HunterFriendsSystem.listar_amigos():
-		lines.append("• %s%s" % [
-			str(f.get("name", "")),
-			(" — %s" % str(f.get("note", ""))) if not str(f.get("note", "")).is_empty() else "",
-		])
-	for rid in HunterFriendsSystem.incoming_requests.keys():
-		var req: Dictionary = HunterFriendsSystem.incoming_requests[rid]
-		lines.append("[Pedido] %s (aceitar no stub offline)" % str(req.get("name", rid)))
-	var body := "Lista de Caçadores (B9)\n\n"
-	body += "\n".join(lines) if not lines.is_empty() else "(Nenhum amigo ainda — use pedidos via multiplayer futuro.)"
-	if EventBus != null and EventBus.has_method("emit_toast"):
-		EventBus.emit_toast(body.substr(0, mini(body.length(), 120)), Color(0.7, 0.9, 1.0))
-	print("[HunterFriends]\n", body)
-
 
 func _atualizar_conteudo_guia() -> void:
 	if guide_list_container == null:
@@ -1366,22 +1276,8 @@ func _atualizar_conteudo_guia() -> void:
 	vb_hdr.add_child(lbl_sub)
 	guide_list_container.add_child(p_hdr)
 
-	# Categorias derivadas do catálogo (ordem preferida + extras descobertos)
-	var ordem_pref: Array[String] = [
-		"Mundo", "Controles", "Interface", "Itens", "Personagem", "Combate",
-		"Atributos", "Aura & Nen", "Hatsu", "Facções & Sistemas", "Sistemas"
-	]
-	var categorias: Array[String] = []
-	var vistas: Dictionary = {}
-	for cat in ordem_pref:
-		vistas[cat] = true
-		categorias.append(cat)
-	for id in catalogo.keys():
-		var cat_raw: String = str(catalogo[id].get("categoria", "Sistemas"))
-		if not vistas.has(cat_raw):
-			vistas[cat_raw] = true
-			categorias.append(cat_raw)
-
+	# Agrupar por Categorias
+	var categorias: Array[String] = ["Mundo", "Combate", "Atributos", "Aura & Nen", "Hatsu", "Facções & Sistemas", "Sistemas"]
 	for cat in categorias:
 		var artigos_cat: Array[Dictionary] = []
 		for id in catalogo.keys():

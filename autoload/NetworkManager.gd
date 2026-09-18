@@ -71,9 +71,6 @@ var _snapshot_bytes_raw: int = 0
 var _snapshot_bytes_recv: int = 0
 var _snapshot_packets_sent: int = 0
 var _snapshot_packets_recv: int = 0
-const MatchmakingQueueScript = preload("res://scripts/network/MatchmakingQueue.gd")
-
-var _server_autosave_timer: float = 0.0
 var _snapshot_sec_timer: float = 0.0
 var _snapshot_bytes_sent_sec_acc: int = 0
 var _snapshot_bytes_raw_sec_acc: int = 0
@@ -543,7 +540,6 @@ func _physics_process(delta: float) -> void:
 			world_coordinator.tick(delta)
 		if discovery_broadcaster != null:
 			discovery_broadcaster.update(delta)
-		_tick_server_autosave(delta)
 		return
 
 	# Cliente ou Host de Gameplay
@@ -574,29 +570,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			else:
 				tentar_revive_aliado_proximo()
 			get_viewport().set_input_as_handled()
-
-
-func _tick_server_autosave(delta: float) -> void:
-	if server_storage == null or server_config == null or session == null:
-		return
-	var interval := float(server_config.save_interval_sec)
-	if interval <= 0.0:
-		return
-	_server_autosave_timer += delta
-	if _server_autosave_timer < interval:
-		return
-	_server_autosave_timer = 0.0
-	var n: int = int(server_storage.persist_all_peers_periodic(session.peers, world_coordinator))
-	if n > 0:
-		print("[NetworkManager] 💾 Autosave servidor: %d jogador(es)" % n)
-	var q := DutyFinderSystem.get_queue_status() if DutyFinderSystem != null else {}
-	if not q.is_empty() and master_registry != null:
-		MatchmakingQueueScript.announce_queue_to_registry(
-			master_registry,
-			str(q.get("duty_id", "")),
-			int(q.get("filled", 0)),
-			int(q.get("needed", 0))
-		)
 
 
 func _atualizar_snapshot_bandwidth_janela(delta: float) -> void:

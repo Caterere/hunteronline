@@ -30,8 +30,8 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		4:
 			falar_balao("Yorknew City é perigosa. A Trupe Fantasma tá na área... Vamos dar cobertura pro Kurapika!", 3.8, Color(0.3, 0.8, 1.0, 1.0))
 		5:
-			falar_balao("ORDEM: Treino com Biscuit → Yo-yos / Sub → [Z] na Cova quando o GPS pedir. Sem rush no Bomber.", 3.8, Color(0.3, 0.8, 1.0, 1.0))
+			falar_balao("Greed Island é como um videogame real! A Biscuit pega pesado, mas o treino funciona.", 3.8, Color(0.3, 0.8, 1.0, 1.0))
 		6:
-			falar_balao("ORDEM: Após Kite, GPS. Eu cubro a fuga. Godspeed / agulha depois — um passo. Sem rush em Pitou.", 3.8, Color(0.3, 0.8, 1.0, 1.0))
+			falar_balao("As Formigas Chimera são monstros de verdade. Eu vou proteger vocês com meu Godspeed!", 3.8, Color(0.3, 0.8, 1.0, 1.0))
 		_:
 			falar_balao("Tô sempre pronto pra próxima aventura! Só não fica pra trás!", 3.8, Color(0.3, 0.8, 1.0, 1.0))

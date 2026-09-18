@@ -67,15 +67,10 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		else:
 			PlayerData.desbloquear_hatsu_creator()
 
-		if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
-			TutorialManager.disparar_tutorial_contextual("hatsu_desbloqueio")
-		if EventBus != null and EventBus.has_method("emit_toast"):
-			EventBus.emit_toast("✨ Hatsu Slot 1 liberado — crie sua habilidade e sinta o peso em combate!", Color(1.0, 0.9, 0.35))
-
 		if visual_dialogue != null:
 			visual_dialogue.exibir_sequencia_falas([
 				{"falante": "Biscuit Krueger", "texto": "Excelente! Você sobreviveu e completou Greed Island! Sua aura foi forjada no calor das batalhas reais."},
-				{"falante": "Biscuit Krueger", "texto": "Agora forjamos seu Hatsu. Cada afinidade tem peso diferente em combate — canalize, solte e sinta o impacto. Slot 1 DESBLOQUEADO!"}
+				{"falante": "Biscuit Krueger", "texto": "Você provou que está pronto para manifestar sua individualidade através do Nen. Hatsu Slot 1 DESBLOQUEADO!"}
 			])
 
 	_abrir_menu_interacao()

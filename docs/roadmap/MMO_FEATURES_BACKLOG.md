@@ -125,12 +125,12 @@ flowchart LR
 
 | ID | Sistema | Inspiração | Adaptação HxH | Deps | Nota |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | **`IMPLEMENTED`** — `AssociationMailSystem` + `HunterFriendsSystem` + UI |
-| B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | **`IMPLEMENTED`** — `DutyFinderSystem` + `MatchmakingQueue` |
-| B11 | Territory wars | New World / GW2 WvW | Rotas Associação×Máfia×Salteadores | LiveEventManager | **`IMPLEMENTED`** — `TerritoryWarSystem` meta semanal |
-| B12 | Mounts / dirigível | FFXIV mounts | Skins via `TravelSystem` | TravelSystem | **`IMPLEMENTED`** — `TravelSystem.unlock_skin` (cosmético) |
-| B13 | Seasons / battle pass | Destiny / Lost Ark | Temporada de caçada + códex parcial | LIVE_OPS_CONTENT | **`IMPLEMENTED`** — `SeasonPassSystem` cosmético only |
-| B14 | Sockets / Nen stones | WoW/PoE | Gems no enhance +10 | Blacksmith | **`IMPLEMENTED`** — `NenStoneSystem` + Forja (+10, 1 socket) |
+| B9 | Mail + Friends | WoW/FFXIV | Correio da Associação + lista de caçadores | PREREQ-1 | RelationshipSystem hoje é NPC |
+| B10 | Matchmaking Duty Finder | FFXIV | Fila dungeon/raid/arena | **PREREQ-1** | Master registry local já existe; falta fila de conteúdo |
+| B11 | Territory wars | New World / GW2 WvW | Rotas Associação×Máfia×Salteadores | LiveEventManager | Expandir evento da ponte para meta semanal |
+| B12 | Mounts / dirigível | FFXIV mounts | Skins via `TravelSystem` | TravelSystem | Preferir viagem temática, não mount genérico |
+| B13 | Seasons / battle pass | Destiny / Lost Ark | Temporada de caçada + códex parcial | LIVE_OPS_CONTENT | Cosmético only |
+| B14 | Sockets / Nen stones | WoW/PoE | Gems no enhance +10 | Blacksmith | Risco de power creep |
 | B15 | Corpse run / gear loss | classic WoW | **Evitar** | — | Conflita com death soft + duelos sem pena |
 
 ---
@@ -146,18 +146,17 @@ flowchart LR
 
 ## Ordem sugerida de execução
 
-1. **PREREQ-1** — sync binário / compressão estável em `NetworkProtocol` + coordenador. ✅
+1. **PREREQ-1** — sync binário / compressão estável em `NetworkProtocol` + coordenador.
 2. **PREREQ-2** — revive aliado (canalização 3s) ✅
 3. **A5** — contratos rotativos + Star Hunter ✅
-4. **S3** — raid 8 vertical (1 masmorra). ✅
-5. **S2** — Arena ranqueada + 1ª temporada. ✅
-6. **S1** — Leilão Yorknew (economia server-side estável). ✅
-7. **S4** — Greed Island duelo de cartas. ✅
+4. **S3** — raid 8 vertical (1 masmorra).
+5. **S2** — Arena ranqueada + 1ª temporada.
+6. **S1** — Leilão Yorknew (economia server-side estável).
+7. **S4** — Greed Island duelo de cartas.
 8. **A6** — Guildas + Nen Contracts. ✅
 9. **A7** — Blacklist open hunt. ✅
 10. **A8** — Gourmet life skills. ✅
-11. **B9–B14** — Mail/Friends, Duty Finder, Territory, Travel skins, Season Pass, Nen stones. ✅
-12. **Ops VPS** — `public_host` / auth de contas reais (quando contratar host) — checklist em `SERVER_SETUP.md`
+11. **B11** — Meta territorial faccional.
 
 ---
 

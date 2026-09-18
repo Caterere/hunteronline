@@ -634,64 +634,6 @@ func get_focus_quest() -> Quest:
 	return MissionObjectiveResolverScript.get_focus_quest()
 
 
-## Retorna "turn_in" | "objective" | "offer" | "" para o marcador visual do NPC.
-func obter_estado_marcador_npc(npc_key: String) -> String:
-	var key := npc_key.strip_edges().to_lower().replace(" ", "_")
-	if key.is_empty():
-		return ""
-	var aliases: Array[String] = [key]
-	if key.begins_with("mestre_"):
-		aliases.append(key.trim_prefix("mestre_"))
-	if key == "wing" or "wing" in key:
-		aliases.append("wing")
-		aliases.append("mestre_wing")
-	if key == "biscuit" or "biscuit" in key:
-		aliases.append("biscuit")
-	if key == "elena" or "elena" in key:
-		aliases.append("elena")
-		aliases.append("recepcionista_elena")
-
-	for quest in active_quests:
-		if quest == null:
-			continue
-		# Entrega pronta
-		if not quest.turn_in_npc_key.is_empty():
-			var turn := str(quest.turn_in_npc_key).to_lower()
-			for a in aliases:
-				if a == turn or a in turn or turn in a:
-					if is_all_objectives_done(quest):
-						return "turn_in"
-		var idx := _obter_active_objective_idx(quest)
-		if idx < 0:
-			continue
-		var obj: QuestObjective = quest.objectives[idx]
-		if obj == null:
-			continue
-		if obj.type == QuestObjective.Type.VISIT:
-			var tid := str(obj.target_npc_id).to_lower()
-			var tname := obj.target_npc_name.to_lower()
-			for a in aliases:
-				if (not tid.is_empty() and (a == tid or a in tid or tid in a)) \
-					or (not tname.is_empty() and a in tname.replace(" ", "_")):
-					return "objective"
-	# Oferta contextual (só mentores com algo a ensinar — sem spam em todo NPC)
-	if PlayerData != null:
-		for a in aliases:
-			if (a == "wing" or a == "mestre_wing") and not PlayerData.despertou_nen:
-				return "offer"
-			if a == "biscuit" and PlayerData.is_greed_island_concluida() and not bool(PlayerData.hatsu_desbloqueado):
-				return "offer"
-			if (a == "elena" or "elena" in a) and not PlayerData.tutorial_concluido:
-				return "offer"
-	return ""
-
-
-func is_all_objectives_done(quest: Quest) -> bool:
-	if quest == null:
-		return false
-	return _obter_active_objective_idx(quest) < 0
-
-
 func get_active_objective() -> QuestObjective:
 	var q: Quest = MissionObjectiveResolverScript.get_focus_quest()
 	if q == null:

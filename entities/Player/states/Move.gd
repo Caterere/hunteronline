@@ -15,8 +15,7 @@ func process_physics(delta: float) -> void:
 	player.facing_direction = input
 	
 	# Velocidade baseada no atributo Velocidade do GDD (escala 10-1000)
-	# Alinhado ao Player._move_speed mais lento (espaço para Hatsu)
-	var velocidade_base = 112.0
+	var velocidade_base = 150.0
 	var multiplicador = clamp(player.atributos.velocidade / 10.0, 1.0, 100.0)
 	player.velocity = input * velocidade_base * sqrt(multiplicador)  # sqrt para não explodir
 	

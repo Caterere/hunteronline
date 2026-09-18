@@ -24,14 +24,6 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 	QuestSystem.register_npc_visit(&"hisoka")
 
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
-	var arco := int(PlayerData.arco_atual) if PlayerData != null else 0
-
-	if visual_dialogue != null and arco == 5:
-		visual_dialogue.exibir_sequencia_falas([
-			{"falante": "Hisoka Morow", "texto": "ORDEM: Fale comigo (recruta) → ginásio com Razor. Queimada depois. Sem pular etapas. ♥"},
-			{"falante": "Hisoka Morow", "texto": "Schwing~ Siga o GPS — um objetivo de cada vez. Eu jogo quando a fruta estiver madura."}
-		])
-		return
 
 	if visual_dialogue != null:
 		var nivel_nen = PlayerData.attributes.get("nivel_nen", 0) if PlayerData else 0

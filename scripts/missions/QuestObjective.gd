@@ -62,10 +62,6 @@ func describe() -> String:
 			var nome_inimigo := str(enemy_type)
 			if nome_inimigo.is_empty() or nome_inimigo == "any" or nome_inimigo == "inimigo" or nome_inimigo == "monstro":
 				desc_base = "⚔️ Derrote Criaturas / Inimigos da Área"
-			elif nome_inimigo == "fera_floresta":
-				desc_base = "⚔️ Derrote Feras da Floresta (GPS → Floresta dos Vestígios)"
-			elif nome_inimigo == "guardiao_ancestral":
-				desc_base = "⚔️ Derrote o Guardião Ancestral (Ruínas de Zaban)"
 			else:
 				desc_base = "⚔️ Derrote %s" % nome_inimigo.replace("_", " ").capitalize()
 
@@ -82,108 +78,11 @@ func describe() -> String:
 				desc_base = "💬 Fale com %s" % target_npc_name
 
 		Type.INVESTIGATE:
-			var cid := str(target_clue_id).to_lower()
-			match cid:
-				"floresta_aura_raizes":
-					desc_base = "🔍 [G] Gyo — Raízes Pulsantes (Árvore Milenar)"
-				"floresta_pegadas_fera":
-					desc_base = "🔍 [G] Gyo — Pegadas Predatórias (sul → Ruínas)"
-				"zaban_selo_antecamara":
-					desc_base = "🔍 [G] Gyo — Selo de Pedra (Antecâmara)"
-				"zaban_fissura_aura":
-					desc_base = "🔍 [G] Gyo — Fissura de Aura (Câmara)"
-				"zaban_pilar_ko":
-					desc_base = "💥 [KO] Quebre o Pilar Rachado da Câmara"
-				"livro_greed":
-					desc_base = "🔍 [G] Gyo — Spell Book (Antokiba)"
-				"desfiladeiro_biscuit":
-					desc_base = "🔍 [G] Gyo — Desfiladeiro de Pedras (Biscuit)"
-				"explosao_bomber":
-					desc_base = "🔍 [G] Gyo — Marca da Explosão do Bomber"
-				"quiz_100_cartas":
-					desc_base = "🔍 [G] Gyo — Altar das 100 Cartas"
-				"porto_soufrabi":
-					desc_base = "🔍 [G] Gyo — Porto de Soufrabi"
-				"ginasio_razor":
-					desc_base = "🔍 [G] Gyo — Ginásio da Queimada Mortal"
-				"carta_002_litoral":
-					desc_base = "🔍 [G] Gyo — Eco da Carta 002"
-				"sopro_arcanjo":
-					desc_base = "🔍 [G] Gyo — Sopro do Arcanjo (Carta 017)"
-				"fabrica_d2_gyro":
-					desc_base = "🔍 [G] Gyo — Fábrica Clandestina de D2"
-				"nascimento_rei_meruem":
-					desc_base = "🔍 [G] Gyo — Vestígio do Nascimento do Rei"
-				"portas_knov":
-					desc_base = "🔍 [G] Gyo — Portas Dimensionais de Knov"
-				"chuva_dragoes_zeno":
-					desc_base = "🔍 [G] Gyo — Marcas da Chuva de Dragões"
-				"buda_guanyin_netero":
-					desc_base = "🔍 [G] Gyo — Guanyin Bodhisattva (Netero)"
-				"explosao_rosa_pobre":
-					desc_base = "🔍 [G] Gyo — Rosa Pobre (Poor Man's Rose)"
-				"escadaria_youpi":
-					desc_base = "🔍 [G] Gyo — Escadaria Central (Youpi)"
-				"cela_alluka":
-					desc_base = "🔍 [G] Gyo — Cela / Cofre de Alluka"
-				"uti_gon_associacao":
-					desc_base = "🔍 [G] Gyo — UTI de Gon (Hospital Hunter)"
-				"plenario_eleicao":
-					desc_base = "🔍 [G] Gyo — Plenário da Eleição"
-				"mapa_lago_mobius":
-					desc_base = "🔍 [G] Gyo — Mapa do Lago Mobius"
-				"ruinas_botanicas":
-					desc_base = "🔍 [G] Gyo — Ruínas Botânicas Ancestrais"
-				"horizonte_infinito":
-					desc_base = "🔍 [G] Gyo — Horizonte Sem Fim"
-				"primeiro_assassinato_kakin":
-					desc_base = "🔍 [G] Gyo — Primeiro Assassinato a Bordo"
-				"seita_heilly":
-					desc_base = "🔍 [G] Gyo — Contágio da Seita Heil-Ly"
-				"besta_tserriednich":
-					desc_base = "🔍 [G] Gyo — Aura da Besta de Dupla Face"
-				"copia_kortopi":
-					desc_base = "🔍 [G] Gyo — Cópia de Nen (Gallery Fake)"
-				"memoria_pakunoda":
-					desc_base = "🔍 [G] Gyo — Memórias de Pakunoda"
-				"fita_ging":
-					desc_base = "🔍 [G] Gyo — Fita Cassete de Ging"
-				"pista_furto_janela", "pista_furto_pegada", "pista_furto_esconderijo":
-					desc_base = "🔍 [G] Gyo — Pista do furto '%s'" % cid.replace("pista_furto_", "").capitalize()
-				_:
-					desc_base = "🔍 [GYO] Investigue a pista '%s'" % str(target_clue_id).replace("_", " ").capitalize()
+			desc_base = "🔍 [GYO] Investigue a pista '%s'" % str(target_clue_id).replace("_", " ").capitalize()
 
 		Type.STEALTH_PASS:
-			var zid := str(target_zone_id).to_lower()
-			match zid:
-				"acampamento_salteadores_norte":
-					desc_base = "🥷 [Z] Zetsu — atravesse o Acampamento Norte"
-				"zaban_corredor_sentinelas":
-					desc_base = "🥷 [Z] Zetsu — atravesse o Corredor das Sentinelas"
-				"clareira_predadores_leste":
-					desc_base = "🥷 [Z] Zetsu — atravesse a Clareira Leste"
-				"armadilha_cova_gon":
-					desc_base = "🥷 [Z] Zetsu — atravesse a Cova-Armadilha"
-				"apagao_yorknew":
-					desc_base = "🥷 [Z] Zetsu — Subestação do Apagão"
-				"deserto_gordeau":
-					desc_base = "🥷 [Z] Zetsu — Corredor da Perseguição (Gordeau)"
-				"galpao_machinobunaga":
-					desc_base = "🥷 [Z] Zetsu — Galpão Machi / Nobunaga"
-				"greed_ginasio_vestibulo":
-					desc_base = "🥷 [Z] Zetsu — Vestíbulo do Ginásio"
-				"fronteira_goruto":
-					desc_base = "🥷 [Z] Zetsu — Fronteira Fortificada de Goruto"
-				"ngl_vestibulo_tumba":
-					desc_base = "🥷 [Z] Zetsu — Vestíbulo da Tumba Nuclear"
-				"aguas_proibidas":
-					desc_base = "🥷 [Z] Zetsu — Águas Proibidas"
-				"caverna_hellbell":
-					desc_base = "🥷 [Z] Zetsu — Caverna Hellbell"
-				"aposentos_tserriednich":
-					desc_base = "🥷 [Z] Zetsu — Aposentos de Tserriednich"
-				_:
-					desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
+			desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
+
 		Type.PERSUASION:
 			desc_base = "🤝 Convença / Negocie com %s" % (target_npc_name if not target_npc_name.is_empty() else str(target_npc_id).capitalize())
 

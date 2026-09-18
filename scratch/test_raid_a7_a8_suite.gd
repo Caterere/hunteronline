@@ -52,20 +52,10 @@ func _test_raid_density() -> void:
 	_check("_try_register_wipe" in dungeon_src and "_respawn_soft_checkpoint" in dungeon_src,
 		"wipe debounce + checkpoint", "wipe soft missing")
 	_check("BossIntroBanner.exibir" in dungeon_src, "BossIntroBanner static", "banner call wrong")
-	_check("_dica_fase_solo" in dungeon_src and "_criar_placa_checkpoint_entrada" in dungeon_src,
-		"solo tips + placa checkpoint", "solo polish missing")
-	_check("_on_raid_enrage_warning" in dungeon_src and "_solo_mode" in dungeon_src,
-		"enrage warning + solo mode", "enrage warn missing")
 
 	var ai_src := FileAccess.get_file_as_string("res://scripts/systems/EnemySystem/EnemyAI.gd")
 	_check("aoe_circle" in ai_src and "_criar_indicador_chao_aoe" in ai_src,
 		"telegraph AoE circle", "telegraph thin")
-	_check("SAIA DO CÍRCULO" in ai_src and "is_boss" in ai_src,
-		"telegraph solo-readable boss", "telegraph too short/unlabeled")
-
-	var raid_src := FileAccess.get_file_as_string("res://scripts/network/RaidInstance.gd")
-	_check("enrage_warning" in raid_src and "is_solo" in raid_src,
-		"RaidInstance enrage_warning + is_solo", "raid solo API missing")
 
 	var RaidCatalogScript = load("res://resource/raid/RaidCatalog.gd")
 	var entry: Dictionary = RaidCatalogScript.get_raid("ruins_zaban_vertical")
@@ -73,13 +63,8 @@ func _test_raid_density() -> void:
 
 	var RaidInstanceScript = load("res://scripts/network/RaidInstance.gd")
 	var raid = RaidInstanceScript.new()
-	var members: Array[int] = [1]
-	_check(raid.start_raid("ruins_zaban_vertical", members, entry), "start raid solo", "start fail")
-	_check(raid.is_solo == true, "is_solo=true com 1 membro", "is_solo false")
-	# Aviso de enrage ANTES de entrar na fase enrage por HP
-	raid.enrage_seconds = 50.0
-	raid.tick_enrage(0.016)
-	_check(raid.enrage_warning_emitted == true, "enrage_warning emitido em <=60s", "warn missing")
+	var members: Array[int] = [1, 2]
+	_check(raid.start_raid("ruins_zaban_vertical", members, entry), "start raid density", "start fail")
 	raid.update_boss_hp_ratio(0.69)
 	raid.update_boss_hp_ratio(0.44)
 	raid.update_boss_hp_ratio(0.19)

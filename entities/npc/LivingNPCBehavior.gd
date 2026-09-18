@@ -38,12 +38,7 @@ const RUMORES_CIDADE := [
 	"A Torre Celestial está pagando milhões de Jenny para quem passar do 100º andar!",
 	"Você viu? Dizem que o Exame Hunter deste ano terá menos de 1% de aprovação.",
 	"Dizem que há feras quimeras misteriosas surgindo nas florestas distantes.",
-	"Quem dominar o Ryu consegue superar qualquer golpe direto em combate!",
-	"Ative Gyo [G] perto do Empório — ainda tem rastro de aura do furto!",
-	"No beco norte, entre em Zetsu [Z] ou os salteadores te cheiram de longe.",
-	"Wing disse: SP na Constelação primeiro, Hatsu só depois com Biscuit.",
-	"Na Floresta dos Vestígios, En [X] ajuda a sentir a matilha antes dela te cercar.",
-	"O Guardião de Zaban quebra postura no 3º golpe — invista Ko na árvore."
+	"Quem dominar o Ryu consegue superar qualquer golpe direto em combate!"
 ]
 
 

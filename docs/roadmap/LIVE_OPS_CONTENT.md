@@ -44,8 +44,8 @@ Gerenciado em `ContentVersionConfig.gd`:
 
 **Multiplayer:** `NetworkManager` exige `GAME_VERSION` compatível; `CONTENT_VERSION` diferente usa fallback (sem viajar a regiões sem assets).
 
-**Implementado:** header de versão nos saves · `get_version_info()` · banner no menu de slots · backups rotativos `.bak.1–3` · stub F9 `ContentHotReload`  
-**Planejado:** rejeição suave de pacotes · log de auditoria  
+**Implementado:** header de versão nos saves · `get_version_info()`  
+**Planejado:** aviso de versão no menu · rejeição suave de pacotes · log de auditoria  
 **Futuro:** live patching delta · checksum cross-platform
 
 ---
@@ -69,7 +69,7 @@ Gerenciado em `ContentVersionConfig.gd`:
 
 Motor: `ContentVersionConfig.migrate_save_data()` chamado por `SaveManager` para saves ≤ 2.3.
 
-**Planejado:** ~~backups rotativos~~ **`IMPLEMENTED`** (`.bak.1/.bak.2/.bak.3`) · SHA-256 · tabela de itens obsoletos  
+**Planejado:** backups rotativos · SHA-256 · tabela de itens obsoletos  
 **Futuro:** cloud save com resolução de conflitos
 
 ---
