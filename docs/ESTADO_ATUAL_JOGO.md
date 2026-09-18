@@ -20,13 +20,13 @@
 | Hatsu | Feel com **espaço de combate** (speeds ↓) + polish afinidades na ordem Intensificação→Emissão→Transformação→Conjuração→Manipulação→Especialização. Unlock **Biscuit**. |
 | Mapa vivo | NPCs andando + estruturas + marcador **?** / **!** pequeno stylized em NPCs de quest. |
 | Tom NPC | **Mentor direto** (diz o que fazer). |
-| Raid Ruínas | **Task futura** (depois do early pacing/clareza). |
+| Raid Ruínas | **Polish solo feito** (telegraph legível, wipe, pacing). |
 | Multiplayer | **Solo-first**; LAN depois. |
 | Tom | Sandbox MMO com HxH adaptado. |
 
 ### Backlog explícito (não esquecer)
-- [ ] **Raid Ruínas de Zaban — polish solo** (telegraph, wipe legível, pacing) — pedido do Luiz para depois
-- [ ] Densidade Kukuroo / Arena (após early estável)
+- [x] **Raid Ruínas de Zaban — polish solo** (telegraph, wipe legível, pacing)
+- [x] Densidade Kukuroo / Arena (NPCs andando + falas diretas + props)
 - [ ] Arcos Yorknew / GI com duração longa e imersão alta
 
 ### Progresso desta sessão
@@ -38,6 +38,9 @@
 - [x] **QuestMarkerBillboard** (? / !) em NPCs com objetivo/oferta/entrega
 - [x] Mentores mais diretos (Elena/Wing) + quest Padokia “um de cada vez”
 - [x] Telegraph Hatsu diferenciado por afinidade (ordem pedida)
+- [x] **Densidade Kukuroo** — walkers + props + falas diretas + toasts de zona com próximo passo
+- [x] **Densidade Arena** — espectadores/staff + props + placas com próximo passo
+- [x] **Raid solo polish** — telegraph AoE ~1.2s, enrage warning 60s, wipe solo → checkpoint, adds reduzidos
 
 ---
 
@@ -234,9 +237,10 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 5. **HUD/combat log** — PR #49 entregou glass + log; validar FOV 960×540 em desktop e mobile-like window; ajustar opacidade/legibilidade se necessário.
 
 ### P2 — Conteúdo de sagas (profundidade, não sistemas novos)
-1. Enriquecer capítulos das sagas 1–3 (Exame, Kukuroo, Arena) com densidade de NPCs/POIs/eventos já previstos no `SagaModuleCatalog`.
-2. Raid vertical Continente Negro (depois de Ruínas Zaban estável).
-3. Yorknew/Kukuroo “densificados” já marcados `[x]` no roadmap — validar play, não reimplementar.
+1. Validar play humano Kukuroo/Arena densificados (walkers + falas diretas + props).
+2. Raid vertical Continente Negro (depois de Ruínas Zaban solo polish — feito).
+3. Yorknew/GI: alongar duração e imersão (pedido do Luiz — próximo grande bloco).
+4. Suites densificação: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`.
 
 ### P3 — Multiplayer produção (só se o foco for host público)
 1. Contratar/configurar VPS: `public_host`, `--no-lan-discovery`, `config/server_list.json`.

@@ -28,6 +28,8 @@ var raid_instance = null
 var _raid_catalog_entry: Dictionary = {}
 var _wipe_cooldown: float = 0.0
 var _last_wipe_frame: int = -999
+var _enrage_warn_shown: bool = false
+var _solo_mode: bool = true
 
 
 func _ready() -> void:
@@ -79,7 +81,7 @@ func _configurar_audio_e_hud() -> void:
 		
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("🏛️ Você adentrou as [Ruínas de Zaban] — Perigo Extremo (Dungeon)")
+		hud.exibir_notificacao("🏛️ Ruínas de Zaban — Antecâmara → Corredor → Boss. Círculos vermelhos = saia!")
 
 
 func _gerar_mapa_dungeon() -> void:
@@ -122,6 +124,24 @@ func _instanciar_boss_e_sentinelas() -> void:
 
 	_criar_portal_saida(Vector2(320, 440))
 	_instanciar_sensores_nen_ruinas()
+	_criar_placa_checkpoint_entrada()
+
+
+func _criar_placa_checkpoint_entrada() -> void:
+	if get_node_or_null("PlacaCheckpointEntrada") != null:
+		return
+	var marker := Node2D.new()
+	marker.name = "PlacaCheckpointEntrada"
+	marker.position = Vector2(320, 430)
+	var lbl := Label.new()
+	lbl.text = "🔄 Checkpoint Entrada — wipe revive aqui"
+	lbl.position = Vector2(-80, -18)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 5)
+	lbl.add_theme_color_override("font_color", Color(0.55, 0.9, 1.0, 0.95))
+	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	marker.add_child(lbl)
+	add_child(marker)
 
 
 func _instanciar_sensores_nen_ruinas() -> void:
@@ -184,6 +204,8 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool =
 		es.enemy_name = nome
 		if es.enemy_data != null:
 			es.enemy_data.attack_telegraph_type = "aoe_circle"
+			if "attack_windup" in es.enemy_data:
+				es.enemy_data.attack_windup = maxf(float(es.enemy_data.attack_windup), 0.6)
 		es.died.connect(_on_boss_derrotado)
 		if QuestSystem != null:
 			if not es.died.is_connected(QuestSystem.register_enemy_kill):
@@ -261,6 +283,7 @@ func _iniciar_raid_vertical() -> void:
 		if NetworkManager != null and "local_peer_id" in NetworkManager:
 			local_id = maxi(1, int(NetworkManager.local_peer_id))
 		members = [local_id]
+	_solo_mode = members.size() <= 1
 	if PartyManager != null and PartyManager.has_method("entrar_modo_raid"):
 		PartyManager.entrar_modo_raid()
 	if raid_instance == null:
@@ -278,14 +301,21 @@ func _iniciar_raid_vertical() -> void:
 		raid_instance.phase_changed.connect(_on_raid_phase_changed)
 	if raid_instance.has_signal("enrage_started") and not raid_instance.enrage_started.is_connected(_on_raid_enrage):
 		raid_instance.enrage_started.connect(_on_raid_enrage)
+	if raid_instance.has_signal("enrage_warning") and not raid_instance.enrage_warning.is_connected(_on_raid_enrage_warning):
+		raid_instance.enrage_warning.connect(_on_raid_enrage_warning)
 	if raid_instance.has_signal("raid_wiped") and not raid_instance.raid_wiped.is_connected(_on_raid_wiped):
 		raid_instance.raid_wiped.connect(_on_raid_wiped)
 	if EventBus != null and EventBus.has_signal("player_died"):
 		if not EventBus.player_died.is_connected(_on_raid_player_died):
 			EventBus.player_died.connect(_on_raid_player_died)
 	var hud = get_tree().get_first_node_in_group("player_hud")
+	var modo := "SOLO" if _solo_mode else "PARTY"
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("⚔️ Raid: %s — 3 fases · wipe → checkpoint" % str(_raid_catalog_entry.get("title", "Ruínas de Zaban")))
+		hud.exibir_notificacao("⚔️ Raid %s: %s — 4 fases · círculo vermelho = saia · wipe → checkpoint" % [
+			modo, str(_raid_catalog_entry.get("title", "Ruínas de Zaban"))
+		])
+	if EventBus != null and _solo_mode:
+		EventBus.emit_toast("Solo: mate sentinelas → boss. Saia dos AoE. Morreu = revive na entrada.", Color(0.55, 0.9, 1.0))
 
 func _process(delta: float) -> void:
 	if _wipe_cooldown > 0.0:
@@ -307,15 +337,30 @@ func _process(delta: float) -> void:
 
 
 func _on_raid_phase_changed(phase_index: int, phase_id: String) -> void:
+	var tip := _dica_fase_solo(phase_id)
 	if EventBus != null:
-		EventBus.emit_toast("Fase %d — %s" % [phase_index + 1, phase_id.to_upper()], Color(1.0, 0.55, 0.3))
+		EventBus.emit_toast("Fase %d — %s · %s" % [phase_index + 1, phase_id.to_upper(), tip], Color(1.0, 0.55, 0.3))
 		EventBus.emit_camera_shake(0.45, 0.25)
 	if AudioManager != null:
 		AudioManager.tocar_sfx_tipo("boss_phase", 1.1)
 	_aplicar_fase_no_boss(phase_index, phase_id)
-	# Adds por fase
+	# Adds por fase (solo: menos adds para pacing legível)
 	if phase_id in ["collapse", "midpoint"]:
 		_spawn_adds_fase(phase_index)
+
+
+func _dica_fase_solo(phase_id: String) -> String:
+	match phase_id.to_lower():
+		"gate", "approach":
+			return "Quebre a barra de defesa, canalize Hatsu no espaço"
+		"collapse":
+			return "Adds spawnam — limpe-os, depois volte ao boss"
+		"midpoint":
+			return "AoE maior — saia do círculo vermelho"
+		"enrage":
+			return "Burst final — dodge + Hatsu sem rush"
+		_:
+			return "Saia dos AoE, um alvo de cada vez"
 
 
 func _aplicar_fase_no_boss(phase_index: int, phase_id: String) -> void:
@@ -343,14 +388,25 @@ func _aplicar_fase_no_boss(phase_index: int, phase_id: String) -> void:
 
 func _spawn_adds_fase(phase_index: int) -> void:
 	var offsets := [Vector2(-60, 40), Vector2(60, 40), Vector2(0, 70)]
-	for i in range(mini(2 + phase_index, offsets.size())):
+	var count := mini(2 + phase_index, offsets.size())
+	if _solo_mode:
+		count = mini(1 + int(phase_index > 1), 2)  # solo: 1–2 adds
+	for i in range(count):
 		var p: Vector2 = Vector2(320, 120) + offsets[i]
 		_instanciar_mob(p, "Sentinela Invocada %d" % (phase_index * 10 + i), false)
 
 
+func _on_raid_enrage_warning(seconds: float) -> void:
+	if _enrage_warn_shown:
+		return
+	_enrage_warn_shown = true
+	if EventBus != null:
+		EventBus.emit_toast("⏱ Enrage em ~%ds — acelere o DPS, continue saindo dos AoE!" % int(ceil(seconds)), Color(1.0, 0.75, 0.2))
+
+
 func _on_raid_enrage(_seconds: float) -> void:
 	if EventBus != null:
-		EventBus.emit_toast("⚠ ENRAGE! O Guardião entra em frenesi!", Color(1.0, 0.2, 0.2))
+		EventBus.emit_toast("⚠ ENRAGE! Saia dos círculos — burst com Hatsu!", Color(1.0, 0.2, 0.2))
 		EventBus.emit_camera_shake(0.7, 0.4)
 	if AudioManager != null:
 		AudioManager.tocar_sfx_tipo("boss_intro", 1.2)
@@ -360,17 +416,24 @@ func _on_raid_enrage(_seconds: float) -> void:
 func _on_raid_player_died() -> void:
 	if raid_instance == null or boss_derrotado:
 		return
+	# Solo-first: morte do jogador = wipe imediato (sem depender de party downed)
 	_try_register_wipe()
 
 
 func _on_raid_wiped() -> void:
 	_wipe_cooldown = 4.0
 	if EventBus != null:
-		EventBus.emit_toast("💀 WIPE! Checkpoint Entrada — revive aliados com [E]", Color(1.0, 0.35, 0.35))
+		if _solo_mode:
+			EventBus.emit_toast("💀 WIPE SOLO! Revive no Checkpoint Entrada (45% HP). Reabra espaço e tente de novo.", Color(1.0, 0.35, 0.35))
+		else:
+			EventBus.emit_toast("💀 WIPE! Checkpoint Entrada — revive aliados com [E]", Color(1.0, 0.35, 0.35))
 	_respawn_soft_checkpoint()
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("🔄 Soft wipe · Checkpoint Entrada · Revive [E] em aliados")
+		if _solo_mode:
+			hud.exibir_notificacao("🔄 Soft wipe solo · Checkpoint Entrada · HP 45% · saia dos AoE")
+		else:
+			hud.exibir_notificacao("🔄 Soft wipe · Checkpoint Entrada · Revive [E] em aliados")
 
 
 func _try_register_wipe() -> void:
