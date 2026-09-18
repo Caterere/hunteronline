@@ -81,7 +81,10 @@ func _test_yorknew_density_gate() -> void:
 	_ok(mapa_off.get_node_or_null("GyoPistaLeilaoAura") == null, "Sem Gyo pré-despertar")
 	_ok(mapa_off.get_node_or_null("KoCaixoteLeilao") == null, "Sem Ko Gyo-gated pré-despertar")
 	var leorio = mapa_off.get_node_or_null("Leorio")
-	_ok(leorio != null and "ORDEM" in str(leorio.fala_padrao), "Leorio fala direta")
+	var fala_l := ""
+	if leorio != null and "fala_padrao" in leorio:
+		fala_l = str(leorio.fala_padrao)
+	_ok(leorio != null and ("Ordem" in fala_l or "ORDEM" in fala_l) and "[G]" in fala_l, "Leorio fala direta")
 	mapa_off.queue_free()
 	await get_tree().process_frame
 

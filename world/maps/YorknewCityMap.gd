@@ -110,7 +110,7 @@ func _popular_npcs_arco4() -> void:
 		leorio.name = "Leorio"
 		leorio.position = Vector2(100, -30)
 		leorio.npc_name = "Leorio"
-		leorio.fala_padrao = "Ordem: 1) Fale comigo. 2) [G] Gyo nas antiguidades do mercado (leilão). 3) Depois Kurapika (Nostrade). Um passo — sem misturar."
+		leorio.fala_padrao = "ORDEM: 1) Fale comigo. 2) [G] Gyo nas antiguidades do mercado (leilão). 3) Depois Kurapika (Nostrade). Um passo — sem misturar."
 		NpcSpriteBinder.aplicar(leorio, ["npc_leorio"])
 		add_child(leorio)
 
