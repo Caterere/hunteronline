@@ -31,6 +31,7 @@ func _ready() -> void:
 	_garantir_dialogue_ui()
 	_popular_npcs_arco3()
 	_garantir_objeto_teste_agua()
+	_popular_sensores_nen_arena()
 	_configurar_inimigos()
 	_densificar_corredor_arena()
 	_popular_espectadores_arena()
@@ -39,6 +40,34 @@ func _ready() -> void:
 	_garantir_tower_ui()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+
+
+func _popular_sensores_nen_arena() -> void:
+	# Clue canônico etapa 10 — Area2D TesteAguaWing registra no [E], mas GPS/auditoria
+	# precisam de nó com prop clue_id (GyoInspectable).
+	NenSensorFactory.criar_gyo(
+		self, "GyoTesteAguaWing", Vector2(1180, -60),
+		&"teste_agua_wing", "Teste da Água (Water Divination)",
+		"Copo e folha do dojo de Wing. Use Gyo / [E] no altar ao lado para revelar sua afinidade.",
+		"Especialização", 1, Color(0.35, 0.85, 1.0, 0.9)
+	)
+	# Zona Zetsu canônica etapa 15 — linha assassina no 200º.
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuBarreiraHisoka200", Vector2(3400, -80),
+		&"barreira_hisoka_200", "Barreira Assassina de Hisoka (200º)",
+		Vector2(170, 120), &"hisoka_boss", "Hisoka Alertado"
+	)
+	if PlayerData != null and PlayerData.despertou_nen:
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaDojoWing", Vector2(1080, -40),
+			&"arena_dojo_wing", "Resíduo no Dojo Shingen-ryu",
+			"Aura de ensino de Wing ainda paira no tatame. Gyo revela o caminho do Ten.",
+			"Intensificação", 1, Color(0.55, 0.95, 0.75, 0.9)
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoPoste200Andar", Vector2(3200, 20),
+			"Poste Selado do 200º Andar", &"pocao_aura"
+		)
 
 
 func _process(_delta: float) -> void:

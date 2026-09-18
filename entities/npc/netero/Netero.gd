@@ -28,7 +28,9 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 	
 	if arco == 1:
 		falas = [
-			{"falante": "Netero", "texto": "Ho ho! Sou Isaac Netero, Presidente da Associação Hunter. Boa sorte no exame!"}
+			{"falante": "Netero", "texto": "Ho ho! Sou Isaac Netero, Presidente da Associação Hunter."},
+			{"falante": "Netero", "texto": "No dirigível, que tal um joguinho? Tente tirar a bola das minhas mãos — é só um aquecimento!"},
+			{"falante": "Netero", "texto": "Depois: Trick Tower. Encontre o alçapão, sobreviva aos prisioneiros e siga para Zevil. Boa sorte!"}
 		]
 	elif arco == 6:
 		falas = [

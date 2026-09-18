@@ -118,10 +118,13 @@ func _popular_npcs_arco2() -> void:
 		add_child(zebro)
 
 	# 2. Portão da Testagem (Objeto de Interação)
-	if get_node_or_null("PortaoTestagem") == null:
+	if get_node_or_null("PortaoTestagem") == null and get_node_or_null("Portao_Testagem") == null:
 		var portao := StaticBody2D.new()
-		portao.name = "PortaoTestagem"
+		# Nome com underscore casa target_npc_id portao_testagem no resolver/auditoria.
+		portao.name = "Portao_Testagem"
 		portao.position = Vector2(400, -50)
+		portao.add_to_group("npc")
+		portao.set_meta("npc_name", "Portão da Testagem (Testing Gate)")
 
 		var col := CollisionShape2D.new()
 		var rect := RectangleShape2D.new()
@@ -369,8 +372,39 @@ func _plantar_props_estrutura_kukuroo() -> void:
 		root.add_child(n)
 
 
-## Sensores Nen: Gyo pós-despertar + Zetsu na alameda (prática furtiva).
+## Sensores Nen: clues/zonas canônicas ORDEM + flavor Gyo/Ko/Zetsu.
 func _instanciar_sensores_nen_kukuroo() -> void:
+	# Clues canônicas (sempre — GPS/auditoria não dependem de despertar).
+	NenSensorFactory.criar_gyo(
+		self, "GyoPesosZebro", Vector2(280, -20),
+		&"pesos_zebro", "Pesos de Treino de Zebro",
+		"Xícaras e chinelos de dezenas de quilos. Gyo marca o dormitório dos empregados.",
+		"Intensificação", 1, Color(0.85, 0.7, 0.4, 0.9)
+	)
+	NenSensorFactory.criar_gyo(
+		self, "GyoJogoMoedaGotoh", Vector2(2420, -130),
+		&"jogo_moeda_gotoh", "Moeda de Ouro de Gotoh",
+		"Resíduo de alta velocidade nas mãos do mordomo-chefe. Inspecione para o teste das moedas.",
+		"Materialização", 1, Color(1.0, 0.85, 0.3, 0.9)
+	)
+
+	# Zonas Zetsu canônicas ORDEM.
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuAlamedaMike", Vector2(1100, -100),
+		&"alameda_mike", "Alameda dos Cães de Caça",
+		Vector2(150, 100), &"mike", "Cão Mike Alertado"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuMansaoMordomos", Vector2(2300, 90),
+		&"mansao_mordomos", "Mansão dos Mordomos",
+		Vector2(160, 110), &"mordomo_combate", "Sentinela Zoldyck Alertada"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCorredorTrono", Vector2(3100, -80),
+		&"kukuroo_corredor_trono", "Corredor do Trono",
+		Vector2(140, 100), &"mordomo_combate", "Guarda do Trono"
+	)
+
 	if PlayerData != null and PlayerData.despertou_nen:
 		NenSensorFactory.criar_gyo(
 			self, "GyoPistaPortaoAura", Vector2(400, -20),
@@ -394,22 +428,6 @@ func _instanciar_sensores_nen_kukuroo() -> void:
 			self, "KoPedraAlameda", Vector2(1600, 40),
 			"Pedra Selada da Alameda", &"pocao_aura"
 		)
-
-	NenSensorFactory.criar_zetsu(
-		self, "ZetsuArbustoAlameda", Vector2(1100, -100),
-		&"kukuroo_arbusto_alameda", "Arbusto Vigia da Alameda",
-		Vector2(150, 100), &"mordomo_combate", "Mordomo Alertado"
-	)
-	NenSensorFactory.criar_zetsu(
-		self, "ZetsuJardimMansao", Vector2(2300, 90),
-		&"kukuroo_jardim_mansao", "Jardim dos Mordomos",
-		Vector2(160, 110), &"mordomo_combate", "Sentinela Zoldyck Alertada"
-	)
-	NenSensorFactory.criar_zetsu(
-		self, "ZetsuCorredorTrono", Vector2(3100, -80),
-		&"kukuroo_corredor_trono", "Corredor do Trono",
-		Vector2(140, 100), &"mordomo_combate", "Guarda do Trono"
-	)
 
 func _configurar_portal_conclusao() -> void:
 	var portal = get_node_or_null("PortalArenaCelestial") as MapTransitionArea
