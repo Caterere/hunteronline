@@ -155,6 +155,40 @@ func _popular_npcs_arco4() -> void:
 		gon.fala_padrao = "Siga o GPS. Leilão → Ruas → Cemitério → Trupe. Killua e eu vamos no seu ritmo — sem pular etapas."
 		add_child(gon)
 
+	# 4b. Killua (etapas 16+ — visita canônica)
+	if get_node_or_null("Killua") == null:
+		var scn_killua = load("res://entities/npc/killua/Killua.tscn")
+		var killua
+		if scn_killua:
+			killua = scn_killua.instantiate()
+		else:
+			killua = scn_npc.instantiate()
+			NpcSpriteBinder.aplicar(killua, ["npc_killua"])
+		killua.name = "Killua"
+		add_child(killua)
+	var killua_n = get_node_or_null("Killua")
+	if killua_n != null:
+		killua_n.position = Vector2(780, 40)
+		if "npc_name" in killua_n:
+			killua_n.npc_name = "Killua"
+		if "fala_padrao" in killua_n:
+			killua_n.fala_padrao = "ORDEM: Fuga do galpão comigo. Depois Silva Zoldyck no GPS. Sem rush."
+
+	# 4c. Silva Zoldyck (etapa 17)
+	if get_node_or_null("Silva") == null:
+		var silva = scn_npc.instantiate()
+		silva.name = "Silva"
+		silva.position = Vector2(2400, -60)
+		NpcSpriteBinder.aplicar(silva, ["npc_guarda_fronteira", "npc_viajante_scout"])
+		add_child(silva)
+	var silva_n = get_node_or_null("Silva")
+	if silva_n != null:
+		silva_n.position = Vector2(2400, -60)
+		if "npc_name" in silva_n:
+			silva_n.npc_name = "Silva Zoldyck"
+		if "fala_padrao" in silva_n:
+			silva_n.fala_padrao = "ORDEM: Fale comigo. Depois clones no Edifício Cemitério (GPS). Um de cada vez."
+
 	# 5. Bilionário Battera
 	if get_node_or_null("Battera") == null:
 		var battera = scn_npc.instantiate()
@@ -198,7 +232,7 @@ func _configurar_inimigos() -> void:
 		"SoldadoMafia2": {"id": &"clone_feitan", "nome": "Clone do Feitan", "etapa": 18},
 		"PakunodaInimiga": {"id": &"pakunoda", "nome": "Pakunoda (Trupe Fantasma)", "etapa": 23},
 		"NobunagaInimigo": {"id": &"nobunaga", "nome": "Nobunaga Hazama", "etapa": 20},
-		"ChrolloBossInimigo": {"id": &"chrollo", "nome": "Chrollo Lucilfer (Chefe)", "etapa": 34}
+		"ChrolloBossInimigo": {"id": &"chrollo_boss", "nome": "Chrollo Lucilfer (Chefe)", "etapa": 34}
 	}
 	
 	for nome in configs:
@@ -215,6 +249,42 @@ func _configurar_inimigos() -> void:
 					es.died.connect(QuestSystem.register_enemy_kill)
 				if QuestSystem != null:
 					QuestSystem.registrar_spawn_posicao_missao(es.enemy_id, node.global_position, 4, es.quest_etapa, -1, null, es.enemy_name)
+
+	_spawn_fillers_missao_yorknew()
+
+
+func _spawn_fillers_missao_yorknew() -> void:
+	var scn_enemy = load("res://scripts/systems/EnemySystem/Enemy.tscn")
+	if scn_enemy == null:
+		return
+	# Etapa 5 precisa de 4 mafioso_corrompido; etapa 18 precisa de 3 clone_feitan.
+	var fillers := [
+		{"name": "MafiosoMissao_B", "pos": Vector2(650, -40), "id": &"mafioso_corrompido", "label": "Mafioso Corrompido B", "etapa": 5},
+		{"name": "MafiosoMissao_C", "pos": Vector2(850, 50), "id": &"mafioso_corrompido", "label": "Mafioso Corrompido C", "etapa": 5},
+		{"name": "MafiosoMissao_D", "pos": Vector2(1050, -30), "id": &"mafioso_corrompido", "label": "Mafioso Corrompido D", "etapa": 5},
+		{"name": "CloneFeitan_B", "pos": Vector2(3000, 40), "id": &"clone_feitan", "label": "Clone Feitan B", "etapa": 18},
+		{"name": "CloneFeitan_C", "pos": Vector2(3150, -40), "id": &"clone_feitan", "label": "Clone Feitan C", "etapa": 18},
+	]
+	for f in fillers:
+		if get_node_or_null(f["name"]) != null:
+			continue
+		var mob = scn_enemy.instantiate()
+		mob.name = f["name"]
+		mob.position = f["pos"]
+		mob.add_to_group("enemy")
+		mob.add_to_group("enemies")
+		var es = mob.get_node_or_null("EnemySystem")
+		if es != null:
+			es.is_mission_enemy = true
+			es.quest_arc = 4
+			es.quest_etapa = int(f["etapa"])
+			es.enemy_id = f["id"]
+			es.enemy_name = f["label"]
+			if not es.died.is_connected(QuestSystem.register_enemy_kill):
+				es.died.connect(QuestSystem.register_enemy_kill)
+			if QuestSystem != null:
+				QuestSystem.registrar_spawn_posicao_missao(es.enemy_id, f["pos"], 4, es.quest_etapa, -1, null, es.enemy_name)
+		add_child(mob)
 
 
 func _configurar_portal_conclusao() -> void:

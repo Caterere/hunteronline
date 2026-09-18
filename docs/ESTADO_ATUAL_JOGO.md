@@ -62,6 +62,7 @@
 - [x] **Continente Negro** — densificação Acampamento→Topo; clues canon; Cheadle/GingTopo; ORDEM 1–22; suite `test_continente_negro_immersion_suite`
 - [x] **Black Whale / Sucessão** — densificação Convés1→Máfia→Aposentos→Profundos; clues (`primeiro_assassinato_kakin`, `seita_heilly`, `besta_tserriednich`, `aposentos_tserriednich`); Hisoka/Cheadle; Chrollo persuasion; ORDEM 1–26; suite `test_black_whale_immersion_suite`
 - [x] **Fechamento A–D** — Yorknew ORDEM 34/34 + clues mid/late; smoke `test_session_abcd_final_smoke_suite` (arcos 4–9); battery imersão 0 fails; merge PR #51
+- [x] **Bugfix pós-merge** — Yorknew: Killua/Silva faltavam (etapas 16–17); fillers mafioso/clone; `chrollo_boss` id; suite progression match
 
 ---
 
