@@ -267,6 +267,7 @@ func _physics_process(delta: float) -> void:
 
 
 	_dash()
+	_atualizar_dash_trail(delta)
 	_move()
 	_attack(delta)
 	_animate()
@@ -292,10 +293,22 @@ func _dash() -> void:
 				_attack_anim_timer = 0.0
 				_attack_lunge_timer = 0.0
 				velocity = dir * 220.0
-				_gerar_efeito_poeira_passos(dir)
-				_spawn_afterimage(Color(0.55, 0.85, 1.0, 0.55))
+				_dash_trail_accum = 0.0
+				# Rastro residual imediato (2 fantasmas) — sem poeira/bola de dash
+				_spawn_afterimage(DASH_TRAIL_TINT)
+				_spawn_afterimage(Color(DASH_TRAIL_TINT.r, DASH_TRAIL_TINT.g, DASH_TRAIL_TINT.b, 0.35))
 				if TutorialManager != null and TutorialManager.em_tutorial:
 					TutorialManager.notificar_esquiva_executada()
+
+
+func _atualizar_dash_trail(delta: float) -> void:
+	if combat_system == null or not combat_system.esquivando:
+		_dash_trail_accum = 0.0
+		return
+	_dash_trail_accum += delta
+	while _dash_trail_accum >= DASH_TRAIL_INTERVAL:
+		_dash_trail_accum -= DASH_TRAIL_INTERVAL
+		_spawn_afterimage(DASH_TRAIL_TINT)
 
 
 
@@ -384,6 +397,9 @@ func _move() -> void:
 
 
 var _attack_charge_timer: float = 0.0
+var _dash_trail_accum: float = 0.0
+const DASH_TRAIL_INTERVAL: float = 0.028
+const DASH_TRAIL_TINT := Color(0.75, 0.88, 1.0, 0.62)
 
 
 func _attack(delta: float = 0.016) -> void:
@@ -474,23 +490,20 @@ func _executar_golpe_pesado() -> void:
 
 	_animation_tree["parameters/attack/blend_position"] = direcao_ataque
 
-	# 1. Iniciar avanço físico potente para o golpe pesado
+	# Avanço físico potente — sem onda/bola de ar (só animação de golpe carregado)
 	if attack_lunge_enabled:
-		_attack_lunge_total = attack_dash_duration * 1.2
+		_attack_lunge_total = attack_dash_duration * 1.35
 		_attack_lunge_timer = _attack_lunge_total
 		_attack_lunge_dir = direcao_ataque
-		_attack_lunge_current_speed = attack_dash_speed * 1.35
+		_attack_lunge_current_speed = attack_dash_speed * 1.45
 		velocity = _attack_lunge_dir * _attack_lunge_current_speed
-		_gerar_efeito_poeira_passos(_attack_lunge_dir)
 
-	# 2. Gerar onda de choque pesada de pressão do ar
-	_gerar_efeito_corte_ar(direcao_ataque, true)
+	# Fantasma residual curto = leitura de "golpe carregado" sem projétil/bola
+	_spawn_afterimage(Color(1.0, 0.92, 0.65, 0.4))
 
-	# 3. Disparar lógica de combate pesado
 	combat_system.tentar_ataque_pesado(direcao_ataque)
 	_state_machine.travel("attack")
 
-	# 4. Feedback de impacto reforçado
 	if EventBus != null:
 		EventBus.camera_shake_requested.emit(0.45, 0.22)
 
@@ -506,8 +519,8 @@ func _gerar_efeito_poeira_passos(dir: Vector2) -> void:
 			add_child(dust)
 
 
-## Afterimage de dash / Ko (VISUAL_BIBLE / Maple-style trail)
-func _spawn_afterimage(tint: Color = Color(0.55, 0.85, 1.0, 0.55)) -> void:
+## Afterimage residual do player (dash trail / golpe carregado)
+func _spawn_afterimage(tint: Color = Color(0.75, 0.88, 1.0, 0.62)) -> void:
 	var sprite_player = get_node_or_null("Sprite2D") as Sprite2D
 	if sprite_player == null:
 		sprite_player = get_node_or_null("AnimatedSprite2D") as AnimatedSprite2D
@@ -522,11 +535,13 @@ func _spawn_afterimage(tint: Color = Color(0.55, 0.85, 1.0, 0.55)) -> void:
 		ghost.frame = sprite_player.frame
 		ghost.flip_h = sprite_player.flip_h
 		ghost.offset = sprite_player.offset
+		ghost.scale = sprite_player.scale
 	elif sprite_player is AnimatedSprite2D:
 		var anim_spr := sprite_player as AnimatedSprite2D
 		if anim_spr.sprite_frames != null and anim_spr.animation != &"":
 			ghost.texture = anim_spr.sprite_frames.get_frame_texture(anim_spr.animation, anim_spr.frame)
 		ghost.flip_h = anim_spr.flip_h
+		ghost.scale = anim_spr.scale
 
 	ghost.global_position = global_position + (sprite_player.position if sprite_player is Node2D else Vector2.ZERO)
 	ghost.modulate = tint
@@ -538,19 +553,18 @@ func _spawn_afterimage(tint: Color = Color(0.55, 0.85, 1.0, 0.55)) -> void:
 		parent_node = self
 	parent_node.add_child(ghost)
 
+	# Fade residual (sem crescer — parece imagem fantasma do frame atual)
 	var tween := ghost.create_tween()
-	tween.tween_property(ghost, "modulate:a", 0.0, 0.28)
-	tween.parallel().tween_property(ghost, "scale", Vector2(1.08, 1.08), 0.28)
+	tween.tween_property(ghost, "modulate:a", 0.0, 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_callback(ghost.queue_free)
 
-	# Ko ativo: afterimage dourado extra
 	if nen_system != null and nen_system.has_method("tecnica_ativa"):
 		if nen_system.tecnica_ativa(NenSystem.Tecnica.KO):
 			var ghost_ko := ghost.duplicate() as Sprite2D
-			ghost_ko.modulate = Color(1.0, 0.85, 0.25, 0.4)
+			ghost_ko.modulate = Color(1.0, 0.85, 0.25, 0.35)
 			parent_node.add_child(ghost_ko)
 			var tw2 := ghost_ko.create_tween()
-			tw2.tween_property(ghost_ko, "modulate:a", 0.0, 0.35)
+			tw2.tween_property(ghost_ko, "modulate:a", 0.0, 0.38)
 			tw2.tween_callback(ghost_ko.queue_free)
 
 
