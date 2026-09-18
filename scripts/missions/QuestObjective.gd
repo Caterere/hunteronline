@@ -136,6 +136,12 @@ func describe() -> String:
 					desc_base = "🔍 [G] Gyo — Ruínas Botânicas Ancestrais"
 				"horizonte_infinito":
 					desc_base = "🔍 [G] Gyo — Horizonte Sem Fim"
+				"primeiro_assassinato_kakin":
+					desc_base = "🔍 [G] Gyo — Primeiro Assassinato a Bordo"
+				"seita_heilly":
+					desc_base = "🔍 [G] Gyo — Contágio da Seita Heil-Ly"
+				"besta_tserriednich":
+					desc_base = "🔍 [G] Gyo — Aura da Besta de Dupla Face"
 				"pista_furto_janela", "pista_furto_pegada", "pista_furto_esconderijo":
 					desc_base = "🔍 [G] Gyo — Pista do furto '%s'" % cid.replace("pista_furto_", "").capitalize()
 				_:
@@ -164,9 +170,10 @@ func describe() -> String:
 					desc_base = "🥷 [Z] Zetsu — Águas Proibidas"
 				"caverna_hellbell":
 					desc_base = "🥷 [Z] Zetsu — Caverna Hellbell"
+				"aposentos_tserriednich":
+					desc_base = "🥷 [Z] Zetsu — Aposentos de Tserriednich"
 				_:
 					desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
-
 		Type.PERSUASION:
 			desc_base = "🤝 Convença / Negocie com %s" % (target_npc_name if not target_npc_name.is_empty() else str(target_npc_id).capitalize())
 

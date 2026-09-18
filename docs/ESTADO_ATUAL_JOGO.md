@@ -35,7 +35,8 @@
 - [x] **NGL mid/late polish** (Escadaria/Tumba, Guanyin/Rosa Pobre, Youpi/Pouf garantidos, ORDEM 27–48)
 - [x] **Associação / Alluka imersão** (Auditório→Tribuna, cela_alluka, Alluka NPC, ORDEM 1–20)
 - [x] **Continente Negro imersão** (Acampamento→Topo, clues Mobius/Brion/Hellbell/Horizonte, ORDEM 1–22)
-- [ ] Black Whale / Sucessão depois; play humano Yorknew→CN
+- [x] **Black Whale / Sucessão imersão** (Convés1→Profundos, clues assassinato/Heil-Ly/Besta, ORDEM 1–26)
+- [ ] Play humano Yorknew→Black Whale (ritmo)
 
 ### Progresso desta sessão
 - [x] Merge PR #48
@@ -57,6 +58,7 @@
 - [x] **NGL mid/late** — toast Escadaria; Gyo Guanyin/Rosa/Youpi; Youpi/Pouf garantidos; ORDEM 27–48; walkers escadaria/tumba
 - [x] **Associação / Alluka** — densificação Auditório→Tribuna; `cela_alluka`; Alluka NPC; mission mordomos/agulhas; ORDEM 1–20; suite `test_associacao_alluka_immersion_suite`
 - [x] **Continente Negro** — densificação Acampamento→Topo; clues canon; Cheadle/GingTopo; ORDEM 1–22; suite `test_continente_negro_immersion_suite`
+- [x] **Black Whale / Sucessão** — densificação Convés1→Máfia→Aposentos→Profundos; clues (`primeiro_assassinato_kakin`, `seita_heilly`, `besta_tserriednich`, `aposentos_tserriednich`); Hisoka/Cheadle; Chrollo persuasion; ORDEM 1–26; suite `test_black_whale_immersion_suite`
 
 ---
 
@@ -255,8 +257,8 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 ### P2 — Conteúdo de sagas (profundidade, não sistemas novos)
 1. Validar play humano Kukuroo/Arena/Floresta/Ruínas densificados.
 2. Raid vertical Continente Negro (depois de Ruínas Zaban solo polish — feito).
-3. ~~Yorknew~~ / ~~GI~~ / ~~NGL~~ / ~~Associação/Alluka~~ / ~~Continente Negro~~ — densificados + clues + ORDEM. Play humano valida ritmo. Black Whale / Sucessão é o próximo arco.
-4. Suites: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`, `test_nen_mundo_floresta_ruinas_suite`, `test_yorknew_density_xp_suite`, `test_greed_island_immersion_suite`, `test_ngl_formigas_immersion_suite`, `test_associacao_alluka_immersion_suite`, `test_continente_negro_immersion_suite`.
+3. ~~Yorknew~~ / ~~GI~~ / ~~NGL~~ / ~~Associação/Alluka~~ / ~~Continente Negro~~ / ~~Black Whale~~ — densificados + clues + ORDEM. Play humano valida ritmo Yorknew→Whale.
+4. Suites: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`, `test_nen_mundo_floresta_ruinas_suite`, `test_yorknew_density_xp_suite`, `test_greed_island_immersion_suite`, `test_ngl_formigas_immersion_suite`, `test_associacao_alluka_immersion_suite`, `test_continente_negro_immersion_suite`, `test_black_whale_immersion_suite`.
 
 ### P3 — Multiplayer produção (só se o foco for host público)
 1. Contratar/configurar VPS: `public_host`, `--no-lan-discovery`, `config/server_list.json`.

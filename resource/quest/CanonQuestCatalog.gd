@@ -1697,182 +1697,182 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Guerra de Sucessão 1/26: O Embarque no Black Whale 1"
-					q.description = "Apresente-se com Kurapika e a comitiva real no Convés 1 do navio colossal Black Whale 1."
+					q.description = "ORDEM: Fale com Kurapika no Convés 1. Black Whale é longo — um objetivo de cada vez. Depois: Rainha Oito."
 					q.reward_xp = 350000
 					q.reward_gold = 7000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				2:
 					q.quest_name = "Guerra de Sucessão 2/26: Os Aposentos 1014 da Rainha Oito"
-					q.description = "Estabeleça o perímetro blindado de defesa para a Rainha Oito e o bebê Príncipe Woble."
+					q.description = "ORDEM: Fale com a Rainha Oito & Woble. Estabeleça o perímetro. Depois: Vaso Sagrado."
 					q.reward_xp = 370000
 					q.reward_gold = 7500000
 					q.objectives = [_criar_obj_visit(&"rainha_oito", "Rainha Oito & Príncipe Woble")]
 
 				3:
 					q.quest_name = "Guerra de Sucessão 3/26: O Ritual do Vaso Sagrado de Kakin"
-					q.description = "Examine o Vaso Sagrado ancestral que concedeu Bestas Parasitas de Nen aos 14 Príncipes."
+					q.description = "ORDEM: Examine o Vaso Sagrado. Depois [G] primeiro assassinato no corredor."
 					q.reward_xp = 390000
 					q.reward_gold = 8000000
 					q.objectives = [_criar_obj_visit(&"vaso_kakin", "Vaso Sagrado de Kakin")]
 
 				4:
 					q.quest_name = "Guerra de Sucessão 4/26: O Primeiro Assassinato a Bordo"
-					q.description = "Investigue o assassinato silencioso dos guardas de honra eliminados por Nen invisível."
+					q.description = "ORDEM: Ative [G] Gyo e inspecione o Primeiro Assassinato a Bordo. Sem Gyo, não vê a aura."
 					q.reward_xp = 410000
 					q.reward_gold = 8500000
 					q.objectives = [_criar_obj_investigate(&"primeiro_assassinato_kakin")]
 
 				5:
 					q.quest_name = "Guerra de Sucessão 5/26: O Stealth Dolphin de Kurapika"
-					q.description = "Use o golfinho de Nen do Emperor Time para analisar as auras das Bestas Guardiãs com Gyo."
+					q.description = "ORDEM: Fale com Kurapika (Stealth Dolphin / Emperor Time). Depois GPS: bestas parasitárias."
 					q.reward_xp = 430000
 					q.reward_gold = 9000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				6:
 					q.quest_name = "Guerra de Sucessão 6/26: As Bestas Parasitas Rebeldes"
-					q.description = "Derrote 3 Bestas Parasitas Guardiãs que invadem os corredores do 1º Convés Real."
+					q.description = "ORDEM: Derrote 3 Bestas Parasitas (GPS no Convés 1). Espaço de combate. Depois aula de Nen."
 					q.reward_xp = 450000
 					q.reward_gold = 9500000
 					q.objectives = [_criar_obj_kill(&"besta_parasita", 3)]
 
 				7:
 					q.quest_name = "Guerra de Sucessão 7/26: A Aula de Nen nos Aposentos Reais"
-					q.description = "Auxilie Kurapika a treinar os guardas reais nos fundamentos de Ten para equilibrar as defesas."
+					q.description = "ORDEM: Fale com Kurapika (treino Ten dos guardas). Depois desça à Máfia (Hinrigh)."
 					q.reward_xp = 475000
 					q.reward_gold = 10000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				8:
 					q.quest_name = "Guerra de Sucessão 8/26: Os Conveses Intermediários da Máfia"
-					q.description = "Desça aos conveses 3 e 4 onde as três famílias da Máfia de Kakin controlam os armazéns."
+					q.description = "ORDEM: Caminhe aos conveses 3–4 e fale com Hinrigh (Xi-Yu). Sem rush."
 					q.reward_xp = 500000
 					q.reward_gold = 10500000
 					q.objectives = [_criar_obj_visit(&"hinrigh", "Hinrigh (Família Xi-Yu)")]
 
 				9:
 					q.quest_name = "Guerra de Sucessão 9/26: A Aliança com Hinrigh Biganduffno"
-					q.description = "Conheça o Hatsu Biohazard de Hinrigh que transforma armas e algemas em animais vivos."
+					q.description = "ORDEM: Fale com Hinrigh (Biohazard). Depois [G] seita Heil-Ly."
 					q.reward_xp = 525000
 					q.reward_gold = 11000000
 					q.objectives = [_criar_obj_visit(&"hinrigh", "Hinrigh")]
 
 				10:
 					q.quest_name = "Guerra de Sucessão 10/26: O Contágio de Morena Prudo"
-					q.description = "Descubra a seita de assassinos nivelados por sangue da família mafiosa Heil-Ly."
+					q.description = "ORDEM: Ative [G] Gyo e inspecione o Contágio da Seita Heil-Ly. Depois GPS: 6 assassinos."
 					q.reward_xp = 550000
 					q.reward_gold = 11500000
 					q.objectives = [_criar_obj_investigate(&"seita_heilly")]
 
 				11:
 					q.quest_name = "Guerra de Sucessão 11/26: O Massacre da Família Heil-Ly"
-					q.description = "Elimine 6 assassinos contagiados por Nen da seita Heil-Ly nos conveses inferiores."
+					q.description = "ORDEM: Derrote 6 assassinos Heil-Ly (GPS). Um de cada vez. Depois Trupe / Chrollo."
 					q.reward_xp = 580000
 					q.reward_gold = 12000000
 					q.objectives = [_criar_obj_kill(&"assassino_heilly", 6)]
 
 				12:
 					q.quest_name = "Guerra de Sucessão 12/26: A Caçada da Trupe Fantasma no Navio"
-					q.description = "Chrollo Lucilfer, Feitan, Phinks e Nobunaga vasculham os conveses profundos caçando Hisoka."
+					q.description = "ORDEM: Fale com Chrollo nos conveses profundos. Depois Hisoka (marcas de goma)."
 					q.reward_xp = 600000
 					q.reward_gold = 12500000
 					q.objectives = [_criar_obj_visit(&"chrollo", "Chrollo Lucilfer")]
 
 				13:
 					q.quest_name = "Guerra de Sucessão 13/26: As Pistas de Sangue de Hisoka"
-					q.description = "Encontre as marcas de goma elástica deixadas por Hisoka nos armazéns do Convés 5."
+					q.description = "ORDEM: Fale com Hisoka (Bungee Gum). Depois volte a Chrollo para negociar trégua."
 					q.reward_xp = 625000
 					q.reward_gold = 13000000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
 
 				14:
 					q.quest_name = "Guerra de Sucessão 14/26: A Trégua Provisória com a Trupe"
-					q.description = "Negocie uma trégua de não-agressão temporária com a Trupe Fantasma nos armazéns escuros."
+					q.description = "ORDEM: Negocie trégua com Chrollo (persuadir). Depois [Z] aposentos Tserriednich."
 					q.reward_xp = 650000
 					q.reward_gold = 13500000
 					q.objectives = [_criar_obj_persuasion(&"chrollo", "Chrollo Lucilfer")]
 
 				15:
 					q.quest_name = "Guerra de Sucessão 15/26: Os Aposentos do 4º Príncipe Tserriednich"
-					q.description = "Infiltre-se no salão de arte sombria do sádico 4º Príncipe Tserriednich Hui Guo Rou."
+					q.description = "ORDEM: [Z] Atravesse os Aposentos de Tserriednich em Zetsu. Sem Zetsu = sentinelas."
 					q.reward_xp = 680000
 					q.reward_gold = 14000000
 					q.objectives = [_criar_obj_stealth(&"aposentos_tserriednich")]
 
 				16:
 					q.quest_name = "Guerra de Sucessão 16/26: O Despertar da Besta de Dupla Face"
-					q.description = "Sinta a aura fétida e colossal da Besta Guardiã de Tserriednich com rosto de mulher e patas de cavalo."
+					q.description = "ORDEM: Ative [G] Gyo e sinta a Aura da Besta de Dupla Face. Depois Kurapika (futuro paralelo)."
 					q.reward_xp = 710000
 					q.reward_gold = 14500000
 					q.objectives = [_criar_obj_investigate(&"besta_tserriednich")]
 
 				17:
 					q.quest_name = "Guerra de Sucessão 17/26: O Zetsu do Futuro Paralelo"
-					q.description = "Compreenda o Hatsu temporal que permite a Tserriednich ver e alterar os próximos 10 segundos!"
+					q.description = "ORDEM: Fale com Kurapika — Hatsu temporal de Tserriednich. Depois GPS: Besta Facial."
 					q.reward_xp = 740000
 					q.reward_gold = 15000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				18:
 					q.quest_name = "Guerra de Sucessão 18/26: O Combate contra a Besta Facial"
-					q.description = "Derrote a Besta Guardiã de Tserriednich antes que sua saliva contagiosa marque Kurapika!"
+					q.description = "ORDEM: Derrote a Besta Guardiã de Tserriednich (GPS). Espaço de combate. Depois o Príncipe."
 					q.reward_xp = 770000
 					q.reward_gold = 16000000
 					q.objectives = [_criar_obj_kill(&"besta_tserriednich", 1)]
 
 				19:
 					q.quest_name = "Guerra de Sucessão 19/26: O Confronto com o Príncipe Tserriednich"
-					q.description = "Derrote o Príncipe Tserriednich Boss superando suas ilusões temporais com ataque coordenado de Ren!"
+					q.description = "ORDEM: Derrote Tserriednich Boss (GPS). Ren coordenado. Depois revolta no Convés 3."
 					q.reward_xp = 820000
 					q.reward_gold = 17000000
 					q.objectives = [_criar_obj_kill(&"tserriednich_boss", 1)]
 
 				20:
 					q.quest_name = "Guerra de Sucessão 20/26: A Revolta dos Soldados do Convés 3"
-					q.description = "Contenha a rebelião armada dos guardas militares rebeldes no salão de festas do navio."
+					q.description = "ORDEM: Derrote 4 guardas rebeldes (GPS Convés 3). Sem rush. Depois profundos."
 					q.reward_xp = 850000
 					q.reward_gold = 18000000
 					q.objectives = [_criar_obj_kill(&"assassino_heilly", 4)]
 
 				21:
 					q.quest_name = "Guerra de Sucessão 21/26: A Batalha dos Conveses Profundos"
-					q.description = "Elimine os monstros de Nen invocados pelos traidores nos armazéns de combustível."
+					q.description = "ORDEM: Derrote 2 parasitas nos armazéns (GPS). Depois testemunhe Hisoka vs Chrollo."
 					q.reward_xp = 880000
 					q.reward_gold = 19000000
 					q.objectives = [_criar_obj_kill(&"besta_parasita", 2)]
 
 				22:
 					q.quest_name = "Guerra de Sucessão 22/26: O Duelo de Titãs nos Conveses"
-					q.description = "Testemunhe o confronto magistral entre Chrollo Lucilfer e Hisoka Morow nos armazéns inferiores!"
+					q.description = "ORDEM: Fale com Hisoka no duelo dos profundos. Depois proteja Woble (Rainha Oito)."
 					q.reward_xp = 910000
 					q.reward_gold = 20000000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka")]
 
 				23:
 					q.quest_name = "Guerra de Sucessão 23/26: A Proteção do Príncipe Woble"
-					q.description = "Garantir a integridade física da Rainha Oito e do pequeno Príncipe Woble na câmara blindada."
+					q.description = "ORDEM: Fale com a Rainha Oito — garanta Woble. Depois Boss da conspiração (GPS)."
 					q.reward_xp = 940000
 					q.reward_gold = 21000000
 					q.objectives = [_criar_obj_visit(&"rainha_oito", "Rainha Oito")]
 
 				24:
 					q.quest_name = "Guerra de Sucessão 24/26: O Comandante da Conspiração de Kakin"
-					q.description = "Derrote o Boss Final da Conspiração Imperial de Kakin nos conveses de comando!"
+					q.description = "ORDEM: Derrote o Boss Final da Conspiração (GPS comando). Depois Kurapika (estabilização)."
 					q.reward_xp = 1000000
 					q.reward_gold = 25000000
 					q.objectives = [_criar_obj_kill(&"boss_final_kakin", 1)]
 
 				25:
 					q.quest_name = "Guerra de Sucessão 25/26: A Estabilização do Black Whale 1"
-					q.description = "Restaure a ordem a bordo do navio e assegure a rota pacífica rumo ao Novo Mundo."
+					q.description = "ORDEM: Fale com Kurapika — restaure a ordem a bordo. Depois Cheadle (consagração)."
 					q.reward_xp = 1050000
 					q.reward_gold = 27000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				26:
 					q.quest_name = "Guerra de Sucessão 26/26: A Consagração do Maior Caçador da História"
-					q.description = "Retorne vitorioso à Capital dos Caçadores com a Licença Hunter Suprema e o título de Maior Caçador da História!"
+					q.description = "ORDEM: Fale com Presidente Cheadle — consagração. Portal Lobby após esta etapa. História 100%."
 					q.reward_xp = 1200000
 					q.reward_gold = 30000000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Presidente Cheadle")]
