@@ -76,14 +76,14 @@ func _test_raid_density() -> void:
 	var members: Array[int] = [1]
 	_check(raid.start_raid("ruins_zaban_vertical", members, entry), "start raid solo", "start fail")
 	_check(raid.is_solo == true, "is_solo=true com 1 membro", "is_solo false")
+	# Aviso de enrage ANTES de entrar na fase enrage por HP
+	raid.enrage_seconds = 50.0
+	raid.tick_enrage(0.016)
+	_check(raid.enrage_warning_emitted == true, "enrage_warning emitido em <=60s", "warn missing")
 	raid.update_boss_hp_ratio(0.69)
 	raid.update_boss_hp_ratio(0.44)
 	raid.update_boss_hp_ratio(0.19)
 	_check(raid.current_phase_index >= 2, "avança 3 fases reais", "phase=%d" % raid.current_phase_index)
-	# Simula aviso de enrage
-	raid.enrage_seconds = 50.0
-	raid.tick_enrage(0.016)
-	_check(raid.enrage_warning_emitted == true, "enrage_warning emitido em <=60s", "warn missing")
 	raid.register_wipe()
 	_check(raid.wipe_count == 1, "wipe contabilizado", "wipe fail")
 	var result: Dictionary = raid.complete_raid()

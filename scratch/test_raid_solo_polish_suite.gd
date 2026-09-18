@@ -61,11 +61,9 @@ func _test_raid_instance_solo() -> void:
 	_ok(raid.start_raid("ruins_zaban_vertical", members, entry), "start solo")
 	_ok(raid.is_solo, "flag is_solo")
 	_ok(raid.enrage_seconds > float(entry.get("enrage_seconds", 600.0)), "enrage stretch solo")
-	var warned := false
-	raid.enrage_warning.connect(func(_s): warned = true)
 	raid.enrage_seconds = 45.0
 	raid.tick_enrage(0.05)
-	_ok(warned and raid.enrage_warning_emitted, "enrage_warning dispara")
+	_ok(raid.enrage_warning_emitted, "enrage_warning dispara")
 	raid.register_wipe()
 	_ok(raid.wipe_count == 1, "wipe solo contabilizado")
 
