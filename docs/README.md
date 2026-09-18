@@ -87,6 +87,7 @@ Regras do que o jogo *deve ser*. Lista completa: [`bibles/README.md`](bibles/REA
 
 | Doc | Uso |
 | :--- | :--- |
+| [**ESTADO_ATUAL_JOGO.md**](ESTADO_ATUAL_JOGO.md) | **Handoff:** estado atual + próximos passos (para passar a outro agent) |
 | [PRODUCTION_ROADMAP.md](roadmap/PRODUCTION_ROADMAP.md) | **O que fazer agora / next / later** |
 | [MMO_FEATURES_BACKLOG.md](roadmap/MMO_FEATURES_BACKLOG.md) | **Sistemas MMO futuros** (Tier S/A/B + PREREQs) |
 | [LIVE_OPS_CONTENT.md](roadmap/LIVE_OPS_CONTENT.md) | Live ops + versionamento + migração de save |
