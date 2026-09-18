@@ -43,11 +43,11 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		PlayerData.aplicar_nivel_nen(1)
 		PlayerData.aplicar_bonuses_afinidade()
 
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns por realizar o Teste da Água! Sua Afinidade Natal é oficialmente comprovada como: " + afinidade_nome.to_upper() + "!"})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns pelo Teste da Água! Sua Afinidade Natal é: " + afinidade_nome.to_upper() + "!"})
 		falas_wing.append({"falante": "Mestre Wing", "texto": afinidade_desc})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Abrirei suavemente seus nós de aura... Sinta a energia fluir sem escapar: você despertou o TEN (Envolver)!"})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Durante o combate, segure [Q] para Zetsu, Gyo e En — as únicas técnicas ativas. Ten, Ren, Shu, Ko, Ken e Ryu fluem como passivas."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "O Ten envolve seu corpo como um manto protetor, reduzindo drasticamente qualquer impacto recebido."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Abri seus nós de aura. Ten agora é passivo — um manto que mitiga dano. Ren e as outras passivas crescem na Constelação [TAB → Nen Tree] com SP."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "No campo você usa só três ativos: [Z] Zetsu (sumir da detecção), [G] Gyo (ver pistas de aura) e [X] En (cúpula + intimidação). Zetsu não mistura com En/Gyo."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Pratique Gyo/Zetsu/En na Floresta e nas Ruínas — aqui no hub abra a árvore e gaste SP. Hatsu só com Biscuit, depois de Greed Island."})
 		PlayerData.quest_states["wing_tutorial_progresso"] = 2
 		# Presente de mestre: amuleto + faixa para o loop de equipamento
 		if not PlayerData.tem_item(&"amuleto_forca"):
@@ -57,7 +57,7 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
 			TutorialManager.disparar_tutorial_contextual("nen_despertar")
 		if EventBus != null:
-			EventBus.emit_toast("🥋 Nen despertado! Itens: Amuleto + Faixa (pressione I).", Color(0.35, 1.0, 0.55))
+			EventBus.emit_toast("🥋 Nen despertado! Abra [TAB→Nen Tree] e gaste SP. Ativos: Z/G/X.", Color(0.35, 1.0, 0.55))
 		if PlayerData != null:
 			PlayerData.tour_lobby_concluido = true
 		if SaveManager != null:
@@ -66,8 +66,8 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		return
 
 	elif arco_atual == 3 and etapa_atual == 12:
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Ten e Ren agora fluem como passivas no seu corpo — não precisa ativá-los. Seu foco ativo é Zetsu, Gyo e En."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Gyo concentra a visão nos pontos de aura. En expande o radar. Zetsu silencia tudo. Use [Q] só para esses três."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Ten e Ren fluem como passivas — não ativa tecla. Seu foco ativo é Zetsu, Gyo e En."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "[G] Gyo revela pistas. [X] En é radar + intimidação. [Z] Zetsu silencia aura. Treine isso no semiaberto."})
 		falas_wing.append({"falante": "Mestre Wing", "texto": "Venha treinar comigo quando quiser reforçar a base de forma permanente."})
 		_exibir_falas(falas_wing, func(): _abrir_menu_treino())
 		return
@@ -181,7 +181,7 @@ func _fechar_menu() -> void:
 func _on_opcao_conversar() -> void:
 	_fechar_menu()
 	_exibir_falas([
-		{"falante": "Mestre Wing", "texto": "Ativas: Zetsu, Gyo e En — segure [Q]. Ten, Ren, Shu, Ko, Ken e Ryu são passivas (Árvore [N] e combate)."},
+		{"falante": "Mestre Wing", "texto": "Ativas: [Z] Zetsu, [G] Gyo, [X] En. Ten/Ren/Shu/Ko/Ryu são passivas na Constelação [TAB → Nen Tree]."},
 		{"falante": "Mestre Wing", "texto": "Equipe uma arma em [I] para o Shu revestir a lâmina. Treine comigo para ganhos permanentes."},
 	])
 

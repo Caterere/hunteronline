@@ -1,13 +1,38 @@
 # Hunter Online — Estado Atual do Jogo (Handoff para Agente)
 
-> **Data do snapshot:** 2026-09-18  
-> **Branch base:** `main` @ `d399349` (merge PR #49 — HUD glass / combat log / FOV 960×540)  
+> **Data do snapshot:** 2026-09-18 (atualizado na sessão A–D)  
+> **Branch de trabalho:** `cursor/session-abcd-merge48-dab2` (PR #51)  
+> **Branch base histórico:** `main` @ handoff + merge PR #48  
 > **Objetivo deste doc:** handoff completo para outro agent continuar o trabalho sem redescobrir o projeto.  
 > **Regra de ouro:** código e cenas vencem docs desatualizados. Em conflito design vs código → preferir código e reportar.
 
 ---
 
-## 0. Como usar este handoff (leia primeiro)
+## 0. Decisões de produto (Luiz — 2026-09-18)
+
+| Tema | Decisão |
+| :--- | :--- |
+| Escopo sessão | **A B C D** (early clarity, Nen no mundo, sagas densas, co-op polish leve). Arte (**E**) fica com o Luiz. |
+| PR #48 Tier B | **Mergiar** (feito neste branch). |
+| Dor early | Assuntos **vagos** (não prendem); mapa um pouco **vazio**; tutorial Nen deve explicar **skill tree + Gyo/En/Zetsu**. |
+| Nen no mundo | Varia: criatividade no **semiaberto/missões**. **Não forçar** Nen no lobby/hub. |
+| Hatsu | Prioridade **feel de combate**; unlock só no momento narrativo **Biscuit** (pós Greed Island). |
+| Multiplayer | **Solo-first offline perfeito**; LAN/co-op depois. |
+| Tom | **Sandbox MMO** com história HxH de base — adaptar/balancear, não copiar 1:1. |
+| Extra features | Nenhuma ideia fora do handoff por agora. |
+
+### Progresso desta sessão
+- [x] Merge PR #48 (Tier B / live-ops / sensores / suites) no branch de sessão
+- [x] Tutorial Nen: artigos + tips `nen_arvore` / `nen_ativos` / Z·G·X + Wing reescrito
+- [x] Quest Padokia principal com passos claros + labels de objetivo
+- [x] Vila Padokia +4 NPCs vivos + rumores úteis (Gyo/Zetsu/En/SP)
+- [ ] Feel Hatsu em combate (próximo bloco)
+- [ ] Densidade saga Exame/Kukuroo/Arena (próximo bloco)
+- [ ] Polish raid solo-friendly (D, sem priorizar LAN)
+
+---
+
+## 0b. Como usar este handoff (leia primeiro)
 
 1. Ler `Hunter Online — AGENTS.md` na raiz (regras de escopo, MODIFY DON'T REBUILD, save compatibility).
 2. Design canônico SSOT: `docs/bibles/` (não `.agent/docs/bibles/` — essas são só pontes).

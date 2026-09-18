@@ -62,6 +62,10 @@ func describe() -> String:
 			var nome_inimigo := str(enemy_type)
 			if nome_inimigo.is_empty() or nome_inimigo == "any" or nome_inimigo == "inimigo" or nome_inimigo == "monstro":
 				desc_base = "⚔️ Derrote Criaturas / Inimigos da Área"
+			elif nome_inimigo == "fera_floresta":
+				desc_base = "⚔️ Derrote Feras da Floresta (GPS → Floresta dos Vestígios)"
+			elif nome_inimigo == "guardiao_ancestral":
+				desc_base = "⚔️ Derrote o Guardião Ancestral (Ruínas de Zaban)"
 			else:
 				desc_base = "⚔️ Derrote %s" % nome_inimigo.replace("_", " ").capitalize()
 

@@ -187,13 +187,25 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"titulo": "Combate Físico & Esquiva",
 		"categoria": "Combate",
 		"icone": "🥊",
-		"conteudo": "Pressione [J] ou [Botão Esquerdo do Mouse] para golpear. Use a tecla [K] ou [Shift] no momento exato do golpe inimigo para executar o 'PERFECT DODGE', esquivando de 100% do dano e recuperando Aura."
+		"conteudo": "Pressione [J] ou [Botão Esquerdo do Mouse] para golpear. Use a tecla [K] ou [Shift] no momento exato do golpe inimigo para executar o 'PERFECT DODGE', esquivando de 100% do dano e recuperando 30% da Aura Máxima."
+	},
+	"perfect_dodge_maestria": {
+		"titulo": "Perfect Dodge — Timing de Mestre",
+		"categoria": "Combate",
+		"icone": "⚡",
+		"conteudo": "Esquivar no frame do impacto concede imunidade total, prepara contra-ataque crítico e restaura 30% da sua Aura Máxima. Pratique o timing contra inimigos previsíveis."
 	},
 	"atributos_vitalidade": {
 		"titulo": "Atributos Primários do Caçador",
 		"categoria": "Personagem",
 		"icone": "❤️",
-		"conteudo": "• Vida (HP): Sua resistência a dano.\n• Aura: Energia gasta ao utilizar técnicas de Nen e Hatsu.\n• Força: Aumenta o dano dos golpes físicos.\n• Defesa: Reduz o dano recebido.\n• Velocidade: Diminui o tempo de recarga dos ataques e acelera a corrida."
+		"conteudo": "• Vida (HP): Sua resistência a dano.\n• Aura: Energia gasta ao utilizar técnicas de Nen e Hatsu.\n• Força: Aumenta o dano dos golpes físicos.\n• Defesa: Reduz o dano recebido.\n• Velocidade: Diminui o tempo de recarga dos ataques e acelera a corrida.\n• A cada nível você ganha +1 SP de Nen e os atributos sobem automaticamente."
+	},
+	"sistemas_atalhos": {
+		"titulo": "Atalhos dos Sistemas Hunter",
+		"categoria": "Interface",
+		"icone": "⌨️",
+		"conteudo": "[TAB] Hunter Menu (Status, Inventário, Nen Tree, Hatsu, Guia)\n[I] Inventário · [C] Status · [H] Hatsu · [J] Jornal de Missões · [K] Conquistas · [ESC] Pausa/Salvar\nAtivos de Nen: [Z] Zetsu · [G] Gyo · [X] En (ou segure [Q] e escolha no radial)."
 	},
 	"aura_energia_vital": {
 		"titulo": "Aura: A Força Vital",
@@ -205,67 +217,79 @@ const CATALOGO_CONHECIMENTOS: Dictionary = {
 		"titulo": "Os 4 Grandes Princípios do Nen",
 		"categoria": "Aura & Nen",
 		"icone": "🥋",
-		"conteudo": "1. TEN (Envolver): Mantém a aura no corpo para defesa.\n2. ZETSU (Suprimir): Fecha os poros para regeneração rápida e furtividade.\n3. REN (Expandir): Emite uma quantidade explosiva de aura.\n4. HATSU (Liberar): A expressão pessoal única e personalizada da aura."
+		"conteudo": "1. TEN (Envolver): Manto passivo de defesa — reforçado na Constelação de Nen.\n2. ZETSU (Suprimir): Ativo [Z] — esconde sua aura e reduz a detecção inimiga.\n3. REN (Expandir): Passivo de poder/alcance — cresce com SP na árvore.\n4. HATSU (Liberar): Sua habilidade única — só forjada mais tarde com Biscuit, após Greed Island."
+	},
+	"nen_arvore_sp": {
+		"titulo": "Constelação de Nen & Skill Points",
+		"categoria": "Aura & Nen",
+		"icone": "🌌",
+		"conteudo": "Após despertar o Nen com Wing, abra [TAB → Nen Tree]. Cada nível dá +1 SP.\nComece pelo Nexus central. Invista primeiro em Ten (sobrevivência), Ren (dano) e Zetsu (furtividade).\nArraste para pan, scroll para zoom. SP ganhos antes do despertar ficam liberados ao falar com Wing.\nPassivas (Ten/Ren/Shu/Ko/Ryu) sobem na árvore — não ocupam tecla de combate."
+	},
+	"nen_ativos_gyo_en_zetsu": {
+		"titulo": "Ativos de Nen: Gyo, En e Zetsu",
+		"categoria": "Aura & Nen",
+		"icone": "🔮",
+		"conteudo": "Só três técnicas ativas no early game:\n• ZETSU [Z]: apaga sua aura — aproximação furtiva, zonas de alarme e emboscadas. Combate interrompe.\n• GYO [G]: visão de aura — revela pistas, armadilhas e segredos (tiers 1–5). Use em missões de investigação.\n• EN [X]: cúpula de percepção — sente inimigos próximos e aplica intimidação (reduz defesa).\nZetsu não combina com En nem com Gyo. En + Gyo podem ficar juntos. Treine isso no semiaberto (Floresta/Ruínas), não no lobby."
 	},
 	"nen_tecnica_ten": {
 		"titulo": "Técnica: TEN (Manto Protetor)",
 		"categoria": "Aura & Nen",
 		"icone": "🛡️",
-		"conteudo": "Ao ativar o Ten [N], uma película densa de aura reveste o corpo, concedendo até +40% de redução de dano físico contra ataques inimigos."
+		"conteudo": "Passiva da Constelação. Uma película de aura reveste o corpo e mitiga dano físico — quanto mais SP em Ten, maior a redução."
 	},
 	"nen_tecnica_ren": {
-		"titulo": "Técnica: REN (Expansão de Alcance)",
+		"titulo": "Técnica: REN (Expansão de Poder)",
 		"categoria": "Aura & Nen",
 		"icone": "💥",
-		"conteudo": "O Ren expande a aura para fora dos punhos, dobrando a área e o alcance de acerto de todos os seus ataques básicos."
+		"conteudo": "Passiva da Constelação. Amplia o poder e o alcance dos ataques básicos conforme você investe SP em Ren."
 	},
 	"nen_tecnica_zetsu": {
 		"titulo": "Técnica: ZETSU (Silêncio Furtivo)",
 		"categoria": "Aura & Nen",
 		"icone": "🌿",
-		"conteudo": "O Zetsu fecha completamente o fluxo de aura, acelerando a regeneração natural de Vida e permitindo infligir Dano Crítico x3 ao golpear inimigos pelas costas."
+		"conteudo": "Ativo [Z] (ou radial [Q]). Fecha o fluxo de aura: inimigos detectam você de bem mais longe a bem mais perto. Ideal para cruzar acampamentos, zonas de alarme e aproximar-se por trás. Receber ou causar dano interrompe o Zetsu."
 	},
 	"nen_tecnica_gyo": {
 		"titulo": "Técnica: GYO (Visão Reveladora)",
 		"categoria": "Aura & Nen",
 		"icone": "👁️",
-		"conteudo": "Concentra a aura nos olhos para revelar armadilhas invisíveis e aumentar a taxa de acerto crítico em +35%."
+		"conteudo": "Ativo [G] (ou radial [Q]). Concentra aura nos olhos e revela pistas/segredos por tier de maestria. Sem Gyo, muitas investigações e atalhos ficam invisíveis no semiaberto."
 	},
 	"nen_tecnica_ko": {
 		"titulo": "Técnica: KO (Concentração Máxima)",
 		"categoria": "Aura & Nen",
 		"icone": "👊",
-		"conteudo": "Concentra 100% da aura em um único punho. Concede +75% de poder de impacto e o efeito 'Guard Break', quebrando defesas impenetráveis."
+		"conteudo": "Passiva da Constelação no finalizador do combo básico. Quanto mais Ko, mais forte o 3º golpe e a quebra de obstáculos/postura."
 	},
 	"nen_tecnica_ken": {
 		"titulo": "Técnica: KEN (Blindagem Geral)",
 		"categoria": "Aura & Nen",
 		"icone": "🧱",
-		"conteudo": "Manter o Ren por todo o corpo em estado de defesa contínua. Protege contra golpes surpresa durante combates prolongados."
+		"conteudo": "Estado avançado de defesa contínua com Ren pelo corpo inteiro. Protege contra golpes surpresa em combates prolongados — evolui via árvore/treino."
 	},
 	"nen_tecnica_ryu": {
 		"titulo": "Técnica: RYU (Fluxo Dinâmico)",
 		"categoria": "Aura & Nen",
 		"icone": "🌊",
-		"conteudo": "Distribui a aura em tempo real (ex: 80% no punho atacante e 20% no corpo defensivo), dominando a técnica avançada ensinada por Biscuit."
+		"conteudo": "Passiva avançada: distribui aura entre ataque e defesa em tempo real. Biscuit aprofunda isso no treinamento de Hatsu — não no early game."
 	},
 	"nen_tecnica_en": {
 		"titulo": "Técnica: EN (Percepção Total)",
 		"categoria": "Aura & Nen",
 		"icone": "🌐",
-		"conteudo": "Expande a aura em formato esférico de dezenas de metros, detectando instantaneamente a presença e a intenção de qualquer inimigo na área."
+		"conteudo": "Ativo [X] (ou radial [Q]). Expande uma cúpula de aura: você sente inimigos na área e aplica intimidação (menos defesa efetiva neles). Custa aura contínua — use em combate e exploração tática."
 	},
 	"nen_tecnica_shu": {
 		"titulo": "Técnica: SHU (Revestimento de Objetos)",
 		"categoria": "Aura & Nen",
 		"icone": "🗡️",
-		"conteudo": "Estende sua aura sobre armas ou objetos empunhados (como pás, espadas ou cartas de baralho), transformando-os em lâminas letais."
+		"conteudo": "Passiva da Constelação. Estende aura sobre armas/objetos empunhados, aumentando perfuração e impacto."
 	},
 	"mundo_exame_hunter": {
 		"titulo": "O 287º Exame Hunter",
 		"categoria": "Mundo",
 		"icone": "⛩️",
-		"conteudo": "A prova mais implacável do mundo. Dividido em múltiplas fases (Maratona de Zaban, Pantanal Numere, Floresta Doki, Torre Celestial e Batalhas Finais) com Gon, Killua, Kurapika e Leorio."
+		"conteudo": "A prova mais implacável do mundo. Dividido em múltiplas fases (Maratona de Zaban, Pantanal Numere, Floresta Doki, Torre Celestial e Batalhas Finais). Sua jornada cruza esses arcos — mas o sandbox MMO deixa você explorar contratos, guildas e builds fora da ordem rígida do anime."
 	}
 }
 
@@ -476,6 +500,7 @@ func pular_tutorial() -> void:
 		PlayerData.desbloquear_conhecimento("atributos_vitalidade")
 		PlayerData.desbloquear_conhecimento("aura_energia_vital")
 		PlayerData.desbloquear_conhecimento("mundo_exame_hunter")
+		PlayerData.desbloquear_conhecimento("sistemas_atalhos")
 
 		# Garantir RIGOROSAMENTE que Hatsus continuam vazios
 		PlayerData.hatsu_criados.clear()
@@ -577,6 +602,8 @@ func notificar_aba_status_aberta() -> void:
 
 
 func notificar_guia_aberto() -> void:
+	if PlayerData != null and not PlayerData.tem_conhecimento("sistemas_atalhos"):
+		PlayerData.desbloquear_conhecimento("sistemas_atalhos")
 	if not em_tutorial or _transicao_bloqueada:
 		return
 
@@ -616,11 +643,11 @@ func obter_dialogo_elena() -> Array[Dictionary]:
 		Step.STATUS:
 			falas.append({"falante": "Recepcionista Elena", "texto": "❤️ Lição 4: Atributos! Abra o menu [TAB] e clique na aba 'Status' (ou use [C]) para conferir sua Vida (HP), Força, Defesa e Velocidade."})
 		Step.NEN_CONCEITO:
-			falas.append({"falante": "Recepcionista Elena", "texto": "🔥 Lição Final: A Teoria de Aura e Nen!"})
-			falas.append({"falante": "Recepcionista Elena", "texto": "Aura é a energia vital emitida por todos os seres vivos. Quem aprende a canalizá-la desperta o temido e supremo NEN!"})
-			falas.append({"falante": "Recepcionista Elena", "texto": "Todo novato inicia com 0 Nível de Nen. Suas técnicas fundamentais (Ten, Ren, Zetsu, Gyo...) começam com Mestre Wing!"})
-			falas.append({"falante": "Recepcionista Elena", "texto": "Hatsus exclusivos só serão forjados com Biscuit Krueger mais adiante na saga — ela não ensina isso no início."})
-			falas.append({"falante": "Recepcionista Elena", "texto": "👉 Agora vá AO NORTE, ao Distrito dos Mestres, e fale com Mestre Wing para despertar seu Nen! O GPS vai guiá-lo."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "🔥 Lição Final: Aura, Nen e o que você VAI usar de verdade."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "Aura é energia vital. Canalizá-la é despertar Nen — sem isso, Gyo, En e Zetsu ficam trancados."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "Depois do despertar com Wing: [Z] Zetsu (furtividade), [G] Gyo (ver pistas), [X] En (radar/intimidação). Ten/Ren sobem na Constelação [TAB → Nen Tree] com SP."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "Hatsu (sua skill única) NÃO vem agora. Biscuit só ensina isso depois de Greed Island — até lá foque em básico + Nen ativo."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "👉 Vá AO NORTE, Distrito dos Mestres, fale com Mestre Wing. O GPS marca o caminho."})
 		_:
 			falas.append({"falante": "Recepcionista Elena", "texto": "Fale com Mestre Wing ao norte para despertar seu Nen. Depois siga o GPS até o Guia da História na praça!"})
 
@@ -639,6 +666,8 @@ func obter_fala_lembrete_elena() -> String:
 			return "Desfira 3 socos rápidos com [J] ou esquive com [SHIFT]!"
 		Step.STATUS:
 			return "Abra a aba Status [C] no menu [TAB]!"
+		Step.NEN_CONCEITO:
+			return "Vá ao norte e fale com Mestre Wing para despertar Nen!"
 		_:
 			return "Fale comigo para continuar seu treinamento!"
 
@@ -649,22 +678,57 @@ func obter_fala_lembrete_elena() -> String:
 
 func disparar_tutorial_contextual(tipo: String) -> void:
 	var tipo_clean: String = tipo.to_lower()
+	# Evita spam: se o artigo âncora já foi desbloqueado, não reabre o modal
+	var once_map := {
+		"nen_despertar": "nen_4_principios",
+		"perfect_dodge": "perfect_dodge_maestria",
+		"hatsu_desbloqueio": "nen_tecnica_ko",
+		"nen_arvore": "nen_arvore_sp",
+		"nen_tree": "nen_arvore_sp",
+		"nen_ativos": "nen_ativos_gyo_en_zetsu",
+		"sistemas": "sistemas_atalhos",
+	}
+	if once_map.has(tipo_clean) and PlayerData != null and PlayerData.tem_conhecimento(String(once_map[tipo_clean])):
+		return
+
 	var titulo := "Dica Hunter"
 	var msg := ""
 
 	match tipo_clean:
 		"nen_despertar":
 			titulo = "🥋 DESPERTAR DE NEN"
-			msg = "Nen aberto! Segure [Q] e use 3=Zetsu, 4=Gyo, R=En (ou atalhos Z/G/X). Ten/Ren/Shu são passivas na árvore [N]. Hatsu nos slots 1–4."
+			msg = "Nen aberto!\n1) Ativos agora: [Z] Zetsu (furtivo) · [G] Gyo (pistas) · [X] En (radar).\n2) Passivas: Ten/Ren/Shu/Ko sobem na Constelação [TAB → Nen Tree] com SP.\n3) Hatsu (slots 1–4) só com Biscuit após Greed Island.\nPróximo: abra a Nen Tree e gaste seus SP."
 			PlayerData.desbloquear_conhecimento("nen_4_principios")
+			PlayerData.desbloquear_conhecimento("nen_arvore_sp")
+			PlayerData.desbloquear_conhecimento("nen_ativos_gyo_en_zetsu")
+			PlayerData.desbloquear_conhecimento("nen_tecnica_zetsu")
+			PlayerData.desbloquear_conhecimento("nen_tecnica_gyo")
+			PlayerData.desbloquear_conhecimento("nen_tecnica_en")
 		"perfect_dodge":
 			titulo = "⚡ PERFECT DODGE"
-			msg = "Esquivar no momento exato do impacto concede imunidade total e recarrega instantaneamente 30% da sua Aura!"
+			msg = "Esquivar no momento exato do impacto concede imunidade total e recarrega instantaneamente 30% da sua Aura Máxima!"
+			PlayerData.desbloquear_conhecimento("perfect_dodge_maestria")
 			PlayerData.desbloquear_conhecimento("combate_basico")
 		"hatsu_desbloqueio":
 			titulo = "✨ CRIAÇÃO DE HATSU"
-			msg = "Hatsu é sua habilidade suprema personalizada! Equipe suas técnicas nos slots 1 a 4 e use-as com sabedoria em batalha."
+			msg = "Biscuit liberou seu Hatsu! Crie a habilidade, equipe nos slots 1–4 e sinta o peso de cada afinidade em combate. Mastery sobe usando contra alvos reais."
 			PlayerData.desbloquear_conhecimento("nen_tecnica_ko")
+		"nen_arvore", "nen_tree":
+			if PlayerData == null or not PlayerData.despertou_nen:
+				return
+			titulo = "🌌 CONSTELAÇÃO DE NEN"
+			msg = "Comece pelo Nexus. Cada nível = +1 SP.\nPrioridade early: Ten (sobreviver) → Ren (bater) → Zetsu (explorar).\nPassivas não usam tecla. Ativos continuam [Z]/[G]/[X]."
+			PlayerData.desbloquear_conhecimento("nen_arvore_sp")
+		"nen_ativos":
+			if PlayerData == null or not PlayerData.despertou_nen:
+				return
+			titulo = "🔮 GYO · EN · ZETSU"
+			msg = "[Z] Zetsu: some da detecção (acampamentos/alarmes).\n[G] Gyo: vê pistas e segredos no mapa.\n[X] En: cúpula + intimidação.\nZetsu não mistura com En/Gyo. Use isso na Floresta e nas Ruínas — não no lobby."
+			PlayerData.desbloquear_conhecimento("nen_ativos_gyo_en_zetsu")
+		"sistemas":
+			titulo = "⌨️ SISTEMAS HUNTER"
+			msg = "[TAB] menu · [I] inventário · [C] status · [H] Hatsu · [J] missões · [K] conquistas · [ESC] pausa.\nNen ativo: [Z]/[G]/[X]."
+			PlayerData.desbloquear_conhecimento("sistemas_atalhos")
 		_:
 			return
 

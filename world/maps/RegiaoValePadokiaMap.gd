@@ -196,7 +196,9 @@ func _popular_pistas_furto_gyo() -> void:
 func _notificar_entrada_regiao() -> void:
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("🗺️ Você entrou no [Vale de Padokia] — Tier 1 (Hunter Iniciante)")
+		hud.exibir_notificacao("🗺️ Vale de Padokia — fale com Wing, gaste SP, depois Floresta → Ruínas")
+	if EventBus != null:
+		EventBus.emit_toast("Vila viva: pergunte aos moradores (E). Gyo/Zetsu/En só fora do hub.", Color(0.85, 0.9, 0.55))
 
 
 func _configurar_audio_ambiente() -> void:
