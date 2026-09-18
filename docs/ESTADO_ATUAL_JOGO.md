@@ -232,11 +232,11 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 3. **Corrigir docs desatualizados pontuais** (ex.: README viewport 640×360 vs 960×540; checkboxes do PRODUCTION_ROADMAP vs código).
 
 ### P1 — Qualidade de gameplay (maior ROI)
-1. **Densidade de sensores Nen no mundo** — mais `GyoInspectable` / `ZetsuSensorZone` / `KoObstacle` em clareiras e acampamentos (já era o “quality gap” #1 nas auditorias).
-2. **Quests investigativas** (não só “mate X”) usando Gyo/Ko/Zetsu — estender catálogos existentes, não criar mission system novo.
-3. **Retune fino early-game** — balance de stats/Jenny se economia ainda inflar; legibilidade do Exame (já melhorou nos PRs #47/#43, validar em play humano).
-4. **Combat feel / silhuetas** — variedade de criaturas já parcialmente feita; garantir arquétipos fast/ambusher/tank legíveis no early.
-5. **HUD/combat log** — PR #49 entregou glass + log; validar FOV 960×540 em desktop e mobile-like window; ajustar opacidade/legibilidade se necessário.
+1. ~~**Densidade de sensores Nen no mundo**~~ — feito (Floresta/Ruínas + factory props + Ko clue).
+2. ~~**Quests investigativas**~~ — “Trilha de Aura na Floresta” + “Selos do Guardião Ancestral” no `PadokiaQuestCatalog`.
+3. **Retune fino early-game** — balance de stats/Jenny se economia ainda inflar; legibilidade do Exame.
+4. **Combat feel / silhuetas** — garantir arquétipos fast/ambusher/tank legíveis no early.
+5. **HUD/combat log** — validar FOV 960×540; ajustar opacidade/legibilidade se necessário.
 
 ### P2 — Conteúdo de sagas (profundidade, não sistemas novos)
 1. Validar play humano Kukuroo/Arena densificados (walkers + falas diretas + props).
@@ -269,10 +269,11 @@ Escolha **uma** trilha por sessão (escopo pequeno — AGENTS.md):
 - Feedback de Nen no primeiro combate.
 - Suites: `scratch/test_exam_early_game_suite`, `test_exame_spawn_walkable_suite`, `test_mission_objective_gps_suite`, `test_p0_play_smoke_suite`.
 
-### Trilha B — “Nen no mundo”
-- Plantar sensores + 1–2 quests investigativas na Floresta/Ruínas.
-- SFX/feedback Gyo já existe (`gyo_detect`); garantir uso.
-- Factory: `world/components/exploration/NenSensorFactory.gd`.
+### Trilha B — “Nen no mundo” ✅ (sessão atual)
+- Sensores Gyo/Ko/Zetsu densos em Floresta + Ruínas.
+- Quests: `obter_quest_investigacao_floresta` + `obter_quest_investigacao_ruinas`.
+- Suite: `scratch/test_nen_mundo_floresta_ruinas_suite`.
+- Próximo refinamento: play humano + mais clareiras na Estrada/Vale se necessário.
 
 ### Trilha C — “Fechar #48 com critério”
 - Mergiar só o que passa suites e não polui pilares.
