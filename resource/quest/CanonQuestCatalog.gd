@@ -608,28 +608,28 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				9:
 					q.quest_name = "Yorknew City 9/34: A Fúria do Titã Uvogin"
-					q.description = "Testemunhe Uvogin aniquilando os membros das Feras das Sombras (Inju) com um soco Big Bang Impact."
+					q.description = "ORDEM: Fale com Kurapika — Uvogin vs Inju. Depois duelo no deserto (GPS). Sem rush."
 					q.reward_xp = 24000
 					q.reward_gold = 380000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				10:
 					q.quest_name = "Yorknew City 10/34: O Duelo das Correntes de Kurapika"
-					q.description = "Enfrente Uvogin no deserto aberto usando as correntes forjadas sob juramento de sangue."
+					q.description = "ORDEM: Derrote Uvogin (GPS no deserto). Espaço de combate / Hatsu. Depois Chain Jail."
 					q.reward_xp = 26000
 					q.reward_gold = 420000
 					q.objectives = [_criar_obj_kill(&"uvogin", 1)]
 
 				11:
 					q.quest_name = "Yorknew City 11/34: A Prisão da Corrente (Chain Jail)"
-					q.description = "Aprisione o gigante Uvogin em estado forçado de Zetsu com a Chain Jail inquebrável."
+					q.description = "ORDEM: Negocie com Kurapika (Chain Jail / Zetsu forçado). Depois juramento Kurta."
 					q.reward_xp = 28000
 					q.reward_gold = 450000
 					q.objectives = [_criar_obj_persuasion(&"kurapika", "Kurapika")]
 
 				12:
 					q.quest_name = "Yorknew City 12/34: O Juramento do Coração Kurta"
-					q.description = "Mantenha o voto de não utilizar as correntes contra ninguém fora os 13 membros da Aranha."
+					q.description = "ORDEM: Fale com Kurapika (voto das correntes). Depois [G] Réquiem de Chrollo."
 					q.reward_xp = 29000
 					q.reward_gold = 480000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
@@ -643,49 +643,49 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				14:
 					q.quest_name = "Yorknew City 14/34: Rastreando as Aranhas com Gon e Killua"
-					q.description = "Use Zetsu absoluto para seguir Nobunaga e Machi através das vielas escuras sem ser detectado."
+					q.description = "ORDEM: Fale com Gon. Use Zetsu nas vielas se o GPS pedir. Depois galpão (Machi/Nobunaga)."
 					q.reward_xp = 31000
 					q.reward_gold = 520000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon Freecss")]
 
 				15:
 					q.quest_name = "Yorknew City 15/34: A Emboscada no Galpão Abandonado"
-					q.description = "Escapar da armadilha de linhas de Nen de Machi e das espadas de Nobunaga."
+					q.description = "ORDEM: [Z] Atravesse o Galpão Machi/Nobunaga em Zetsu. Sem Zetsu = captura."
 					q.reward_xp = 32000
 					q.reward_gold = 550000
 					q.objectives = [_criar_obj_stealth(&"galpao_machinobunaga")]
 
 				16:
 					q.quest_name = "Yorknew City 16/34: A Fuga das Paredes de Pedra"
-					q.description = "Gon e Killua quebram as paredes laterais do cativeiro com os punhos para despistar a guarda da Trupe."
+					q.description = "ORDEM: Fale com Killua (fuga do cativeiro). Depois Silva Zoldyck — GPS."
 					q.reward_xp = 33000
 					q.reward_gold = 570000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				17:
 					q.quest_name = "Yorknew City 17/34: A Chegada dos Assassinos Zoldyck"
-					q.description = "Os 10 Padrinhos da Máfia contratam Zeno e Silva Zoldyck para caçar e eliminar Chrollo Lucilfer."
+					q.description = "ORDEM: Fale com Silva Zoldyck. Depois clones no Edifício Cemitério (GPS)."
 					q.reward_xp = 34000
 					q.reward_gold = 600000
 					q.objectives = [_criar_obj_visit(&"silva", "Silva Zoldyck")]
 
 				18:
 					q.quest_name = "Yorknew City 18/34: A Infiltração no Edifício Cemitério"
-					q.description = "Derrote 3 clones de combate e guardas de elite de Feitan e Phinks no prédio central."
+					q.description = "ORDEM: Derrote 3 clones Feitan (GPS). Espaço de combate. Depois [G] cópias Kortopi."
 					q.reward_xp = 36000
 					q.reward_gold = 640000
 					q.objectives = [_criar_obj_kill(&"clone_feitan", 3)]
 
 				19:
 					q.quest_name = "Yorknew City 19/34: A Farsa dos Corpos Copiados"
-					q.description = "Descubra que os corpos mortos da Trupe Fantasma são cópias de Nen geradas pelo Gallery Fake de Kortopi."
+					q.description = "ORDEM: [G] Inspecione a Cópia de Kortopi (Gallery Fake). Depois Hotel Beitacle (Melody)."
 					q.reward_xp = 37000
 					q.reward_gold = 660000
 					q.objectives = [_criar_obj_investigate(&"copia_kortopi")]
 
 				20:
 					q.quest_name = "Yorknew City 20/34: O Hotel Beitacle"
-					q.description = "Rastreie o hotel onde Chrollo, Pakunoda e Kortopi estão reunidos em segredo."
+					q.description = "ORDEM: Fale com Melody no Hotel Beitacle. Depois [Z] Subestação do Apagão."
 					q.reward_xp = 38000
 					q.reward_gold = 680000
 					q.objectives = [_criar_obj_visit(&"melody", "Melody")]
@@ -699,91 +699,91 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				22:
 					q.quest_name = "Yorknew City 22/34: A Captura do Líder Chrollo"
-					q.description = "No escuro absoluto de 2 segundos, Kurapika captura Chrollo Lucilfer e o joga no carro em alta velocidade."
+					q.description = "ORDEM: Fale com Kurapika — captura de Chrollo no apagão. Depois Pakunoda (GPS)."
 					q.reward_xp = 41000
 					q.reward_gold = 730000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				23:
 					q.quest_name = "Yorknew City 23/34: A Contenção de Pakunoda"
-					q.description = "Derrote Pakunoda antes que ela dispare suas balas de memórias Memory Bomb nos aliados."
+					q.description = "ORDEM: Derrote Pakunoda (GPS) antes do Memory Bomb. Depois negociação (Melody)."
 					q.reward_xp = 43000
 					q.reward_gold = 760000
 					q.objectives = [_criar_obj_kill(&"pakunoda", 1)]
 
 				24:
 					q.quest_name = "Yorknew City 24/34: A Negociação de Reféns"
-					q.description = "Estabeleça as condições da troca: Gon e Killua pela vida do líder Chrollo."
+					q.description = "ORDEM: Negocie com Melody (troca Gon/Killua ↔ Chrollo). Depois pista Lingon."
 					q.reward_xp = 44000
 					q.reward_gold = 780000
 					q.objectives = [_criar_obj_persuasion(&"melody", "Melody")]
 
 				25:
 					q.quest_name = "Yorknew City 25/34: O Encontro no Aeroporto de Lingon"
-					q.description = "Conduza a comitiva com Kurapika até a pista de pouso isolada para a troca final."
+					q.description = "ORDEM: Fale com Kurapika na pista Lingon. Troca final — sem rush."
 					q.reward_xp = 45000
 					q.reward_gold = 800000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				26:
 					q.quest_name = "Yorknew City 26/34: A Corrente do Julgamento no Líder"
-					q.description = "Imponha a Judgement Chain no coração de Chrollo Lucilfer, proibindo-o de usar Nen ou falar com a Trupe!"
+					q.description = "ORDEM: Fale com Chrollo — Judgement Chain. Depois Pakunoda / silêncio."
 					q.reward_xp = 47000
 					q.reward_gold = 840000
 					q.objectives = [_criar_obj_visit(&"chrollo", "Chrollo Lucilfer")]
 
 				27:
 					q.quest_name = "Yorknew City 27/34: O Julgamento de Pakunoda"
-					q.description = "Imponha a regra de silêncio a Pakunoda para garantir a libertação segura de Gon e Killua."
+					q.description = "ORDEM: Fale com Melody — regra de silêncio. Depois resgate Gon/Killua."
 					q.reward_xp = 48000
 					q.reward_gold = 860000
 					q.objectives = [_criar_obj_visit(&"melody", "Melody")]
 
 				28:
 					q.quest_name = "Yorknew City 28/34: A Troca Completa de Reféns"
-					q.description = "Resgate Gon e Killua sãos e salvos na pista enquanto Chrollo é levado para o deserto."
+					q.description = "ORDEM: Fale com Gon — troca concluída. Depois [G] memórias de Pakunoda."
 					q.reward_xp = 49000
 					q.reward_gold = 880000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon Freecss")]
 
 				29:
 					q.quest_name = "Yorknew City 29/34: O Último Sacrifício de Pakunoda"
-					q.description = "Pakunoda dispara suas memórias nos companheiros da Aranha e aceita a lâmina no coração com honra."
+					q.description = "ORDEM: [G] Inspecione as Memórias de Pakunoda. Depois leilão Greed Island (Leorio)."
 					q.reward_xp = 50000
 					q.reward_gold = 900000
 					q.objectives = [_criar_obj_investigate(&"memoria_pakunoda")]
 
 				30:
 					q.quest_name = "Yorknew City 30/34: O Leilão Oficial de Greed Island"
-					q.description = "Apresente-se no grande leilão da Southernpiece Auction House para acompanhar os lances do jogo de Ging."
+					q.description = "ORDEM: Fale com Leorio no leilão Southernpiece. Depois Battera (contrato)."
 					q.reward_xp = 52000
 					q.reward_gold = 940000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio")]
 
 				31:
 					q.quest_name = "Yorknew City 31/34: O Contrato do Bilionário Battera"
-					q.description = "Fale com o bilionário Battera e inscreva-se no teste para ser um dos jogadores contratados."
+					q.description = "ORDEM: Fale com Battera — inscrição GI. Depois teste Ren com Tsezguerra."
 					q.reward_xp = 53000
 					q.reward_gold = 960000
 					q.objectives = [_criar_obj_visit(&"battera", "Bilionário Battera")]
 
 				32:
 					q.quest_name = "Yorknew City 32/34: O Teste de Hatsu de Tsezguerra"
-					q.description = "Demonstre sua liberação de Nen (Ren) perante o caçador de 1 estrela Tsezguerra para conquistar a vaga."
+					q.description = "ORDEM: Negocie/passe no teste de Ren com Tsezguerra. Depois [G] fita de Ging."
 					q.reward_xp = 55000
 					q.reward_gold = 1000000
 					q.objectives = [_criar_obj_persuasion(&"tsezguerra", "Tsezguerra (Hunter de 1 Estrela)")]
 
 				33:
 					q.quest_name = "Yorknew City 33/34: A Mensagem Oculta de Ging"
-					q.description = "Escute a fita cassete gravada por Ging deixada na caixa de metal da Ilha da Baleia."
+					q.description = "ORDEM: [G] Inspecione a Fita de Ging. Depois boss sombra de Chrollo (GPS)."
 					q.reward_xp = 56000
 					q.reward_gold = 1050000
 					q.objectives = [_criar_obj_investigate(&"fita_ging")]
 
 				34:
 					q.quest_name = "Yorknew City 34/34: A Batalha Final contra a Sombra de Chrollo"
-					q.description = "Derrote a projeção final de Chrollo Lucilfer no esconderijo e parta com o console para Greed Island!"
+					q.description = "ORDEM: Derrote Chrollo Boss (GPS). Portal Greed Island após esta etapa. Sem rush."
 					q.reward_xp = 60000
 					q.reward_gold = 1200000
 					q.objectives = [_criar_obj_kill(&"chrollo_boss", 1)]

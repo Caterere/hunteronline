@@ -392,6 +392,24 @@ func _instanciar_sensores_nen_yorknew() -> void:
 			"Negociações de reféns deixaram aura tensionada. Siga o GPS — Yorknew é longa de propósito.",
 			"Manipulação", 1, Color(0.55, 0.75, 1.0, 0.9)
 		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoCopiaKortopi", Vector2(2900, -60),
+			&"copia_kortopi", "Cópia de Nen (Gallery Fake)",
+			"Corpos falsos de Kortopi. Depois Hotel Beitacle (Melody). Sem rush.",
+			"Conjuração", 2, Color(0.65, 0.55, 0.95, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoMemoriaPakunoda", Vector2(3600, -50),
+			&"memoria_pakunoda", "Memórias de Pakunoda",
+			"Resíduo do Memory Bomb. Depois leilão GI com Leorio.",
+			"Especialização", 2, Color(0.9, 0.5, 0.7, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoFitaGing", Vector2(4200, -40),
+			&"fita_ging", "Fita Cassete de Ging",
+			"Mensagem oculta de Ging. Depois boss sombra de Chrollo (GPS).",
+			"Emissão", 1, Color(0.4, 0.85, 0.55, 0.9)
+		)
 		NenSensorFactory.criar_ko(
 			self, "KoCaixoteLeilao", Vector2(550, 20),
 			"Caixote Blindado do Leilão", &"pocao_aura", &"yorknew_ko_caixote"
@@ -431,4 +449,9 @@ func _instanciar_sensores_nen_yorknew() -> void:
 		self, "ZetsuPerseguicaoGordeau", Vector2(1900, -30),
 		&"deserto_gordeau", "Corredor da Perseguição (Gordeau)",
 		Vector2(160, 100), &"mafioso_yorknew", "Perseguidor Alertado"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuGalpaoMachiNobunaga", Vector2(2800, 40),
+		&"galpao_machinobunaga", "Galpão Machi / Nobunaga",
+		Vector2(160, 100), &"mafioso_yorknew", "Sentinela da Aranha"
 	)

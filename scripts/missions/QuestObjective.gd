@@ -142,6 +142,12 @@ func describe() -> String:
 					desc_base = "🔍 [G] Gyo — Contágio da Seita Heil-Ly"
 				"besta_tserriednich":
 					desc_base = "🔍 [G] Gyo — Aura da Besta de Dupla Face"
+				"copia_kortopi":
+					desc_base = "🔍 [G] Gyo — Cópia de Nen (Gallery Fake)"
+				"memoria_pakunoda":
+					desc_base = "🔍 [G] Gyo — Memórias de Pakunoda"
+				"fita_ging":
+					desc_base = "🔍 [G] Gyo — Fita Cassete de Ging"
 				"pista_furto_janela", "pista_furto_pegada", "pista_furto_esconderijo":
 					desc_base = "🔍 [G] Gyo — Pista do furto '%s'" % cid.replace("pista_furto_", "").capitalize()
 				_:
@@ -160,6 +166,10 @@ func describe() -> String:
 					desc_base = "🥷 [Z] Zetsu — atravesse a Cova-Armadilha"
 				"apagao_yorknew":
 					desc_base = "🥷 [Z] Zetsu — Subestação do Apagão"
+				"deserto_gordeau":
+					desc_base = "🥷 [Z] Zetsu — Corredor da Perseguição (Gordeau)"
+				"galpao_machinobunaga":
+					desc_base = "🥷 [Z] Zetsu — Galpão Machi / Nobunaga"
 				"greed_ginasio_vestibulo":
 					desc_base = "🥷 [Z] Zetsu — Vestíbulo do Ginásio"
 				"fronteira_goruto":
