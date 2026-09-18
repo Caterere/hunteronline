@@ -26,7 +26,9 @@
 - [x] Tutorial Nen: artigos + tips `nen_arvore` / `nen_ativos` / Z·G·X + Wing reescrito
 - [x] Quest Padokia principal com passos claros + labels de objetivo
 - [x] Vila Padokia +4 NPCs vivos + rumores úteis (Gyo/Zetsu/En/SP)
-- [ ] Feel Hatsu em combate (próximo bloco)
+- [x] **ContentDirector** agora materializa NPCs/inimigos/encontros (antes só dados+print)
+- [x] Toasts do Exame com direção GPS / próximo passo concreto
+- [ ] Feel Hatsu em combate (aguardando respostas do Luiz)
 - [ ] Densidade saga Exame/Kukuroo/Arena (próximo bloco)
 - [ ] Polish raid solo-friendly (D, sem priorizar LAN)
 

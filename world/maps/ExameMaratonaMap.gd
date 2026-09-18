@@ -53,22 +53,26 @@ func _process(_delta: float) -> void:
 	if px >= 0 and px < 1600 and not _marcos_notificados["tunel"]:
 		_marcos_notificados["tunel"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏃 1ª Fase: Maratona Subterrânea de Zaban (80km)")
+			hud.exibir_notificacao("🏃 1ª Fase: Maratona — corra para o LESTE pelo corredor (GPS marca o Portão)")
+		if EventBus != null:
+			EventBus.emit_toast("Siga o GPS. Evite emboscadas; use o corredor central.", Color(0.9, 0.85, 0.5))
 
 	elif px >= 1600 and px < 3800 and not _marcos_notificados["pantanal"]:
 		_marcos_notificados["pantanal"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🌫️ Pantanal Numere — O Ninho dos Trapaceiros")
+			hud.exibir_notificacao("🌫️ Pantanal Numere — continue LESTE; cuidado com trapaceiros")
+		if EventBus != null:
+			EventBus.emit_toast("Objetivo: atravessar o pantanal vivo até a Floresta Gourmet.", Color(0.7, 0.9, 0.8))
 
 	elif px >= 3800 and px < 5400 and not _marcos_notificados["floresta_gourmet"]:
 		_marcos_notificados["floresta_gourmet"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🍖 Floresta Biska — 2ª Fase: Hunters Gourmet (Menchi & Buhara)")
+			hud.exibir_notificacao("🍖 Floresta Biska — 2ª Fase Gourmet (Menchi & Buhara) → LESTE")
 
 	elif px >= 5400 and not _marcos_notificados["portao_final"]:
 		_marcos_notificados["portao_final"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🚪 Portão de Chegada do 287º Exame Hunter")
+			hud.exibir_notificacao("🚪 Portão Final — interaja [E] para concluir a etapa do Exame")
 
 
 func _garantir_dialogue_ui() -> void:
