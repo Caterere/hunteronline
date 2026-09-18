@@ -71,10 +71,17 @@ func _test_yorknew_density_gate() -> void:
 	await get_tree().process_frame
 	_ok(mapa_off.get_node_or_null("MafiosoAmbient_A") != null, "Filler MafiosoAmbient_A presente")
 	_ok(mapa_off.get_node_or_null("MafiosoAmbient_D") != null, "Filler MafiosoAmbient_D presente")
+	_ok(mapa_off.get_node_or_null("MafiosoAmbient_H") != null, "Filler MafiosoAmbient_H presente")
 	_ok(mapa_off.get_node_or_null("ZetsuBecoRuasNorte") != null, "Zetsu beco norte presente")
 	_ok(mapa_off.get_node_or_null("ZetsuBecoCemiterio") != null, "Zetsu beco cemitério presente")
+	_ok(mapa_off.get_node_or_null("ZetsuApagaoSubestacao") != null, "Zetsu apagão (canon) presente")
+	_ok(mapa_off.get_node_or_null("ZetsuPerseguicaoGordeau") != null, "Zetsu perseguição Gordeau")
+	_ok(mapa_off.get_node_or_null("ComercianteMercado") != null, "Walker comerciante")
+	_ok(mapa_off.get_node_or_null("PropsEstruturaYorknew") != null, "Props estrutura Yorknew")
 	_ok(mapa_off.get_node_or_null("GyoPistaLeilaoAura") == null, "Sem Gyo pré-despertar")
 	_ok(mapa_off.get_node_or_null("KoCaixoteLeilao") == null, "Sem Ko Gyo-gated pré-despertar")
+	var leorio = mapa_off.get_node_or_null("Leorio")
+	_ok(leorio != null and "ORDEM" in str(leorio.fala_padrao), "Leorio fala direta")
 	mapa_off.queue_free()
 	await get_tree().process_frame
 
@@ -87,7 +94,18 @@ func _test_yorknew_density_gate() -> void:
 	_ok(mapa_on.get_node_or_null("GyoPistaLeilaoAura") != null, "Gyo leilão após despertar")
 	_ok(mapa_on.get_node_or_null("GyoPistaRuasAranha") != null, "Gyo ruas após despertar")
 	_ok(mapa_on.get_node_or_null("GyoPistaCemiterioRequiem") != null, "Gyo cemitério após despertar")
+	_ok(mapa_on.get_node_or_null("GyoAntiguidadeMercado") != null, "Gyo antiguidade_mercado (canon etapa 2)")
+	_ok(mapa_on.get_node_or_null("GyoCofreVazioLeilao") != null, "Gyo cofre_vazio_leilao (canon)")
+	_ok(mapa_on.get_node_or_null("GyoRequiemChrollo") != null, "Gyo requiem_chrollo (canon)")
 	_ok(mapa_on.get_node_or_null("KoCaixoteLeilao") != null, "Ko caixote após despertar")
 	_ok(mapa_on.get_node_or_null("PlacaYorkLeilao") != null, "Placa distrito leilão")
+	_ok(mapa_on.get_node_or_null("PlacaYorkMercado") != null, "Placa mercado intermediária")
+	_ok(mapa_on.get_node_or_null("PlacaYorkHotel") != null, "Placa hotel intermediária")
+
+	CanonQuestCatalog._quest_cache.clear()
+	var q2 = CanonQuestCatalog.obter_quest_da_etapa(4, 2)
+	_ok(q2 != null and "ORDEM" in q2.description and "[G]" in q2.description, "Canon etapa2 descrição direta")
+	var q7 = CanonQuestCatalog.obter_quest_da_etapa(4, 7)
+	_ok(q7 != null and q7.objectives[0].target_clue_id == &"cofre_vazio_leilao", "Canon etapa7 clue cofre")
 	mapa_on.queue_free()
 	PlayerData.despertou_nen = false

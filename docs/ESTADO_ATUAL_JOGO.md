@@ -28,7 +28,8 @@
 - [x] **Raid Ruínas de Zaban — polish solo** (telegraph, wipe legível, pacing)
 - [x] Densidade Kukuroo / Arena (NPCs andando + falas diretas + props)
 - [x] **Trilha B — Nen no mundo** (sensores Floresta/Ruínas + 2 quests investigativas)
-- [ ] Arcos Yorknew / GI com duração longa e imersão alta
+- [x] **Yorknew imersão** (walkers, falas diretas, clues canônicos plantados, etapas 1–8/13/21 claras)
+- [ ] Arcos Greed Island+ com duração longa e imersão alta
 
 ### Progresso desta sessão
 - [x] Merge PR #48

@@ -552,56 +552,56 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Yorknew City 1/34: A Chegada à Metrópole"
-					q.description = "Encontre Leorio no centro comercial de Yorknew City e planejem como levantar fundos para o leilão."
+					q.description = "ORDEM: Fale com Leorio no leilão. Yorknew é longa — um objetivo de cada vez. Depois: [G] antiguidades do mercado."
 					q.reward_xp = 14000
 					q.reward_gold = 200000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
 
 				2:
 					q.quest_name = "Yorknew City 2/34: A Arte da Pechincha no Mercado"
-					q.description = "Aprenda a avaliar antiguidades e tesouros de Nen usando Gyo para detectar auras em objetos antigos."
+					q.description = "ORDEM: Ative [G] Gyo e inspecione a Antiguidade do Mercado (pista no distrito do leilão). Sem Gyo, não pechinche."
 					q.reward_xp = 15000
 					q.reward_gold = 220000
 					q.objectives = [_criar_obj_investigate(&"antiguidade_mercado")]
 
 				3:
 					q.quest_name = "Yorknew City 3/34: O Contrato dos Guarda-Costas Nostrade"
-					q.description = "Apresente-se na comitiva de guarda-costas da família Nostrade com Kurapika."
+					q.description = "ORDEM: Fale com Kurapika (comitiva Nostrade). Próximo será Melody — não pule."
 					q.reward_xp = 16000
 					q.reward_gold = 240000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika (Guarda-Costas Nostrade)")]
 
 				4:
 					q.quest_name = "Yorknew City 4/34: A Melodia do Coração de Melody"
-					q.description = "Converse com Melody sobre o poder de sua flauta e o rastreamento do ritmo cardíaco humano."
+					q.description = "ORDEM: Fale com Melody. Depois o GPS marca mafiosos nas docas — caminhe, não rush."
 					q.reward_xp = 17000
 					q.reward_gold = 260000
 					q.objectives = [_criar_obj_visit(&"melody", "Melody (Musicista Hunter)")]
 
 				5:
 					q.quest_name = "Yorknew City 5/34: Mafiosos Corrompidos da Noite"
-					q.description = "Derrote 4 mafiosos corrompidos que tentam extorquir comerciantes nas docas do leilão."
+					q.description = "ORDEM: Derrote 4 mafiosos corrompidos (GPS). Use espaço de combate / Hatsu. Depois volte ao leilão com Kurapika."
 					q.reward_xp = 18500
 					q.reward_gold = 280000
 					q.objectives = [_criar_obj_kill(&"mafioso_corrompido", 4)]
 
 				6:
 					q.quest_name = "Yorknew City 6/34: A Noite do Leilão Subterrâneo"
-					q.description = "Infiltre-se no prédio do leilão clandestino onde os tesouros do mundo todo estão expostos."
+					q.description = "ORDEM: Fale com Kurapika e infiltre o leilão. Yorknew alonga daqui — distritos seguintes pedem caminhada."
 					q.reward_xp = 20000
 					q.reward_gold = 300000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				7:
 					q.quest_name = "Yorknew City 7/34: O Ataque Sombra da Trupe Fantasma"
-					q.description = "A Trupe Fantasma invade o leilão, elimina os mafiosos e rouba todo o cofre de tesouros!"
+					q.description = "ORDEM: [G] Inspecione o Cofre Vazio do Leilão — a Trupe já passou. Depois siga o GPS (sem confrontar fora de ordem)."
 					q.reward_xp = 21000
 					q.reward_gold = 320000
 					q.objectives = [_criar_obj_investigate(&"cofre_vazio_leilao")]
 
 				8:
 					q.quest_name = "Yorknew City 8/34: A Perseguição ao Balão de Fuga"
-					q.description = "Siga o rastro de fuga da Trupe Fantasma através do céu noturno até o Deserto de Gordeau."
+					q.description = "ORDEM: Siga o GPS pela avenida (longa caminhada). Use [Z] nos becos se o marcador pedir. Sem rush."
 					q.reward_xp = 22000
 					q.reward_gold = 350000
 					q.objectives = [_criar_obj_stealth(&"deserto_gordeau")]
@@ -636,7 +636,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				13:
 					q.quest_name = "Yorknew City 13/34: O Réquiem de Chrollo Lucilfer"
-					q.description = "Chrollo comanda o massacre orquestrado no centro financeiro de Yorknew como tributo fúnebre a Uvogin."
+					q.description = "ORDEM: [G] Inspecione a Marca do Réquiem (Cemitério/Trupe). Depois GPS — Yorknew continua longa."
 					q.reward_xp = 30000
 					q.reward_gold = 500000
 					q.objectives = [_criar_obj_investigate(&"requiem_chrollo")]
@@ -692,7 +692,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				21:
 					q.quest_name = "Yorknew City 21/34: O Plano do Apagão Central"
-					q.description = "Corte os cabos de alta tensão da subestação de Yorknew exatamente às 19:00:00."
+					q.description = "ORDEM: [Z] Atravesse a Subestação do Apagão em Zetsu (zona marcada). Sem Zetsu = emboscada."
 					q.reward_xp = 39000
 					q.reward_gold = 700000
 					q.objectives = [_criar_obj_stealth(&"apagao_yorknew")]

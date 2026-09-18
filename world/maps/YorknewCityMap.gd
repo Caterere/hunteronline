@@ -48,23 +48,26 @@ func _process(_delta: float) -> void:
 
 	if px >= 0 and px < 1200 and not _marcos_notificados["leilao"]:
 		_marcos_notificados["leilao"] = true
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏢 Prédio do Leilão Underground — Negócios obscuros acontecem aqui.")
+		_toast_zona(hud, "🏢 Leilão Underground — Fale com Leorio. Use [G] nas antiguidades do mercado.")
 
 	elif px >= 1200 and px < 2400 and not _marcos_notificados["ruas"]:
 		_marcos_notificados["ruas"] = true
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏙️ Ruas de Yorknew City — A cidade que nunca dorme e não perdoa os fracos.")
+		_toast_zona(hud, "🏙️ Avenida Central — Caminhe com calma. [Z] nos becos. GPS marca o próximo objetivo.")
 
 	elif px >= 2400 and px < 3600 and not _marcos_notificados["cemiterio"]:
 		_marcos_notificados["cemiterio"] = true
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏗️ Edifício Cemitério — Onde o Réquiem começou...")
+		_toast_zona(hud, "🏗️ Edifício Cemitério — Battera/Tsezguerra à frente. [G] no Réquiem. Sem rush.")
 
 	elif px >= 3600 and not _marcos_notificados["esconderijo"]:
 		_marcos_notificados["esconderijo"] = true
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🕷️ Esconderijo da Trupe Fantasma — A base das Aranhas!")
+		_toast_zona(hud, "🕷️ Esconderijo da Trupe — Um objetivo de cada vez. Portal GI só após as 34 etapas.")
+
+
+func _toast_zona(hud: Node, msg: String) -> void:
+	if hud != null and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao(msg)
+	elif EventBus != null:
+		EventBus.emit_toast(msg, Color(0.95, 0.85, 0.45))
 
 
 func _garantir_dialogue_ui() -> void:
@@ -107,7 +110,7 @@ func _popular_npcs_arco4() -> void:
 		leorio.name = "Leorio"
 		leorio.position = Vector2(100, -30)
 		leorio.npc_name = "Leorio"
-		leorio.fala_padrao = "E aí! Cheguei a Yorknew para o grande leilão! Vamos levantar uma fortuna para comprar o Greed Island!"
+		leorio.fala_padrao = "Ordem: 1) Fale comigo. 2) [G] Gyo nas antiguidades do mercado (leilão). 3) Depois Kurapika (Nostrade). Um passo — sem misturar."
 		NpcSpriteBinder.aplicar(leorio, ["npc_leorio"])
 		add_child(leorio)
 
@@ -124,7 +127,7 @@ func _popular_npcs_arco4() -> void:
 		kurapika.name = "Kurapika"
 		kurapika.position = Vector2(300, -50)
 		kurapika.npc_name = "Kurapika"
-		kurapika.fala_padrao = "Não importa o que aconteça, vou recuperar os olhos dos meus irmãos... e as Aranhas pagarão com a vida."
+		kurapika.fala_padrao = "Contrato Nostrade: fale comigo, depois Melody. À noite limpe mafiosos no GPS. A Trupe vem depois — prepare-se, não rush."
 		add_child(kurapika)
 
 	# 3. Melody
@@ -133,7 +136,7 @@ func _popular_npcs_arco4() -> void:
 		melody.name = "Melody"
 		melody.position = Vector2(450, -30)
 		melody.npc_name = "Melody"
-		melody.fala_padrao = "Ouço os batimentos do seu coração... você está calmo. Meu objetivo é encontrar e destruir a partitura da Sonata das Trevas."
+		melody.fala_padrao = "Ouço seu ritmo. Próximo: derrote os mafiosos marcados no GPS, depois infiltre o leilão com Kurapika. Caminhe — Yorknew é longa."
 		NpcSpriteBinder.aplicar(melody, ["npc_melody"])
 		add_child(melody)
 
@@ -149,7 +152,7 @@ func _popular_npcs_arco4() -> void:
 		gon.name = "Gon"
 		gon.position = Vector2(700, 50)
 		gon.npc_name = "Gon Freecss"
-		gon.fala_padrao = "Vamos arranjar dinheiro para comprar o jogo Greed Island no leilão! Killua e eu estamos tentando de tudo!"
+		gon.fala_padrao = "Siga o GPS. Leilão → Ruas → Cemitério → Trupe. Killua e eu vamos no seu ritmo — sem pular etapas."
 		add_child(gon)
 
 	# 5. Bilionário Battera
@@ -158,7 +161,7 @@ func _popular_npcs_arco4() -> void:
 		battera.name = "Battera"
 		battera.position = Vector2(2800, -100)
 		battera.npc_name = "Bilionário Battera"
-		battera.fala_padrao = "Pago 50 bilhões de Jenny para quem zerar o Greed Island e me trouxer a carta de cura 'Sopro do Arcanjo'!"
+		battera.fala_padrao = "Quer Greed Island? Fale com Tsezguerra ao lado e passe o teste. Antes disso: conclua as etapas do GPS no Cemitério."
 		NpcSpriteBinder.aplicar(battera, ["npc_battera"])
 		add_child(battera)
 
@@ -168,7 +171,7 @@ func _popular_npcs_arco4() -> void:
 		tsezguerra.name = "Tsezguerra"
 		tsezguerra.position = Vector2(2900, -80)
 		tsezguerra.npc_name = "Tsezguerra"
-		tsezguerra.fala_padrao = "Sou um Hunter de 1 Estrela contratado por Battera. Mostre-me o seu Ren para saber se você tem qualificações para entrar no jogo."
+		tsezguerra.fala_padrao = "Mostre Ren quando o GPS pedir. Até lá: um objetivo de cada vez. Portal GI fica trancado até a etapa 34."
 		NpcSpriteBinder.aplicar(tsezguerra, ["npc_tsezguerra"])
 		add_child(tsezguerra)
 
@@ -226,38 +229,43 @@ func _configurar_portal_conclusao() -> void:
 			StoryCutsceneManager.executar_yorknew_cutscene(get_tree(), mudar_cena_cb)
 
 
-## Densifica as avenidas com mafiosos ambient (não-missão) entre os beats da história.
+## Densifica as avenidas: mafiosos ambient, walkers, placas intermediárias, props.
 func _densificar_ruas_yorknew() -> void:
 	var scn_enemy = load("res://scripts/systems/EnemySystem/Enemy.tscn")
-	if scn_enemy == null:
-		return
-
-	var fillers := [
-		{"name": "MafiosoAmbient_A", "pos": Vector2(600, 40), "label": "Soldado da Máfia (Leilão)"},
-		{"name": "MafiosoAmbient_B", "pos": Vector2(1500, -50), "label": "Capanga das Ruas"},
-		{"name": "MafiosoAmbient_C", "pos": Vector2(2100, 60), "label": "Olheiro do Sindicato"},
-		{"name": "MafiosoAmbient_D", "pos": Vector2(3100, -40), "label": "Guarda do Cemitério"},
-	]
-	for f in fillers:
-		if get_node_or_null(f["name"]) != null:
-			continue
-		var mob = scn_enemy.instantiate()
-		mob.name = f["name"]
-		mob.position = f["pos"]
-		mob.add_to_group("enemy")
-		mob.add_to_group("enemies")
-		var es = mob.get_node_or_null("EnemySystem")
-		if es != null:
-			es.is_mission_enemy = false
-			es.enemy_id = &"mafioso_yorknew"
-			es.enemy_name = f["label"]
-		add_child(mob)
+	if scn_enemy != null:
+		var fillers := [
+			{"name": "MafiosoAmbient_A", "pos": Vector2(600, 40), "label": "Soldado da Máfia (Leilão)"},
+			{"name": "MafiosoAmbient_B", "pos": Vector2(1500, -50), "label": "Capanga das Ruas"},
+			{"name": "MafiosoAmbient_C", "pos": Vector2(2100, 60), "label": "Olheiro do Sindicato"},
+			{"name": "MafiosoAmbient_D", "pos": Vector2(3100, -40), "label": "Guarda do Cemitério"},
+			{"name": "MafiosoAmbient_E", "pos": Vector2(900, -60), "label": "Capanga do Mercado"},
+			{"name": "MafiosoAmbient_F", "pos": Vector2(1800, 70), "label": "Patrulha da Avenida"},
+			{"name": "MafiosoAmbient_G", "pos": Vector2(2600, 50), "label": "Sentinela do Cemitério Sul"},
+			{"name": "MafiosoAmbient_H", "pos": Vector2(3500, -20), "label": "Olheiro da Aranha"},
+		]
+		for f in fillers:
+			if get_node_or_null(f["name"]) != null:
+				continue
+			var mob = scn_enemy.instantiate()
+			mob.name = f["name"]
+			mob.position = f["pos"]
+			mob.add_to_group("enemy")
+			mob.add_to_group("enemies")
+			var es = mob.get_node_or_null("EnemySystem")
+			if es != null:
+				es.is_mission_enemy = false
+				es.enemy_id = &"mafioso_yorknew"
+				es.enemy_name = f["label"]
+			add_child(mob)
 
 	var placas := [
-		{"name": "PlacaYorkLeilao", "pos": Vector2(350, -70), "text": "📍 Distrito do Leilão Underground"},
-		{"name": "PlacaYorkRuas", "pos": Vector2(1600, -90), "text": "📍 Avenida Central — Yorknew"},
-		{"name": "PlacaYorkCemiterio", "pos": Vector2(2700, -110), "text": "📍 Edifício Cemitério"},
-		{"name": "PlacaYorkTrupe", "pos": Vector2(3700, -90), "text": "📍 Zona da Trupe Fantasma"},
+		{"name": "PlacaYorkLeilao", "pos": Vector2(350, -70), "text": "📍 Leilão — Leorio → [G] antiguidades"},
+		{"name": "PlacaYorkMercado", "pos": Vector2(800, -90), "text": "📍 Mercado — pechincha / Gyo"},
+		{"name": "PlacaYorkRuas", "pos": Vector2(1600, -90), "text": "📍 Avenida — caminhe · [Z] becos"},
+		{"name": "PlacaYorkDocas", "pos": Vector2(2000, -70), "text": "📍 Docas — mafiosos do GPS"},
+		{"name": "PlacaYorkCemiterio", "pos": Vector2(2700, -110), "text": "📍 Cemitério — Battera / Réquiem"},
+		{"name": "PlacaYorkHotel", "pos": Vector2(3200, -90), "text": "📍 Hotel Beitacle — etapas mid"},
+		{"name": "PlacaYorkTrupe", "pos": Vector2(3700, -90), "text": "📍 Trupe — 34 etapas → GI"},
 	]
 	for p in placas:
 		if get_node_or_null(p["name"]) != null:
@@ -275,8 +283,69 @@ func _densificar_ruas_yorknew() -> void:
 		marker.add_child(lbl)
 		add_child(marker)
 
+	_popular_walkers_yorknew()
+	_plantar_props_yorknew()
 
-## Trilha Gyo pós-despertar + becos Zetsu (prática furtiva / emboscada).
+
+func _popular_walkers_yorknew() -> void:
+	var scn_npc = load("res://entities/npc/NPC.tscn")
+	if scn_npc == null:
+		return
+	var walkers := [
+		{"name": "ComercianteMercado", "pos": Vector2(750, 40), "npc": "Comerciante do Mercado", "fala": "Quer pechincha? Ative [G] Gyo nas antiguidades do leilão. Sem aura, você compra lixo.", "ids": ["npc_viajante_scout"], "r": 48.0},
+		{"name": "GuardaNostrade", "pos": Vector2(1100, -40), "npc": "Guarda Nostrade", "fala": "Kurapika é o chefe da comitiva. Fale com ele, depois Melody. Não atravessa a avenida sem GPS.", "ids": ["npc_guarda_fronteira"], "r": 40.0},
+		{"name": "ApostadorLeilao", "pos": Vector2(500, 60), "npc": "Apostador do Underground", "fala": "O leilão é longo. Caminhe distrito a distrito. Um objetivo — depois o próximo.", "ids": ["npc_viajante_scout"], "r": 44.0},
+		{"name": "ReporterAvenida", "pos": Vector2(1700, -70), "npc": "Reporter da Avenida", "fala": "Aranhas foram vistas no Cemitério. Use [Z] nos becos. Não grite aura.", "ids": ["npc_viajante_scout"], "r": 52.0},
+		{"name": "PorteiroCemiterio", "pos": Vector2(2550, 40), "npc": "Porteiro do Cemitério", "fala": "Battera e Tsezguerra ficam dentro. [G] no Eco do Réquiem. Portal GI ainda longe.", "ids": ["npc_guarda_fronteira"], "r": 36.0},
+		{"name": "CivilAssustado", "pos": Vector2(3400, 50), "npc": "Civil Assustado", "fala": "A Trupe está à frente. Siga o GPS etapa a etapa. Yorknew não perdoa quem rusha.", "ids": ["npc_viajante_scout"], "r": 42.0},
+	]
+	for w in walkers:
+		if get_node_or_null(w["name"]) != null:
+			continue
+		var npc = scn_npc.instantiate()
+		npc.name = w["name"]
+		npc.position = w["pos"]
+		npc.npc_name = w["npc"]
+		npc.fala_padrao = w["fala"]
+		NpcSpriteBinder.aplicar(npc, w["ids"])
+		var living := LivingNPCBehavior.new()
+		living.name = "LivingNPCBehavior"
+		living.npc_nome = w["npc"]
+		living.tipo_marcador = "ambient"
+		living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
+		living.raio_patrulha = float(w["r"])
+		npc.add_child(living)
+		add_child(npc)
+
+
+func _plantar_props_yorknew() -> void:
+	if get_node_or_null("PropsEstruturaYorknew") != null:
+		return
+	var root := Node2D.new()
+	root.name = "PropsEstruturaYorknew"
+	add_child(root)
+	var specs := [
+		{"name": "LanternaLeilao", "pos": Vector2(420, 30), "tex": "res://assets/sprites/objects/phase3_lantern_post.png"},
+		{"name": "MarcoAvenida", "pos": Vector2(1550, 40), "tex": "res://assets/sprites/objects/marco_pedra_milestone.png"},
+		{"name": "LanternaCemiterio", "pos": Vector2(2650, 20), "tex": "res://assets/sprites/objects/hunter_road_lantern.png"},
+		{"name": "MonolitoTrupe", "pos": Vector2(3600, 30), "tex": "res://assets/sprites/objects/nen_stone_monolith.png"},
+		{"name": "MarcoHotel", "pos": Vector2(3150, 40), "tex": "res://assets/sprites/objects/marco_pedra_milestone.png"},
+	]
+	for s in specs:
+		var n := Node2D.new()
+		n.name = s["name"]
+		n.position = s["pos"]
+		var spr := Sprite2D.new()
+		spr.centered = true
+		spr.position = Vector2(0, -12)
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		if ResourceLoader.exists(s["tex"]):
+			spr.texture = load(s["tex"])
+		n.add_child(spr)
+		root.add_child(n)
+
+
+## Trilha Gyo (inclui clues do CanonQuest) + becos Zetsu + KO.
 func _instanciar_sensores_nen_yorknew() -> void:
 	if PlayerData != null and PlayerData.despertou_nen:
 		NenSensorFactory.criar_gyo(
@@ -285,10 +354,24 @@ func _instanciar_sensores_nen_yorknew() -> void:
 			"Objetos do leilão underground vibram com aura falsa — Gyo revela falsificações.",
 			"Materialização", 1, Color(0.45, 0.85, 1.0, 0.9)
 		)
+		# Clue canônico etapa 2
+		NenSensorFactory.criar_gyo(
+			self, "GyoAntiguidadeMercado", Vector2(720, -10),
+			&"antiguidade_mercado", "Antiguidade do Mercado",
+			"Peça rara com aura residual. Avalie com Gyo — pechincha sem Nen é furada. Próximo: Kurapika (Nostrade).",
+			"Materialização", 1, Color(0.95, 0.8, 0.35, 0.9)
+		)
+		# Clue canônico etapa 7-ish cofre
+		NenSensorFactory.criar_gyo(
+			self, "GyoCofreVazioLeilao", Vector2(480, 50),
+			&"cofre_vazio_leilao", "Cofre Vazio do Leilão",
+			"O cofre foi limpo pela Trupe. Aura recente de Especialização — as Aranhas passaram aqui.",
+			"Especialização", 1, Color(0.9, 0.35, 0.45, 0.9)
+		)
 		NenSensorFactory.criar_gyo(
 			self, "GyoPistaRuasAranha", Vector2(1800, 30),
 			&"yorknew_pegada_aranha", "Pegada da Aranha",
-			"Rastro diluído de Nen especial — alguém da Trupe passou pelas ruas.",
+			"Rastro diluído de Nen especial — alguém da Trupe passou pelas ruas. Caminhe até o Cemitério.",
 			"Especialização", 1, Color(0.95, 0.4, 0.55, 0.9)
 		)
 		NenSensorFactory.criar_gyo(
@@ -297,9 +380,25 @@ func _instanciar_sensores_nen_yorknew() -> void:
 			"Aura densa no Edifício Cemitério. O réquiem de Uvogin ainda ecoa.",
 			"Emissão", 2, Color(0.7, 0.35, 0.9, 0.9)
 		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoRequiemChrollo", Vector2(3350, -200),
+			&"requiem_chrollo", "Marca do Réquiem de Chrollo",
+			"Assinatura de Nen do líder. Próximo passo no GPS — não enfrente a Trupe fora de ordem.",
+			"Especialização", 2, Color(0.75, 0.25, 0.85, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoHotelBeitacle", Vector2(3180, -40),
+			&"yorknew_hotel_beitacle", "Resíduo no Hotel Beitacle",
+			"Negociações de reféns deixaram aura tensionada. Siga o GPS — Yorknew é longa de propósito.",
+			"Manipulação", 1, Color(0.55, 0.75, 1.0, 0.9)
+		)
 		NenSensorFactory.criar_ko(
 			self, "KoCaixoteLeilao", Vector2(550, 20),
-			"Caixote Blindado do Leilão", &"pocao_aura"
+			"Caixote Blindado do Leilão", &"pocao_aura", &"yorknew_ko_caixote"
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoPortaoCemiterio", Vector2(2450, -20),
+			"Portão Selado do Cemitério", &"elixir_aura"
 		)
 
 	NenSensorFactory.criar_zetsu(
@@ -316,4 +415,20 @@ func _instanciar_sensores_nen_yorknew() -> void:
 		self, "ZetsuBecoEsconderijo", Vector2(3800, -80),
 		&"yorknew_beco_esconderijo", "Beco do Esconderijo da Trupe",
 		Vector2(150, 100), &"mafioso_yorknew", "Olheiro da Aranha"
+	)
+	# Clue canônico etapa 21 — apagão
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuApagaoSubestacao", Vector2(2200, -40),
+		&"apagao_yorknew", "Subestação do Apagão",
+		Vector2(150, 100), &"mafioso_yorknew", "Guarda da Subestação"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuDocasLeilao", Vector2(1000, 80),
+		&"yorknew_docas_leilao", "Docas do Leilão",
+		Vector2(130, 90), &"mafioso_yorknew", "Capanga das Docas"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuPerseguicaoGordeau", Vector2(1900, -30),
+		&"deserto_gordeau", "Corredor da Perseguição (Gordeau)",
+		Vector2(160, 100), &"mafioso_yorknew", "Perseguidor Alertado"
 	)
