@@ -77,6 +77,18 @@ func _construir_ui() -> void:
 	lbl_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl_titulo.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hbox_hdr.add_child(lbl_titulo)
+
+	var lbl_version := Label.new()
+	var ver = ContentVersionConfig.get_version_info()
+	lbl_version.text = "v%s · conteúdo %s · save %s" % [
+		str(ver.get("game_version", "?")),
+		str(ver.get("content_version", "?")),
+		str(ver.get("save_version", "?")),
+	]
+	lbl_version.add_theme_font_size_override("font_size", 5)
+	lbl_version.add_theme_color_override("font_color", Color(0.55, 0.75, 0.95, 1))
+	lbl_version.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hbox_hdr.add_child(lbl_version)
 	
 	var btn_dev_lvl100 := Button.new()
 	btn_dev_lvl100.text = "⚡ Gerar Save Lvl 100 (Slot 3)"

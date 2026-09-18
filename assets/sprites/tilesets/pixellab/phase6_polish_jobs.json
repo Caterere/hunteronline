@@ -1,0 +1,78 @@
+{
+  "batch": "phase6_polish_story_secrets",
+  "created_at": 1789073142.478972,
+  "images": [
+    {
+      "name": "phase6_story_abandoned_camp.png",
+      "id": "02e1831d-bf93-4c41-b36d-f9d953d5e17e",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_story_abandoned_camp.png"
+    },
+    {
+      "name": "phase6_story_broken_cart.png",
+      "id": "5053113c-0d23-46fe-b727-ecfd86e770ea",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_story_broken_cart.png"
+    },
+    {
+      "name": "phase6_story_scuffle_mark.png",
+      "id": "2fe13037-9f05-4a81-bdd4-e09634466def",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_story_scuffle_mark.png"
+    },
+    {
+      "name": "phase6_story_torn_banner.png",
+      "id": "7dc5a03d-57e6-46b0-be04-aab5cbe73196",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_story_torn_banner.png"
+    },
+    {
+      "name": "phase6_story_broken_weapon.png",
+      "id": "111fcb94-7f16-401f-918d-9d9973f084d6",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_story_broken_weapon.png"
+    },
+    {
+      "name": "phase6_secret_hollow_stump.png",
+      "id": "202aecd1-d904-451c-8b1b-92517b6c8efd",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_secret_hollow_stump.png"
+    },
+    {
+      "name": "phase6_secret_false_rock.png",
+      "id": "12db6c40-264f-49dc-ad08-87177b1bbe07",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_secret_false_rock.png"
+    },
+    {
+      "name": "phase6_secret_glint.png",
+      "id": "dc322f06-7ba1-4e4b-8500-389296884226",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_secret_glint.png"
+    },
+    {
+      "name": "phase6_secret_trail_marker.png",
+      "id": "825e007c-3740-4674-86ff-ca70369ebb83",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_secret_trail_marker.png"
+    },
+    {
+      "name": "phase6_polish_fence_ruin.png",
+      "id": "371d37d9-11e4-4323-97ef-d1bbcbc6affb",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_polish_fence_ruin.png"
+    },
+    {
+      "name": "phase6_polish_path_crack.png",
+      "id": "ad0f66d0-2253-4d9a-abc2-6c6b75dac955",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_polish_path_crack.png"
+    },
+    {
+      "name": "phase6_polish_moss_patch.png",
+      "id": "a7463f12-ba7f-4a01-b4b9-e0bd62b66a80",
+      "ok": true,
+      "path": "assets/sprites/objects/phase6_polish_moss_patch.png"
+    }
+  ]
+}

@@ -316,6 +316,8 @@ func concluir_saga(saga_id: int) -> void:
 
 	if saga_id == 5:
 		set_story_flag("greed_island_completed", true)
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("🍪 Greed Island concluída — fale com Biscuit no Distrito dos Mestres para forjar seu Hatsu!", Color(1.0, 0.85, 0.35))
 
 	print("[StoryManager] 🏆 SAGA CONCLUÍDA: Arco %d — %s!" % [saga_id, obter_nome_saga(saga_id)])
 	saga_concluida.emit(saga_id)

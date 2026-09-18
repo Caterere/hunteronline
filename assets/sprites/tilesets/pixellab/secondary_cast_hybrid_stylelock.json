@@ -1,0 +1,166 @@
+{
+  "batch": "secondary_cast_hybrid_stylelock",
+  "created_at": 1789068828.5165236,
+  "characters": [
+    {
+      "name": "npc_hisoka",
+      "id": "a0e59434-eb8a-4f4c-b7d6-1d42e2392183",
+      "ok": true,
+      "opaque_sim_viajante": 3.982300884955752,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_hisoka_fitted_south.png",
+      "path": "assets/sprites/characters/npc_hisoka_8dir.png"
+    },
+    {
+      "name": "npc_netero",
+      "id": "0d08d5f9-a1dc-4fa3-8131-a15538895b43",
+      "ok": true,
+      "opaque_sim_viajante": 2.293577981651376,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_netero_fitted_south.png",
+      "path": "assets/sprites/characters/npc_netero_8dir.png"
+    },
+    {
+      "name": "npc_biscuit",
+      "id": "bb87313d-cfb6-4598-9c00-58829277bf89",
+      "ok": true,
+      "opaque_sim_viajante": 1.606425702811245,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_biscuit_fitted_south.png",
+      "path": "assets/sprites/characters/npc_biscuit_8dir.png"
+    },
+    {
+      "name": "npc_chrollo",
+      "id": "7a1ab28f-7b89-4844-8a98-f7677644f941",
+      "ok": true,
+      "opaque_sim_viajante": 6.273062730627307,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_chrollo_fitted_south.png",
+      "path": "assets/sprites/characters/npc_chrollo_8dir.png"
+    },
+    {
+      "name": "npc_tonpa",
+      "id": "f18ff2f3-a028-437f-903f-9cb74ad518d3",
+      "ok": true,
+      "opaque_sim_viajante": 3.8135593220338984,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_tonpa_fitted_south.png",
+      "path": "assets/sprites/characters/npc_tonpa_8dir.png"
+    },
+    {
+      "name": "npc_ging",
+      "id": "b805fd18-4553-4891-a882-334cbc7a4a99",
+      "ok": true,
+      "opaque_sim_viajante": 1.4285714285714286,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_ging_fitted_south.png",
+      "path": "assets/sprites/characters/npc_ging_8dir.png"
+    },
+    {
+      "name": "npc_hanzo",
+      "id": "5010bf64-4881-4233-b331-e03d8c3b9d33",
+      "ok": true,
+      "opaque_sim_viajante": 3.7735849056603774,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_hanzo_fitted_south.png",
+      "path": "assets/sprites/characters/npc_hanzo_8dir.png"
+    },
+    {
+      "name": "npc_menchi",
+      "id": "b6ff4dd3-58cb-4372-bc7b-4dc25b2b3c92",
+      "ok": true,
+      "opaque_sim_viajante": 2.586206896551724,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_menchi_fitted_south.png",
+      "path": "assets/sprites/characters/npc_menchi_8dir.png"
+    },
+    {
+      "name": "npc_pokkle",
+      "id": "4f261a3e-dfdd-4dc7-becf-d5329d48fd70",
+      "ok": true,
+      "opaque_sim_viajante": 2.2831050228310503,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_pokkle_fitted_south.png",
+      "path": "assets/sprites/characters/npc_pokkle_8dir.png"
+    },
+    {
+      "name": "npc_ponzu",
+      "id": "871a4d0b-4415-4632-ae7c-3111d1cc8ac9",
+      "ok": true,
+      "opaque_sim_viajante": 6.451612903225806,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_ponzu_fitted_south.png",
+      "path": "assets/sprites/characters/npc_ponzu_8dir.png"
+    },
+    {
+      "name": "npc_battera",
+      "id": "569e013e-a43c-4873-ae8d-6d608e816ab6",
+      "ok": true,
+      "opaque_sim_viajante": 2.643171806167401,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_battera_fitted_south.png",
+      "path": "assets/sprites/characters/npc_battera_8dir.png"
+    },
+    {
+      "name": "npc_melody",
+      "id": "072b9ecf-c4a0-4e9d-a0de-32077bce2f6c",
+      "ok": true,
+      "opaque_sim_viajante": 6.097560975609756,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_melody_fitted_south.png",
+      "path": "assets/sprites/characters/npc_melody_8dir.png"
+    },
+    {
+      "name": "npc_mordoma_canary",
+      "id": "7cbe3ea1-3bbb-4ef9-a1c3-c705dbbb365b",
+      "ok": true,
+      "opaque_sim_viajante": 8.67579908675799,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_mordoma_canary_fitted_south.png",
+      "path": "assets/sprites/characters/npc_mordoma_canary_8dir.png"
+    },
+    {
+      "name": "npc_mordomo_gotoh",
+      "id": "ffdfd4df-f669-47e6-acfb-46d8a8d8b69c",
+      "ok": true,
+      "opaque_sim_viajante": 4.464285714285714,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_mordomo_gotoh_fitted_south.png",
+      "path": "assets/sprites/characters/npc_mordomo_gotoh_8dir.png"
+    },
+    {
+      "name": "npc_silva_zoldyck",
+      "id": "fb499da1-638b-4001-ae79-65537dddb433",
+      "ok": true,
+      "opaque_sim_viajante": 9.523809523809524,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_silva_zoldyck_fitted_south.png",
+      "path": "assets/sprites/characters/npc_silva_zoldyck_8dir.png"
+    },
+    {
+      "name": "npc_tsezguerra",
+      "id": "24ac5346-8a07-4199-a8ce-93a8ffb75708",
+      "ok": true,
+      "opaque_sim_viajante": 8.547008547008547,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_tsezguerra_fitted_south.png",
+      "path": "assets/sprites/characters/npc_tsezguerra_8dir.png"
+    },
+    {
+      "name": "npc_buhara",
+      "id": "46bdda35-532c-4bed-bfb5-30990ead1074",
+      "ok": true,
+      "opaque_sim_viajante": 3.0303030303030303,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_buhara_fitted_south.png",
+      "path": "assets/sprites/characters/npc_buhara_8dir.png"
+    },
+    {
+      "name": "npc_gittarackur",
+      "id": "248bef3a-b154-49a5-beb4-1f6832f0376d",
+      "ok": true,
+      "opaque_sim_viajante": 4.444444444444445,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_gittarackur_fitted_south.png",
+      "path": "assets/sprites/characters/npc_gittarackur_8dir.png"
+    },
+    {
+      "name": "npc_bodoro",
+      "id": "623fab4d-5ba8-4fa0-ad1d-63c11c04a27e",
+      "ok": true,
+      "opaque_sim_viajante": 4.845814977973569,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_bodoro_fitted_south.png",
+      "path": "assets/sprites/characters/npc_bodoro_8dir.png"
+    },
+    {
+      "name": "npc_nicol",
+      "id": "7a8f8965-89f9-4c01-8d7e-bc3cd2f8a5bf",
+      "ok": true,
+      "opaque_sim_viajante": 2.3923444976076556,
+      "fitted_path": "assets/sprites/tilesets/pixellab/hybrid_south_refs/npc_nicol_fitted_south.png",
+      "path": "assets/sprites/characters/npc_nicol_8dir.png"
+    }
+  ]
+}

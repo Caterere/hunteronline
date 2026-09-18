@@ -1,6 +1,8 @@
 class_name NPC
 extends CharacterBody2D
 
+const QuestMarkerBillboardScript = preload("res://entities/npc/QuestMarkerBillboard.gd")
+
 # ============================================================
 # HUNTER ONLINE - NPC BASE CLASS (COM BALÃO DE FALA & MOVIMENTO)
 # ============================================================
@@ -21,6 +23,8 @@ signal destino_alcancado()
 @onready var interaction: InteractionComponent = get_node_or_null("InteractionComponent") as InteractionComponent
 
 var balao_atual: SpeechBubbleNode = null
+var _quest_marker: Node2D = null
+var _quest_marker_timer: float = 0.0
 
 # Movimentação e Cutscene
 var destino_atual: Vector2 = Vector2.ZERO
@@ -62,9 +66,47 @@ func _ready() -> void:
 
 	# Label de Nome Fixo acima da cabeça do NPC (acompanha movimentação)
 	call_deferred("_criar_label_nome")
+	call_deferred("_garantir_quest_marker")
 
 	# Vínculo canônico de Sprite 8-direções
 	_vincular_textura_npc()
+
+
+func _process(delta: float) -> void:
+	_quest_marker_timer += delta
+	if _quest_marker_timer >= 0.75:
+		_quest_marker_timer = 0.0
+		_atualizar_quest_marker()
+
+
+func _garantir_quest_marker() -> void:
+	if _quest_marker != null and is_instance_valid(_quest_marker):
+		return
+	_quest_marker = QuestMarkerBillboardScript.new()
+	_quest_marker.name = "QuestMarkerBillboard"
+	add_child(_quest_marker)
+	_atualizar_quest_marker()
+
+
+func _atualizar_quest_marker() -> void:
+	if _quest_marker == null or not is_instance_valid(_quest_marker):
+		return
+	var estado := ""
+	if QuestSystem != null and QuestSystem.has_method("obter_estado_marcador_npc"):
+		estado = str(QuestSystem.obter_estado_marcador_npc(npc_name))
+	var kind_none: int = QuestMarkerBillboardScript.Kind.NONE
+	var kind_val: int = kind_none
+	match estado:
+		"turn_in":
+			kind_val = QuestMarkerBillboardScript.Kind.TURN_IN
+		"objective":
+			kind_val = QuestMarkerBillboardScript.Kind.OBJECTIVE
+		"offer":
+			kind_val = QuestMarkerBillboardScript.Kind.OFFER
+		_:
+			kind_val = kind_none
+	if _quest_marker.has_method("set_kind"):
+		_quest_marker.call("set_kind", kind_val)
 
 
 func _criar_label_nome() -> void:

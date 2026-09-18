@@ -552,238 +552,238 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Yorknew City 1/34: A Chegada à Metrópole"
-					q.description = "Encontre Leorio no centro comercial de Yorknew City e planejem como levantar fundos para o leilão."
+					q.description = "ORDEM: Fale com Leorio no leilão. Yorknew é longa — um objetivo de cada vez. Depois: [G] antiguidades do mercado."
 					q.reward_xp = 14000
 					q.reward_gold = 200000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
 
 				2:
 					q.quest_name = "Yorknew City 2/34: A Arte da Pechincha no Mercado"
-					q.description = "Aprenda a avaliar antiguidades e tesouros de Nen usando Gyo para detectar auras em objetos antigos."
+					q.description = "ORDEM: Ative [G] Gyo e inspecione a Antiguidade do Mercado (pista no distrito do leilão). Sem Gyo, não pechinche."
 					q.reward_xp = 15000
 					q.reward_gold = 220000
 					q.objectives = [_criar_obj_investigate(&"antiguidade_mercado")]
 
 				3:
 					q.quest_name = "Yorknew City 3/34: O Contrato dos Guarda-Costas Nostrade"
-					q.description = "Apresente-se na comitiva de guarda-costas da família Nostrade com Kurapika."
+					q.description = "ORDEM: Fale com Kurapika (comitiva Nostrade). Próximo será Melody — não pule."
 					q.reward_xp = 16000
 					q.reward_gold = 240000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika (Guarda-Costas Nostrade)")]
 
 				4:
 					q.quest_name = "Yorknew City 4/34: A Melodia do Coração de Melody"
-					q.description = "Converse com Melody sobre o poder de sua flauta e o rastreamento do ritmo cardíaco humano."
+					q.description = "ORDEM: Fale com Melody. Depois o GPS marca mafiosos nas docas — caminhe, não rush."
 					q.reward_xp = 17000
 					q.reward_gold = 260000
 					q.objectives = [_criar_obj_visit(&"melody", "Melody (Musicista Hunter)")]
 
 				5:
 					q.quest_name = "Yorknew City 5/34: Mafiosos Corrompidos da Noite"
-					q.description = "Derrote 4 mafiosos corrompidos que tentam extorquir comerciantes nas docas do leilão."
+					q.description = "ORDEM: Derrote 4 mafiosos corrompidos (GPS). Use espaço de combate / Hatsu. Depois volte ao leilão com Kurapika."
 					q.reward_xp = 18500
 					q.reward_gold = 280000
 					q.objectives = [_criar_obj_kill(&"mafioso_corrompido", 4)]
 
 				6:
 					q.quest_name = "Yorknew City 6/34: A Noite do Leilão Subterrâneo"
-					q.description = "Infiltre-se no prédio do leilão clandestino onde os tesouros do mundo todo estão expostos."
+					q.description = "ORDEM: Fale com Kurapika e infiltre o leilão. Yorknew alonga daqui — distritos seguintes pedem caminhada."
 					q.reward_xp = 20000
 					q.reward_gold = 300000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				7:
 					q.quest_name = "Yorknew City 7/34: O Ataque Sombra da Trupe Fantasma"
-					q.description = "A Trupe Fantasma invade o leilão, elimina os mafiosos e rouba todo o cofre de tesouros!"
+					q.description = "ORDEM: [G] Inspecione o Cofre Vazio do Leilão — a Trupe já passou. Depois siga o GPS (sem confrontar fora de ordem)."
 					q.reward_xp = 21000
 					q.reward_gold = 320000
 					q.objectives = [_criar_obj_investigate(&"cofre_vazio_leilao")]
 
 				8:
 					q.quest_name = "Yorknew City 8/34: A Perseguição ao Balão de Fuga"
-					q.description = "Siga o rastro de fuga da Trupe Fantasma através do céu noturno até o Deserto de Gordeau."
+					q.description = "ORDEM: Siga o GPS pela avenida (longa caminhada). Use [Z] nos becos se o marcador pedir. Sem rush."
 					q.reward_xp = 22000
 					q.reward_gold = 350000
 					q.objectives = [_criar_obj_stealth(&"deserto_gordeau")]
 
 				9:
 					q.quest_name = "Yorknew City 9/34: A Fúria do Titã Uvogin"
-					q.description = "Testemunhe Uvogin aniquilando os membros das Feras das Sombras (Inju) com um soco Big Bang Impact."
+					q.description = "ORDEM: Fale com Kurapika — Uvogin vs Inju. Depois duelo no deserto (GPS). Sem rush."
 					q.reward_xp = 24000
 					q.reward_gold = 380000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				10:
 					q.quest_name = "Yorknew City 10/34: O Duelo das Correntes de Kurapika"
-					q.description = "Enfrente Uvogin no deserto aberto usando as correntes forjadas sob juramento de sangue."
+					q.description = "ORDEM: Derrote Uvogin (GPS no deserto). Espaço de combate / Hatsu. Depois Chain Jail."
 					q.reward_xp = 26000
 					q.reward_gold = 420000
 					q.objectives = [_criar_obj_kill(&"uvogin", 1)]
 
 				11:
 					q.quest_name = "Yorknew City 11/34: A Prisão da Corrente (Chain Jail)"
-					q.description = "Aprisione o gigante Uvogin em estado forçado de Zetsu com a Chain Jail inquebrável."
+					q.description = "ORDEM: Negocie com Kurapika (Chain Jail / Zetsu forçado). Depois juramento Kurta."
 					q.reward_xp = 28000
 					q.reward_gold = 450000
 					q.objectives = [_criar_obj_persuasion(&"kurapika", "Kurapika")]
 
 				12:
 					q.quest_name = "Yorknew City 12/34: O Juramento do Coração Kurta"
-					q.description = "Mantenha o voto de não utilizar as correntes contra ninguém fora os 13 membros da Aranha."
+					q.description = "ORDEM: Fale com Kurapika (voto das correntes). Depois [G] Réquiem de Chrollo."
 					q.reward_xp = 29000
 					q.reward_gold = 480000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				13:
 					q.quest_name = "Yorknew City 13/34: O Réquiem de Chrollo Lucilfer"
-					q.description = "Chrollo comanda o massacre orquestrado no centro financeiro de Yorknew como tributo fúnebre a Uvogin."
+					q.description = "ORDEM: [G] Inspecione a Marca do Réquiem (Cemitério/Trupe). Depois GPS — Yorknew continua longa."
 					q.reward_xp = 30000
 					q.reward_gold = 500000
 					q.objectives = [_criar_obj_investigate(&"requiem_chrollo")]
 
 				14:
 					q.quest_name = "Yorknew City 14/34: Rastreando as Aranhas com Gon e Killua"
-					q.description = "Use Zetsu absoluto para seguir Nobunaga e Machi através das vielas escuras sem ser detectado."
+					q.description = "ORDEM: Fale com Gon. Use Zetsu nas vielas se o GPS pedir. Depois galpão (Machi/Nobunaga)."
 					q.reward_xp = 31000
 					q.reward_gold = 520000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon Freecss")]
 
 				15:
 					q.quest_name = "Yorknew City 15/34: A Emboscada no Galpão Abandonado"
-					q.description = "Escapar da armadilha de linhas de Nen de Machi e das espadas de Nobunaga."
+					q.description = "ORDEM: [Z] Atravesse o Galpão Machi/Nobunaga em Zetsu. Sem Zetsu = captura."
 					q.reward_xp = 32000
 					q.reward_gold = 550000
 					q.objectives = [_criar_obj_stealth(&"galpao_machinobunaga")]
 
 				16:
 					q.quest_name = "Yorknew City 16/34: A Fuga das Paredes de Pedra"
-					q.description = "Gon e Killua quebram as paredes laterais do cativeiro com os punhos para despistar a guarda da Trupe."
+					q.description = "ORDEM: Fale com Killua (fuga do cativeiro). Depois Silva Zoldyck — GPS."
 					q.reward_xp = 33000
 					q.reward_gold = 570000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				17:
 					q.quest_name = "Yorknew City 17/34: A Chegada dos Assassinos Zoldyck"
-					q.description = "Os 10 Padrinhos da Máfia contratam Zeno e Silva Zoldyck para caçar e eliminar Chrollo Lucilfer."
+					q.description = "ORDEM: Fale com Silva Zoldyck. Depois clones no Edifício Cemitério (GPS)."
 					q.reward_xp = 34000
 					q.reward_gold = 600000
 					q.objectives = [_criar_obj_visit(&"silva", "Silva Zoldyck")]
 
 				18:
 					q.quest_name = "Yorknew City 18/34: A Infiltração no Edifício Cemitério"
-					q.description = "Derrote 3 clones de combate e guardas de elite de Feitan e Phinks no prédio central."
+					q.description = "ORDEM: Derrote 3 clones Feitan (GPS). Espaço de combate. Depois [G] cópias Kortopi."
 					q.reward_xp = 36000
 					q.reward_gold = 640000
 					q.objectives = [_criar_obj_kill(&"clone_feitan", 3)]
 
 				19:
 					q.quest_name = "Yorknew City 19/34: A Farsa dos Corpos Copiados"
-					q.description = "Descubra que os corpos mortos da Trupe Fantasma são cópias de Nen geradas pelo Gallery Fake de Kortopi."
+					q.description = "ORDEM: [G] Inspecione a Cópia de Kortopi (Gallery Fake). Depois Hotel Beitacle (Melody)."
 					q.reward_xp = 37000
 					q.reward_gold = 660000
 					q.objectives = [_criar_obj_investigate(&"copia_kortopi")]
 
 				20:
 					q.quest_name = "Yorknew City 20/34: O Hotel Beitacle"
-					q.description = "Rastreie o hotel onde Chrollo, Pakunoda e Kortopi estão reunidos em segredo."
+					q.description = "ORDEM: Fale com Melody no Hotel Beitacle. Depois [Z] Subestação do Apagão."
 					q.reward_xp = 38000
 					q.reward_gold = 680000
 					q.objectives = [_criar_obj_visit(&"melody", "Melody")]
 
 				21:
 					q.quest_name = "Yorknew City 21/34: O Plano do Apagão Central"
-					q.description = "Corte os cabos de alta tensão da subestação de Yorknew exatamente às 19:00:00."
+					q.description = "ORDEM: [Z] Atravesse a Subestação do Apagão em Zetsu (zona marcada). Sem Zetsu = emboscada."
 					q.reward_xp = 39000
 					q.reward_gold = 700000
 					q.objectives = [_criar_obj_stealth(&"apagao_yorknew")]
 
 				22:
 					q.quest_name = "Yorknew City 22/34: A Captura do Líder Chrollo"
-					q.description = "No escuro absoluto de 2 segundos, Kurapika captura Chrollo Lucilfer e o joga no carro em alta velocidade."
+					q.description = "ORDEM: Fale com Kurapika — captura de Chrollo no apagão. Depois Pakunoda (GPS)."
 					q.reward_xp = 41000
 					q.reward_gold = 730000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				23:
 					q.quest_name = "Yorknew City 23/34: A Contenção de Pakunoda"
-					q.description = "Derrote Pakunoda antes que ela dispare suas balas de memórias Memory Bomb nos aliados."
+					q.description = "ORDEM: Derrote Pakunoda (GPS) antes do Memory Bomb. Depois negociação (Melody)."
 					q.reward_xp = 43000
 					q.reward_gold = 760000
 					q.objectives = [_criar_obj_kill(&"pakunoda", 1)]
 
 				24:
 					q.quest_name = "Yorknew City 24/34: A Negociação de Reféns"
-					q.description = "Estabeleça as condições da troca: Gon e Killua pela vida do líder Chrollo."
+					q.description = "ORDEM: Negocie com Melody (troca Gon/Killua ↔ Chrollo). Depois pista Lingon."
 					q.reward_xp = 44000
 					q.reward_gold = 780000
 					q.objectives = [_criar_obj_persuasion(&"melody", "Melody")]
 
 				25:
 					q.quest_name = "Yorknew City 25/34: O Encontro no Aeroporto de Lingon"
-					q.description = "Conduza a comitiva com Kurapika até a pista de pouso isolada para a troca final."
+					q.description = "ORDEM: Fale com Kurapika na pista Lingon. Troca final — sem rush."
 					q.reward_xp = 45000
 					q.reward_gold = 800000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				26:
 					q.quest_name = "Yorknew City 26/34: A Corrente do Julgamento no Líder"
-					q.description = "Imponha a Judgement Chain no coração de Chrollo Lucilfer, proibindo-o de usar Nen ou falar com a Trupe!"
+					q.description = "ORDEM: Fale com Chrollo — Judgement Chain. Depois Pakunoda / silêncio."
 					q.reward_xp = 47000
 					q.reward_gold = 840000
 					q.objectives = [_criar_obj_visit(&"chrollo", "Chrollo Lucilfer")]
 
 				27:
 					q.quest_name = "Yorknew City 27/34: O Julgamento de Pakunoda"
-					q.description = "Imponha a regra de silêncio a Pakunoda para garantir a libertação segura de Gon e Killua."
+					q.description = "ORDEM: Fale com Melody — regra de silêncio. Depois resgate Gon/Killua."
 					q.reward_xp = 48000
 					q.reward_gold = 860000
 					q.objectives = [_criar_obj_visit(&"melody", "Melody")]
 
 				28:
 					q.quest_name = "Yorknew City 28/34: A Troca Completa de Reféns"
-					q.description = "Resgate Gon e Killua sãos e salvos na pista enquanto Chrollo é levado para o deserto."
+					q.description = "ORDEM: Fale com Gon — troca concluída. Depois [G] memórias de Pakunoda."
 					q.reward_xp = 49000
 					q.reward_gold = 880000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon Freecss")]
 
 				29:
 					q.quest_name = "Yorknew City 29/34: O Último Sacrifício de Pakunoda"
-					q.description = "Pakunoda dispara suas memórias nos companheiros da Aranha e aceita a lâmina no coração com honra."
+					q.description = "ORDEM: [G] Inspecione as Memórias de Pakunoda. Depois leilão Greed Island (Leorio)."
 					q.reward_xp = 50000
 					q.reward_gold = 900000
 					q.objectives = [_criar_obj_investigate(&"memoria_pakunoda")]
 
 				30:
 					q.quest_name = "Yorknew City 30/34: O Leilão Oficial de Greed Island"
-					q.description = "Apresente-se no grande leilão da Southernpiece Auction House para acompanhar os lances do jogo de Ging."
+					q.description = "ORDEM: Fale com Leorio no leilão Southernpiece. Depois Battera (contrato)."
 					q.reward_xp = 52000
 					q.reward_gold = 940000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio")]
 
 				31:
 					q.quest_name = "Yorknew City 31/34: O Contrato do Bilionário Battera"
-					q.description = "Fale com o bilionário Battera e inscreva-se no teste para ser um dos jogadores contratados."
+					q.description = "ORDEM: Fale com Battera — inscrição GI. Depois teste Ren com Tsezguerra."
 					q.reward_xp = 53000
 					q.reward_gold = 960000
 					q.objectives = [_criar_obj_visit(&"battera", "Bilionário Battera")]
 
 				32:
 					q.quest_name = "Yorknew City 32/34: O Teste de Hatsu de Tsezguerra"
-					q.description = "Demonstre sua liberação de Nen (Ren) perante o caçador de 1 estrela Tsezguerra para conquistar a vaga."
+					q.description = "ORDEM: Negocie/passe no teste de Ren com Tsezguerra. Depois [G] fita de Ging."
 					q.reward_xp = 55000
 					q.reward_gold = 1000000
 					q.objectives = [_criar_obj_persuasion(&"tsezguerra", "Tsezguerra (Hunter de 1 Estrela)")]
 
 				33:
 					q.quest_name = "Yorknew City 33/34: A Mensagem Oculta de Ging"
-					q.description = "Escute a fita cassete gravada por Ging deixada na caixa de metal da Ilha da Baleia."
+					q.description = "ORDEM: [G] Inspecione a Fita de Ging. Depois boss sombra de Chrollo (GPS)."
 					q.reward_xp = 56000
 					q.reward_gold = 1050000
 					q.objectives = [_criar_obj_investigate(&"fita_ging")]
 
 				34:
 					q.quest_name = "Yorknew City 34/34: A Batalha Final contra a Sombra de Chrollo"
-					q.description = "Derrote a projeção final de Chrollo Lucilfer no esconderijo e parta com o console para Greed Island!"
+					q.description = "ORDEM: Derrote Chrollo Boss (GPS). Portal Greed Island após esta etapa. Sem rush."
 					q.reward_xp = 60000
 					q.reward_gold = 1200000
 					q.objectives = [_criar_obj_kill(&"chrollo_boss", 1)]
@@ -795,252 +795,252 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Greed Island 1/36: A Inserção no Console JoyStation"
-					q.description = "Fale com Battera, ative o jogo com fluxo de Nen no Memory Card e transporte-se para Greed Island!"
+					q.description = "ORDEM: Fale com Battera. GI é longa — um objetivo de cada vez. Depois: Quadro de Antokiba."
 					q.reward_xp = 35000
 					q.reward_gold = 600000
 					q.objectives = [_criar_obj_visit(&"battera", "Bilionário Battera")]
 
 				2:
 					q.quest_name = "Greed Island 2/36: A Cidade Inicial de Antokiba"
-					q.description = "Chegue à praça central de Antokiba e conheça as regras do torneio mensal da ilha."
+					q.description = "ORDEM: Fale com o Quadro de Antokiba (regras). Depois [G] no Spell Book."
 					q.reward_xp = 38000
 					q.reward_gold = 650000
 					q.objectives = [_criar_obj_visit(&"antokiba", "Quadro de Antokiba")]
 
 				3:
 					q.quest_name = "Greed Island 3/36: O Livro de Magia (Spell Book)"
-					q.description = "Aprenda os comandos 'Book' para invocar seu fichário de 100 cartas e 'Gain' para materializar itens."
+					q.description = "ORDEM: Ative [G] Gyo e inspecione o Spell Book em Antokiba. Sem Book, não caçe cartas."
 					q.reward_xp = 40000
 					q.reward_gold = 700000
 					q.objectives = [_criar_obj_investigate(&"livro_greed")]
 
 				4:
 					q.quest_name = "Greed Island 4/36: O Primeiro Feitiço de Rastreio"
-					q.description = "Derrote bandidos novatos nas colinas de Antokiba e obtenha a carta de feitiço 'Trace'."
+					q.description = "ORDEM: Derrote 2 monstros mágicos (GPS nas colinas). Use espaço de combate. Depois vá ao Desfiladeiro (Biscuit)."
 					q.reward_xp = 42000
 					q.reward_gold = 750000
 					q.objectives = [_criar_obj_kill(&"monstro_greed", 2)]
 
 				5:
 					q.quest_name = "Greed Island 5/36: O Encontro com Biscuit Krueger"
-					q.description = "Encontre a mestra Biscuit Krueger nas montanhas rochosas e aceite seu regime de treino infernal."
+					q.description = "ORDEM: Caminhe até o Desfiladeiro e fale com Biscuit. Treino longo começa agora — sem pular."
 					q.reward_xp = 45000
 					q.reward_gold = 800000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				6:
 					q.quest_name = "Greed Island 6/36: O Treino no Desfiladeiro de Pedras"
-					q.description = "Escave o desfiladeiro maciço usando pás comuns sem usar Nen para fortalecer os músculos."
+					q.description = "ORDEM: [G] Inspecione o Desfiladeiro de Pedras. Depois [KO] nas rochas quando Biscuit pedir."
 					q.reward_xp = 48000
 					q.reward_gold = 850000
 					q.objectives = [_criar_obj_investigate(&"desfiladeiro_biscuit")]
 
 				7:
 					q.quest_name = "Greed Island 7/36: O Domínio do Ko (Concentração Total)"
-					q.description = "Concentre 100% de toda a sua aura em um único punho para quebrar rochas com um golpe."
+					q.description = "ORDEM: Fale com Biscuit e treine Ko. Quebre rochas com concentração — um exercício."
 					q.reward_xp = 50000
 					q.reward_gold = 900000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				8:
 					q.quest_name = "Greed Island 8/36: Os Golens de Rocha"
-					q.description = "Derrote 3 Golens de Pedra maciços utilizando a força pura de impacto do Ko concentrado."
+					q.description = "ORDEM: Derrote 3 Golens de Pedra (GPS). Use Ko/espaço de combate. Depois volte a Biscuit (Shu)."
 					q.reward_xp = 53000
 					q.reward_gold = 950000
 					q.objectives = [_criar_obj_kill(&"golem_pedra", 3)]
 
 				9:
 					q.quest_name = "Greed Island 9/36: O Domínio do Shu (Extensão de Aura)"
-					q.description = "Aprenda a envolver pás, pás de ferro e espadas com sua aura para torná-las indestrutíveis."
+					q.description = "ORDEM: Fale com Biscuit e treine Shu (envolver armas com aura). Um exercício. Depois Ken."
 					q.reward_xp = 56000
 					q.reward_gold = 1000000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				10:
 					q.quest_name = "Greed Island 10/36: O Domínio do Ken (Armadura Contínua)"
-					q.description = "Mantenha o estado de Ren defensivo fortificado por 3 horas seguidas sob ataque de pedras."
+					q.description = "ORDEM: Fale com Biscuit e mantenha Ken sob pressão. Sem pular. Depois Ryu."
 					q.reward_xp = 58000
 					q.reward_gold = 1050000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				11:
 					q.quest_name = "Greed Island 11/36: O Domínio do Ryu (Distribuição Dinâmica)"
-					q.description = "Aprenda a alternar instantaneamente a proporção de aura entre ataque e defesa (70/30, 80/20)."
+					q.description = "ORDEM: Fale com Biscuit e treine Ryu (70/30, 80/20). Depois nasce o Hatsu."
 					q.reward_xp = 60000
 					q.reward_gold = 1100000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				12:
 					q.quest_name = "Greed Island 12/36: O Nascimento do Hatsu Jajanken"
-					q.description = "Gon desenvolve seu golpe supremo: Pedra (Reforço), Tesoura (Transformação) e Papel (Emissão)."
+					q.description = "ORDEM: Fale com Biscuit — finalize o ciclo de treino. Hatsu completo só após zerar GI."
 					q.reward_xp = 62000
 					q.reward_gold = 1150000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				13:
 					q.quest_name = "Greed Island 13/36: A Eletricidade Pura de Killua"
-					q.description = "Killua programa descargas elétricas em suas mãos e empunha dois Yo-yos de liga especial de 50kg."
+					q.description = "ORDEM: Fale com Killua no Desfiladeiro (Yo-yos / eletricidade). Depois caça de monstros (GPS)."
 					q.reward_xp = 64000
 					q.reward_gold = 1200000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				14:
 					q.quest_name = "Greed Island 14/36: A Caçada de Monstros Mágicos"
-					q.description = "Derrote 4 criaturas mágicas da ilha para coletar cartas de bolso com monstros raros."
+					q.description = "ORDEM: Derrote 4 monstros mágicos (GPS nas colinas). Espaço de combate. Depois Tsezguerra."
 					q.reward_xp = 66000
 					q.reward_gold = 1250000
 					q.objectives = [_criar_obj_kill(&"monstro_greed", 4)]
 
 				15:
 					q.quest_name = "Greed Island 15/36: A Aliança com Tsezguerra"
-					q.description = "Encontre o veterano Tsezguerra e combinem táticas para proteger o fichário dos ataques de feitiço."
+					q.description = "ORDEM: Fale com Tsezguerra (aliança). Proteja o Book. Depois [G] marca do Bomber."
 					q.reward_xp = 68000
 					q.reward_gold = 1300000
 					q.objectives = [_criar_obj_visit(&"tsezguerra", "Tsezguerra")]
 
 				16:
 					q.quest_name = "Greed Island 16/36: A Ameaça do Bomber Genthru"
-					q.description = "Genthru revela ser o assassino 'Bomber' e explode os aliados para roubar 95 cartas do fichário."
+					q.description = "ORDEM: [G] Inspecione a Marca da Explosão do Bomber. Proteja o Book — depois GPS (Goreinu)."
 					q.reward_xp = 70000
 					q.reward_gold = 1350000
 					q.objectives = [_criar_obj_investigate(&"explosao_bomber")]
 
 				17:
 					q.quest_name = "Greed Island 17/36: O Pacto com Goreinu"
-					q.description = "Una forças com Goreinu e seus Gorilas de Nen Branco e Preto para disputar a carta nº 002."
+					q.description = "ORDEM: Fale com Goreinu em Soufrabi. Depois Hisoka no lago. [Z] no porto se o GPS pedir."
 					q.reward_xp = 72000
 					q.reward_gold = 1400000
 					q.objectives = [_criar_obj_visit(&"goreinu", "Goreinu")]
 
 				18:
 					q.quest_name = "Greed Island 18/36: O Encontro com Hisoka em Greed Island"
-					q.description = "Encontre Hisoka relaxando no lago sob o pseudônimo de Chrollo e recrute-o para a partida."
+					q.description = "ORDEM: Fale com Hisoka (lago / Soufrabi) e recrute-o. Depois vá ao ginásio de Razor."
 					q.reward_xp = 75000
 					q.reward_gold = 1450000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
 
 				19:
 					q.quest_name = "Greed Island 19/36: A Cidade Portuária de Soufrabi"
-					q.description = "Viaje até o litoral de Soufrabi onde piratas condenados guardam o Litoral do Mar."
+					q.description = "ORDEM: Fale com Razor no porto/ginásio. Sem rush — demônios e queimada vêm depois."
 					q.reward_xp = 78000
 					q.reward_gold = 1500000
 					q.objectives = [_criar_obj_visit(&"razor", "Game Master Razor")]
 
 				20:
 					q.quest_name = "Greed Island 20/36: O Ginásio do Game Master Razor"
-					q.description = "Apresente-se no ginásio do condenado Razor, criador dos feitiços de emissão do jogo."
+					q.description = "ORDEM: Apresente-se a Razor no ginásio. Depois derrote os demônios de Nen (GPS)."
 					q.reward_xp = 80000
 					q.reward_gold = 1550000
 					q.objectives = [_criar_obj_visit(&"razor", "Game Master Razor")]
 
 				21:
 					q.quest_name = "Greed Island 21/36: Os 14 Demônios de Nen de Razor"
-					q.description = "Derrote 6 demônios de Nen emitidos por Razor na primeira rodada do torneio de esportes."
+					q.description = "ORDEM: Derrote 6 demônios de Nen (GPS no ginásio). Espaço de combate. Depois monte o time."
 					q.reward_xp = 85000
 					q.reward_gold = 1650000
 					q.objectives = [_criar_obj_kill(&"demonio_razor", 6)]
 
 				22:
 					q.quest_name = "Greed Island 22/36: A Equipe de Queimada Mortal"
-					q.description = "Monte o time de 8 jogadores com Gon, Killua, Hisoka, Biscuit e Goreinu na quadra central."
+					q.description = "ORDEM: Fale com Goreinu e feche o time da queimada. Um passo — sem rush no saque."
 					q.reward_xp = 88000
 					q.reward_gold = 1700000
 					q.objectives = [_criar_obj_visit(&"goreinu", "Goreinu")]
 
 				23:
 					q.quest_name = "Greed Island 23/36: O Saque Supersônico de Razor"
-					q.description = "Defenda o arremesso de Nen de Razor que quebra o piso do ginásio e nocauteia os defensores."
+					q.description = "ORDEM: Fale com Biscuit antes do saque. Defenda com Ryu — depois Killua segura a bola."
 					q.reward_xp = 92000
 					q.reward_gold = 1800000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Biscuit")]
 
 				24:
 					q.quest_name = "Greed Island 24/36: O Sacrifício das Mãos de Killua"
-					q.description = "Killua segura a bola com as mãos em carne viva para que Gon possa carregar 100% de Jajanken!"
+					q.description = "ORDEM: Fale com Killua (mãos / Yo-yos). Depois derrote Razor Boss (GPS)."
 					q.reward_xp = 96000
 					q.reward_gold = 1900000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				25:
 					q.quest_name = "Greed Island 25/36: O Arremesso Triplo contra Razor"
-					q.description = "Combine o Jajanken de Gon, a Bungee Gum de Hisoka e derrote o Game Master Razor Boss!"
+					q.description = "ORDEM: Derrote o Game Master Razor Boss (GPS). Espaço de combate. Depois receba a Carta 002."
 					q.reward_xp = 105000
 					q.reward_gold = 2200000
 					q.objectives = [_criar_obj_kill(&"razor_boss", 1)]
 
 				26:
 					q.quest_name = "Greed Island 26/36: A Conquista da Carta 002 (Litoral do Mar)"
-					q.description = "Receba a carta de espaço designado nº 002 e ouça de Razor como Ging era orgulhoso do filho."
+					q.description = "ORDEM: Fale com Razor e receba a Carta 002. Depois Biscuit (estratégia Bomber)."
 					q.reward_xp = 110000
 					q.reward_gold = 2300000
 					q.objectives = [_criar_obj_visit(&"razor", "Game Master Razor")]
 
 				27:
 					q.quest_name = "Greed Island 27/36: A Estratégia contra o Trio Bomber"
-					q.description = "Dividir o grupo em 3 frentes para isolar Genthru, Sub e Bara nas montanhas áridas."
+					q.description = "ORDEM: Fale com Biscuit — plano em 3 frentes. Depois combate / Killua / Cova."
 					q.reward_xp = 115000
 					q.reward_gold = 2400000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Biscuit")]
 
 				28:
 					q.quest_name = "Greed Island 28/36: A Verdadeira Força de Biscuit"
-					q.description = "Biscuit assume sua forma colossal de 2,10m e nocauteia o assassino Bara com um único golpe."
+					q.description = "ORDEM: Derrote 2 subordinados do Bomber (GPS no corredor). Depois Killua (armadilha elétrica)."
 					q.reward_xp = 120000
 					q.reward_gold = 2500000
 					q.objectives = [_criar_obj_kill(&"monstro_greed", 2)]
 
 				29:
 					q.quest_name = "Greed Island 29/36: A Armadilha Elétrica de Killua"
-					q.description = "Killua neutraliza Sub usando a condução elétrica de seus dois Yo-yos de 50kg nas pernas."
+					q.description = "ORDEM: Fale com Killua (neutralizar Sub). Depois [Z] na Cova-Armadilha."
 					q.reward_xp = 125000
 					q.reward_gold = 2600000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				30:
 					q.quest_name = "Greed Island 30/36: A Cova de Pedra de Gon"
-					q.description = "Atrair Genthru para a vala de pedra cavada antecipadamente com pás de Nen."
+					q.description = "ORDEM: [Z] Atravesse a Cova-Armadilha em Zetsu. Sem Zetsu = Bomber alerta. Depois GPS (Genthru)."
 					q.reward_xp = 130000
 					q.reward_gold = 2700000
 					q.objectives = [_criar_obj_stealth(&"armadilha_cova_gon")]
 
 				31:
 					q.quest_name = "Greed Island 31/36: O Jajanken Decisivo contra Genthru"
-					q.description = "Derrote o Bomber supremo Genthru com um Jajanken colossal vindo do alto da cova!"
+					q.description = "ORDEM: Derrote Genthru Bomber (GPS). Espaço de combate. Depois cura / Goreinu."
 					q.reward_xp = 145000
 					q.reward_gold = 3000000
 					q.objectives = [_criar_obj_kill(&"genthru", 1)]
 
 				32:
 					q.quest_name = "Greed Island 32/36: O Sopro do Arcanjo (Carta 017)"
-					q.description = "Materialize a carta mágica de cura 'Breath of Archangel' e cure as mãos e ferimentos de todos."
+					q.description = "ORDEM: Fale com Goreinu (Carta 017 / cura). Depois [G] Quiz das 100 cartas no Castelo."
 					q.reward_xp = 150000
 					q.reward_gold = 3200000
 					q.objectives = [_criar_obj_visit(&"goreinu", "Goreinu")]
 
 				33:
 					q.quest_name = "Greed Island 33/36: O Quiz das 100 Cartas"
-					q.description = "Responda corretamente às perguntas sobre a história e mecânicas das 100 cartas do jogo."
+					q.description = "ORDEM: [G] Inspecione o Altar das 100 Cartas. Depois fale com Elena no castelo."
 					q.reward_xp = 155000
 					q.reward_gold = 3400000
 					q.objectives = [_criar_obj_investigate(&"quiz_100_cartas")]
 
 				34:
 					q.quest_name = "Greed Island 34/36: O Castelo Final da Vitória"
-					q.description = "Apresente-se no castelo de premiação com Elena e os criadores do jogo perante fogos de artifício."
+					q.description = "ORDEM: Fale com Elena no castelo. Depois escolha as três cartas (Accompany)."
 					q.reward_xp = 160000
 					q.reward_gold = 3600000
 					q.objectives = [_criar_obj_visit(&"elena_greed", "Elena (Criadora de Greed Island)")]
 
 				35:
 					q.quest_name = "Greed Island 35/36: As Três Cartas para o Mundo Real"
-					q.description = "Selecione o colar Blue Planet para Biscuit, e o feitiço 'Accompany' camuflado dentro da caixa."
+					q.description = "ORDEM: Fale com Elena — selecione Accompany (e Blue Planet). Depois voo final."
 					q.reward_xp = 170000
 					q.reward_gold = 4000000
 					q.objectives = [_criar_obj_visit(&"elena_greed", "Elena")]
 
 				36:
 					q.quest_name = "Greed Island 36/36: O Voo com Accompany até Nigg"
-					q.description = "Grite 'Accompany to Nigg!' e voe pelos céus rumo ao encontro com o misterioso Caçador!"
+					q.description = "ORDEM: Fale com Elena e use Accompany. Portal NGL só após esta etapa. Sem rush."
 					q.reward_xp = 180000
 					q.reward_gold = 4500000
 					q.objectives = [_criar_obj_visit(&"elena_greed", "Elena")]
@@ -1052,336 +1052,336 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Formigas Chimera 1/48: O Encontro na Floresta com Kite"
-					q.description = "Desembarque na fronteira da NGL (Neo-Green Life) e reencontre o experiente Caçador de Contratos Kite."
+					q.description = "ORDEM: Fale com Kite na fronteira NGL. Formigas depois — um objetivo de cada vez."
 					q.reward_xp = 70000
 					q.reward_gold = 1000000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite (Caçador de Contratos)")]
 
 				2:
 					q.quest_name = "Formigas Chimera 2/48: A Roleta do Crazy Slots"
-					q.description = "Observe a foice e o rifle de Nen imprevisíveis do palhaço falante Crazy Slots de Kite."
+					q.description = "ORDEM: Fale com Kite de novo (Crazy Slots). Depois derrote formigas soldado (GPS)."
 					q.reward_xp = 75000
 					q.reward_gold = 1100000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
 
 				3:
 					q.quest_name = "Formigas Chimera 3/48: Patrulhas de Formigas Soldado"
-					q.description = "Elimine 5 formigas soldado mutantes que atacam os postos avançados da floresta."
+					q.description = "ORDEM: Derrote 5 formigas soldado (GPS). Espaço de combate. Depois [G] Fábrica D2."
 					q.reward_xp = 80000
 					q.reward_gold = 1200000
 					q.objectives = [_criar_obj_kill(&"formiga_soldado", 5)]
 
 				4:
 					q.quest_name = "Formigas Chimera 4/48: A Fábrica Clandestina de D2"
-					q.description = "Investigue o laboratório subterrâneo onde o tirano Gyro produzia a droga ilícita D2."
+					q.description = "ORDEM: [G] Inspecione a Fábrica D2 de Gyro. Depois Rammot (GPS)."
 					q.reward_xp = 85000
 					q.reward_gold = 1300000
 					q.objectives = [_criar_obj_investigate(&"fabrica_d2_gyro")]
 
 				5:
 					q.quest_name = "Formigas Chimera 5/48: A Emboscada da Formiga Rammot"
-					q.description = "Derrote Rammot, a formiga híbrida com penas que despertou aura após ser golpeada."
+					q.description = "ORDEM: Derrote 2 formigas oficiais / Rammot (GPS). Depois volte a Kite."
 					q.reward_xp = 90000
 					q.reward_gold = 1400000
 					q.objectives = [_criar_obj_kill(&"formiga_oficial", 2)]
 
 				6:
 					q.quest_name = "Formigas Chimera 6/48: A Inseminação de Nen no Formigueiro"
-					q.description = "Descubra que as formigas oficiais começaram a abrir os nós de aura de todo o exército da Rainha."
+					q.description = "ORDEM: Fale com Kite — oficiais abriram nós de aura. Depois colinas (GPS)."
 					q.reward_xp = 95000
 					q.reward_gold = 1500000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
 
 				7:
 					q.quest_name = "Formigas Chimera 7/48: O Avanço pelas Colinas de NGL"
-					q.description = "Derrote esquadrões de formigas soldado em direção à árvore-castelo do ninho principal."
+					q.description = "ORDEM: Derrote 4 formigas nas colinas (GPS). Sem rush ao ninho."
 					q.reward_xp = 100000
 					q.reward_gold = 1600000
 					q.objectives = [_criar_obj_kill(&"formiga_soldado", 4)]
 
 				8:
 					q.quest_name = "Formigas Chimera 8/48: A Aura Monstruosa de Neferpitou"
-					q.description = "Sinta a intenção assassina avermelhada da Guarda Real Neferpitou emanando do ninho."
+					q.description = "ORDEM: Fale com Kite — sinta a aura de Pitou. Prepare fuga. Sem atacar a Guarda Real ainda."
 					q.reward_xp = 105000
 					q.reward_gold = 1700000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
 
 				9:
 					q.quest_name = "Formigas Chimera 9/48: O Sacrifício Heróico de Kite"
-					q.description = "Kite perde o braço para repelir o salto supersônico de Pitou e manda os garotos fugirem."
+					q.description = "ORDEM: Fale com Kite (último aviso). Depois Killua cobre a fuga — GPS."
 					q.reward_xp = 110000
 					q.reward_gold = 1800000
 					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
 
 				10:
 					q.quest_name = "Formigas Chimera 10/48: A Fuga Desesperada de Killua"
-					q.description = "Killua nocauteia Gon à força e corre em disparada até a fronteira para salvar sua vida."
+					q.description = "ORDEM: Fale com Killua na fronteira e fuja. Depois base Peijin (Netero)."
 					q.reward_xp = 115000
 					q.reward_gold = 1900000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				11:
 					q.quest_name = "Formigas Chimera 11/48: A Chegada da Tropa de Extermínio"
-					q.description = "Encontre o Presidente Isaac Netero, Morel e Knov na base militar de Peijin."
+					q.description = "ORDEM: Fale com Netero na base Peijin. Depois Morel. Um mentor de cada vez."
 					q.reward_xp = 120000
 					q.reward_gold = 2000000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				12:
 					q.quest_name = "Formigas Chimera 12/48: A Provação de Morel e Knov"
-					q.description = "Demonstre sua resolução inabalável perante o cachimbo de Morel e as portas de Knov."
+					q.description = "ORDEM: Fale com Morel e prove resolução. Depois Knuckle e Shoot."
 					q.reward_xp = 125000
 					q.reward_gold = 2100000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel Mackernasey")]
 
 				13:
 					q.quest_name = "Formigas Chimera 13/48: Os Discípulos Knuckle e Shoot"
-					q.description = "Aceite o desafio dos amuletos de madeira contra os discípulos de Morel para ganhar o direito de retornar."
+					q.description = "ORDEM: Fale com Knuckle e Shoot (amuletos). Sem pular — GPS."
 					q.reward_xp = 130000
 					q.reward_gold = 2200000
 					q.objectives = [_criar_obj_visit(&"knuckle", "Knuckle Bine"), _criar_obj_visit(&"shoot", "Shoot McMahon")]
 
 				14:
 					q.quest_name = "Formigas Chimera 14/48: O Hatsu A.P.R. (Hakoware) de Knuckle"
-					q.description = "Compreenda a mecânica de empréstimo de aura com juros de 10% e declaração de falência de Nen."
+					q.description = "ORDEM: Fale com Knuckle — entenda A.P.R. / juros. Depois Shoot (Rafflesia)."
 					q.reward_xp = 135000
 					q.reward_gold = 2300000
 					q.objectives = [_criar_obj_visit(&"knuckle", "Knuckle Bine")]
 
 				15:
 					q.quest_name = "Formigas Chimera 15/48: O Hotel Rafflesia de Shoot"
-					q.description = "Enfrente as três mãos flutuantes e a gaiola dimensional de Shoot em combate de alta agilidade."
+					q.description = "ORDEM: Fale com Shoot (mãos flutuantes). Depois [G] nascimento do Rei."
 					q.reward_xp = 140000
 					q.reward_gold = 2400000
 					q.objectives = [_criar_obj_visit(&"shoot", "Shoot McMahon")]
 
 				16:
 					q.quest_name = "Formigas Chimera 16/48: O Nascimento Prematuro de Meruem"
-					q.description = "O Rei das Formigas Meruem rasga o ventre da Rainha e parte para a República de Goruto Oriental."
+					q.description = "ORDEM: [G] Inspecione o Vestígio do Nascimento do Rei. Depois Morel no ninho."
 					q.reward_xp = 145000
 					q.reward_gold = 2500000
 					q.objectives = [_criar_obj_investigate(&"nascimento_rei_meruem")]
 
 				17:
 					q.quest_name = "Formigas Chimera 17/48: O Resgate no Ninho da Rainha"
-					q.description = "Morel e os médicos encontram a Rainha moribunda e resgatam o embrião da pequena irmã do Rei."
+					q.description = "ORDEM: Fale com Morel (resgate). Depois [Z] Fronteira Goruto."
 					q.reward_xp = 150000
 					q.reward_gold = 2600000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
 
 				18:
 					q.quest_name = "Formigas Chimera 18/48: Infiltração em Goruto Oriental"
-					q.description = "Cruze a fronteira fortificada de Goruto Oriental sob estado de vigilância marcial absoluta."
+					q.description = "ORDEM: [Z] Atravesse a Fronteira Goruto em Zetsu. Sem Zetsu = alerta. Depois guardas Peijin."
 					q.reward_xp = 155000
 					q.reward_gold = 2700000
 					q.objectives = [_criar_obj_stealth(&"fronteira_goruto")]
 
 				19:
 					q.quest_name = "Formigas Chimera 19/48: A Seleção Humana de Peijin"
-					q.description = "Elimine 4 guardas de Peijin hipnotizados para salvar milhares de civis que marcham rumo ao palácio."
+					q.description = "ORDEM: Derrote 4 guardas de Peijin (GPS). Espaço de combate. Depois Killua (agulha)."
 					q.reward_xp = 160000
 					q.reward_gold = 2800000
 					q.objectives = [_criar_obj_kill(&"guarda_peijin", 4)]
 
 				20:
 					q.quest_name = "Formigas Chimera 20/48: A Remoção da Agulha de Illumi"
-					q.description = "Killua arranca a agulha de manipulação cravada em seu cérebro e liberta sua mente do medo!"
+					q.description = "ORDEM: Fale com Killua — remova a agulha. Depois Godspeed."
 					q.reward_xp = 165000
 					q.reward_gold = 2900000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				21:
 					q.quest_name = "Formigas Chimera 21/48: O Desenvolvimento do Godspeed (Kanmuru)"
-					q.description = "Killua programa descargas elétricas em seus nervos reflexos para se mover na velocidade do relâmpago."
+					q.description = "ORDEM: Fale com Killua (Godspeed). Depois [G] Portas do Knov."
 					q.reward_xp = 170000
 					q.reward_gold = 3000000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				22:
 					q.quest_name = "Formigas Chimera 22/48: O Hide and Seek (4ª Dimensão) de Knov"
-					q.description = "Crie portas dimensionais secretas conectadas aos cômodos sob o piso do Palácio Real de Peijin."
+					q.description = "ORDEM: [G] Inspecione as Portas Dimensionais de Knov. Depois Meruem / Gungi."
 					q.reward_xp = 175000
 					q.reward_gold = 3100000
 					q.objectives = [_criar_obj_investigate(&"portas_knov")]
 
 				23:
 					q.quest_name = "Formigas Chimera 23/48: A Partida de Gungi de Komugi"
-					q.description = "Observe o Rei Meruem jogando Gungi dia e noite nos aposentos reais contra a jovem cega Komugi."
+					q.description = "ORDEM: Fale com Meruem (Gungi). Não ataque fora da etapa. Depois reunião (Gon)."
 					q.reward_xp = 180000
 					q.reward_gold = 3200000
 					q.objectives = [_criar_obj_visit(&"meruem", "Rei Meruem")]
 
 				24:
 					q.quest_name = "Formigas Chimera 24/48: A Contagem Regressiva da Invasão"
-					q.description = "Reúna Gon, Killua, Knuckle, Shoot, Morel e Meleoron nas portas dimensionais para a hora zero."
+					q.description = "ORDEM: Fale com Gon e feche a equipe. Hora Zero depois — GPS."
 					q.reward_xp = 185000
 					q.reward_gold = 3300000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				25:
 					q.quest_name = "Formigas Chimera 25/48: A Hora Zero (00:00:00)"
-					q.description = "Emerja das portas no saguão central do palácio no exato instante em que o ataque aéreo tem início!"
+					q.description = "ORDEM: Fale com Morel na Hora Zero. Depois [G] Chuva de Dragões."
 					q.reward_xp = 190000
 					q.reward_gold = 3400000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
 
 				26:
 					q.quest_name = "Formigas Chimera 26/48: A Chuva de Dragões (Dragon Dive)"
-					q.description = "Testemunhe milhares de flechas colossais de Nen de Zeno Zoldyck destruindo o teto do palácio."
+					q.description = "ORDEM: [G] Inspecione as Marcas da Chuva de Dragões. Depois Youpi / escadas (GPS)."
 					q.reward_xp = 195000
 					q.reward_gold = 3500000
 					q.objectives = [_criar_obj_investigate(&"chuva_dragoes_zeno")]
 
 				27:
 					q.quest_name = "Formigas Chimera 27/48: O Encontro nas Escadarias Centrais"
-					q.description = "Depare-se com o titã Menthuthuyoupi transformando seu corpo em carapaça bélica no topo da escada."
+					q.description = "ORDEM: Fale com Shoot na escadaria. Youpi à frente — GPS um passo. Sem rush."
 					q.reward_xp = 200000
 					q.reward_gold = 3600000
 					q.objectives = [_criar_obj_visit(&"shoot", "Shoot")]
 
 				28:
 					q.quest_name = "Formigas Chimera 28/48: A Fumaça Deep Purple de Morel"
-					q.description = "Morel cria uma prisão de fumaça impenetrável para isolar o líder espiritual Shaiapouf."
+					q.description = "ORDEM: Fale com Morel — Deep Purple isola Pouf. Depois Knuckle (Youpi)."
 					q.reward_xp = 205000
 					q.reward_gold = 3700000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
 
 				29:
 					q.quest_name = "Formigas Chimera 29/48: O Ataque Frenético de Shoot e Knuckle"
-					q.description = "Shoot voa sobre sua gaiola e Knuckle ativa o A.P.R. desferindo o primeiro golpe em Youpi."
+					q.description = "ORDEM: Fale com Knuckle — A.P.R. no Youpi. Depois fúria / Killua (GPS)."
 					q.reward_xp = 210000
 					q.reward_gold = 3800000
 					q.objectives = [_criar_obj_visit(&"knuckle", "Knuckle")]
 
 				30:
 					q.quest_name = "Formigas Chimera 30/48: A Fúria Vulcânica de Youpi"
-					q.description = "Youpi aprende a canalizar sua cólera descontrolada em canhões de pura destruição explosiva."
+					q.description = "ORDEM: Fale com Knuckle — aguente a fúria. Depois Killua (Godspeed)."
 					q.reward_xp = 215000
 					q.reward_gold = 3900000
 					q.objectives = [_criar_obj_visit(&"knuckle", "Knuckle")]
 
 				31:
 					q.quest_name = "Formigas Chimera 31/48: A Intervenção do Relâmpago de Killua"
-					q.description = "Killua ativa Kanmuru (Godspeed) e paralisa Youpi no ar com uma sequência fulminante de raios!"
+					q.description = "ORDEM: Fale com Killua (Kanmuru). Depois derrote Youpi (GPS)."
 					q.reward_xp = 220000
 					q.reward_gold = 4000000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				32:
 					q.quest_name = "Formigas Chimera 32/48: A Derrota de Menthuthuyoupi"
-					q.description = "Neutralize o guerreiro supremo da Guarda Real Youpi no pátio dos escombros!"
+					q.description = "ORDEM: Derrote Youpi (GPS na escadaria). Espaço de combate. Depois Pouf."
 					q.reward_xp = 230000
 					q.reward_gold = 4200000
 					q.objectives = [_criar_obj_kill(&"youpi", 1)]
 
 				33:
 					q.quest_name = "Formigas Chimera 33/48: O Casulo Espiritual de Shaiapouf"
-					q.description = "Derrote os clones microscópicos do conspirador Shaiapouf que tentam assassinar Komugi!"
+					q.description = "ORDEM: Derrote Shaiapouf (GPS). Proteja Komugi. Depois Gon / Blythe."
 					q.reward_xp = 235000
 					q.reward_gold = 4400000
 					q.objectives = [_criar_obj_kill(&"shaiapouf", 1)]
 
 				34:
 					q.quest_name = "Formigas Chimera 34/48: A Sala de Operação do Dr. Blythe"
-					q.description = "Gon entra no quarto real e encontra Neferpitou chorando enquanto opera o corpo ferido de Komugi."
+					q.description = "ORDEM: Fale com Gon — Pitou opera Komugi. Espere. Sem atacar ainda."
 					q.reward_xp = 240000
 					q.reward_gold = 4600000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				35:
 					q.quest_name = "Formigas Chimera 35/48: A Espera Sombria de Gon"
-					q.description = "Gon senta-se de braços cruzados sob um fluxo de aura negra, dando a Pitou 1 hora para salvar a garota."
+					q.description = "ORDEM: Fale com Gon — aguarde a cirurgia. Depois Netero / tumba (GPS)."
 					q.reward_xp = 245000
 					q.reward_gold = 4800000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				36:
 					q.quest_name = "Formigas Chimera 36/48: O Voo de Netero e Meruem até a Tumba"
-					q.description = "Netero conduz o Rei Meruem de dirigível até a tumba desértica usada para testes de armas nucleares."
+					q.description = "ORDEM: Fale com Netero — tumba nuclear. Depois [G] Guanyin."
 					q.reward_xp = 250000
 					q.reward_gold = 5000000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				37:
 					q.quest_name = "Formigas Chimera 37/48: O Guanyin Bodhisattva de 100 Tipos"
-					q.description = "Testemunhe Netero invocando a estátua dourada e desferindo milhares de palmas na velocidade do som!"
+					q.description = "ORDEM: [G] Inspecione o Guanyin Bodhisattva. Depois fale com Netero (Mão Zero)."
 					q.reward_xp = 260000
 					q.reward_gold = 5200000
 					q.objectives = [_criar_obj_investigate(&"buda_guanyin_netero")]
 
 				38:
 					q.quest_name = "Formigas Chimera 38/48: A Mão Zero de Netero"
-					q.description = "Netero reúne toda a sua energia vital e dispara um raio estonteante de Nen pelas costas do Buda."
+					q.description = "ORDEM: Fale com Netero — Mão Zero. Depois [G] Rosa Pobre."
 					q.reward_xp = 270000
 					q.reward_gold = 5500000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				39:
 					q.quest_name = "Formigas Chimera 39/48: A Rosa Pobre (Poor Man's Rose)"
-					q.description = "Netero para seu coração com os dedos e detona a ogiva venenosa em miniatura sob a terra."
+					q.description = "ORDEM: [G] Inspecione a Rosa Pobre. Depois Gon / marcha até Pitou (GPS)."
 					q.reward_xp = 280000
 					q.reward_gold = 5800000
 					q.objectives = [_criar_obj_investigate(&"explosao_rosa_pobre")]
 
 				40:
 					q.quest_name = "Formigas Chimera 40/48: A Marcha Fúnebre até Peijin"
-					q.description = "Pitou encerra a cirurgia de Komugi e marcha ao lado de Gon até o local onde Kite foi mantido."
+					q.description = "ORDEM: Fale com Gon — marcha com Pitou. Depois a verdade sobre Kite."
 					q.reward_xp = 285000
 					q.reward_gold = 6000000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				41:
 					q.quest_name = "Formigas Chimera 41/48: A Verdade Irreparável sobre Kite"
-					q.description = "Pitou ativa suas marionetes e declara: 'A alma daquele homem já se foi... Eu terei que te matar agora'."
+					q.description = "ORDEM: Fale com Gon — Kite se foi. Depois juramento (Gon Adulto)."
 					q.reward_xp = 290000
 					q.reward_gold = 6200000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				42:
 					q.quest_name = "Formigas Chimera 42/48: O Juramento Supremo de Gon (Gon Adulto)"
-					q.description = "'Não me importo se este for o meu fim... Vou usar tudo o que um dia teria!'. O corpo de Gon transmuta-se em poder absoluto!"
+					q.description = "ORDEM: Fale com Gon — juramento. Depois derrote Neferpitou (GPS)."
 					q.reward_xp = 310000
 					q.reward_gold = 6500000
 					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
 
 				43:
 					q.quest_name = "Formigas Chimera 43/48: O Jajanken da Aniquilação de Pitou"
-					q.description = "Derrote Neferpitou com impactos colossais de Jajanken que fazem a floresta inteira tremer!"
+					q.description = "ORDEM: Derrote Neferpitou (GPS). Espaço de combate. Depois Killua."
 					q.reward_xp = 330000
 					q.reward_gold = 7000000
 					q.objectives = [_criar_obj_kill(&"neferpitou", 1)]
 
 				44:
 					q.quest_name = "Formigas Chimera 44/48: A Chegada em Lágrimas de Killua"
-					q.description = "Killua chega ao campo de batalha devastado e encontra o corpo calcinado de Gon desmoronando."
+					q.description = "ORDEM: Fale com Killua no campo. Depois Meruem (En fotônico)."
 					q.reward_xp = 340000
 					q.reward_gold = 7200000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				45:
 					q.quest_name = "Formigas Chimera 45/48: O En Fotônico do Rei Ressuscitado"
-					q.description = "Meruem retorna ao palácio banhado em luz fotônica procurando a memória de seu amor no escuro."
+					q.description = "ORDEM: Fale com Meruem — En fotônico / memória. Depois Morel (sobreviventes)."
 					q.reward_xp = 350000
 					q.reward_gold = 7500000
 					q.objectives = [_criar_obj_visit(&"meruem", "Rei Meruem")]
 
 				46:
 					q.quest_name = "Formigas Chimera 46/48: A Redenção dos Sobreviventes"
-					q.description = "Welfin e as formigas que recuperaram memórias humanas encontram refúgio na cidade de Meteor City."
+					q.description = "ORDEM: Fale com Morel — sobreviventes. Depois última partida de Gungi."
 					q.reward_xp = 360000
 					q.reward_gold = 7800000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
 
 				47:
 					q.quest_name = "Formigas Chimera 47/48: A Última Partida de Gungi no Escuro"
-					q.description = "Testemunhe o abraço final de Meruem e Komugi enquanto a escuridão os acolhe em repouso eterno."
+					q.description = "ORDEM: Fale com Meruem — última partida. Depois evacuação (Morel)."
 					q.reward_xp = 380000
 					q.reward_gold = 8000000
 					q.objectives = [_criar_obj_visit(&"meruem", "Rei Meruem")]
 
 				48:
 					q.quest_name = "Formigas Chimera 48/48: A Evacuação Geral & O Coma de Gon"
-					q.description = "Conclua a evacuação do continente e transporte Gon em suporte vital crítico para a sede da Associação Hunter."
+					q.description = "ORDEM: Fale com Morel — evacue. Portal Associação abre. Sem rush no coma de Gon."
 					q.reward_xp = 400000
 					q.reward_gold = 9000000
 					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
@@ -1393,140 +1393,140 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Eleição Hunter 1/20: A Sede da Associação Hunter"
-					q.description = "Apresente-se no auditório principal da sede para a leitura do testamento oficial de Netero."
+					q.description = "ORDEM: Fale com Cheadle no auditório (testamento). Depois regras / Pariston. Sem rush."
 					q.reward_xp = 120000
 					q.reward_gold = 2000000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle Yorkshire (Zodíaco Cão)")]
 
 				2:
 					q.quest_name = "Eleição Hunter 2/20: O Testamento dos 12 Zodíacos"
-					q.description = "Cheadle e Botobai apresentam as regras deixadas por Netero: quórum mínimo de 95% de todos os Caçadores."
+					q.description = "ORDEM: Fale com Cheadle de novo (quórum 95%). Depois Pariston (jogo político)."
 					q.reward_xp = 130000
 					q.reward_gold = 2100000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle Yorkshire")]
 
 				3:
 					q.quest_name = "Eleição Hunter 3/20: O Jogo Político de Pariston Hill"
-					q.description = "Converse com o Vice-Presidente Pariston e descubra suas artimanhas teatrais para sabotar a eleição."
+					q.description = "ORDEM: Fale com Pariston. Depois Hospital — Leorio / Gon UTI (GPS)."
 					q.reward_xp = 140000
 					q.reward_gold = 2300000
 					q.objectives = [_criar_obj_visit(&"pariston", "Pariston Hill (Vice-Presidente)")]
 
 				4:
 					q.quest_name = "Eleição Hunter 4/20: O Quarto de UTI no Hospital Hunter"
-					q.description = "Visite o leito onde Gon repousa sob suporte vital máximo entre a vida e a morte."
+					q.description = "ORDEM: Fale com Leorio na UTI. Depois Killua (resgate Alluka)."
 					q.reward_xp = 150000
 					q.reward_gold = 2500000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
 
 				5:
 					q.quest_name = "Eleição Hunter 5/20: A Decisão Proibida de Killua"
-					q.description = "Killua retorna em segredo à Montanha Kukuroo para resgatar sua irmã mais nova Alluka."
+					q.description = "ORDEM: Fale com Killua — ele vai buscar Alluka. Depois [G] Cela."
 					q.reward_xp = 160000
 					q.reward_gold = 2700000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua Zoldyck")]
 
 				6:
 					q.quest_name = "Eleição Hunter 6/20: A Masmorra Subterrânea de Alluka"
-					q.description = "Penetre nos cofres de segurança máxima nos porões mais profundos da mansão Zoldyck."
+					q.description = "ORDEM: [G] Inspecione a Cela / Cofre de Alluka. Depois fale com Alluka (regras)."
 					q.reward_xp = 170000
 					q.reward_gold = 2900000
 					q.objectives = [_criar_obj_investigate(&"cela_alluka")]
 
 				7:
 					q.quest_name = "Eleição Hunter 7/20: As Regras dos Desejos de Nanika"
-					q.description = "Compreenda a mecânica dos 3 pedidos recusados e o poder de realizar qualquer milagre impossível."
+					q.description = "ORDEM: Fale com Alluka & Nanika (3 recusas). Depois Killua assume custódia."
 					q.reward_xp = 180000
 					q.reward_gold = 3100000
 					q.objectives = [_criar_obj_visit(&"alluka", "Alluka & Nanika")]
 
 				8:
 					q.quest_name = "Eleição Hunter 8/20: O Resgate nos Braços de Killua"
-					q.description = "Killua abraça Alluka, assume a custódia da irmã e parte em direção ao hospital da capital."
+					q.description = "ORDEM: Fale com Killua — partida ao hospital. Depois emboscada (GPS)."
 					q.reward_xp = 190000
 					q.reward_gold = 3300000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				9:
 					q.quest_name = "Eleição Hunter 9/20: A Emboscada de Illumi e Hisoka"
-					q.description = "Illumi tenta eliminar Alluka por considerá-la uma ameaça cósmica à família Zoldyck."
+					q.description = "ORDEM: Fale com Killua na rodovia. Depois mordomos perseguidores (GPS)."
 					q.reward_xp = 200000
 					q.reward_gold = 3500000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				10:
 					q.quest_name = "Eleição Hunter 10/20: Mordomos Perseguidores na Rodovia"
-					q.description = "Derrote 4 mordomos manipulados pelas agulhas de Illumi para abrir a rota da ambulância."
+					q.description = "ORDEM: Derrote 4 mordomos perseguidores (GPS). Espaço de combate. Depois Homens-Agulha."
 					q.reward_xp = 210000
 					q.reward_gold = 3700000
 					q.objectives = [_criar_obj_kill(&"mordomo_perseguidor", 4)]
 
 				11:
 					q.quest_name = "Eleição Hunter 11/20: O Exército de Homens-Agulha"
-					q.description = "Elimine 8 humanos manipulados por agulhas hipnóticas de Illumi que cercam a rodovia expressa."
+					q.description = "ORDEM: Derrote 8 Homens-Agulha (GPS na rodovia). Depois Illumi Boss."
 					q.reward_xp = 225000
 					q.reward_gold = 4000000
 					q.objectives = [_criar_obj_kill(&"humano_agulha", 8)]
 
 				12:
 					q.quest_name = "Eleição Hunter 12/20: O Confronto contra Illumi"
-					q.description = "Vença Illumi Zoldyck Boss na rodovia noturna e garanta a passagem até o hospital!"
+					q.description = "ORDEM: Derrote Illumi (GPS). Espaço de combate. Depois volte ao auditório (Cheadle)."
 					q.reward_xp = 240000
 					q.reward_gold = 4300000
 					q.objectives = [_criar_obj_kill(&"illumi", 1)]
 
 				13:
 					q.quest_name = "Eleição Hunter 13/20: A 4ª Rodada da Votação Eleitoral"
-					q.description = "Acompanhe o debate acalorado dos Zodíacos no auditório enquanto Ging assiste de braços cruzados."
+					q.description = "ORDEM: Fale com Cheadle no plenário. Depois Leorio (soco teleportado)."
 					q.reward_xp = 250000
 					q.reward_gold = 4500000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle")]
 
 				14:
 					q.quest_name = "Eleição Hunter 14/20: O Soco Teleportado de Leorio"
-					q.description = "Leorio desfere o soco de emissão de Nen que atravessa a mesa do plenário e acerta o rosto de Ging!"
+					q.description = "ORDEM: Fale com Leorio — discurso / soco. Depois Cheadle (liderança)."
 					q.reward_xp = 260000
 					q.reward_gold = 4800000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
 
 				15:
 					q.quest_name = "Eleição Hunter 15/20: Leorio Lidera a Eleição"
-					q.description = "O discurso apaixonado de Leorio sobre salvar Gon emociona todos os Caçadores e o coloca em 1º lugar."
+					q.description = "ORDEM: Fale com Cheadle — Leorio em 1º. Depois Alluka / milagre no hospital."
 					q.reward_xp = 270000
 					q.reward_gold = 5000000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle")]
 
 				16:
 					q.quest_name = "Eleição Hunter 16/20: O Milagre de Nanika no Hospital"
-					q.description = "Alluka segura a mão esquelética de Gon e Nanika liberta uma coluna de luz branca que rasga o céu da cidade!"
+					q.description = "ORDEM: Fale com Alluka & Nanika — cure Gon. Depois Gon recuperado na tribuna."
 					q.reward_xp = 290000
 					q.reward_gold = 5500000
 					q.objectives = [_criar_obj_visit(&"alluka", "Alluka & Nanika")]
 
 				17:
 					q.quest_name = "Eleição Hunter 17/20: A Entrada Triunfal de Gon Curado"
-					q.description = "Gon entra caminhando alegremente pelas portas do auditório lotado no meio da apuração dos votos!"
+					q.description = "ORDEM: Fale com Gon Freecss Recuperado na tribuna. Depois Leorio (abraço)."
 					q.reward_xp = 310000
 					q.reward_gold = 6000000
 					q.objectives = [_criar_obj_visit(&"gon_recuperado", "Gon Freecss Recuperado")]
 
 				18:
 					q.quest_name = "Eleição Hunter 18/20: O Abraço em Lágrimas de Leorio e Gon"
-					q.description = "Leorio corre pelo palco e ergue Gon nos braços sob aplausos e choro de todos os Caçadores."
+					q.description = "ORDEM: Fale com Leorio no palco. Depois Cheadle (13ª Presidente)."
 					q.reward_xp = 330000
 					q.reward_gold = 6500000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio")]
 
 				19:
 					q.quest_name = "Eleição Hunter 19/20: A Eleição da 13ª Presidente Cheadle"
-					q.description = "Pariston renuncia ao cargo e nomeia Cheadle Yorkshire como a 13ª Presidente oficial da Associação."
+					q.description = "ORDEM: Fale com Cheadle — 13ª Presidente. Depois despedida Killua/Alluka."
 					q.reward_xp = 350000
 					q.reward_gold = 7000000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Presidente Cheadle")]
 
 				20:
 					q.quest_name = "Eleição Hunter 20/20: A Despedida de Killua e Alluka"
-					q.description = "Killua promete viajar o mundo protegendo Alluka e se despede de Gon com um sorriso de companheirismo."
+					q.description = "ORDEM: Fale com Killua — despedida. Portal Continente Negro só após esta etapa."
 					q.reward_xp = 380000
 					q.reward_gold = 8000000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
@@ -1538,154 +1538,154 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Continente Negro 1/22: A Declaração Global de Beyond Netero"
-					q.description = "Assista ao manifesto público de Beyond Netero desafiando as nações do V5 a cruzar os limites do mundo."
+					q.description = "ORDEM: Fale com Beyond no acampamento (manifesto). Depois Cheadle. Sem rush."
 					q.reward_xp = 240000
 					q.reward_gold = 4000000
 					q.objectives = [_criar_obj_visit(&"beyond", "Beyond Netero")]
 
 				2:
 					q.quest_name = "Continente Negro 2/22: Os Novos Zodíacos: Kurapika e Leorio"
-					q.description = "Kurapika e Leorio assumem oficialmente os assentos de Rato e Javali na mesa dos Zodíacos."
+					q.description = "ORDEM: Fale com Cheadle (Zodíacos). Depois Ging no acampamento."
 					q.reward_xp = 250000
 					q.reward_gold = 4300000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Presidente Cheadle")]
 
 				3:
 					q.quest_name = "Continente Negro 3/22: O Acampamento de Recrutamento de Ging"
-					q.description = "Encontre Ging Freecss no acampamento da expedição e junte-se ao grupo de elite do Novo Mundo."
+					q.description = "ORDEM: Fale com Ging — junte-se à expedição. Depois teste Nen."
 					q.reward_xp = 265000
 					q.reward_gold = 4600000
 					q.objectives = [_criar_obj_visit(&"ging", "Ging Freecss")]
 
 				4:
 					q.quest_name = "Continente Negro 4/22: O Teste de Nen dos Mercenários"
-					q.description = "Demonstre seu refinamento de Ten e Ren perante os especialistas de combate de Beyond."
+					q.description = "ORDEM: Convença / teste Nen com Ging. Depois [G] Lago Mobius."
 					q.reward_xp = 280000
 					q.reward_gold = 4900000
 					q.objectives = [_criar_obj_persuasion(&"ging", "Ging Freecss")]
 
 				5:
 					q.quest_name = "Continente Negro 5/22: O Mapa Secreto do Lago Mobius"
-					q.description = "Analise o mapa ancestral revelando que o mundo humano é apenas uma pequena lagoa cercada por gigantes."
+					q.description = "ORDEM: [G] Inspecione o Mapa do Lago Mobius. Depois [Z] Águas Proibidas."
 					q.reward_xp = 295000
 					q.reward_gold = 5200000
 					q.objectives = [_criar_obj_investigate(&"mapa_lago_mobius")]
 
 				6:
 					q.quest_name = "Continente Negro 6/22: A Travessia das Águas Proibidas"
-					q.description = "Navegue pelas correntes marítimas tempestuosas sob ataque de feras marinhas titânicas."
+					q.description = "ORDEM: [Z] Atravesse as Águas Proibidas em Zetsu. Sem Zetsu = feras. Depois Beyond."
 					q.reward_xp = 310000
 					q.reward_gold = 5500000
 					q.objectives = [_criar_obj_stealth(&"aguas_proibidas")]
 
 				7:
 					q.quest_name = "Continente Negro 7/22: O Desembarque na Costa Selvagem"
-					q.description = "Fixe a bandeira da Associação na praia ancestral e estabeleça o perímetro de defesa do acampamento."
+					q.description = "ORDEM: Fale com Beyond no desembarque. Depois [G] Ruínas Botânicas."
 					q.reward_xp = 325000
 					q.reward_gold = 5800000
 					q.objectives = [_criar_obj_visit(&"beyond", "Beyond Netero")]
 
 				8:
 					q.quest_name = "Continente Negro 8/22: As Ruínas Botânicas Ancestrais"
-					q.description = "Infiltre-se nos templos da antiga civilização vegetal onde repousam sementes de longevidade."
+					q.description = "ORDEM: [G] Inspecione as Ruínas Botânicas. Depois guardiões de Brion (GPS)."
 					q.reward_xp = 340000
 					q.reward_gold = 6100000
 					q.objectives = [_criar_obj_investigate(&"ruinas_botanicas")]
 
 				9:
 					q.quest_name = "Continente Negro 9/22: Os Guardiões Botânicos de Brion"
-					q.description = "Derrote 5 guardiões botânicos de Brion que emergem das raízes milenares."
+					q.description = "ORDEM: Derrote 5 guardiões de Brion (GPS). Espaço de combate. Depois Brion Boss."
 					q.reward_xp = 360000
 					q.reward_gold = 6500000
 					q.objectives = [_criar_obj_kill(&"guardiao_brion", 5)]
 
 				10:
 					q.quest_name = "Continente Negro 10/22: A Calamidade Brion (A Arma Botânica)"
-					q.description = "Enfrente a Calamidade Brion com sua cabeça esférica vegetal destruidora de exércitos!"
+					q.description = "ORDEM: Derrote Brion Boss (GPS). Depois [Z] Caverna Hellbell."
 					q.reward_xp = 380000
 					q.reward_gold = 7000000
 					q.objectives = [_criar_obj_kill(&"brion_boss", 1)]
 
 				11:
 					q.quest_name = "Continente Negro 11/22: O Veneno Sonoro da Serpente Hellbell"
-					q.description = "Proteja sua mente da melodia alucinógena que induz à loucura homicida instantânea."
+					q.description = "ORDEM: [Z] Atravesse a Caverna Hellbell em Zetsu. Depois Hellbell Boss."
 					q.reward_xp = 400000
 					q.reward_gold = 7500000
 					q.objectives = [_criar_obj_stealth(&"caverna_hellbell")]
 
 				12:
 					q.quest_name = "Continente Negro 12/22: A Batalha contra a Serpente Hellbell"
-					q.description = "Derrote a Serpente das Duas Caudas Hellbell Boss com ataques de longo alcance de Ren!"
+					q.description = "ORDEM: Derrote Hellbell Boss (GPS). Espaço de combate. Depois Entidade Ai."
 					q.reward_xp = 425000
 					q.reward_gold = 8000000
 					q.objectives = [_criar_obj_kill(&"hellbell_boss", 1)]
 
 				13:
 					q.quest_name = "Continente Negro 13/22: A Forma Gasosa da Entidade Ai"
-					q.description = "Isole a névoa dos desejos co-dependentes da Entidade Ai antes que ela drene a aura dos cientistas."
+					q.description = "ORDEM: Derrote a Entidade Ai (GPS). Depois Nitro Rice / Árvore."
 					q.reward_xp = 450000
 					q.reward_gold = 8500000
 					q.objectives = [_criar_obj_kill(&"ai_boss", 1)]
 
 				14:
 					q.quest_name = "Continente Negro 14/22: A Coleta do Arroz Nitro"
-					q.description = "Colete amostras das sementes de Nitro Rice que prolongam a vida humana em séculos."
+					q.description = "ORDEM: Colete Nitro Rice (GPS). Depois fale com a Árvore do Mundo."
 					q.reward_xp = 470000
 					q.reward_gold = 9000000
 					q.objectives = [_criar_obj_collect(&"nitro_rice", 1)]
 
 				15:
 					q.quest_name = "Continente Negro 15/22: As Raízes Continentais da Árvore do Mundo"
-					q.description = "Alcance a base da colossal Árvore do Mundo que se alimenta de magma do centro da terra."
+					q.description = "ORDEM: Fale com a Árvore do Mundo (base). Depois feras aladas (GPS)."
 					q.reward_xp = 490000
 					q.reward_gold = 9500000
 					q.objectives = [_criar_obj_visit(&"arvore_mundo", "Árvore do Mundo")]
 
 				16:
 					q.quest_name = "Continente Negro 16/22: As Feras Aladas da Copa Intermediária"
-					q.description = "Derrote 4 feras aladas gigantescas que nidificam nos galhos intermediários a 800m de altura."
+					q.description = "ORDEM: Derrote 4 feras aladas (GPS). Depois escale até o topo."
 					q.reward_xp = 510000
 					q.reward_gold = 10000000
 					q.objectives = [_criar_obj_kill(&"guardiao_brion", 4)]
 
 				17:
 					q.quest_name = "Continente Negro 17/22: A Escalada dos 1.784 Metros"
-					q.description = "Escale o tronco titânico acima da camada de nuvens sob ventos congelantes de alta altitude."
+					q.description = "ORDEM: Fale com a Árvore de novo (escalada). Depois Ging no topo."
 					q.reward_xp = 530000
 					q.reward_gold = 10500000
 					q.objectives = [_criar_obj_visit(&"arvore_mundo", "Árvore do Mundo")]
 
 				18:
 					q.quest_name = "Continente Negro 18/22: O Ninho Gigante da Copa"
-					q.description = "Alcance a plataforma do ninho de criaturas lendárias no cume mais alto da árvore."
+					q.description = "ORDEM: Fale com Ging Freecss no Topo. Depois reencontro / filosofia."
 					q.reward_xp = 550000
 					q.reward_gold = 11000000
 					q.objectives = [_criar_obj_visit(&"ging_topo", "Ging Freecss no Topo")]
 
 				19:
 					q.quest_name = "Continente Negro 19/22: O Reencontro no Topo do Mundo"
-					q.description = "Sente-se sob a brisa infinita com Ging Freecss e contemplem a curvatura do planeta."
+					q.description = "ORDEM: Fale com Ging no Topo de novo. Depois filosofia do Caçador."
 					q.reward_xp = 575000
 					q.reward_gold = 11500000
 					q.objectives = [_criar_obj_visit(&"ging_topo", "Ging Freecss no Topo")]
 
 				20:
 					q.quest_name = "Continente Negro 20/22: A Filosofia do Verdadeiro Caçador"
-					q.description = "Ging explica que o verdadeiro tesouro não é o destino final, mas os companheiros e histórias do caminho."
+					q.description = "ORDEM: Convença / ouça Ging no Topo. Depois [G] Horizonte Sem Fim."
 					q.reward_xp = 600000
 					q.reward_gold = 12000000
 					q.objectives = [_criar_obj_persuasion(&"ging_topo", "Ging Freecss no Topo")]
 
 				21:
 					q.quest_name = "Continente Negro 21/22: O Horizonte Sem Fim"
-					q.description = "Ging aponta para as terras infinitas além do Lago Mobius que aguardam as próximas gerações."
+					q.description = "ORDEM: [G] Inspecione o Horizonte Sem Fim. Depois convite Kakin (Ging)."
 					q.reward_xp = 625000
 					q.reward_gold = 12500000
 					q.objectives = [_criar_obj_investigate(&"horizonte_infinito")]
 
 				22:
 					q.quest_name = "Continente Negro 22/22: O Convite Real de Kakin"
-					q.description = "Receba a convocação de emergência de Kurapika para embarcar na viagem real do navio Black Whale 1!"
+					q.description = "ORDEM: Fale com Ging no Topo — convite Black Whale. Portal só após esta etapa."
 					q.reward_xp = 650000
 					q.reward_gold = 13000000
 					q.objectives = [_criar_obj_visit(&"ging_topo", "Ging Freecss no Topo")]
@@ -1697,182 +1697,182 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Guerra de Sucessão 1/26: O Embarque no Black Whale 1"
-					q.description = "Apresente-se com Kurapika e a comitiva real no Convés 1 do navio colossal Black Whale 1."
+					q.description = "ORDEM: Fale com Kurapika no Convés 1. Black Whale é longo — um objetivo de cada vez. Depois: Rainha Oito."
 					q.reward_xp = 350000
 					q.reward_gold = 7000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				2:
 					q.quest_name = "Guerra de Sucessão 2/26: Os Aposentos 1014 da Rainha Oito"
-					q.description = "Estabeleça o perímetro blindado de defesa para a Rainha Oito e o bebê Príncipe Woble."
+					q.description = "ORDEM: Fale com a Rainha Oito & Woble. Estabeleça o perímetro. Depois: Vaso Sagrado."
 					q.reward_xp = 370000
 					q.reward_gold = 7500000
 					q.objectives = [_criar_obj_visit(&"rainha_oito", "Rainha Oito & Príncipe Woble")]
 
 				3:
 					q.quest_name = "Guerra de Sucessão 3/26: O Ritual do Vaso Sagrado de Kakin"
-					q.description = "Examine o Vaso Sagrado ancestral que concedeu Bestas Parasitas de Nen aos 14 Príncipes."
+					q.description = "ORDEM: Examine o Vaso Sagrado. Depois [G] primeiro assassinato no corredor."
 					q.reward_xp = 390000
 					q.reward_gold = 8000000
 					q.objectives = [_criar_obj_visit(&"vaso_kakin", "Vaso Sagrado de Kakin")]
 
 				4:
 					q.quest_name = "Guerra de Sucessão 4/26: O Primeiro Assassinato a Bordo"
-					q.description = "Investigue o assassinato silencioso dos guardas de honra eliminados por Nen invisível."
+					q.description = "ORDEM: Ative [G] Gyo e inspecione o Primeiro Assassinato a Bordo. Sem Gyo, não vê a aura."
 					q.reward_xp = 410000
 					q.reward_gold = 8500000
 					q.objectives = [_criar_obj_investigate(&"primeiro_assassinato_kakin")]
 
 				5:
 					q.quest_name = "Guerra de Sucessão 5/26: O Stealth Dolphin de Kurapika"
-					q.description = "Use o golfinho de Nen do Emperor Time para analisar as auras das Bestas Guardiãs com Gyo."
+					q.description = "ORDEM: Fale com Kurapika (Stealth Dolphin / Emperor Time). Depois GPS: bestas parasitárias."
 					q.reward_xp = 430000
 					q.reward_gold = 9000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				6:
 					q.quest_name = "Guerra de Sucessão 6/26: As Bestas Parasitas Rebeldes"
-					q.description = "Derrote 3 Bestas Parasitas Guardiãs que invadem os corredores do 1º Convés Real."
+					q.description = "ORDEM: Derrote 3 Bestas Parasitas (GPS no Convés 1). Espaço de combate. Depois aula de Nen."
 					q.reward_xp = 450000
 					q.reward_gold = 9500000
 					q.objectives = [_criar_obj_kill(&"besta_parasita", 3)]
 
 				7:
 					q.quest_name = "Guerra de Sucessão 7/26: A Aula de Nen nos Aposentos Reais"
-					q.description = "Auxilie Kurapika a treinar os guardas reais nos fundamentos de Ten para equilibrar as defesas."
+					q.description = "ORDEM: Fale com Kurapika (treino Ten dos guardas). Depois desça à Máfia (Hinrigh)."
 					q.reward_xp = 475000
 					q.reward_gold = 10000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				8:
 					q.quest_name = "Guerra de Sucessão 8/26: Os Conveses Intermediários da Máfia"
-					q.description = "Desça aos conveses 3 e 4 onde as três famílias da Máfia de Kakin controlam os armazéns."
+					q.description = "ORDEM: Caminhe aos conveses 3–4 e fale com Hinrigh (Xi-Yu). Sem rush."
 					q.reward_xp = 500000
 					q.reward_gold = 10500000
 					q.objectives = [_criar_obj_visit(&"hinrigh", "Hinrigh (Família Xi-Yu)")]
 
 				9:
 					q.quest_name = "Guerra de Sucessão 9/26: A Aliança com Hinrigh Biganduffno"
-					q.description = "Conheça o Hatsu Biohazard de Hinrigh que transforma armas e algemas em animais vivos."
+					q.description = "ORDEM: Fale com Hinrigh (Biohazard). Depois [G] seita Heil-Ly."
 					q.reward_xp = 525000
 					q.reward_gold = 11000000
 					q.objectives = [_criar_obj_visit(&"hinrigh", "Hinrigh")]
 
 				10:
 					q.quest_name = "Guerra de Sucessão 10/26: O Contágio de Morena Prudo"
-					q.description = "Descubra a seita de assassinos nivelados por sangue da família mafiosa Heil-Ly."
+					q.description = "ORDEM: Ative [G] Gyo e inspecione o Contágio da Seita Heil-Ly. Depois GPS: 6 assassinos."
 					q.reward_xp = 550000
 					q.reward_gold = 11500000
 					q.objectives = [_criar_obj_investigate(&"seita_heilly")]
 
 				11:
 					q.quest_name = "Guerra de Sucessão 11/26: O Massacre da Família Heil-Ly"
-					q.description = "Elimine 6 assassinos contagiados por Nen da seita Heil-Ly nos conveses inferiores."
+					q.description = "ORDEM: Derrote 6 assassinos Heil-Ly (GPS). Um de cada vez. Depois Trupe / Chrollo."
 					q.reward_xp = 580000
 					q.reward_gold = 12000000
 					q.objectives = [_criar_obj_kill(&"assassino_heilly", 6)]
 
 				12:
 					q.quest_name = "Guerra de Sucessão 12/26: A Caçada da Trupe Fantasma no Navio"
-					q.description = "Chrollo Lucilfer, Feitan, Phinks e Nobunaga vasculham os conveses profundos caçando Hisoka."
+					q.description = "ORDEM: Fale com Chrollo nos conveses profundos. Depois Hisoka (marcas de goma)."
 					q.reward_xp = 600000
 					q.reward_gold = 12500000
 					q.objectives = [_criar_obj_visit(&"chrollo", "Chrollo Lucilfer")]
 
 				13:
 					q.quest_name = "Guerra de Sucessão 13/26: As Pistas de Sangue de Hisoka"
-					q.description = "Encontre as marcas de goma elástica deixadas por Hisoka nos armazéns do Convés 5."
+					q.description = "ORDEM: Fale com Hisoka (Bungee Gum). Depois volte a Chrollo para negociar trégua."
 					q.reward_xp = 625000
 					q.reward_gold = 13000000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
 
 				14:
 					q.quest_name = "Guerra de Sucessão 14/26: A Trégua Provisória com a Trupe"
-					q.description = "Negocie uma trégua de não-agressão temporária com a Trupe Fantasma nos armazéns escuros."
+					q.description = "ORDEM: Negocie trégua com Chrollo (persuadir). Depois [Z] aposentos Tserriednich."
 					q.reward_xp = 650000
 					q.reward_gold = 13500000
 					q.objectives = [_criar_obj_persuasion(&"chrollo", "Chrollo Lucilfer")]
 
 				15:
 					q.quest_name = "Guerra de Sucessão 15/26: Os Aposentos do 4º Príncipe Tserriednich"
-					q.description = "Infiltre-se no salão de arte sombria do sádico 4º Príncipe Tserriednich Hui Guo Rou."
+					q.description = "ORDEM: [Z] Atravesse os Aposentos de Tserriednich em Zetsu. Sem Zetsu = sentinelas."
 					q.reward_xp = 680000
 					q.reward_gold = 14000000
 					q.objectives = [_criar_obj_stealth(&"aposentos_tserriednich")]
 
 				16:
 					q.quest_name = "Guerra de Sucessão 16/26: O Despertar da Besta de Dupla Face"
-					q.description = "Sinta a aura fétida e colossal da Besta Guardiã de Tserriednich com rosto de mulher e patas de cavalo."
+					q.description = "ORDEM: Ative [G] Gyo e sinta a Aura da Besta de Dupla Face. Depois Kurapika (futuro paralelo)."
 					q.reward_xp = 710000
 					q.reward_gold = 14500000
 					q.objectives = [_criar_obj_investigate(&"besta_tserriednich")]
 
 				17:
 					q.quest_name = "Guerra de Sucessão 17/26: O Zetsu do Futuro Paralelo"
-					q.description = "Compreenda o Hatsu temporal que permite a Tserriednich ver e alterar os próximos 10 segundos!"
+					q.description = "ORDEM: Fale com Kurapika — Hatsu temporal de Tserriednich. Depois GPS: Besta Facial."
 					q.reward_xp = 740000
 					q.reward_gold = 15000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				18:
 					q.quest_name = "Guerra de Sucessão 18/26: O Combate contra a Besta Facial"
-					q.description = "Derrote a Besta Guardiã de Tserriednich antes que sua saliva contagiosa marque Kurapika!"
+					q.description = "ORDEM: Derrote a Besta Guardiã de Tserriednich (GPS). Espaço de combate. Depois o Príncipe."
 					q.reward_xp = 770000
 					q.reward_gold = 16000000
 					q.objectives = [_criar_obj_kill(&"besta_tserriednich", 1)]
 
 				19:
 					q.quest_name = "Guerra de Sucessão 19/26: O Confronto com o Príncipe Tserriednich"
-					q.description = "Derrote o Príncipe Tserriednich Boss superando suas ilusões temporais com ataque coordenado de Ren!"
+					q.description = "ORDEM: Derrote Tserriednich Boss (GPS). Ren coordenado. Depois revolta no Convés 3."
 					q.reward_xp = 820000
 					q.reward_gold = 17000000
 					q.objectives = [_criar_obj_kill(&"tserriednich_boss", 1)]
 
 				20:
 					q.quest_name = "Guerra de Sucessão 20/26: A Revolta dos Soldados do Convés 3"
-					q.description = "Contenha a rebelião armada dos guardas militares rebeldes no salão de festas do navio."
+					q.description = "ORDEM: Derrote 4 guardas rebeldes (GPS Convés 3). Sem rush. Depois profundos."
 					q.reward_xp = 850000
 					q.reward_gold = 18000000
 					q.objectives = [_criar_obj_kill(&"assassino_heilly", 4)]
 
 				21:
 					q.quest_name = "Guerra de Sucessão 21/26: A Batalha dos Conveses Profundos"
-					q.description = "Elimine os monstros de Nen invocados pelos traidores nos armazéns de combustível."
+					q.description = "ORDEM: Derrote 2 parasitas nos armazéns (GPS). Depois testemunhe Hisoka vs Chrollo."
 					q.reward_xp = 880000
 					q.reward_gold = 19000000
 					q.objectives = [_criar_obj_kill(&"besta_parasita", 2)]
 
 				22:
 					q.quest_name = "Guerra de Sucessão 22/26: O Duelo de Titãs nos Conveses"
-					q.description = "Testemunhe o confronto magistral entre Chrollo Lucilfer e Hisoka Morow nos armazéns inferiores!"
+					q.description = "ORDEM: Fale com Hisoka no duelo dos profundos. Depois proteja Woble (Rainha Oito)."
 					q.reward_xp = 910000
 					q.reward_gold = 20000000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka")]
 
 				23:
 					q.quest_name = "Guerra de Sucessão 23/26: A Proteção do Príncipe Woble"
-					q.description = "Garantir a integridade física da Rainha Oito e do pequeno Príncipe Woble na câmara blindada."
+					q.description = "ORDEM: Fale com a Rainha Oito — garanta Woble. Depois Boss da conspiração (GPS)."
 					q.reward_xp = 940000
 					q.reward_gold = 21000000
 					q.objectives = [_criar_obj_visit(&"rainha_oito", "Rainha Oito")]
 
 				24:
 					q.quest_name = "Guerra de Sucessão 24/26: O Comandante da Conspiração de Kakin"
-					q.description = "Derrote o Boss Final da Conspiração Imperial de Kakin nos conveses de comando!"
+					q.description = "ORDEM: Derrote o Boss Final da Conspiração (GPS comando). Depois Kurapika (estabilização)."
 					q.reward_xp = 1000000
 					q.reward_gold = 25000000
 					q.objectives = [_criar_obj_kill(&"boss_final_kakin", 1)]
 
 				25:
 					q.quest_name = "Guerra de Sucessão 25/26: A Estabilização do Black Whale 1"
-					q.description = "Restaure a ordem a bordo do navio e assegure a rota pacífica rumo ao Novo Mundo."
+					q.description = "ORDEM: Fale com Kurapika — restaure a ordem a bordo. Depois Cheadle (consagração)."
 					q.reward_xp = 1050000
 					q.reward_gold = 27000000
 					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
 
 				26:
 					q.quest_name = "Guerra de Sucessão 26/26: A Consagração do Maior Caçador da História"
-					q.description = "Retorne vitorioso à Capital dos Caçadores com a Licença Hunter Suprema e o título de Maior Caçador da História!"
+					q.description = "ORDEM: Fale com Presidente Cheadle — consagração. Portal Lobby após esta etapa. História 100%."
 					q.reward_xp = 1200000
 					q.reward_gold = 30000000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Presidente Cheadle")]

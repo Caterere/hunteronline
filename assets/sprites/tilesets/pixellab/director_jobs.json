@@ -1,0 +1,27 @@
+{
+  "source": "pixellab",
+  "style_lock": "48x48 chibi low-detail",
+  "tilesets": [
+    "arena_corridor_wang.png",
+    "kukuroo_path_wang.png",
+    "padokia_road_wang.png",
+    "yorknew_avenue_wang.png"
+  ],
+  "characters": [
+    "npc_mafioso_yorknew_ambient_8dir.png",
+    "npc_lutador_arena_ambient_8dir.png",
+    "npc_mordomo_zoldyck_ambient_8dir.png",
+    "npc_herbalista_floresta_8dir.png"
+  ],
+  "walks": [
+    "npc_mafioso_yorknew_ambient_walk_8x8.png",
+    "npc_lutador_arena_ambient_walk_8x8.png",
+    "npc_mordomo_zoldyck_ambient_walk_8x8.png",
+    "npc_herbalista_floresta_walk_8x8.png"
+  ],
+  "objects": [
+    "yorknew_street_crate.png",
+    "arena_training_post.png",
+    "kukuroo_stone_lantern.png"
+  ]
+}

@@ -28,6 +28,8 @@ var raid_instance = null
 var _raid_catalog_entry: Dictionary = {}
 var _wipe_cooldown: float = 0.0
 var _last_wipe_frame: int = -999
+var _enrage_warn_shown: bool = false
+var _solo_mode: bool = true
 
 
 func _ready() -> void:
@@ -79,7 +81,10 @@ func _configurar_audio_e_hud() -> void:
 		
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("🏛️ Você adentrou as [Ruínas de Zaban] — Perigo Extremo (Dungeon)")
+		if PlayerData != null and PlayerData.despertou_nen:
+			hud.exibir_notificacao("🏛️ Ruínas — Fale com o Guia. [G]/[Z]/[KO] · círculos vermelhos = saia!")
+		else:
+			hud.exibir_notificacao("🏛️ Ruínas de Zaban — Perigo Extremo. Desperte Nen para ver os selos.")
 
 
 func _gerar_mapa_dungeon() -> void:
@@ -122,6 +127,77 @@ func _instanciar_boss_e_sentinelas() -> void:
 
 	_criar_portal_saida(Vector2(320, 440))
 	_instanciar_sensores_nen_ruinas()
+	_criar_placa_checkpoint_entrada()
+	_popular_guia_ruinas()
+	_iniciar_quest_investigacao_ruinas()
+
+
+func _criar_placa_checkpoint_entrada() -> void:
+	if get_node_or_null("PlacaCheckpointEntrada") != null:
+		return
+	var marker := Node2D.new()
+	marker.name = "PlacaCheckpointEntrada"
+	marker.position = Vector2(320, 430)
+	var lbl := Label.new()
+	lbl.text = "🔄 Checkpoint Entrada — wipe revive aqui"
+	lbl.position = Vector2(-80, -18)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 5)
+	lbl.add_theme_color_override("font_color", Color(0.55, 0.9, 1.0, 0.95))
+	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.85))
+	marker.add_child(lbl)
+	add_child(marker)
+
+
+func _popular_guia_ruinas() -> void:
+	if get_node_or_null("GuiaRuinas") != null:
+		return
+	var scn_npc = load("res://entities/npc/NPC.tscn")
+	if scn_npc == null:
+		return
+	var guia = scn_npc.instantiate()
+	guia.name = "GuiaRuinas"
+	guia.position = Vector2(280, 400)
+	guia.npc_name = "Guia das Ruínas"
+	guia.fala_padrao = "Ordem: 1) [G] Selo na Antecâmara. 2) [G] Fissura na Câmara. 3) [Z] Corredor das Sentinelas. 4) [KO] Pilar Rachado. 5) Volte falar comigo. Sem rush — saia dos círculos."
+	NpcSpriteBinder.aplicar(guia, ["npc_cacador_zaban", "npc_viajante_scout", "npc_guarda_fronteira"])
+	var living := LivingNPCBehavior.new()
+	living.name = "LivingNPCBehavior"
+	living.npc_nome = "Guia das Ruínas"
+	living.tipo_marcador = "quest"
+	living.hierarchy = LivingNPCBehavior.NPCHierarchy.IMPORTANT
+	living.raio_patrulha = 24.0
+	guia.add_child(living)
+	add_child(guia)
+	var inter = guia.get_node_or_null("InteractionComponent")
+	if inter != null and not inter.interacted.is_connected(_on_guia_ruinas_interacted):
+		inter.interacted.connect(_on_guia_ruinas_interacted)
+
+
+func _on_guia_ruinas_interacted(_player: Node = null) -> void:
+	if QuestSystem != null:
+		QuestSystem.register_npc_visit(&"guia_ruinas")
+		QuestSystem.register_npc_visit(&"guia das ruínas")
+	_iniciar_quest_investigacao_ruinas()
+	if EventBus != null and PlayerData != null and PlayerData.despertou_nen:
+		EventBus.emit_toast("🧭 Guia: [G] Selo → Fissura → [Z] Corredor → [KO] Pilar → volte.", Color(0.95, 0.8, 0.4))
+
+
+func _iniciar_quest_investigacao_ruinas() -> void:
+	if PlayerData == null or not PlayerData.despertou_nen:
+		return
+	if QuestSystem == null or not QuestSystem.has_method("start_quest"):
+		return
+	var PadokiaQuestCatalogScript = load("res://resource/quest/PadokiaQuestCatalog.gd")
+	if PadokiaQuestCatalogScript == null:
+		return
+	var q = PadokiaQuestCatalogScript.obter_quest_investigacao_ruinas()
+	if q == null:
+		return
+	if PlayerData.is_quest_active(q) or PlayerData.is_quest_completed(q):
+		return
+	QuestSystem.start_quest(q)
+	print("[DungeonRuinasZaban] Quest investigativa iniciada: ", q.quest_name)
 
 
 func _instanciar_sensores_nen_ruinas() -> void:
@@ -130,23 +206,44 @@ func _instanciar_sensores_nen_ruinas() -> void:
 		NenSensorFactory.criar_gyo(
 			self, "GyoClueAntecâmara", Vector2(320, 300),
 			&"zaban_selo_antecamara", "Selo de Pedra Resonante",
-			"A antecâmara guarda um selo de Nen. O Guardião Ancestral está vinculado a esta marca.",
+			"A antecâmara guarda um selo de Nen. Próximo: Fissura de Aura na câmara do chefe ([G]).",
 			"Especialização", 1, Color(0.85, 0.75, 0.35, 0.9)
 		)
 		NenSensorFactory.criar_gyo(
 			self, "GyoClueCamaraBoss", Vector2(200, 140),
 			&"zaban_fissura_aura", "Fissura de Aura Ancestral",
-			"Uma rachadura no piso emana aura densa. KO concentrado poderia abrir um atalho lateral.",
+			"Rachadura no piso emana aura densa. Próximo: [Z] Corredor das Sentinelas, depois [KO] no Pilar.",
 			"Intensificação", 2, Color(1.0, 0.45, 0.3, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoCluePortaoEntrada", Vector2(320, 400),
+			&"zaban_marca_portao", "Marca no Portão de Pedra",
+			"Quem selou as ruínas deixou um aviso: só quem domina Gyo, Zetsu e Ko avança com segurança.",
+			"Conjuração", 1, Color(0.6, 0.85, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoCluePilarNorte", Vector2(120, 180),
+			&"zaban_pilar_norte", "Eco no Pilar Norte",
+			"Eco de Intensificação. O Guardião Ancestral reforça a câmara por estes pilares.",
+			"Intensificação", 1, Color(0.95, 0.6, 0.4, 0.9)
 		)
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleCamaraLateral", Vector2(480, 160),
-		"Pilar Rachado da Câmara", &"pedra_aura"
+		"Pilar Rachado da Câmara", &"pedra_aura", &"zaban_pilar_ko"
+	)
+	NenSensorFactory.criar_ko(
+		self, "KoObstacleAntecâmara", Vector2(180, 300),
+		"Rocha Selada da Antecâmara", &"pocao_aura"
 	)
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuCorredorSentinelas", Vector2(320, 360),
 		&"zaban_corredor_sentinelas", "Corredor das Sentinelas",
-		Vector2(200, 80)
+		Vector2(200, 80), &"sentinela_pedra", "Sentinela Alertada"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCamaraLateral", Vector2(480, 220),
+		&"zaban_camara_lateral", "Câmara Lateral Vigilada",
+		Vector2(120, 90), &"sentinela_pedra", "Guarda de Pedra"
 	)
 
 
@@ -184,6 +281,8 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool =
 		es.enemy_name = nome
 		if es.enemy_data != null:
 			es.enemy_data.attack_telegraph_type = "aoe_circle"
+			if "attack_windup" in es.enemy_data:
+				es.enemy_data.attack_windup = maxf(float(es.enemy_data.attack_windup), 0.6)
 		es.died.connect(_on_boss_derrotado)
 		if QuestSystem != null:
 			if not es.died.is_connected(QuestSystem.register_enemy_kill):
@@ -247,6 +346,11 @@ func _iniciar_raid_vertical() -> void:
 	if not RaidCatalogScript.has_raid("ruins_zaban_vertical"):
 		return
 	_raid_catalog_entry = RaidCatalogScript.get_raid("ruins_zaban_vertical")
+	# Preferir RaidInstance vinda do Duty Finder (B10) se já estiver ativa
+	if Engine.has_meta("active_raid_instance"):
+		var existing = Engine.get_meta("active_raid_instance")
+		if existing != null and is_instance_valid(existing) and existing is RaidInstance:
+			raid_instance = existing
 	var members: Array[int] = []
 	if PartyManager != null and PartyManager.has_method("obter_membros"):
 		for m in PartyManager.obter_membros():
@@ -256,30 +360,39 @@ func _iniciar_raid_vertical() -> void:
 		if NetworkManager != null and "local_peer_id" in NetworkManager:
 			local_id = maxi(1, int(NetworkManager.local_peer_id))
 		members = [local_id]
+	_solo_mode = members.size() <= 1
 	if PartyManager != null and PartyManager.has_method("entrar_modo_raid"):
 		PartyManager.entrar_modo_raid()
-	raid_instance = RaidInstanceScript.new()
-	if not raid_instance.start_raid("ruins_zaban_vertical", members, _raid_catalog_entry):
-		push_warning("[DungeonRuinasZaban] Falha ao iniciar raid vertical")
-		raid_instance = null
-		if PartyManager != null and PartyManager.has_method("sair_modo_raid"):
-			PartyManager.sair_modo_raid()
-		return
+	if raid_instance == null:
+		raid_instance = RaidInstanceScript.new()
+		if not raid_instance.start_raid("ruins_zaban_vertical", members, _raid_catalog_entry):
+			push_warning("[DungeonRuinasZaban] Falha ao iniciar raid vertical")
+			raid_instance = null
+			if PartyManager != null and PartyManager.has_method("sair_modo_raid"):
+				PartyManager.sair_modo_raid()
+			return
+		Engine.set_meta("active_raid_instance", raid_instance)
 	if raid_instance.has_method("desbloquear_checkpoint"):
 		raid_instance.desbloquear_checkpoint("entrada")
-	if raid_instance.has_signal("phase_changed"):
+	if raid_instance.has_signal("phase_changed") and not raid_instance.phase_changed.is_connected(_on_raid_phase_changed):
 		raid_instance.phase_changed.connect(_on_raid_phase_changed)
-	if raid_instance.has_signal("enrage_started"):
+	if raid_instance.has_signal("enrage_started") and not raid_instance.enrage_started.is_connected(_on_raid_enrage):
 		raid_instance.enrage_started.connect(_on_raid_enrage)
-	if raid_instance.has_signal("raid_wiped"):
+	if raid_instance.has_signal("enrage_warning") and not raid_instance.enrage_warning.is_connected(_on_raid_enrage_warning):
+		raid_instance.enrage_warning.connect(_on_raid_enrage_warning)
+	if raid_instance.has_signal("raid_wiped") and not raid_instance.raid_wiped.is_connected(_on_raid_wiped):
 		raid_instance.raid_wiped.connect(_on_raid_wiped)
 	if EventBus != null and EventBus.has_signal("player_died"):
 		if not EventBus.player_died.is_connected(_on_raid_player_died):
 			EventBus.player_died.connect(_on_raid_player_died)
 	var hud = get_tree().get_first_node_in_group("player_hud")
+	var modo := "SOLO" if _solo_mode else "PARTY"
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("⚔️ Raid: %s — 3 fases · wipe → checkpoint" % str(_raid_catalog_entry.get("title", "Ruínas de Zaban")))
-
+		hud.exibir_notificacao("⚔️ Raid %s: %s — 4 fases · círculo vermelho = saia · wipe → checkpoint" % [
+			modo, str(_raid_catalog_entry.get("title", "Ruínas de Zaban"))
+		])
+	if EventBus != null and _solo_mode:
+		EventBus.emit_toast("Solo: mate sentinelas → boss. Saia dos AoE. Morreu = revive na entrada.", Color(0.55, 0.9, 1.0))
 
 func _process(delta: float) -> void:
 	if _wipe_cooldown > 0.0:
@@ -301,15 +414,30 @@ func _process(delta: float) -> void:
 
 
 func _on_raid_phase_changed(phase_index: int, phase_id: String) -> void:
+	var tip := _dica_fase_solo(phase_id)
 	if EventBus != null:
-		EventBus.emit_toast("Fase %d — %s" % [phase_index + 1, phase_id.to_upper()], Color(1.0, 0.55, 0.3))
+		EventBus.emit_toast("Fase %d — %s · %s" % [phase_index + 1, phase_id.to_upper(), tip], Color(1.0, 0.55, 0.3))
 		EventBus.emit_camera_shake(0.45, 0.25)
 	if AudioManager != null:
 		AudioManager.tocar_sfx_tipo("boss_phase", 1.1)
 	_aplicar_fase_no_boss(phase_index, phase_id)
-	# Adds por fase
+	# Adds por fase (solo: menos adds para pacing legível)
 	if phase_id in ["collapse", "midpoint"]:
 		_spawn_adds_fase(phase_index)
+
+
+func _dica_fase_solo(phase_id: String) -> String:
+	match phase_id.to_lower():
+		"gate", "approach":
+			return "Quebre a barra de defesa, canalize Hatsu no espaço"
+		"collapse":
+			return "Adds spawnam — limpe-os, depois volte ao boss"
+		"midpoint":
+			return "AoE maior — saia do círculo vermelho"
+		"enrage":
+			return "Burst final — dodge + Hatsu sem rush"
+		_:
+			return "Saia dos AoE, um alvo de cada vez"
 
 
 func _aplicar_fase_no_boss(phase_index: int, phase_id: String) -> void:
@@ -337,14 +465,25 @@ func _aplicar_fase_no_boss(phase_index: int, phase_id: String) -> void:
 
 func _spawn_adds_fase(phase_index: int) -> void:
 	var offsets := [Vector2(-60, 40), Vector2(60, 40), Vector2(0, 70)]
-	for i in range(mini(2 + phase_index, offsets.size())):
+	var count := mini(2 + phase_index, offsets.size())
+	if _solo_mode:
+		count = mini(1 + int(phase_index > 1), 2)  # solo: 1–2 adds
+	for i in range(count):
 		var p: Vector2 = Vector2(320, 120) + offsets[i]
 		_instanciar_mob(p, "Sentinela Invocada %d" % (phase_index * 10 + i), false)
 
 
+func _on_raid_enrage_warning(seconds: float) -> void:
+	if _enrage_warn_shown:
+		return
+	_enrage_warn_shown = true
+	if EventBus != null:
+		EventBus.emit_toast("⏱ Enrage em ~%ds — acelere o DPS, continue saindo dos AoE!" % int(ceil(seconds)), Color(1.0, 0.75, 0.2))
+
+
 func _on_raid_enrage(_seconds: float) -> void:
 	if EventBus != null:
-		EventBus.emit_toast("⚠ ENRAGE! O Guardião entra em frenesi!", Color(1.0, 0.2, 0.2))
+		EventBus.emit_toast("⚠ ENRAGE! Saia dos círculos — burst com Hatsu!", Color(1.0, 0.2, 0.2))
 		EventBus.emit_camera_shake(0.7, 0.4)
 	if AudioManager != null:
 		AudioManager.tocar_sfx_tipo("boss_intro", 1.2)
@@ -354,17 +493,24 @@ func _on_raid_enrage(_seconds: float) -> void:
 func _on_raid_player_died() -> void:
 	if raid_instance == null or boss_derrotado:
 		return
+	# Solo-first: morte do jogador = wipe imediato (sem depender de party downed)
 	_try_register_wipe()
 
 
 func _on_raid_wiped() -> void:
 	_wipe_cooldown = 4.0
 	if EventBus != null:
-		EventBus.emit_toast("💀 WIPE! Checkpoint Entrada — revive aliados com [E]", Color(1.0, 0.35, 0.35))
+		if _solo_mode:
+			EventBus.emit_toast("💀 WIPE SOLO! Revive no Checkpoint Entrada (45% HP). Reabra espaço e tente de novo.", Color(1.0, 0.35, 0.35))
+		else:
+			EventBus.emit_toast("💀 WIPE! Checkpoint Entrada — revive aliados com [E]", Color(1.0, 0.35, 0.35))
 	_respawn_soft_checkpoint()
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("🔄 Soft wipe · Checkpoint Entrada · Revive [E] em aliados")
+		if _solo_mode:
+			hud.exibir_notificacao("🔄 Soft wipe solo · Checkpoint Entrada · HP 45% · saia dos AoE")
+		else:
+			hud.exibir_notificacao("🔄 Soft wipe · Checkpoint Entrada · Revive [E] em aliados")
 
 
 func _try_register_wipe() -> void:

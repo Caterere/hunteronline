@@ -57,9 +57,22 @@ func _test_kukuroo_density_gate() -> void:
 	_ok(mapa_off.get_node_or_null("PlacaKukuPortao") != null, "Placa portão presente")
 	_ok(mapa_off.get_node_or_null("JardineiroZoldyck") != null, "Jardineiro ambient presente")
 	_ok(mapa_off.get_node_or_null("AprendizMordomo") != null, "Aprendiz ambient presente")
+	_ok(mapa_off.get_node_or_null("TuristaAssustado") != null, "Turista ambient presente")
+	_ok(mapa_off.get_node_or_null("MensageiroZoldyck") != null, "Mensageiro ambient presente")
+	_ok(mapa_off.get_node_or_null("CozinheiroMansao") != null, "Cozinheiro ambient presente")
+	_ok(mapa_off.get_node_or_null("VigiaPortaoSul") != null, "Vigia portão sul presente")
+	_ok(mapa_off.get_node_or_null("MordomoAmbient_F") != null, "Filler MordomoAmbient_F presente")
+	_ok(mapa_off.get_node_or_null("PropsEstruturaKukuroo") != null, "Props estrutura Kukuroo")
+	_ok(mapa_off.get_node_or_null("PropsEstruturaKukuroo/MarcoPedra_Portao") != null, "Marco pedra portão")
 	_ok(mapa_off.get_node_or_null("MapAtmosphereDecorator") != null, "Atmosphere KUKUROO anexada")
 	var lanterna = mapa_off.get_node_or_null("MapAtmosphereDecorator/AtmosphereProps/LanternaPedraKuku_900")
 	_ok(lanterna != null, "Lanterna de pedra PixelLab (900)")
+
+	# Falas diretas (mentor style)
+	var zebro = mapa_off.get_node_or_null("Zebro")
+	_ok(zebro != null and "Portão" in str(zebro.fala_padrao) and "[E]" in str(zebro.fala_padrao), "Zebro fala direta com [E]")
+	var guia = mapa_off.get_node_or_null("GuiaTurismo")
+	_ok(guia != null and "Zebro" in str(guia.fala_padrao), "Guia aponta Zebro como próximo passo")
 	mapa_off.queue_free()
 	await get_tree().process_frame
 

@@ -1,0 +1,64 @@
+{
+  "batch": "phase5_fx_weather_night",
+  "created_at": 1789060595.8209965,
+  "images": [
+    {
+      "out": "phase5_fx_hit.png",
+      "id": "c31a60ae-73bb-45bd-a602-91c3c125b6de",
+      "queue": "id: c31a60ae-73bb-45bd-a602-91c3c125b6de\njob_id: c31a60ae-73bb-45bd-a602-91c3c125b6de\nmodel: pixen\ndescription: Hunter Online pixel-art combat VFX sprite, hard pixel edges, limited palette, strong silhouette, transparent background, compact readable effect for 48x48 characters, no photographic texture, no smooth glow bloom, no UI text, no full-screen explosion. Compact physical hit impact burst: s",
+      "result": "status: completed\nid: c31a60ae-73bb-45bd-a602-91c3c125b6de\njob_id: c31a60ae-73bb-45bd-a602-91c3c125b6de\nframes: 1\ndownload: https://api.pixellab.ai/mcp/images/c31a60ae-73bb-45bd-a602-91c3c125b6de/download",
+      "path": "assets/sprites/effects/phase5_fx_hit.png"
+    },
+    {
+      "out": "phase5_fx_slash.png",
+      "id": "a7d66425-eb3b-4470-aae6-d6e4b6ddb790",
+      "queue": "id: a7d66425-eb3b-4470-aae6-d6e4b6ddb790\njob_id: a7d66425-eb3b-4470-aae6-d6e4b6ddb790\nmodel: pixen\ndescription: Hunter Online pixel-art combat VFX sprite, hard pixel edges, limited palette, strong silhouette, transparent background, compact readable effect for 48x48 characters, no photographic texture, no smooth glow bloom, no UI text, no full-screen explosion. Compact melee slash arc: curved brig",
+      "result": "status: completed\nid: a7d66425-eb3b-4470-aae6-d6e4b6ddb790\njob_id: a7d66425-eb3b-4470-aae6-d6e4b6ddb790\nframes: 1\ndownload: https://api.pixellab.ai/mcp/images/a7d66425-eb3b-4470-aae6-d6e4b6ddb790/download",
+      "path": "assets/sprites/effects/phase5_fx_slash.png"
+    },
+    {
+      "out": "phase5_fx_nen_aura.png",
+      "id": "03564f2c-bea1-45ec-8628-ab049729c262",
+      "queue": "id: 03564f2c-bea1-45ec-8628-ab049729c262\njob_id: 03564f2c-bea1-45ec-8628-ab049729c262\nmodel: pixen\ndescription: Hunter Online pixel-art combat VFX sprite, hard pixel edges, limited palette, strong silhouette, transparent background, compact readable effect for 48x48 characters, no photographic texture, no smooth glow bloom, no UI text, no full-screen explosion. Restrained Nen aura ring: compact pi",
+      "result": "status: completed\nid: 03564f2c-bea1-45ec-8628-ab049729c262\njob_id: 03564f2c-bea1-45ec-8628-ab049729c262\nframes: 1\ndownload: https://api.pixellab.ai/mcp/images/03564f2c-bea1-45ec-8628-ab049729c262/download",
+      "path": "assets/sprites/effects/phase5_fx_nen_aura.png"
+    },
+    {
+      "out": "phase5_fx_heal.png",
+      "id": "1fdbab5c-1673-4c99-86a7-1e5142259209",
+      "queue": "id: 1fdbab5c-1673-4c99-86a7-1e5142259209\njob_id: 1fdbab5c-1673-4c99-86a7-1e5142259209\nmodel: pixen\ndescription: Hunter Online pixel-art combat VFX sprite, hard pixel edges, limited palette, strong silhouette, transparent background, compact readable effect for 48x48 characters, no photographic texture, no smooth glow bloom, no UI text, no full-screen explosion. Small healing Nen effect: gentle upw",
+      "result": "status: completed\nid: 1fdbab5c-1673-4c99-86a7-1e5142259209\njob_id: 1fdbab5c-1673-4c99-86a7-1e5142259209\nframes: 1\ndownload: https://api.pixellab.ai/mcp/images/1fdbab5c-1673-4c99-86a7-1e5142259209/download",
+      "path": "assets/sprites/effects/phase5_fx_heal.png"
+    },
+    {
+      "out": "phase5_fx_dash_dust.png",
+      "id": "4d85050f-acb3-4883-bd00-399027d2312c",
+      "queue": "id: 4d85050f-acb3-4883-bd00-399027d2312c\njob_id: 4d85050f-acb3-4883-bd00-399027d2312c\nmodel: pixen\ndescription: Hunter Online pixel-art combat VFX sprite, hard pixel edges, limited palette, strong silhouette, transparent background, compact readable effect for 48x48 characters, no photographic texture, no smooth glow bloom, no UI text, no full-screen explosion. Compact dash dust kick: short direct",
+      "result": "status: completed\nid: 4d85050f-acb3-4883-bd00-399027d2312c\njob_id: 4d85050f-acb3-4883-bd00-399027d2312c\nframes: 1\ndownload: https://api.pixellab.ai/mcp/images/4d85050f-acb3-4883-bd00-399027d2312c/download",
+      "path": "assets/sprites/effects/phase5_fx_dash_dust.png"
+    }
+  ],
+  "objects": [
+    {
+      "out": "phase5_weather_puddle.png",
+      "id": "ad2e7ddd-207a-428f-9194-6f1812e31fe7",
+      "queue": "id: ad2e7ddd-207a-428f-9194-6f1812e31fe7\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting. Transparent background. No photographic texture, no anti-aliasing, no UI text. Small rain puddle / wet ground patch on dirt-grass, soft oval shape, subtle reflection hint, dark wet edge. Compact ground decal 32x32.\nsize: ",
+      "result": "status: completed\nid: ad2e7ddd-207a-428f-9194-6f1812e31fe7\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting. Transparent background. No photographic texture, no anti-aliasing, no UI text. Small rain puddle / wet ground patch on dirt-grass, soft oval shape, subtle reflection hint, dark wet edge. Compact ground decal 32x32.\nsize: 32x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 17:16\ndownload: https://api.pixellab.ai/mcp/map-objects/ad2e7ddd-207a-428f-9194-6f1812e31fe7/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"ad2e7ddd-207a-428f-9194-6f1812e31fe7\")",
+      "path": "assets/sprites/objects/phase5_weather_puddle.png"
+    },
+    {
+      "out": "phase5_weather_leaf.png",
+      "id": "bc4a9a79-7177-4731-a7f0-0f03a0618b4a",
+      "queue": "id: bc4a9a79-7177-4731-a7f0-0f03a0618b4a\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting. Transparent background. No photographic texture, no anti-aliasing, no UI text. Single fallen autumn leaf particle prop, readable silhouette, soft shadow. Tiny weather detail 32x32.\nsize: 32x32px\nview: high top-down\nmode: ",
+      "result": "status: completed\nid: bc4a9a79-7177-4731-a7f0-0f03a0618b4a\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting. Transparent background. No photographic texture, no anti-aliasing, no UI text. Single fallen autumn leaf particle prop, readable silhouette, soft shadow. Tiny weather detail 32x32.\nsize: 32x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 17:16\ndownload: https://api.pixellab.ai/mcp/map-objects/bc4a9a79-7177-4731-a7f0-0f03a0618b4a/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"bc4a9a79-7177-4731-a7f0-0f03a0618b4a\")",
+      "path": "assets/sprites/objects/phase5_weather_leaf.png"
+    },
+    {
+      "out": "phase5_night_lantern_glow.png",
+      "id": "07fe6176-6858-45f0-84c1-b9805900d8f9",
+      "queue": "id: 07fe6176-6858-45f0-84c1-b9805900d8f9\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting. Transparent background. No photographic texture, no anti-aliasing, no UI text. Warm night lantern glow orb / soft light bloom impression as pixel clusters (not smooth gradient), amber-yellow limited palette, transparent. ",
+      "result": "status: completed\nid: 07fe6176-6858-45f0-84c1-b9805900d8f9\ndescription: HUNTER ONLINE WORLD DETAIL STYLE. Soft modern top-down pixel-art MMORPG. Hard pixel edges, dark outlines, top-left lighting. Transparent background. No photographic texture, no anti-aliasing, no UI text. Warm night lantern glow orb / soft light bloom impression as pixel clusters (not smooth gradient), amber-yellow limited palette, transparent. Compact 32x32 light accent.\nsize: 32x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 17:16\ndownload: https://api.pixellab.ai/mcp/map-objects/07fe6176-6858-45f0-84c1-b9805900d8f9/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"07fe6176-6858-45f0-84c1-b9805900d8f9\")",
+      "path": "assets/sprites/objects/phase5_night_lantern_glow.png"
+    }
+  ]
+}

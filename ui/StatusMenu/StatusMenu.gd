@@ -244,6 +244,13 @@ func _construir_coluna_vitais(parent: Control) -> void:
 	lbl_velocidade.add_theme_color_override("font_color", HunterUIStyle.COLOR_ZETSU)
 	vbox.add_child(lbl_velocidade)
 
+	var lbl_attr_help := Label.new()
+	lbl_attr_help.text = "Força↑ dano físico · Defesa↓ dano recebido · Vel↑ corrida/ritmo · Aura alimenta Nen/Hatsu. Level-up: +1 SP + atributos."
+	lbl_attr_help.add_theme_font_size_override("font_size", 4)
+	lbl_attr_help.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_MUTED)
+	lbl_attr_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(lbl_attr_help)
+
 
 func _construir_coluna_progressao(parent: Control) -> void:
 	var card := PanelContainer.new()

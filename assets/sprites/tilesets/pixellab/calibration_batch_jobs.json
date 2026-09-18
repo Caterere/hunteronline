@@ -1,0 +1,67 @@
+{
+  "batch": "prompt_library_94_calibration",
+  "created_at": 1789056901.2986453,
+  "tilesets": [
+    {
+      "name": "calibration_grass_dirt_wang",
+      "id": "2f8e3bd5-175d-4797-9104-c417157e62e4",
+      "queue": "id: 2f8e3bd5-175d-4797-9104-c417157e62e4\nterrain: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Lower terrain: compact warm brown natural earth dirt path with tiny stones, occasional cracks, sparse grass intrusion, worn areas. Connected 16x16 top-down RPG tileset for Hunter Online. \u2192 HUNTER ONLINE VISUAL STYLE LOCK",
+      "result": "status: completed\nid: 2f8e3bd5-175d-4797-9104-c417157e62e4\nterrain: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Lower terrain: compact warm brown natural earth dirt path with tiny stones, occasional cracks, sparse grass intrusion, worn areas. Connected 16x16 top-down RPG tileset for Hunter Online. -> HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Upper terrain: soft temperate green grassland with subtle grass tufts, occasional tiny flowers, darker soil hints, irregular ground marks. Not flat repeated green. Connected 16x16 top-down RPG tileset.\ntiles: 16\ntile_size: 16x16px\nview: high top-down\ntransition: natural grass edge blending into worn dirt path with sparse tufts and soil crumbs\n\ndownload_png: https://api.pixellab.ai/mcp/tilesets/2f8e3bd5-175d-4797-9104-c417157e62e4/image\ndownload_png_inline: https://api.pixellab.ai/mcp/tilesets/2f8e3bd5-175d-4797-9104-c417157e62e4/image?inline=true  (same PNG served from this host \u2014 use it if your egress blocks backblaze.pixellab.ai)\ndownload_metadata: https://api.pixellab.ai/mcp/tilesets/2f8e3bd5-175d-4797-9104-c417157e62e4/metadata\n\nplacement: pick each tile by its corner",
+      "path": "assets/sprites/tilesets/pixellab/calibration_grass_dirt_wang.png"
+    }
+  ],
+  "objects": [
+    {
+      "out": "calibration_tree_a.png",
+      "id": "b3267310-98cc-46ed-94e3-3ffa06f9f34c",
+      "queue": "id: b3267310-98cc-46ed-94e3-3ffa06f9f34c\ndescription: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Top-down RPG deciduous tree, medium canopy, brown trunk, clustered green leaf pixels, readable silhouette, transparent background, medium environmental detail, Hunter Online forest prop\nsize: 48x64px\nview: high top-d",
+      "result": "status: completed\nid: b3267310-98cc-46ed-94e3-3ffa06f9f34c\ndescription: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Top-down RPG deciduous tree, medium canopy, brown trunk, clustered green leaf pixels, readable silhouette, transparent background, medium environmental detail, Hunter Online forest prop\nsize: 48x64px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:15\ndownload: https://api.pixellab.ai/mcp/map-objects/b3267310-98cc-46ed-94e3-3ffa06f9f34c/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"b3267310-98cc-46ed-94e3-3ffa06f9f34c\")",
+      "path": "assets/sprites/objects/calibration_tree_a.png"
+    },
+    {
+      "out": "calibration_tree_b.png",
+      "id": "60c67181-7303-45a0-9998-85f7e117176f",
+      "queue": "id: 60c67181-7303-45a0-9998-85f7e117176f\ndescription: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Top-down RPG pine/cypress tree, taller thinner canopy, darker green needle clusters, simple trunk, transparent background, variant of tree family, Hunter Online forest prop\nsize: 40x64px\nview: high top-down\nmode: bas",
+      "result": "status: completed\nid: 60c67181-7303-45a0-9998-85f7e117176f\ndescription: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Top-down RPG pine/cypress tree, taller thinner canopy, darker green needle clusters, simple trunk, transparent background, variant of tree family, Hunter Online forest prop\nsize: 40x64px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:15\ndownload: https://api.pixellab.ai/mcp/map-objects/60c67181-7303-45a0-9998-85f7e117176f/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"60c67181-7303-45a0-9998-85f7e117176f\")",
+      "path": "assets/sprites/objects/calibration_tree_b.png"
+    },
+    {
+      "out": "calibration_bush_a.png",
+      "id": "b55b47c5-dfc6-4b1c-80a8-8a6f0130f6a6",
+      "queue": "id: b55b47c5-dfc6-4b1c-80a8-8a6f0130f6a6\ndescription: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Top-down RPG round leafy bush, soft green pixel clusters, small shadow, transparent background, medium detail, Hunter Online vegetation\nsize: 32x32px\nview: high top-down\nmode: basic\nstatus: processing (~30-90s)\n\nthe ",
+      "result": "status: completed\nid: b55b47c5-dfc6-4b1c-80a8-8a6f0130f6a6\ndescription: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Top-down RPG round leafy bush, soft green pixel clusters, small shadow, transparent background, medium detail, Hunter Online vegetation\nsize: 32x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:15\ndownload: https://api.pixellab.ai/mcp/map-objects/b55b47c5-dfc6-4b1c-80a8-8a6f0130f6a6/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"b55b47c5-dfc6-4b1c-80a8-8a6f0130f6a6\")",
+      "path": "assets/sprites/objects/calibration_bush_a.png"
+    },
+    {
+      "out": "calibration_rock_a.png",
+      "id": null,
+      "queue": "1 validation error for call[create_map_object]\nheight\n  Input should be greater than or equal to 32 [type=greater_than_equal, input_value=24, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/greater_than_equal"
+    },
+    {
+      "out": "calibration_rock_b.png",
+      "id": null,
+      "queue": "1 validation error for call[create_map_object]\nheight\n  Input should be greater than or equal to 32 [type=greater_than_equal, input_value=28, input_type=int]\n    For further information visit https://errors.pydantic.dev/2.13/v/greater_than_equal"
+    },
+    {
+      "out": "calibration_ground_details.png",
+      "id": "c2713ee9-bda2-4a2a-87d9-899acd48f8a0",
+      "queue": "id: c2713ee9-bda2-4a2a-87d9-899acd48f8a0\ndescription: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Top-down RPG ground detail patch: sparse grass tufts, tiny flowers, pebbles and leaf litter on transparent background, reusable decoration strip, Hunter Online environmental storytelling detail\nsize: 48x32px\nview: hi",
+      "result": "status: completed\nid: c2713ee9-bda2-4a2a-87d9-899acd48f8a0\ndescription: HUNTER ONLINE VISUAL STYLE LOCK. Production-ready 2D top-down pixel art. Crisp pixel clusters, hard pixel edges, no anti-aliasing, no photographic textures, no soft gradients, controlled palette, coherent light, game-ready asset. Top-down RPG ground detail patch: sparse grass tufts, tiny flowers, pebbles and leaf litter on transparent background, reusable decoration strip, Hunter Online environmental storytelling detail\nsize: 48x32px\nview: high top-down\nbackground: transparent\ncreated: 2026-09-10 16:15\ndownload: https://api.pixellab.ai/mcp/map-objects/c2713ee9-bda2-4a2a-87d9-899acd48f8a0/download\n\nhint: place_map_object(map_id=\"<map>\", x=..., y=..., object_id=\"c2713ee9-bda2-4a2a-87d9-899acd48f8a0\")",
+      "path": "assets/sprites/objects/calibration_ground_details.png"
+    }
+  ],
+  "characters": [
+    {
+      "name": "npc_calibration_viajante_padokia",
+      "id": "40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf",
+      "queue": "id: 40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf\nname: npc_calibration_viajante_padokia\nmode: standard (1 generation)\ndirections: 4\nbody: humanoid\nsize: 48x48px\nstyle: flat shading, single color black outline, low detail\nstatus: processing (~2-3 minutes)\n\nhint: get_character(character_id=\"40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf\")",
+      "result": "status: completed\nid: 40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf\nname: npc_calibration_viajante_padokia\nstate_name: Idle\ndirections: 4 (south, east, north, west)\nsize: 68x68px\nview: low top-down\nstyle: flat shading, single color black outline, low detail\ngroup: 72dc21e8-9a59-43e6-b30d-e1c74d27aafc (1 state)\n\nrotations:\n  south: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf/rotations/south.png?t=1789056936\n  east: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf/rotations/east.png?t=1789056936\n  north: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf/rotations/north.png?t=1789056936\n  west: https://backblaze.pixellab.ai/file/pixellab-characters/6527f45e-b81b-4b1c-a5a3-7b422bb6a2ce/40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf/rotations/west.png?t=1789056936\n\nanimations: none\n\ndownload: https://api.pixellab.ai/mcp/characters/40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf/download\nspritesheet: https://api.pixellab.ai/mcp/characters/40e0f0b8-43a8-4e50-8271-7e8ead8b6eaf/spritesheet (this state only \u2014 one uniform-grid sheet PNG + layout JSON, zipped; cells pivot-centred)\n\navailable_animations: backflip, breathing-idle, cross-punch, crouched-walking, crouching, drinking, falling-back-death, fight-stance-idle-8-frames, fireball, flying-kick, front-flip, getting-up, high-kick, hurricane-kick, jumping-1, jumping-2, lead-jab, leg-sweep, picking-up, pull-heavy-object, pushing, roundhouse-kick, running-4-frames, running-6-frames, running-8-frames, running-jump, running-slide, sad-walk, scary-walk, surprise-uppercut, taking-punch, throw-object, two-footed-jump, walk, walk-1, walk-2, walking, walking-10, walking-2, walking-3, walking-4, walking-4-frames, walking-5, walking-6, walking-6-frames, walking-7, walking-8, walking-8-frames, walking-9\n\nactions: animate_charac",
+      "path": "assets/sprites/characters/npc_calibration_viajante_padokia_8dir.png"
+    }
+  ],
+  "regenerations": {
+    "character_v3_id": "8937fc48-91f8-44aa-a968-d9c096f5966a",
+    "ground_id": "6dc079f6-76a1-4aa9-a5c4-ec9939004455",
+    "reason": "style lock reject: 68px sclera + empty ground detail"
+  }
+}

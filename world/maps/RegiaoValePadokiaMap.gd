@@ -153,12 +153,52 @@ func _popular_pistas_furto_gyo() -> void:
 		1,
 		Color(0.7, 1.0, 0.55, 0.9)
 	)
+	NenSensorFactory.criar_gyo(
+		self,
+		"PistaValeEstradaEntrada",
+		Vector2(132 * 16, 255 * 16),
+		&"pista_vale_estrada_entrada",
+		"Trilha para a Estrada Real",
+		"Pegadas de aura seguem para o norte — o ladrão fugiu pela rota dos caçadores.",
+		"Especialização",
+		1,
+		Color(0.5, 0.95, 0.85, 0.9)
+	)
+	NenSensorFactory.criar_gyo(
+		self,
+		"PistaValeMoinho",
+		Vector2(105 * 16, 262 * 16),
+		&"pista_vale_moinho",
+		"Resíduo no Moinho",
+		"O moinho da vila guarda poeira de Nen — alguém escondeu Jenny entre as engrenagens.",
+		"Transmutação",
+		1,
+		Color(0.95, 0.8, 0.4, 0.9)
+	)
+	NenSensorFactory.criar_ko(
+		self,
+		"KoObstacleValeAtalho",
+		Vector2(128 * 16, 254 * 16),
+		"Barreira de Pedra no Beco", &"pocao_aura"
+	)
+	NenSensorFactory.criar_zetsu(
+		self,
+		"ZetsuValeBecoNorte",
+		Vector2(122 * 16, 250 * 16),
+		&"vale_beco_salteadores",
+		"Beco Norte Suspeito",
+		Vector2(150, 110),
+		&"ladrao_estrada",
+		"Salteador do Vale"
+	)
 
 
 func _notificar_entrada_regiao() -> void:
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("🗺️ Você entrou no [Vale de Padokia] — Tier 1 (Hunter Iniciante)")
+		hud.exibir_notificacao("🗺️ Vale de Padokia — um objetivo por vez (GPS). Combate mais lento: use Nen.")
+	if EventBus != null:
+		EventBus.emit_toast("Ordem: Wing/SP → Floresta → Ruínas. Marcador ? nos NPCs de missão.", Color(0.85, 0.9, 0.55))
 
 
 func _configurar_audio_ambiente() -> void:
