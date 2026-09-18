@@ -1538,154 +1538,154 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Continente Negro 1/22: A Declaração Global de Beyond Netero"
-					q.description = "Assista ao manifesto público de Beyond Netero desafiando as nações do V5 a cruzar os limites do mundo."
+					q.description = "ORDEM: Fale com Beyond no acampamento (manifesto). Depois Cheadle. Sem rush."
 					q.reward_xp = 240000
 					q.reward_gold = 4000000
 					q.objectives = [_criar_obj_visit(&"beyond", "Beyond Netero")]
 
 				2:
 					q.quest_name = "Continente Negro 2/22: Os Novos Zodíacos: Kurapika e Leorio"
-					q.description = "Kurapika e Leorio assumem oficialmente os assentos de Rato e Javali na mesa dos Zodíacos."
+					q.description = "ORDEM: Fale com Cheadle (Zodíacos). Depois Ging no acampamento."
 					q.reward_xp = 250000
 					q.reward_gold = 4300000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Presidente Cheadle")]
 
 				3:
 					q.quest_name = "Continente Negro 3/22: O Acampamento de Recrutamento de Ging"
-					q.description = "Encontre Ging Freecss no acampamento da expedição e junte-se ao grupo de elite do Novo Mundo."
+					q.description = "ORDEM: Fale com Ging — junte-se à expedição. Depois teste Nen."
 					q.reward_xp = 265000
 					q.reward_gold = 4600000
 					q.objectives = [_criar_obj_visit(&"ging", "Ging Freecss")]
 
 				4:
 					q.quest_name = "Continente Negro 4/22: O Teste de Nen dos Mercenários"
-					q.description = "Demonstre seu refinamento de Ten e Ren perante os especialistas de combate de Beyond."
+					q.description = "ORDEM: Convença / teste Nen com Ging. Depois [G] Lago Mobius."
 					q.reward_xp = 280000
 					q.reward_gold = 4900000
 					q.objectives = [_criar_obj_persuasion(&"ging", "Ging Freecss")]
 
 				5:
 					q.quest_name = "Continente Negro 5/22: O Mapa Secreto do Lago Mobius"
-					q.description = "Analise o mapa ancestral revelando que o mundo humano é apenas uma pequena lagoa cercada por gigantes."
+					q.description = "ORDEM: [G] Inspecione o Mapa do Lago Mobius. Depois [Z] Águas Proibidas."
 					q.reward_xp = 295000
 					q.reward_gold = 5200000
 					q.objectives = [_criar_obj_investigate(&"mapa_lago_mobius")]
 
 				6:
 					q.quest_name = "Continente Negro 6/22: A Travessia das Águas Proibidas"
-					q.description = "Navegue pelas correntes marítimas tempestuosas sob ataque de feras marinhas titânicas."
+					q.description = "ORDEM: [Z] Atravesse as Águas Proibidas em Zetsu. Sem Zetsu = feras. Depois Beyond."
 					q.reward_xp = 310000
 					q.reward_gold = 5500000
 					q.objectives = [_criar_obj_stealth(&"aguas_proibidas")]
 
 				7:
 					q.quest_name = "Continente Negro 7/22: O Desembarque na Costa Selvagem"
-					q.description = "Fixe a bandeira da Associação na praia ancestral e estabeleça o perímetro de defesa do acampamento."
+					q.description = "ORDEM: Fale com Beyond no desembarque. Depois [G] Ruínas Botânicas."
 					q.reward_xp = 325000
 					q.reward_gold = 5800000
 					q.objectives = [_criar_obj_visit(&"beyond", "Beyond Netero")]
 
 				8:
 					q.quest_name = "Continente Negro 8/22: As Ruínas Botânicas Ancestrais"
-					q.description = "Infiltre-se nos templos da antiga civilização vegetal onde repousam sementes de longevidade."
+					q.description = "ORDEM: [G] Inspecione as Ruínas Botânicas. Depois guardiões de Brion (GPS)."
 					q.reward_xp = 340000
 					q.reward_gold = 6100000
 					q.objectives = [_criar_obj_investigate(&"ruinas_botanicas")]
 
 				9:
 					q.quest_name = "Continente Negro 9/22: Os Guardiões Botânicos de Brion"
-					q.description = "Derrote 5 guardiões botânicos de Brion que emergem das raízes milenares."
+					q.description = "ORDEM: Derrote 5 guardiões de Brion (GPS). Espaço de combate. Depois Brion Boss."
 					q.reward_xp = 360000
 					q.reward_gold = 6500000
 					q.objectives = [_criar_obj_kill(&"guardiao_brion", 5)]
 
 				10:
 					q.quest_name = "Continente Negro 10/22: A Calamidade Brion (A Arma Botânica)"
-					q.description = "Enfrente a Calamidade Brion com sua cabeça esférica vegetal destruidora de exércitos!"
+					q.description = "ORDEM: Derrote Brion Boss (GPS). Depois [Z] Caverna Hellbell."
 					q.reward_xp = 380000
 					q.reward_gold = 7000000
 					q.objectives = [_criar_obj_kill(&"brion_boss", 1)]
 
 				11:
 					q.quest_name = "Continente Negro 11/22: O Veneno Sonoro da Serpente Hellbell"
-					q.description = "Proteja sua mente da melodia alucinógena que induz à loucura homicida instantânea."
+					q.description = "ORDEM: [Z] Atravesse a Caverna Hellbell em Zetsu. Depois Hellbell Boss."
 					q.reward_xp = 400000
 					q.reward_gold = 7500000
 					q.objectives = [_criar_obj_stealth(&"caverna_hellbell")]
 
 				12:
 					q.quest_name = "Continente Negro 12/22: A Batalha contra a Serpente Hellbell"
-					q.description = "Derrote a Serpente das Duas Caudas Hellbell Boss com ataques de longo alcance de Ren!"
+					q.description = "ORDEM: Derrote Hellbell Boss (GPS). Espaço de combate. Depois Entidade Ai."
 					q.reward_xp = 425000
 					q.reward_gold = 8000000
 					q.objectives = [_criar_obj_kill(&"hellbell_boss", 1)]
 
 				13:
 					q.quest_name = "Continente Negro 13/22: A Forma Gasosa da Entidade Ai"
-					q.description = "Isole a névoa dos desejos co-dependentes da Entidade Ai antes que ela drene a aura dos cientistas."
+					q.description = "ORDEM: Derrote a Entidade Ai (GPS). Depois Nitro Rice / Árvore."
 					q.reward_xp = 450000
 					q.reward_gold = 8500000
 					q.objectives = [_criar_obj_kill(&"ai_boss", 1)]
 
 				14:
 					q.quest_name = "Continente Negro 14/22: A Coleta do Arroz Nitro"
-					q.description = "Colete amostras das sementes de Nitro Rice que prolongam a vida humana em séculos."
+					q.description = "ORDEM: Colete Nitro Rice (GPS). Depois fale com a Árvore do Mundo."
 					q.reward_xp = 470000
 					q.reward_gold = 9000000
 					q.objectives = [_criar_obj_collect(&"nitro_rice", 1)]
 
 				15:
 					q.quest_name = "Continente Negro 15/22: As Raízes Continentais da Árvore do Mundo"
-					q.description = "Alcance a base da colossal Árvore do Mundo que se alimenta de magma do centro da terra."
+					q.description = "ORDEM: Fale com a Árvore do Mundo (base). Depois feras aladas (GPS)."
 					q.reward_xp = 490000
 					q.reward_gold = 9500000
 					q.objectives = [_criar_obj_visit(&"arvore_mundo", "Árvore do Mundo")]
 
 				16:
 					q.quest_name = "Continente Negro 16/22: As Feras Aladas da Copa Intermediária"
-					q.description = "Derrote 4 feras aladas gigantescas que nidificam nos galhos intermediários a 800m de altura."
+					q.description = "ORDEM: Derrote 4 feras aladas (GPS). Depois escale até o topo."
 					q.reward_xp = 510000
 					q.reward_gold = 10000000
 					q.objectives = [_criar_obj_kill(&"guardiao_brion", 4)]
 
 				17:
 					q.quest_name = "Continente Negro 17/22: A Escalada dos 1.784 Metros"
-					q.description = "Escale o tronco titânico acima da camada de nuvens sob ventos congelantes de alta altitude."
+					q.description = "ORDEM: Fale com a Árvore de novo (escalada). Depois Ging no topo."
 					q.reward_xp = 530000
 					q.reward_gold = 10500000
 					q.objectives = [_criar_obj_visit(&"arvore_mundo", "Árvore do Mundo")]
 
 				18:
 					q.quest_name = "Continente Negro 18/22: O Ninho Gigante da Copa"
-					q.description = "Alcance a plataforma do ninho de criaturas lendárias no cume mais alto da árvore."
+					q.description = "ORDEM: Fale com Ging Freecss no Topo. Depois reencontro / filosofia."
 					q.reward_xp = 550000
 					q.reward_gold = 11000000
 					q.objectives = [_criar_obj_visit(&"ging_topo", "Ging Freecss no Topo")]
 
 				19:
 					q.quest_name = "Continente Negro 19/22: O Reencontro no Topo do Mundo"
-					q.description = "Sente-se sob a brisa infinita com Ging Freecss e contemplem a curvatura do planeta."
+					q.description = "ORDEM: Fale com Ging no Topo de novo. Depois filosofia do Caçador."
 					q.reward_xp = 575000
 					q.reward_gold = 11500000
 					q.objectives = [_criar_obj_visit(&"ging_topo", "Ging Freecss no Topo")]
 
 				20:
 					q.quest_name = "Continente Negro 20/22: A Filosofia do Verdadeiro Caçador"
-					q.description = "Ging explica que o verdadeiro tesouro não é o destino final, mas os companheiros e histórias do caminho."
+					q.description = "ORDEM: Convença / ouça Ging no Topo. Depois [G] Horizonte Sem Fim."
 					q.reward_xp = 600000
 					q.reward_gold = 12000000
 					q.objectives = [_criar_obj_persuasion(&"ging_topo", "Ging Freecss no Topo")]
 
 				21:
 					q.quest_name = "Continente Negro 21/22: O Horizonte Sem Fim"
-					q.description = "Ging aponta para as terras infinitas além do Lago Mobius que aguardam as próximas gerações."
+					q.description = "ORDEM: [G] Inspecione o Horizonte Sem Fim. Depois convite Kakin (Ging)."
 					q.reward_xp = 625000
 					q.reward_gold = 12500000
 					q.objectives = [_criar_obj_investigate(&"horizonte_infinito")]
 
 				22:
 					q.quest_name = "Continente Negro 22/22: O Convite Real de Kakin"
-					q.description = "Receba a convocação de emergência de Kurapika para embarcar na viagem real do navio Black Whale 1!"
+					q.description = "ORDEM: Fale com Ging no Topo — convite Black Whale. Portal só após esta etapa."
 					q.reward_xp = 650000
 					q.reward_gold = 13000000
 					q.objectives = [_criar_obj_visit(&"ging_topo", "Ging Freecss no Topo")]

@@ -130,6 +130,12 @@ func describe() -> String:
 					desc_base = "🔍 [G] Gyo — UTI de Gon (Hospital Hunter)"
 				"plenario_eleicao":
 					desc_base = "🔍 [G] Gyo — Plenário da Eleição"
+				"mapa_lago_mobius":
+					desc_base = "🔍 [G] Gyo — Mapa do Lago Mobius"
+				"ruinas_botanicas":
+					desc_base = "🔍 [G] Gyo — Ruínas Botânicas Ancestrais"
+				"horizonte_infinito":
+					desc_base = "🔍 [G] Gyo — Horizonte Sem Fim"
 				"pista_furto_janela", "pista_furto_pegada", "pista_furto_esconderijo":
 					desc_base = "🔍 [G] Gyo — Pista do furto '%s'" % cid.replace("pista_furto_", "").capitalize()
 				_:
@@ -154,6 +160,10 @@ func describe() -> String:
 					desc_base = "🥷 [Z] Zetsu — Fronteira Fortificada de Goruto"
 				"ngl_vestibulo_tumba":
 					desc_base = "🥷 [Z] Zetsu — Vestíbulo da Tumba Nuclear"
+				"aguas_proibidas":
+					desc_base = "🥷 [Z] Zetsu — Águas Proibidas"
+				"caverna_hellbell":
+					desc_base = "🥷 [Z] Zetsu — Caverna Hellbell"
 				_:
 					desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
 
