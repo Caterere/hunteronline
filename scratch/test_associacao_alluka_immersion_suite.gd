@@ -138,7 +138,7 @@ func _test_map_density() -> void:
 	var fala_a := ""
 	if alluka != null and "fala_padrao" in alluka:
 		fala_a = str(alluka.fala_padrao)
-	_ok("ORDEM" in fala_a and "Nanika" in fala_a, "Alluka fala direta")
+	_ok("ORDEM" in fala_a and ("Cela" in fala_a or "regras" in fala_a), "Alluka fala direta")
 
 	mapa_on.queue_free()
 	PlayerData.despertou_nen = false
