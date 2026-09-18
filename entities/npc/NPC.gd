@@ -76,7 +76,8 @@ func _criar_label_nome() -> void:
 	lbl.position = Vector2(-50, -28)
 	lbl.custom_minimum_size = Vector2(100, 10)
 	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	lbl.add_theme_font_size_override("font_size", 3)
+	# FOV 960×540: size 3 ficou ilegível (era ok em 640×360 com stretch 3×).
+	lbl.add_theme_font_size_override("font_size", HunterUIStyle.FONT_SIZE_SMALL)
 	lbl.add_theme_color_override("font_color", Color(1.0, 0.95, 0.5, 1.0))
 	lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 	lbl.add_theme_constant_override("shadow_offset_x", 1)
