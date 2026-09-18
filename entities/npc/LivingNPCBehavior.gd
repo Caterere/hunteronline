@@ -144,7 +144,7 @@ func _ready() -> void:
 		lbl.text = prefixo_marcador + npc_nome
 		lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		lbl.add_theme_font_size_override("font_size", 6)
+		lbl.add_theme_font_size_override("font_size", HunterUIStyle.FONT_SIZE_SMALL)
 		lbl.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_PRIMARY)
 		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 		lbl.add_theme_constant_override("shadow_offset_x", 1)
@@ -158,7 +158,7 @@ func _ready() -> void:
 			lbl_sub.text = cargo_final
 			lbl_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			lbl_sub.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			lbl_sub.add_theme_font_size_override("font_size", 5)
+			lbl_sub.add_theme_font_size_override("font_size", HunterUIStyle.FONT_SIZE_MICRO)
 			lbl_sub.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_GOLD)
 			lbl_sub.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 			lbl_sub.add_theme_constant_override("shadow_offset_x", 1)

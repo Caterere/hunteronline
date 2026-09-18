@@ -60,13 +60,17 @@ func _ready() -> void:
 		nen_beast_system.setup(self)
 
 	# Configurar Câmera Suave e desacoplada
+	# Zoom 1.5 compensa viewport 960×540 (antes 640×360) para manter silhuetas legíveis.
 	_camera = get_node_or_null("Camera2D") as Camera2D
 	if _camera == null:
 		_camera = Camera2D.new()
 		_camera.name = "Camera2D"
+		_camera.zoom = Vector2(1.5, 1.5)
 		_camera.position_smoothing_enabled = true
 		_camera.position_smoothing_speed = 8.0
 		add_child(_camera)
+	elif _camera.zoom == Vector2.ONE:
+		_camera.zoom = Vector2(1.5, 1.5)
 
 	if EventBus != null and not EventBus.camera_shake_requested.is_connected(_on_camera_shake_requested):
 		EventBus.camera_shake_requested.connect(_on_camera_shake_requested)

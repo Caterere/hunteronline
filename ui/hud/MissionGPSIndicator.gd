@@ -71,7 +71,7 @@ func _criar_overlay_tela() -> void:
 	lbl_target_info.text = "🧭 GPS: Localizando rota..."
 	lbl_target_info.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_target_info.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	lbl_target_info.add_theme_font_size_override("font_size", 3)
+	lbl_target_info.add_theme_font_size_override("font_size", HunterUIStyle.FONT_SIZE_MICRO)
 	lbl_target_info.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3, 1.0))
 	margin.add_child(lbl_target_info)
 
