@@ -30,7 +30,8 @@
 - [x] **Trilha B — Nen no mundo** (sensores Floresta/Ruínas + 2 quests investigativas)
 - [x] **Yorknew imersão** (walkers, falas diretas, clues canônicos plantados, etapas 1–8/13/21 claras)
 - [x] **Greed Island imersão** (densidade Antokiba→Castelo, clues canônicos, ORDEM early + Bomber/Cova)
-- [ ] Continuar GI mid/late polish se play humano pedir; NGL depois
+- [x] **Greed Island mid/late polish** (Hisoka/Killua no mapa, ORDEM 9–36, demônios missão, toasts Aliança/Ginásio/Bomber)
+- [ ] NGL imersão depois (mesmo padrão)
 
 ### Progresso desta sessão
 - [x] Merge PR #48
@@ -47,6 +48,7 @@
 - [x] **Nen no mundo (Trilha B)** — Floresta/Ruínas densificados; quests “Trilha de Aura” + “Selos do Guardião”; Ko registra INVESTIGATE; factory com props reais
 - [x] **Yorknew imersão** — walkers/props/placas intermediárias; Gyo/Zetsu canônicos (`antiguidade_mercado`, `cofre_vazio_leilao`, `requiem_chrollo`, `apagao_yorknew`); falas diretas; canon etapas early com ORDEM
 - [x] **Greed Island imersão** — densificação completa + clues (`livro_greed`, `desfiladeiro_biscuit`, `explosao_bomber`, `armadilha_cova_gon`, `quiz_100_cartas`); mentores ORDEM; suite `test_greed_island_immersion_suite`
+- [x] **Greed Island mid/late** — Hisoka/Killua spawn; ORDEM etapas 9–36; toasts Aliança/Ginásio/Bomber; Gyo porto/ginásio/carta002/sopro; demônios/golems missão; walkers mid/late
 
 ---
 
@@ -245,7 +247,7 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 ### P2 — Conteúdo de sagas (profundidade, não sistemas novos)
 1. Validar play humano Kukuroo/Arena/Floresta/Ruínas densificados.
 2. Raid vertical Continente Negro (depois de Ruínas Zaban solo polish — feito).
-3. ~~Yorknew imersão~~ / ~~Greed Island imersão~~ — densificados + clues canônicos. Play humano valida ritmo longo.
+3. ~~Yorknew imersão~~ / ~~Greed Island imersão + mid/late~~ — densificados + clues + ORDEM 1–36. Play humano valida ritmo longo. NGL é o próximo mapa longo.
 4. Suites: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`, `test_nen_mundo_floresta_ruinas_suite`, `test_yorknew_density_xp_suite`, `test_greed_island_immersion_suite`.
 
 ### P3 — Multiplayer produção (só se o foco for host público)

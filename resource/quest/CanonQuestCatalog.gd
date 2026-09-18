@@ -851,49 +851,49 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				9:
 					q.quest_name = "Greed Island 9/36: O Domínio do Shu (Extensão de Aura)"
-					q.description = "Aprenda a envolver pás, pás de ferro e espadas com sua aura para torná-las indestrutíveis."
+					q.description = "ORDEM: Fale com Biscuit e treine Shu (envolver armas com aura). Um exercício. Depois Ken."
 					q.reward_xp = 56000
 					q.reward_gold = 1000000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				10:
 					q.quest_name = "Greed Island 10/36: O Domínio do Ken (Armadura Contínua)"
-					q.description = "Mantenha o estado de Ren defensivo fortificado por 3 horas seguidas sob ataque de pedras."
+					q.description = "ORDEM: Fale com Biscuit e mantenha Ken sob pressão. Sem pular. Depois Ryu."
 					q.reward_xp = 58000
 					q.reward_gold = 1050000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				11:
 					q.quest_name = "Greed Island 11/36: O Domínio do Ryu (Distribuição Dinâmica)"
-					q.description = "Aprenda a alternar instantaneamente a proporção de aura entre ataque e defesa (70/30, 80/20)."
+					q.description = "ORDEM: Fale com Biscuit e treine Ryu (70/30, 80/20). Depois nasce o Hatsu."
 					q.reward_xp = 60000
 					q.reward_gold = 1100000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				12:
 					q.quest_name = "Greed Island 12/36: O Nascimento do Hatsu Jajanken"
-					q.description = "Gon desenvolve seu golpe supremo: Pedra (Reforço), Tesoura (Transformação) e Papel (Emissão)."
+					q.description = "ORDEM: Fale com Biscuit — finalize o ciclo de treino. Hatsu completo só após zerar GI."
 					q.reward_xp = 62000
 					q.reward_gold = 1150000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				13:
 					q.quest_name = "Greed Island 13/36: A Eletricidade Pura de Killua"
-					q.description = "Killua programa descargas elétricas em suas mãos e empunha dois Yo-yos de liga especial de 50kg."
+					q.description = "ORDEM: Fale com Killua no Desfiladeiro (Yo-yos / eletricidade). Depois caça de monstros (GPS)."
 					q.reward_xp = 64000
 					q.reward_gold = 1200000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				14:
 					q.quest_name = "Greed Island 14/36: A Caçada de Monstros Mágicos"
-					q.description = "Derrote 4 criaturas mágicas da ilha para coletar cartas de bolso com monstros raros."
+					q.description = "ORDEM: Derrote 4 monstros mágicos (GPS nas colinas). Espaço de combate. Depois Tsezguerra."
 					q.reward_xp = 66000
 					q.reward_gold = 1250000
 					q.objectives = [_criar_obj_kill(&"monstro_greed", 4)]
 
 				15:
 					q.quest_name = "Greed Island 15/36: A Aliança com Tsezguerra"
-					q.description = "Encontre o veterano Tsezguerra e combinem táticas para proteger o fichário dos ataques de feitiço."
+					q.description = "ORDEM: Fale com Tsezguerra (aliança). Proteja o Book. Depois [G] marca do Bomber."
 					q.reward_xp = 68000
 					q.reward_gold = 1300000
 					q.objectives = [_criar_obj_visit(&"tsezguerra", "Tsezguerra")]
@@ -907,91 +907,91 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				17:
 					q.quest_name = "Greed Island 17/36: O Pacto com Goreinu"
-					q.description = "Una forças com Goreinu e seus Gorilas de Nen Branco e Preto para disputar a carta nº 002."
+					q.description = "ORDEM: Fale com Goreinu em Soufrabi. Depois Hisoka no lago. [Z] no porto se o GPS pedir."
 					q.reward_xp = 72000
 					q.reward_gold = 1400000
 					q.objectives = [_criar_obj_visit(&"goreinu", "Goreinu")]
 
 				18:
 					q.quest_name = "Greed Island 18/36: O Encontro com Hisoka em Greed Island"
-					q.description = "Encontre Hisoka relaxando no lago sob o pseudônimo de Chrollo e recrute-o para a partida."
+					q.description = "ORDEM: Fale com Hisoka (lago / Soufrabi) e recrute-o. Depois vá ao ginásio de Razor."
 					q.reward_xp = 75000
 					q.reward_gold = 1450000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
 
 				19:
 					q.quest_name = "Greed Island 19/36: A Cidade Portuária de Soufrabi"
-					q.description = "Viaje até o litoral de Soufrabi onde piratas condenados guardam o Litoral do Mar."
+					q.description = "ORDEM: Fale com Razor no porto/ginásio. Sem rush — demônios e queimada vêm depois."
 					q.reward_xp = 78000
 					q.reward_gold = 1500000
 					q.objectives = [_criar_obj_visit(&"razor", "Game Master Razor")]
 
 				20:
 					q.quest_name = "Greed Island 20/36: O Ginásio do Game Master Razor"
-					q.description = "Apresente-se no ginásio do condenado Razor, criador dos feitiços de emissão do jogo."
+					q.description = "ORDEM: Apresente-se a Razor no ginásio. Depois derrote os demônios de Nen (GPS)."
 					q.reward_xp = 80000
 					q.reward_gold = 1550000
 					q.objectives = [_criar_obj_visit(&"razor", "Game Master Razor")]
 
 				21:
 					q.quest_name = "Greed Island 21/36: Os 14 Demônios de Nen de Razor"
-					q.description = "Derrote 6 demônios de Nen emitidos por Razor na primeira rodada do torneio de esportes."
+					q.description = "ORDEM: Derrote 6 demônios de Nen (GPS no ginásio). Espaço de combate. Depois monte o time."
 					q.reward_xp = 85000
 					q.reward_gold = 1650000
 					q.objectives = [_criar_obj_kill(&"demonio_razor", 6)]
 
 				22:
 					q.quest_name = "Greed Island 22/36: A Equipe de Queimada Mortal"
-					q.description = "Monte o time de 8 jogadores com Gon, Killua, Hisoka, Biscuit e Goreinu na quadra central."
+					q.description = "ORDEM: Fale com Goreinu e feche o time da queimada. Um passo — sem rush no saque."
 					q.reward_xp = 88000
 					q.reward_gold = 1700000
 					q.objectives = [_criar_obj_visit(&"goreinu", "Goreinu")]
 
 				23:
 					q.quest_name = "Greed Island 23/36: O Saque Supersônico de Razor"
-					q.description = "Defenda o arremesso de Nen de Razor que quebra o piso do ginásio e nocauteia os defensores."
+					q.description = "ORDEM: Fale com Biscuit antes do saque. Defenda com Ryu — depois Killua segura a bola."
 					q.reward_xp = 92000
 					q.reward_gold = 1800000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Biscuit")]
 
 				24:
 					q.quest_name = "Greed Island 24/36: O Sacrifício das Mãos de Killua"
-					q.description = "Killua segura a bola com as mãos em carne viva para que Gon possa carregar 100% de Jajanken!"
+					q.description = "ORDEM: Fale com Killua (mãos / Yo-yos). Depois derrote Razor Boss (GPS)."
 					q.reward_xp = 96000
 					q.reward_gold = 1900000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				25:
 					q.quest_name = "Greed Island 25/36: O Arremesso Triplo contra Razor"
-					q.description = "Combine o Jajanken de Gon, a Bungee Gum de Hisoka e derrote o Game Master Razor Boss!"
+					q.description = "ORDEM: Derrote o Game Master Razor Boss (GPS). Espaço de combate. Depois receba a Carta 002."
 					q.reward_xp = 105000
 					q.reward_gold = 2200000
 					q.objectives = [_criar_obj_kill(&"razor_boss", 1)]
 
 				26:
 					q.quest_name = "Greed Island 26/36: A Conquista da Carta 002 (Litoral do Mar)"
-					q.description = "Receba a carta de espaço designado nº 002 e ouça de Razor como Ging era orgulhoso do filho."
+					q.description = "ORDEM: Fale com Razor e receba a Carta 002. Depois Biscuit (estratégia Bomber)."
 					q.reward_xp = 110000
 					q.reward_gold = 2300000
 					q.objectives = [_criar_obj_visit(&"razor", "Game Master Razor")]
 
 				27:
 					q.quest_name = "Greed Island 27/36: A Estratégia contra o Trio Bomber"
-					q.description = "Dividir o grupo em 3 frentes para isolar Genthru, Sub e Bara nas montanhas áridas."
+					q.description = "ORDEM: Fale com Biscuit — plano em 3 frentes. Depois combate / Killua / Cova."
 					q.reward_xp = 115000
 					q.reward_gold = 2400000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Biscuit")]
 
 				28:
 					q.quest_name = "Greed Island 28/36: A Verdadeira Força de Biscuit"
-					q.description = "Biscuit assume sua forma colossal de 2,10m e nocauteia o assassino Bara com um único golpe."
+					q.description = "ORDEM: Derrote 2 subordinados do Bomber (GPS no corredor). Depois Killua (armadilha elétrica)."
 					q.reward_xp = 120000
 					q.reward_gold = 2500000
 					q.objectives = [_criar_obj_kill(&"monstro_greed", 2)]
 
 				29:
 					q.quest_name = "Greed Island 29/36: A Armadilha Elétrica de Killua"
-					q.description = "Killua neutraliza Sub usando a condução elétrica de seus dois Yo-yos de 50kg nas pernas."
+					q.description = "ORDEM: Fale com Killua (neutralizar Sub). Depois [Z] na Cova-Armadilha."
 					q.reward_xp = 125000
 					q.reward_gold = 2600000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
@@ -1005,42 +1005,42 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				31:
 					q.quest_name = "Greed Island 31/36: O Jajanken Decisivo contra Genthru"
-					q.description = "Derrote o Bomber supremo Genthru com um Jajanken colossal vindo do alto da cova!"
+					q.description = "ORDEM: Derrote Genthru Bomber (GPS). Espaço de combate. Depois cura / Goreinu."
 					q.reward_xp = 145000
 					q.reward_gold = 3000000
 					q.objectives = [_criar_obj_kill(&"genthru", 1)]
 
 				32:
 					q.quest_name = "Greed Island 32/36: O Sopro do Arcanjo (Carta 017)"
-					q.description = "Materialize a carta mágica de cura 'Breath of Archangel' e cure as mãos e ferimentos de todos."
+					q.description = "ORDEM: Fale com Goreinu (Carta 017 / cura). Depois [G] Quiz das 100 cartas no Castelo."
 					q.reward_xp = 150000
 					q.reward_gold = 3200000
 					q.objectives = [_criar_obj_visit(&"goreinu", "Goreinu")]
 
 				33:
 					q.quest_name = "Greed Island 33/36: O Quiz das 100 Cartas"
-					q.description = "Responda corretamente às perguntas sobre a história e mecânicas das 100 cartas do jogo."
+					q.description = "ORDEM: [G] Inspecione o Altar das 100 Cartas. Depois fale com Elena no castelo."
 					q.reward_xp = 155000
 					q.reward_gold = 3400000
 					q.objectives = [_criar_obj_investigate(&"quiz_100_cartas")]
 
 				34:
 					q.quest_name = "Greed Island 34/36: O Castelo Final da Vitória"
-					q.description = "Apresente-se no castelo de premiação com Elena e os criadores do jogo perante fogos de artifício."
+					q.description = "ORDEM: Fale com Elena no castelo. Depois escolha as três cartas (Accompany)."
 					q.reward_xp = 160000
 					q.reward_gold = 3600000
 					q.objectives = [_criar_obj_visit(&"elena_greed", "Elena (Criadora de Greed Island)")]
 
 				35:
 					q.quest_name = "Greed Island 35/36: As Três Cartas para o Mundo Real"
-					q.description = "Selecione o colar Blue Planet para Biscuit, e o feitiço 'Accompany' camuflado dentro da caixa."
+					q.description = "ORDEM: Fale com Elena — selecione Accompany (e Blue Planet). Depois voo final."
 					q.reward_xp = 170000
 					q.reward_gold = 4000000
 					q.objectives = [_criar_obj_visit(&"elena_greed", "Elena")]
 
 				36:
 					q.quest_name = "Greed Island 36/36: O Voo com Accompany até Nigg"
-					q.description = "Grite 'Accompany to Nigg!' e voe pelos céus rumo ao encontro com o misterioso Caçador!"
+					q.description = "ORDEM: Fale com Elena e use Accompany. Portal NGL só após esta etapa. Sem rush."
 					q.reward_xp = 180000
 					q.reward_gold = 4500000
 					q.objectives = [_criar_obj_visit(&"elena_greed", "Elena")]

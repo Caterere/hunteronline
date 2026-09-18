@@ -102,6 +102,14 @@ func describe() -> String:
 					desc_base = "🔍 [G] Gyo — Marca da Explosão do Bomber"
 				"quiz_100_cartas":
 					desc_base = "🔍 [G] Gyo — Altar das 100 Cartas"
+				"porto_soufrabi":
+					desc_base = "🔍 [G] Gyo — Porto de Soufrabi"
+				"ginasio_razor":
+					desc_base = "🔍 [G] Gyo — Ginásio da Queimada Mortal"
+				"carta_002_litoral":
+					desc_base = "🔍 [G] Gyo — Eco da Carta 002"
+				"sopro_arcanjo":
+					desc_base = "🔍 [G] Gyo — Sopro do Arcanjo (Carta 017)"
 				"pista_furto_janela", "pista_furto_pegada", "pista_furto_esconderijo":
 					desc_base = "🔍 [G] Gyo — Pista do furto '%s'" % cid.replace("pista_furto_", "").capitalize()
 				_:
@@ -120,6 +128,8 @@ func describe() -> String:
 					desc_base = "🥷 [Z] Zetsu — atravesse a Cova-Armadilha"
 				"apagao_yorknew":
 					desc_base = "🥷 [Z] Zetsu — Subestação do Apagão"
+				"greed_ginasio_vestibulo":
+					desc_base = "🥷 [Z] Zetsu — Vestíbulo do Ginásio"
 				_:
 					desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
 
