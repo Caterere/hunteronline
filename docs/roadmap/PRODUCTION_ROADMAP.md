@@ -46,8 +46,10 @@ Itens de quests investigativas, NPCs vivos, eventos de facção, Style Lock Pixe
 2. **Arena Celestial & PvP async** — torre real + ghosts `[x]`
 3. **Multiplayer autoritativo (LAN → VPS)**
    - [x] Dedicated ENet, puppets, 20 TPS, combate RPC, proxies, morte/respawn, server list, AoI/delta
-   - [ ] Master server / matchmaking (frota VPS)
-   - [ ] Compressão / cap de taxa VPS
+   - [x] Master server registry UDP 7780 + announce
+   - [x] Matchmaking filas (`MatchmakingQueue` + `DutyFinderSystem` + linha `QUEUE|` no registry)
+   - [x] Autosave VPS periódico (`ServerStorageManager.persist_all_peers_periodic`)
+   - [x] Compressão DEFLATE + `snapshot_send_hz` / `snapshot_compress` (`ServerConfig`)
    - [x] **PREREQ-2:** revive de aliados (canalização 3s) — ver backlog MMO
    - [x] **PREREQ-1:** sync binário compacto via `NetworkProtocol` — ver backlog MMO
 4. **Progressão** — soft-caps XP/Jenny `[x]`

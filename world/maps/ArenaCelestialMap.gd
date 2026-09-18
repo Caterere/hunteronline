@@ -50,10 +50,10 @@ func _atualizar_marcos_andar() -> void:
 	if player == null:
 		return
 	var x: float = player.global_position.x
-	_tentar_marco("recepcao", x, -50.0, 350.0, "🏛️ Recepção da Arena Celestial — registre-se antes de subir.")
-	_tentar_marco("ringues_inferiores", x, 500.0, 1300.0, "⚔️ Ringues Inferiores — andares de aquecimento.")
-	_tentar_marco("ringues_superiores", x, 1500.0, 2800.0, "🔥 Ringues Superiores — oposição com Nen real.")
-	_tentar_marco("topo", x, 3200.0, 4600.0, "👑 Topo / 200º Andar — apenas mestres sobrevivem aqui.")
+	_tentar_marco("recepcao", x, -50.0, 350.0, "🏛️ Recepção — Fale com a Recepcionista e registre-se [E].")
+	_tentar_marco("ringues_inferiores", x, 500.0, 1300.0, "⚔️ Ringues Inferiores — Derrote lutadores, depois vá ao Dojo (Wing/Teste da Água).")
+	_tentar_marco("ringues_superiores", x, 1500.0, 2800.0, "🔥 Ringues Superiores — Suba andares. GPS marca o próximo lutador.")
+	_tentar_marco("topo", x, 3200.0, 4600.0, "👑 200º Andar — Mestres → Hisoka. Depois portal Yorknew.")
 
 
 func _tentar_marco(id: String, x: float, x_min: float, x_max: float, msg: String) -> void:
@@ -64,6 +64,9 @@ func _tentar_marco(id: String, x: float, x_min: float, x_max: float, msg: String
 	_marcos_notificados[id] = true
 	if EventBus != null:
 		EventBus.emit_toast(msg, Color(0.75, 0.9, 1.0))
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	if hud != null and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao(msg)
 
 
 func _garantir_tower_ui() -> void:
@@ -139,7 +142,7 @@ func _popular_npcs_arco3() -> void:
 		recepcionista.name = "Recepcionista"
 		recepcionista.position = Vector2(50, 0)
 		recepcionista.npc_name = "Recepcionista da Arena"
-		recepcionista.fala_padrao = "Bem-vindo à Arena Celestial! Por favor, preencha este formulário para se registrar. Boa sorte nas lutas e tente não morrer nos andares mais altos!"
+		recepcionista.fala_padrao = "Ordem: 1) Registre-se aqui. 2) Suba o corredor e derrote os lutadores do GPS. 3) No 50º, fale com Wing e faça o Teste da Água [E]. Sem Nen, não avance ao topo."
 		NpcSpriteBinder.aplicar(recepcionista, ["npc_recepcionista_elena"])
 		add_child(recepcionista)
 
@@ -149,7 +152,7 @@ func _popular_npcs_arco3() -> void:
 		zushi.name = "Zushi"
 		zushi.position = Vector2(1000, -80)
 		zushi.npc_name = "Zushi"
-		zushi.fala_padrao = "Osu! Sou Zushi, discípulo do mestre Wing! Estou aprendendo o estilo Shingen-ryu de Kung Fu. Preciso treinar mais duro! Osu!"
+		zushi.fala_padrao = "Osu! Fale com o Mestre Wing agora. Depois [E] no Teste da Água ao lado. Sem isso, o Nen não desperta. Osu!"
 		NpcSpriteBinder.aplicar(zushi, ["npc_discipulo_zushi"])
 		add_child(zushi)
 
@@ -311,6 +314,8 @@ func _densificar_corredor_arena() -> void:
 		{"name": "LutadorAmbient_D", "pos": Vector2(2500, 40), "label": "Lutador do Corredor (160º)"},
 		{"name": "LutadorAmbient_E", "pos": Vector2(2900, -50), "label": "Lutador do 180º"},
 		{"name": "LutadorAmbient_F", "pos": Vector2(3200, 70), "label": "Desafiante do Corredor"},
+		{"name": "LutadorAmbient_G", "pos": Vector2(700, 60), "label": "Sparring do 15º"},
+		{"name": "LutadorAmbient_H", "pos": Vector2(2700, -70), "label": "Olheiro do 170º"},
 	]
 	for f in fillers:
 		if get_node_or_null(f["name"]) != null:
@@ -327,13 +332,13 @@ func _densificar_corredor_arena() -> void:
 			es.enemy_name = f["label"]
 		add_child(mob)
 
-	# Placas de andar — quebram o corredor vazio
+	# Placas de andar — quebram o corredor vazio + próximo passo
 	var placas := [
-		{"name": "PlacaAndar1", "pos": Vector2(200, -60), "text": "📍 1º Andar — Recepção"},
-		{"name": "PlacaAndar50", "pos": Vector2(1000, -140), "text": "📍 50º Andar — Dojo Wing"},
-		{"name": "PlacaAndar100", "pos": Vector2(1600, -160), "text": "📍 100º Andar — Ringues Médios"},
-		{"name": "PlacaAndar190", "pos": Vector2(2100, -140), "text": "📍 190º Andar — Pré-Final"},
-		{"name": "PlacaAndar200", "pos": Vector2(3400, -140), "text": "📍 200º Andar — Topo"},
+		{"name": "PlacaAndar1", "pos": Vector2(200, -60), "text": "📍 1º — Recepção → registre-se"},
+		{"name": "PlacaAndar50", "pos": Vector2(1000, -140), "text": "📍 50º — Wing + Teste da Água"},
+		{"name": "PlacaAndar100", "pos": Vector2(1600, -160), "text": "📍 100º — Ringues Médios"},
+		{"name": "PlacaAndar190", "pos": Vector2(2100, -140), "text": "📍 190º — Pré-Final"},
+		{"name": "PlacaAndar200", "pos": Vector2(3400, -140), "text": "📍 200º — Hisoka / Saída"},
 	]
 	for p in placas:
 		if get_node_or_null(p["name"]) != null:
@@ -351,6 +356,35 @@ func _densificar_corredor_arena() -> void:
 		marker.add_child(lbl)
 		add_child(marker)
 
+	_plantar_props_estrutura_arena()
+
+
+## Postes de treino + marcos no corredor (leitura espacial).
+func _plantar_props_estrutura_arena() -> void:
+	if get_node_or_null("PropsEstruturaArena") != null:
+		return
+	var root := Node2D.new()
+	root.name = "PropsEstruturaArena"
+	add_child(root)
+	var specs := [
+		{"name": "PosteTreino_Dojo", "pos": Vector2(1080, 40), "tex": "res://assets/sprites/objects/arena_training_post.png"},
+		{"name": "PosteTreino_100", "pos": Vector2(1550, 50), "tex": "res://assets/sprites/objects/arena_training_post.png"},
+		{"name": "BonecoTreino_50", "pos": Vector2(920, 70), "tex": "res://assets/sprites/objects/boneco_treino_dummy.png"},
+		{"name": "MarcoPedra_190", "pos": Vector2(2050, 30), "tex": "res://assets/sprites/objects/marco_pedra_milestone.png"},
+		{"name": "MarcoPedra_200", "pos": Vector2(3300, 40), "tex": "res://assets/sprites/objects/marco_pedra_milestone.png"},
+	]
+	for s in specs:
+		var n := Node2D.new()
+		n.name = s["name"]
+		n.position = s["pos"]
+		var spr := Sprite2D.new()
+		spr.centered = true
+		spr.position = Vector2(0, -14)
+		spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		if ResourceLoader.exists(s["tex"]):
+			spr.texture = load(s["tex"])
+		n.add_child(spr)
+		root.add_child(n)
 
 
 ## Espectadores / lutadores offline com sheet PixelLab ambient.
@@ -359,8 +393,12 @@ func _popular_espectadores_arena() -> void:
 	if scn_npc == null:
 		return
 	var specs := [
-		{"name": "LutadorTreinoA", "pos": Vector2(1200, 90), "npc": "Lutador de Aquecimento", "fala": "O 50º andar já quebra muita gente. Treine o ritmo de respiração!", "ids": ["npc_lutador_arena_ambient"]},
-		{"name": "LutadorTreinoB", "pos": Vector2(2200, -90), "npc": "Lutador do Corredor", "fala": "Hisoka assiste de cima. Não dê espetáculo cedo demais.", "ids": ["npc_lutador_arena_ambient"]},
+		{"name": "LutadorTreinoA", "pos": Vector2(1200, 90), "npc": "Lutador de Aquecimento", "fala": "Dojo à frente: Wing → Teste da Água [E]. Sem Nen, o 100º esmaga você.", "ids": ["npc_lutador_arena_ambient"], "r": 42.0},
+		{"name": "LutadorTreinoB", "pos": Vector2(2200, -90), "npc": "Lutador do Corredor", "fala": "Hisoka fica no 200º. Siga o GPS — um lutador de missão por vez. Não rush.", "ids": ["npc_lutador_arena_ambient"], "r": 48.0},
+		{"name": "ArbitroRingue", "pos": Vector2(600, -50), "npc": "Árbitro do Ringue", "fala": "Ringue inferior: derrote o lutador marcado no GPS, depois avance leste.", "ids": ["npc_guarda_fronteira", "npc_lutador_arena_ambient"], "r": 36.0},
+		{"name": "MedicoArena", "pos": Vector2(1450, -100), "npc": "Médico da Arena", "fala": "Curativos depois do combate. Próximo: Wing no 50º se ainda não despertou Nen.", "ids": ["npc_recepcionista_elena", "npc_viajante_scout"], "r": 40.0},
+		{"name": "ApostadorNervoso", "pos": Vector2(2800, 80), "npc": "Apostador Nervoso", "fala": "Topo à frente. Mate os mestres na ordem do GPS, depois Hisoka. Portal Yorknew só após as 26 etapas.", "ids": ["npc_viajante_scout"], "r": 44.0},
+		{"name": "FanHisoka", "pos": Vector2(3600, 50), "npc": "Fã do 200º", "fala": "Hisoka está aqui. Termine a missão dele e use o PortalYorknew.", "ids": ["npc_lutador_arena_ambient"], "r": 38.0},
 	]
 	for s in specs:
 		if get_node_or_null(s["name"]) != null:
@@ -376,7 +414,7 @@ func _popular_espectadores_arena() -> void:
 		living.npc_nome = s["npc"]
 		living.tipo_marcador = "ambient"
 		living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
-		living.raio_patrulha = 42.0
+		living.raio_patrulha = float(s["r"])
 		npc.add_child(living)
 		add_child(npc)
 

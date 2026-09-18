@@ -53,22 +53,26 @@ func _process(_delta: float) -> void:
 	if px >= 0 and px < 1600 and not _marcos_notificados["tunel"]:
 		_marcos_notificados["tunel"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🏃 1ª Fase: Maratona Subterrânea de Zaban (80km)")
+			hud.exibir_notificacao("🏃 1ª Fase: Maratona — corra para o LESTE pelo corredor (GPS marca o Portão)")
+		if EventBus != null:
+			EventBus.emit_toast("Siga o GPS. Evite emboscadas; use o corredor central.", Color(0.9, 0.85, 0.5))
 
 	elif px >= 1600 and px < 3800 and not _marcos_notificados["pantanal"]:
 		_marcos_notificados["pantanal"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🌫️ Pantanal Numere — O Ninho dos Trapaceiros")
+			hud.exibir_notificacao("🌫️ Pantanal Numere — continue LESTE; cuidado com trapaceiros")
+		if EventBus != null:
+			EventBus.emit_toast("Objetivo: atravessar o pantanal vivo até a Floresta Gourmet.", Color(0.7, 0.9, 0.8))
 
 	elif px >= 3800 and px < 5400 and not _marcos_notificados["floresta_gourmet"]:
 		_marcos_notificados["floresta_gourmet"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🍖 Floresta Biska — 2ª Fase: Hunters Gourmet (Menchi & Buhara)")
+			hud.exibir_notificacao("🍖 Floresta Biska — 2ª Fase Gourmet (Menchi & Buhara) → LESTE")
 
 	elif px >= 5400 and not _marcos_notificados["portao_final"]:
 		_marcos_notificados["portao_final"] = true
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🚪 Portão de Chegada do 287º Exame Hunter")
+			hud.exibir_notificacao("🚪 Portão Final — interaja [E] para concluir a etapa do Exame")
 
 
 func _garantir_dialogue_ui() -> void:
@@ -236,6 +240,34 @@ func _densificar_zonas_exame() -> void:
 	# Mantém gancho local para expansões específicas do arco 1.
 	if get_node_or_null("PlacaDistritoTunel") == null:
 		push_warning("[ExameMaratonaMap] SagaDistrictKit não aplicou distritos — verifique class_name.")
+	_popular_sensores_nen_exame()
+
+
+func _popular_sensores_nen_exame() -> void:
+	# Pista sempre legível no início — reforça que Gyo existe antes do despertar formal.
+	var marca = NenSensorFactory.criar_gyo(
+		self, "GyoPistaMarcaSabotador", Vector2(420, -20),
+		&"exame_marca_sabotador", "Marca de Sabotagem no Chão",
+		"Riscos no piso indicam que alguém derrubou candidatos à frente. Com Gyo, a aura do culpado ainda brilha.",
+		"Manipulação", 1, Color(0.9, 0.45, 0.35, 0.9)
+	)
+	if marca != null:
+		marca.requer_gyo = false
+		marca.nivel_gyo_minimo = 0
+
+	if PlayerData != null and PlayerData.despertou_nen:
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaPortaoChegada", Vector2(5600, -20),
+			&"exame_portao_chegada", "Pressão no Portão Final",
+			"Netero deixou uma camada de aura no portão — só quem dominou Gyo percebe o aviso silencioso.",
+			"Emissão", 2, Color(0.55, 0.85, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaFlorestaGourmet", Vector2(4100, -20),
+			&"exame_gourmet_rastro", "Rastro de Caça Gourmet",
+			"Fragmentos de aura de Menchi e Buhara marcam onde os javalis foram domados.",
+			"Intensificação", 1, Color(1.0, 0.65, 0.25, 0.9)
+		)
 
 
 ## NPCs/inimigos do .tscn estavam em Y extremos (-300..-900) fora do corredor walkable (Y≈0).

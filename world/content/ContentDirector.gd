@@ -30,6 +30,10 @@ var active_events: Array = []
 var active_encounters: Array = []
 var registered_pois: Array = []
 
+# Nós visuais spawnados (id → Node2D) — o director antigo só guardava dados
+var _spawn_root: Node2D = null
+var _spawned_nodes: Dictionary = {}
+
 # Rastreamento de Distância e Posição do Jogador
 var last_player_pos: Vector2 = Vector2.ZERO
 var last_event_pos: Vector2 = Vector2.ZERO
@@ -51,18 +55,26 @@ var current_zone_name: String = "Vila de Padokia (SAFE)"
 # RNG Determinístico com Seed
 var rng: RandomNumberGenerator = RandomNumberGenerator.new()
 
+const NPC_SCENE := "res://entities/npc/NPC.tscn"
+const ENEMY_SCENE := "res://scripts/systems/EnemySystem/Enemy.tscn"
+const LivingNPCBehaviorScript = preload("res://entities/npc/LivingNPCBehavior.gd")
+
 
 func _ready() -> void:
 	if config == null:
 		config = RegionContentConfigScript.create_default()
-		
+
+	_spawn_root = Node2D.new()
+	_spawn_root.name = "ContentDirectorSpawns"
+	add_child(_spawn_root)
+
 	rng.seed = config.seed_val
 	_inicializar_pois_padrao()
 	_inicializar_populacao_base()
-	
+
 	if player_node == null:
 		player_node = get_tree().get_first_node_in_group("player") as Node2D
-		
+
 	if player_node != null:
 		last_player_pos = player_node.global_position
 		last_event_pos = last_player_pos
@@ -198,6 +210,7 @@ func _tentar_spawn_encontro_ambiental(player_pos: Vector2) -> void:
 		distance_since_last_encounter = 0.0
 		timer_encounter_cooldown = rng.randf_range(config.encounter_min_interval_sec, config.encounter_max_interval_sec)
 		target_next_encounter_distance = rng.randf_range(300.0, 600.0)
+		_materializar_encontro(enc)
 		print("[ContentDirector] Encontro contextual ativado: %s em %s" % [enc.title, enc.pos])
 
 
@@ -273,16 +286,17 @@ func _tentar_spawn_evento_dinamico(player_pos: Vector2) -> void:
 		distance_since_last_event = 0.0
 		timer_event_cooldown = rng.randf_range(config.event_min_interval_sec, config.event_max_interval_sec)
 		target_next_event_distance = rng.randf_range(600.0, 1100.0)
+		_materializar_evento(ev)
 		print("[ContentDirector] Evento dinâmico iniciado: %s em %s" % [ev.title, ev.spawn_pos])
 
 
 func _verificar_populacao_pve_local(player_pos: Vector2) -> void:
 	var profile = config.zone_profiles.get(current_risk, {})
 	var pve_density = profile.get("pve_density", 0.0)
-	
+
 	if pve_density <= 0.0:
 		return # Zona Segura tem ZERO monstros
-		
+
 	var limite_zona = int(config.max_active_enemies * pve_density)
 	if active_enemies.size() < limite_zona and rng.randf() < 0.15:
 		var spawn_pos = _calcular_posicao_spawn_periferica(player_pos)
@@ -290,9 +304,11 @@ func _verificar_populacao_pve_local(player_pos: Vector2) -> void:
 			"id": "mob_%d" % rng.randi(),
 			"pos": spawn_pos,
 			"risk": current_risk,
-			"is_elite": (rng.randf() <= config.elite_spawn_chance)
+			"is_elite": (rng.randf() <= config.elite_spawn_chance),
+			"enemy_id": _enemy_id_para_risco(current_risk)
 		}
 		active_enemies.append(enemy_info)
+		_materializar_inimigo(enemy_info)
 
 
 func _calcular_posicao_spawn_periferica(center: Vector2) -> Vector2:
@@ -322,20 +338,133 @@ func _gerenciar_despawn_e_ciclo_de_vida(player_pos: Vector2) -> void:
 	# Limpar Inimigos distantes
 	for i in range(active_enemies.size() - 1, -1, -1):
 		var e = active_enemies[i]
-		if player_pos.distance_to(e["pos"]) > config.despawn_radius:
+		var epos: Vector2 = e.get("pos", Vector2.ZERO)
+		var node: Node = e.get("node")
+		if node != null and is_instance_valid(node):
+			epos = (node as Node2D).global_position
+			e["pos"] = epos
+		if player_pos.distance_to(epos) > config.despawn_radius:
+			_liberar_spawned(str(e.get("id", "")))
 			active_enemies.remove_at(i)
-			
+
 	# Limpar Encontros distantes
 	for i in range(active_encounters.size() - 1, -1, -1):
 		var enc = active_encounters[i] as Resource
 		if enc and player_pos.distance_to(enc.pos) > config.despawn_radius:
+			_liberar_spawned(str(enc.id))
 			active_encounters.remove_at(i)
-			
+
 	# Limpar Eventos distantes ou expirados
 	for i in range(active_events.size() - 1, -1, -1):
 		var ev = active_events[i] as Resource
 		if ev and player_pos.distance_to(ev.spawn_pos) > config.despawn_radius:
+			_liberar_spawned(str(ev.id))
 			active_events.remove_at(i)
+
+
+func _enemy_id_para_risco(risk: int) -> StringName:
+	match risk:
+		1:
+			return &"ladrao_estrada" if rng.randf() > 0.5 else &"slime"
+		2:
+			return &"fera_floresta" if rng.randf() > 0.45 else &"lobo_padokia"
+		3:
+			return &"sentinela_pedra"
+		4:
+			return &"predador_miasma"
+		_:
+			return &"slime"
+
+
+func _materializar_encontro(enc: Resource) -> void:
+	if enc == null or not ResourceLoader.exists(NPC_SCENE):
+		return
+	var scn: PackedScene = load(NPC_SCENE) as PackedScene
+	if scn == null:
+		return
+	var npc: Node = scn.instantiate()
+	if npc == null:
+		return
+	npc.name = "Encounter_%s" % str(enc.id)
+	if "npc_name" in npc:
+		npc.npc_name = str(enc.title)
+	if "fala_padrao" in npc:
+		npc.fala_padrao = str(enc.dialogue_text)
+	_spawn_root.add_child(npc)
+	(npc as Node2D).global_position = enc.pos
+	var living = LivingNPCBehaviorScript.new()
+	living.name = "LivingNPCBehavior"
+	living.npc_nome = str(enc.title)
+	living.raio_patrulha = 48.0
+	living.hierarchy = LivingNPCBehaviorScript.NPCHierarchy.COMMON
+	npc.add_child(living)
+	_spawned_nodes[str(enc.id)] = npc
+	_notificar_conteudo(str(enc.title), Color(0.75, 0.9, 1.0))
+
+
+func _materializar_evento(ev: Resource) -> void:
+	if ev == null:
+		return
+	_notificar_conteudo(str(ev.title), Color(1.0, 0.85, 0.45))
+	# Eventos hostis → 1–2 inimigos; mercantis → NPC
+	var t: int = int(ev.type) if "type" in ev else -1
+	var WorldEventDataScriptLocal = WorldEventDataScript
+	var is_merchant: bool = (t == WorldEventDataScriptLocal.EventType.MERCHANT)
+	if is_merchant:
+		var fake_enc = AmbientEncounterDataScript.new()
+		fake_enc.id = str(ev.id)
+		fake_enc.title = str(ev.title)
+		fake_enc.dialogue_text = str(ev.description)
+		fake_enc.pos = ev.spawn_pos
+		fake_enc.encounter_type = AmbientEncounterDataScript.EncounterType.WANDERING_MERCHANT
+		_materializar_encontro(fake_enc)
+		return
+	var count: int = 2 if current_risk >= 2 else 1
+	for i in range(count):
+		var info := {
+			"id": "%s_mob%d" % [str(ev.id), i],
+			"pos": ev.spawn_pos + Vector2(rng.randf_range(-40, 40), rng.randf_range(-40, 40)),
+			"risk": current_risk,
+			"is_elite": current_risk >= 3 and i == 0,
+			"enemy_id": _enemy_id_para_risco(maxi(1, current_risk))
+		}
+		active_enemies.append(info)
+		_materializar_inimigo(info)
+
+
+func _materializar_inimigo(info: Dictionary) -> void:
+	if not ResourceLoader.exists(ENEMY_SCENE):
+		return
+	var scn: PackedScene = load(ENEMY_SCENE) as PackedScene
+	if scn == null:
+		return
+	var enemy: Node = scn.instantiate()
+	if enemy == null:
+		return
+	enemy.name = "DirectorEnemy_%s" % str(info.get("id", "x"))
+	if "enemy_id" in enemy:
+		enemy.enemy_id = info.get("enemy_id", &"slime")
+	_spawn_root.add_child(enemy)
+	(enemy as Node2D).global_position = info.get("pos", Vector2.ZERO)
+	info["node"] = enemy
+	_spawned_nodes[str(info.get("id", ""))] = enemy
+
+
+func _liberar_spawned(id_key: String) -> void:
+	if id_key.is_empty() or not _spawned_nodes.has(id_key):
+		return
+	var n: Node = _spawned_nodes[id_key]
+	_spawned_nodes.erase(id_key)
+	if n != null and is_instance_valid(n):
+		n.queue_free()
+
+
+func _notificar_conteudo(titulo: String, cor: Color) -> void:
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast(titulo, cor)
+	var hud = get_tree().get_first_node_in_group("player_hud") if is_inside_tree() else null
+	if hud != null and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao(titulo)
 
 
 # ============================================================
@@ -353,14 +482,43 @@ func _inicializar_pois_padrao() -> void:
 
 
 func _inicializar_populacao_base() -> void:
-	# NPCs urbanos fixos na vila com rotinas
+	# NPCs urbanos fixos na vila com rotinas (dados + visual leve — não duplica Wing/Duran do generator)
 	active_npcs = [
-		{"id": "npc_mestre_wing", "name": "Mestre Wing", "pos": Vector2(1100, 3800), "role": "DOJO_MASTER"},
-		{"id": "npc_ferreiro_padokia", "name": "Ferreiro Duran", "pos": Vector2(1350, 3950), "role": "BLACKSMITH"},
-		{"id": "npc_mercador_zaban", "name": "Mercador Zael", "pos": Vector2(1200, 4150), "role": "MERCHANT"},
 		{"id": "npc_cacador_novato", "name": "Explorador Ron", "pos": Vector2(1050, 4200), "role": "HUNTER_NPC"},
-		{"id": "npc_ancio_erudito", "name": "Ancião Garen", "pos": Vector2(1400, 3750), "role": "SCHOLAR"}
+		{"id": "npc_ancio_erudito", "name": "Ancião Garen", "pos": Vector2(1400, 3750), "role": "SCHOLAR"},
+		{"id": "npc_crianca_praca", "name": "Mia da Praça", "pos": Vector2(1180, 4100), "role": "COMMON"},
+		{"id": "npc_guarda_sul", "name": "Guarda da Porta Sul", "pos": Vector2(1280, 4300), "role": "COMMON"}
 	]
+	call_deferred("_materializar_populacao_base")
+
+
+func _materializar_populacao_base() -> void:
+	if not ResourceLoader.exists(NPC_SCENE):
+		return
+	var scn: PackedScene = load(NPC_SCENE) as PackedScene
+	if scn == null:
+		return
+	for info in active_npcs:
+		if _spawned_nodes.has(str(info.get("id", ""))):
+			continue
+		var npc: Node = scn.instantiate()
+		if npc == null:
+			continue
+		npc.name = "Base_%s" % str(info.get("id", "npc"))
+		if "npc_name" in npc:
+			npc.npc_name = str(info.get("name", "Cidadão"))
+		if "fala_padrao" in npc:
+			npc.fala_padrao = "O Vale de Padokia parece calmo… até você sair da praça. Fale com Wing se ainda não despertou Nen."
+		_spawn_root.add_child(npc)
+		(npc as Node2D).global_position = info.get("pos", Vector2.ZERO)
+		var living = LivingNPCBehaviorScript.new()
+		living.name = "LivingNPCBehavior"
+		living.npc_nome = str(info.get("name", "Cidadão"))
+		living.raio_patrulha = 70.0
+		living.hierarchy = LivingNPCBehaviorScript.NPCHierarchy.COMMON
+		npc.add_child(living)
+		info["node"] = npc
+		_spawned_nodes[str(info.get("id", ""))] = npc
 
 
 # ============================================================

@@ -12,12 +12,12 @@ const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit
 
 @export_category("AI")
 
-@export var detection_range: float = 260.0
-@export var attack_range: float = 48.0
-@export var move_speed: float = 88.0
-@export var stop_distance: float = 32.0
+@export var detection_range: float = 220.0
+@export var attack_range: float = 52.0
+@export var move_speed: float = 58.0
+@export var stop_distance: float = 36.0
 
-var attack_cooldown: float = 1.25
+var attack_cooldown: float = 1.55
 var attack_timer: float = 0.0
 
 
@@ -29,7 +29,7 @@ var attack_timer: float = 0.0
 
 @export var chase_player: bool = true
 @export var return_to_position: bool = true
-@export var return_speed: float = 35.0
+@export var return_speed: float = 28.0
 
 
 # =========================================================
@@ -465,10 +465,15 @@ func _executar_terremoto_com_telegrafia() -> void:
 
 	var centro_ataque: Vector2 = enemy_body.global_position
 	var raio_ataque: float = 150.0 if is_fase_3 else 120.0
-	var tempo_aviso: float = 0.40
+	# Solo-readable telegraph: círculo no chão + tempo para sair
+	var tempo_aviso: float = 1.15 if is_fase_3 else 1.0
+	if enemy_system != null and enemy_system.is_boss:
+		tempo_aviso = 1.35 if is_fase_3 else 1.2
 
-	ComicBalloon.mostrar(enemy_body, "⚠️ TERREMOTO ANCESTRAL!", 1.6, -45.0)
+	ComicBalloon.mostrar(enemy_body, "⚠️ TERREMOTO — SAIA DO CÍRCULO!", 1.8, -45.0)
 	_criar_indicador_chao_aoe(centro_ataque, raio_ataque, tempo_aviso)
+	if EventBus != null and enemy_system != null and enemy_system.is_boss:
+		EventBus.emit_toast("◎ Círculo vermelho = perigo. Saia antes do impacto!", Color(1.0, 0.45, 0.25))
 
 	# Aguarda a telegrafia terminar antes de aplicar o dano de impacto
 	await get_tree().create_timer(tempo_aviso).timeout
@@ -734,6 +739,9 @@ func _iniciar_prepare_attack() -> void:
 func _obter_windup() -> float:
 	if enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.attack_windup > 0.0:
 		return enemy_system.enemy_data.attack_windup
+	# Bosses: windup mais longo para Hatsu/esquiva legíveis em solo
+	if enemy_system != null and enemy_system.is_boss:
+		return 0.55
 	var role: String = _obter_role()
 	match role:
 		"fast": return 0.15

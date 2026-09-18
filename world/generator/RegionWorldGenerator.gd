@@ -631,6 +631,11 @@ func _instanciar_npcs_e_inimigos() -> void:
 	_instanciar_npc_vila("Ferreiro Duran", Vector2(85 * 16, 260 * 16), "res://entities/npc/NPC.tscn", "Mestre Forjador", "blacksmith", LivingNPCBehavior.NPCHierarchy.FUNCTIONAL)
 	_instanciar_npc_vila("Guarda da Vila", Vector2(130 * 16, 250 * 16), "res://entities/npc/NPC.tscn", "Guarda Patrulheiro", "", LivingNPCBehavior.NPCHierarchy.COMMON)
 	_instanciar_npc_vila("Cidadão Nicol", Vector2(75 * 16, 248 * 16), "res://entities/npc/nicol/Nicol.tscn", "Candidato Hunter", "recurring", LivingNPCBehavior.NPCHierarchy.RECURRING)
+	# Vila mais viva: rotinas e rumores na praça (não no lobby)
+	_instanciar_npc_vila("Feirante Lena", Vector2(92 * 16, 255 * 16), "res://entities/npc/NPC.tscn", "Feirante da Praça", "", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Mensageiro Posto", Vector2(112 * 16, 252 * 16), "res://entities/npc/NPC.tscn", "Mensageiro da Associação", "quest", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Aprendiz de Nen", Vector2(98 * 16, 265 * 16), "res://entities/npc/NPC.tscn", "Aprendiz do Dojo", "", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Pescador do Rio", Vector2(140 * 16, 268 * 16), "res://entities/npc/NPC.tscn", "Pescador Local", "", LivingNPCBehavior.NPCHierarchy.COMMON)
 	
 	# 2. NPCs no Mundo (Estrada, Floresta e Entrada de Dungeon)
 	_instanciar_npc_vila("Explorador da Estrada", Vector2(180 * 16, 260 * 16), "res://entities/npc/NPC.tscn", "Viajante Aventureiro", "quest", LivingNPCBehavior.NPCHierarchy.COMMON)
