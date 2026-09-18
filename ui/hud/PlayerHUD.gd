@@ -20,7 +20,8 @@ const AchievementsUI = preload("res://ui/Achievements/AchievementsUI.gd")
 const NenQuickActionBarScript = preload("res://ui/hud/NenQuickActionBar.gd")
 const ConditionTrackerUIScript = preload("res://ui/hud/ConditionTrackerUI.gd")
 
-const HUD_SCALE: float = 0.75
+# Escala visual do HUD (viewport 960×540). 1.35 ≈ 80% maior que o 0.75 anterior.
+const HUD_SCALE: float = 1.35
 
 # Referências
 var xp_system: XPSystem = null
@@ -195,7 +196,7 @@ func _criar_card_jogador_top_left() -> void:
 		old_margin.visible = false
 
 	# Raiz: header + 3 frames de barra SEPARADOS (refs Mini Medieval / Fantasy HUD)
-	# Escala ~75% para liberar visão em 640×360
+	# Escala via HUD_SCALE (1.35 = +80% vs 0.75) para legibilidade em 960×540
 	var root := VBoxContainer.new()
 	root.name = "PlayerHudRoot"
 	root.set_anchors_preset(Control.PRESET_TOP_LEFT)
