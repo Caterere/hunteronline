@@ -1,8 +1,8 @@
 # Hunter Online — Estado Atual do Jogo (Handoff para Agente)
 
-> **Data do snapshot:** 2026-09-18 (atualizado na sessão A–D)  
-> **Branch de trabalho:** `cursor/session-abcd-merge48-dab2` (PR #51)  
-> **Branch base histórico:** `main` @ handoff + merge PR #48  
+> **Data do snapshot:** 2026-09-18 (auditoria progressão arcos 1–9)  
+> **Branch de trabalho:** `cursor/arcs-progression-audit-dab2`  
+> **Branch base histórico:** `main` @ `548a152` (PR #52 Yorknew bugfix)  
 > **Objetivo deste doc:** handoff completo para outro agent continuar o trabalho sem redescobrir o projeto.  
 > **Regra de ouro:** código e cenas vencem docs desatualizados. Em conflito design vs código → preferir código e reportar.
 
@@ -63,6 +63,7 @@
 - [x] **Black Whale / Sucessão** — densificação Convés1→Máfia→Aposentos→Profundos; clues (`primeiro_assassinato_kakin`, `seita_heilly`, `besta_tserriednich`, `aposentos_tserriednich`); Hisoka/Cheadle; Chrollo persuasion; ORDEM 1–26; suite `test_black_whale_immersion_suite`
 - [x] **Fechamento A–D** — Yorknew ORDEM 34/34 + clues mid/late; smoke `test_session_abcd_final_smoke_suite` (arcos 4–9); battery imersão 0 fails; merge PR #51
 - [x] **Bugfix pós-merge** — Yorknew: Killua/Silva faltavam (etapas 16–17); fillers mafioso/clone; `chrollo_boss` id; suite progression match
+- [x] **Auditoria arcos 1–9** — suites `test_arcs_1_3_and_edge_audit_suite` (16/16) + `test_arcs_5_9_progression_audit_suite` (88/88); plantio IDs canônicos Exame/Kukuroo/Arena + Netero no Exame
 
 ---
 
@@ -262,7 +263,7 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 1. Validar play humano Kukuroo/Arena/Floresta/Ruínas densificados.
 2. Raid vertical Continente Negro (depois de Ruínas Zaban solo polish — feito).
 3. ~~Yorknew~~ / ~~GI~~ / ~~NGL~~ / ~~Associação/Alluka~~ / ~~Continente Negro~~ / ~~Black Whale~~ — densificados + clues + ORDEM **100%** arcos 4–9. Sessão A–D fechada (merge PR #51).
-4. Suites: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`, `test_nen_mundo_floresta_ruinas_suite`, `test_yorknew_density_xp_suite`, `test_greed_island_immersion_suite`, `test_ngl_formigas_immersion_suite`, `test_associacao_alluka_immersion_suite`, `test_continente_negro_immersion_suite`, `test_black_whale_immersion_suite`, `test_session_abcd_final_smoke_suite`.
+4. Suites: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`, `test_nen_mundo_floresta_ruinas_suite`, `test_yorknew_density_xp_suite`, `test_greed_island_immersion_suite`, `test_ngl_formigas_immersion_suite`, `test_associacao_alluka_immersion_suite`, `test_continente_negro_immersion_suite`, `test_black_whale_immersion_suite`, `test_session_abcd_final_smoke_suite`, `test_arcs_1_3_and_edge_audit_suite`, `test_arcs_5_9_progression_audit_suite`.
 
 ### P3 — Multiplayer produção (só se o foco for host público)
 1. Contratar/configurar VPS: `public_host`, `--no-lan-discovery`, `config/server_list.json`.
