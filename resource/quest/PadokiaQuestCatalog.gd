@@ -24,7 +24,7 @@ const QuestObjectiveScript = preload("res://scripts/missions/QuestObjective.gd")
 static func obter_quest_principal() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "O Despertar da Aura & O Guardião de Zaban"
-	q.description = "Três passos claros: (1) fale com Mestre Wing e gaste SP na Nen Tree; (2) na Floresta dos Vestígios, derrote 2 Feras — use [G] Gyo se houver pistas e [Z] Zetsu nos acampamentos; (3) nas Ruínas de Zaban, derrote o Guardião Ancestral e volte a Wing."
+	q.description = "ORDEM (um de cada vez): ① Fale com Wing e gaste SP na Nen Tree → ② Vá à Floresta (GPS) e derrote 2 Feras usando espaço de combate → ③ Ruínas de Zaban: derrote o Guardião → ④ Volte a Wing. Não misture os passos."
 	q.auto_complete = false
 	q.turn_in_npc_key = &"wing"
 	q.reward_xp = 500

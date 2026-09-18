@@ -643,13 +643,12 @@ func obter_dialogo_elena() -> Array[Dictionary]:
 		Step.STATUS:
 			falas.append({"falante": "Recepcionista Elena", "texto": "❤️ Lição 4: Atributos! Abra o menu [TAB] e clique na aba 'Status' (ou use [C]) para conferir sua Vida (HP), Força, Defesa e Velocidade."})
 		Step.NEN_CONCEITO:
-			falas.append({"falante": "Recepcionista Elena", "texto": "🔥 Lição Final: Aura, Nen e o que você VAI usar de verdade."})
-			falas.append({"falante": "Recepcionista Elena", "texto": "Aura é energia vital. Canalizá-la é despertar Nen — sem isso, Gyo, En e Zetsu ficam trancados."})
-			falas.append({"falante": "Recepcionista Elena", "texto": "Depois do despertar com Wing: [Z] Zetsu (furtividade), [G] Gyo (ver pistas), [X] En (radar/intimidação). Ten/Ren sobem na Constelação [TAB → Nen Tree] com SP."})
-			falas.append({"falante": "Recepcionista Elena", "texto": "Hatsu (sua skill única) NÃO vem agora. Biscuit só ensina isso depois de Greed Island — até lá foque em básico + Nen ativo."})
-			falas.append({"falante": "Recepcionista Elena", "texto": "👉 Vá AO NORTE, Distrito dos Mestres, fale com Mestre Wing. O GPS marca o caminho."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "🔥 Último passo do hub — bem direto:"})
+			falas.append({"falante": "Recepcionista Elena", "texto": "1) Vá AO NORTE até Mestre Wing. 2) Desperte Nen. 3) Abra [TAB→Nen Tree] e gaste SP. 4) Só então saia pelo Portão Sul."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "No campo: [Z] Zetsu, [G] Gyo, [X] En. Hatsu só com Biscuit depois de Greed Island — ignore isso agora."})
+			falas.append({"falante": "Recepcionista Elena", "texto": "👉 GPS marca Wing. Faça UMA coisa por vez. Não corra pro Exame antes de falar com ele."})
 		_:
-			falas.append({"falante": "Recepcionista Elena", "texto": "Fale com Mestre Wing ao norte para despertar seu Nen. Depois siga o GPS até o Guia da História na praça!"})
+			falas.append({"falante": "Recepcionista Elena", "texto": "Ordem: Wing (norte) → Nen Tree → Portão Sul. GPS te guia — um objetivo de cada vez!"})
 
 	return falas
 

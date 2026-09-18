@@ -26,17 +26,42 @@ static func telegraph_cast(caster: Node2D, hatsu: HatsuData, cast_time: float = 
 	var parent: Node = caster.get_parent() if caster.get_parent() != null else caster
 	var cor: Color = Color(0.95, 0.85, 0.35)
 	var raio: float = 46.0
+	var pitch: float = 0.92
+	var sfx := "hatsu_cast"
 	if hatsu != null:
 		if NenAffinityData != null:
 			cor = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
 		raio = clampf(28.0 + float(hatsu.alcance) * 0.08, 36.0, 72.0)
+		# Ordem de polish: Intensificação → Emissão → Transformação → Conjuração → Manipulação → Especialização
+		match hatsu.categoria:
+			HatsuData.Categoria.INTENSIFICACAO:
+				raio *= 1.15
+				pitch = 0.82
+				sfx = "hatsu_cast"
+			HatsuData.Categoria.EMISSAO:
+				raio *= 1.25
+				pitch = 1.05
+			HatsuData.Categoria.TRANSFORMACAO:
+				raio *= 1.05
+				pitch = 1.15
+			HatsuData.Categoria.CONJURACAO:
+				raio *= 1.20
+				pitch = 0.88
+			HatsuData.Categoria.MANIPULACAO:
+				raio *= 0.95
+				pitch = 1.00
+			HatsuData.Categoria.ESPECIALIZACAO:
+				raio *= 1.30
+				pitch = 0.78
+			_:
+				pass
 	_spawn_cast_ring(parent, caster.global_position, raio, cor, maxf(0.12, cast_time))
 	var bus = _event_bus()
 	if bus != null and bus.has_method("emit_camera_shake"):
 		bus.emit_camera_shake(0.18, 0.12)
 	var audio = _audio_manager()
 	if audio != null and audio.has_method("tocar_sfx_tipo"):
-		audio.tocar_sfx_tipo("hatsu_cast", 0.92)
+		audio.tocar_sfx_tipo(sfx, pitch)
 
 
 static func play(kind: Kind, caster: Node2D, parent: Node = null, subtitle: String = "") -> void:

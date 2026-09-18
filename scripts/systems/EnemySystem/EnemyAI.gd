@@ -12,12 +12,12 @@ const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit
 
 @export_category("AI")
 
-@export var detection_range: float = 260.0
-@export var attack_range: float = 48.0
-@export var move_speed: float = 88.0
-@export var stop_distance: float = 32.0
+@export var detection_range: float = 220.0
+@export var attack_range: float = 52.0
+@export var move_speed: float = 58.0
+@export var stop_distance: float = 36.0
 
-var attack_cooldown: float = 1.25
+var attack_cooldown: float = 1.55
 var attack_timer: float = 0.0
 
 
@@ -29,7 +29,7 @@ var attack_timer: float = 0.0
 
 @export var chase_player: bool = true
 @export var return_to_position: bool = true
-@export var return_speed: float = 35.0
+@export var return_speed: float = 28.0
 
 
 # =========================================================

@@ -14,24 +14,30 @@
 | :--- | :--- |
 | Escopo sessão | **A B C D** (early clarity, Nen no mundo, sagas densas, co-op polish leve). Arte (**E**) fica com o Luiz. |
 | PR #48 Tier B | **Mergiar** (feito neste branch). |
-| Dor early | Assuntos **vagos** (não prendem); mapa um pouco **vazio**; tutorial Nen deve explicar **skill tree + Gyo/En/Zetsu**. |
-| Nen no mundo | Varia: criatividade no **semiaberto/missões**. **Não forçar** Nen no lobby/hub. |
-| Hatsu | Prioridade **feel de combate**; unlock só no momento narrativo **Biscuit** (pós Greed Island). |
-| Multiplayer | **Solo-first offline perfeito**; LAN/co-op depois. |
-| Tom | **Sandbox MMO** com história HxH de base — adaptar/balancear, não copiar 1:1. |
-| Extra features | Nenhuma ideia fora do handoff por agora. |
+| Dor early | Assuntos **vagos** + mapa vazio + tutorial Nen fraco → **também**: move speed alto demais (rush, sem espaço pra Hatsu, objetivos misturados). |
+| Ritmo sagas | Até **Arena Celestial**: mais rápido/compacto. **Yorknew / Greed Island+**: mais longos, imersivos, difíceis, muita caminhada. |
+| Nen no mundo | Semiaberto/missões; **não** forçar no lobby. |
+| Hatsu | Feel com **espaço de combate** (speeds ↓) + polish afinidades na ordem Intensificação→Emissão→Transformação→Conjuração→Manipulação→Especialização. Unlock **Biscuit**. |
+| Mapa vivo | NPCs andando + estruturas + marcador **?** / **!** pequeno stylized em NPCs de quest. |
+| Tom NPC | **Mentor direto** (diz o que fazer). |
+| Raid Ruínas | **Task futura** (depois do early pacing/clareza). |
+| Multiplayer | **Solo-first**; LAN depois. |
+| Tom | Sandbox MMO com HxH adaptado. |
+
+### Backlog explícito (não esquecer)
+- [ ] **Raid Ruínas de Zaban — polish solo** (telegraph, wipe legível, pacing) — pedido do Luiz para depois
+- [ ] Densidade Kukuroo / Arena (após early estável)
+- [ ] Arcos Yorknew / GI com duração longa e imersão alta
 
 ### Progresso desta sessão
-- [x] Merge PR #48 (Tier B / live-ops / sensores / suites) no branch de sessão
-- [x] Tutorial Nen: artigos + tips `nen_arvore` / `nen_ativos` / Z·G·X + Wing reescrito
-- [x] Quest Padokia principal com passos claros + labels de objetivo
-- [x] Vila Padokia +4 NPCs vivos + rumores úteis (Gyo/Zetsu/En/SP)
-- [x] **ContentDirector** agora materializa NPCs/inimigos/encontros (antes só dados+print)
-- [x] Toasts do Exame com direção GPS / próximo passo concreto
-- [x] Feel Hatsu: canalização (`obter_tempo_conjuracao_final`) + telegraph + hitstop/shake no impacto
-- [x] Gate narrativo: toast GI→Biscuit + tip `hatsu_desbloqueio` ao liberar Slot 1
-- [ ] Densidade saga Kukuroo/Arena (próximo)
-- [ ] Polish raid solo-friendly (D, sem priorizar LAN)
+- [x] Merge PR #48
+- [x] Tutorial Nen + Wing + quest Padokia clara + vila viva
+- [x] ContentDirector spawns reais + toasts Exame
+- [x] Feel Hatsu (canalização + impacto) + gate Biscuit
+- [x] **Move speed ↓** player (~112) + enemies (~58) + dodge; CD inimigo ↑ — espaço pra Hatsu / menos rush
+- [x] **QuestMarkerBillboard** (? / !) em NPCs com objetivo/oferta/entrega
+- [x] Mentores mais diretos (Elena/Wing) + quest Padokia “um de cada vez”
+- [x] Telegraph Hatsu diferenciado por afinidade (ordem pedida)
 
 ---
 

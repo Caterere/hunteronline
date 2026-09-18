@@ -45,9 +45,9 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 
 		falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns pelo Teste da Água! Sua Afinidade Natal é: " + afinidade_nome.to_upper() + "!"})
 		falas_wing.append({"falante": "Mestre Wing", "texto": afinidade_desc})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Abri seus nós de aura. Ten agora é passivo — um manto que mitiga dano. Ren e as outras passivas crescem na Constelação [TAB → Nen Tree] com SP."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "No campo você usa só três ativos: [Z] Zetsu (sumir da detecção), [G] Gyo (ver pistas de aura) e [X] En (cúpula + intimidação). Zetsu não mistura com En/Gyo."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Pratique Gyo/Zetsu/En na Floresta e nas Ruínas — aqui no hub abra a árvore e gaste SP. Hatsu só com Biscuit, depois de Greed Island."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Feito. Agora faça NESTA ordem — sem pular:"})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "1) [TAB → Nen Tree] e gaste SP (Ten → Ren → Zetsu). 2) Pratique [Z]/[G]/[X] na Floresta/Ruínas. 3) Só depois siga a missão no GPS."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Combate ficou mais lento de propósito: use o espaço para canalizar Nen/Hatsu. Não saia correndo — um objetivo de cada vez."})
 		PlayerData.quest_states["wing_tutorial_progresso"] = 2
 		# Presente de mestre: amuleto + faixa para o loop de equipamento
 		if not PlayerData.tem_item(&"amuleto_forca"):
