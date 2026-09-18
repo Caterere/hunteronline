@@ -1393,140 +1393,140 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Eleição Hunter 1/20: A Sede da Associação Hunter"
-					q.description = "Apresente-se no auditório principal da sede para a leitura do testamento oficial de Netero."
+					q.description = "ORDEM: Fale com Cheadle no auditório (testamento). Depois regras / Pariston. Sem rush."
 					q.reward_xp = 120000
 					q.reward_gold = 2000000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle Yorkshire (Zodíaco Cão)")]
 
 				2:
 					q.quest_name = "Eleição Hunter 2/20: O Testamento dos 12 Zodíacos"
-					q.description = "Cheadle e Botobai apresentam as regras deixadas por Netero: quórum mínimo de 95% de todos os Caçadores."
+					q.description = "ORDEM: Fale com Cheadle de novo (quórum 95%). Depois Pariston (jogo político)."
 					q.reward_xp = 130000
 					q.reward_gold = 2100000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle Yorkshire")]
 
 				3:
 					q.quest_name = "Eleição Hunter 3/20: O Jogo Político de Pariston Hill"
-					q.description = "Converse com o Vice-Presidente Pariston e descubra suas artimanhas teatrais para sabotar a eleição."
+					q.description = "ORDEM: Fale com Pariston. Depois Hospital — Leorio / Gon UTI (GPS)."
 					q.reward_xp = 140000
 					q.reward_gold = 2300000
 					q.objectives = [_criar_obj_visit(&"pariston", "Pariston Hill (Vice-Presidente)")]
 
 				4:
 					q.quest_name = "Eleição Hunter 4/20: O Quarto de UTI no Hospital Hunter"
-					q.description = "Visite o leito onde Gon repousa sob suporte vital máximo entre a vida e a morte."
+					q.description = "ORDEM: Fale com Leorio na UTI. Depois Killua (resgate Alluka)."
 					q.reward_xp = 150000
 					q.reward_gold = 2500000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
 
 				5:
 					q.quest_name = "Eleição Hunter 5/20: A Decisão Proibida de Killua"
-					q.description = "Killua retorna em segredo à Montanha Kukuroo para resgatar sua irmã mais nova Alluka."
+					q.description = "ORDEM: Fale com Killua — ele vai buscar Alluka. Depois [G] Cela."
 					q.reward_xp = 160000
 					q.reward_gold = 2700000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua Zoldyck")]
 
 				6:
 					q.quest_name = "Eleição Hunter 6/20: A Masmorra Subterrânea de Alluka"
-					q.description = "Penetre nos cofres de segurança máxima nos porões mais profundos da mansão Zoldyck."
+					q.description = "ORDEM: [G] Inspecione a Cela / Cofre de Alluka. Depois fale com Alluka (regras)."
 					q.reward_xp = 170000
 					q.reward_gold = 2900000
 					q.objectives = [_criar_obj_investigate(&"cela_alluka")]
 
 				7:
 					q.quest_name = "Eleição Hunter 7/20: As Regras dos Desejos de Nanika"
-					q.description = "Compreenda a mecânica dos 3 pedidos recusados e o poder de realizar qualquer milagre impossível."
+					q.description = "ORDEM: Fale com Alluka & Nanika (3 recusas). Depois Killua assume custódia."
 					q.reward_xp = 180000
 					q.reward_gold = 3100000
 					q.objectives = [_criar_obj_visit(&"alluka", "Alluka & Nanika")]
 
 				8:
 					q.quest_name = "Eleição Hunter 8/20: O Resgate nos Braços de Killua"
-					q.description = "Killua abraça Alluka, assume a custódia da irmã e parte em direção ao hospital da capital."
+					q.description = "ORDEM: Fale com Killua — partida ao hospital. Depois emboscada (GPS)."
 					q.reward_xp = 190000
 					q.reward_gold = 3300000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				9:
 					q.quest_name = "Eleição Hunter 9/20: A Emboscada de Illumi e Hisoka"
-					q.description = "Illumi tenta eliminar Alluka por considerá-la uma ameaça cósmica à família Zoldyck."
+					q.description = "ORDEM: Fale com Killua na rodovia. Depois mordomos perseguidores (GPS)."
 					q.reward_xp = 200000
 					q.reward_gold = 3500000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
 
 				10:
 					q.quest_name = "Eleição Hunter 10/20: Mordomos Perseguidores na Rodovia"
-					q.description = "Derrote 4 mordomos manipulados pelas agulhas de Illumi para abrir a rota da ambulância."
+					q.description = "ORDEM: Derrote 4 mordomos perseguidores (GPS). Espaço de combate. Depois Homens-Agulha."
 					q.reward_xp = 210000
 					q.reward_gold = 3700000
 					q.objectives = [_criar_obj_kill(&"mordomo_perseguidor", 4)]
 
 				11:
 					q.quest_name = "Eleição Hunter 11/20: O Exército de Homens-Agulha"
-					q.description = "Elimine 8 humanos manipulados por agulhas hipnóticas de Illumi que cercam a rodovia expressa."
+					q.description = "ORDEM: Derrote 8 Homens-Agulha (GPS na rodovia). Depois Illumi Boss."
 					q.reward_xp = 225000
 					q.reward_gold = 4000000
 					q.objectives = [_criar_obj_kill(&"humano_agulha", 8)]
 
 				12:
 					q.quest_name = "Eleição Hunter 12/20: O Confronto contra Illumi"
-					q.description = "Vença Illumi Zoldyck Boss na rodovia noturna e garanta a passagem até o hospital!"
+					q.description = "ORDEM: Derrote Illumi (GPS). Espaço de combate. Depois volte ao auditório (Cheadle)."
 					q.reward_xp = 240000
 					q.reward_gold = 4300000
 					q.objectives = [_criar_obj_kill(&"illumi", 1)]
 
 				13:
 					q.quest_name = "Eleição Hunter 13/20: A 4ª Rodada da Votação Eleitoral"
-					q.description = "Acompanhe o debate acalorado dos Zodíacos no auditório enquanto Ging assiste de braços cruzados."
+					q.description = "ORDEM: Fale com Cheadle no plenário. Depois Leorio (soco teleportado)."
 					q.reward_xp = 250000
 					q.reward_gold = 4500000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle")]
 
 				14:
 					q.quest_name = "Eleição Hunter 14/20: O Soco Teleportado de Leorio"
-					q.description = "Leorio desfere o soco de emissão de Nen que atravessa a mesa do plenário e acerta o rosto de Ging!"
+					q.description = "ORDEM: Fale com Leorio — discurso / soco. Depois Cheadle (liderança)."
 					q.reward_xp = 260000
 					q.reward_gold = 4800000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
 
 				15:
 					q.quest_name = "Eleição Hunter 15/20: Leorio Lidera a Eleição"
-					q.description = "O discurso apaixonado de Leorio sobre salvar Gon emociona todos os Caçadores e o coloca em 1º lugar."
+					q.description = "ORDEM: Fale com Cheadle — Leorio em 1º. Depois Alluka / milagre no hospital."
 					q.reward_xp = 270000
 					q.reward_gold = 5000000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle")]
 
 				16:
 					q.quest_name = "Eleição Hunter 16/20: O Milagre de Nanika no Hospital"
-					q.description = "Alluka segura a mão esquelética de Gon e Nanika liberta uma coluna de luz branca que rasga o céu da cidade!"
+					q.description = "ORDEM: Fale com Alluka & Nanika — cure Gon. Depois Gon recuperado na tribuna."
 					q.reward_xp = 290000
 					q.reward_gold = 5500000
 					q.objectives = [_criar_obj_visit(&"alluka", "Alluka & Nanika")]
 
 				17:
 					q.quest_name = "Eleição Hunter 17/20: A Entrada Triunfal de Gon Curado"
-					q.description = "Gon entra caminhando alegremente pelas portas do auditório lotado no meio da apuração dos votos!"
+					q.description = "ORDEM: Fale com Gon Freecss Recuperado na tribuna. Depois Leorio (abraço)."
 					q.reward_xp = 310000
 					q.reward_gold = 6000000
 					q.objectives = [_criar_obj_visit(&"gon_recuperado", "Gon Freecss Recuperado")]
 
 				18:
 					q.quest_name = "Eleição Hunter 18/20: O Abraço em Lágrimas de Leorio e Gon"
-					q.description = "Leorio corre pelo palco e ergue Gon nos braços sob aplausos e choro de todos os Caçadores."
+					q.description = "ORDEM: Fale com Leorio no palco. Depois Cheadle (13ª Presidente)."
 					q.reward_xp = 330000
 					q.reward_gold = 6500000
 					q.objectives = [_criar_obj_visit(&"leorio", "Leorio")]
 
 				19:
 					q.quest_name = "Eleição Hunter 19/20: A Eleição da 13ª Presidente Cheadle"
-					q.description = "Pariston renuncia ao cargo e nomeia Cheadle Yorkshire como a 13ª Presidente oficial da Associação."
+					q.description = "ORDEM: Fale com Cheadle — 13ª Presidente. Depois despedida Killua/Alluka."
 					q.reward_xp = 350000
 					q.reward_gold = 7000000
 					q.objectives = [_criar_obj_visit(&"cheadle", "Presidente Cheadle")]
 
 				20:
 					q.quest_name = "Eleição Hunter 20/20: A Despedida de Killua e Alluka"
-					q.description = "Killua promete viajar o mundo protegendo Alluka e se despede de Gon com um sorriso de companheirismo."
+					q.description = "ORDEM: Fale com Killua — despedida. Portal Continente Negro só após esta etapa."
 					q.reward_xp = 380000
 					q.reward_gold = 8000000
 					q.objectives = [_criar_obj_visit(&"killua", "Killua")]

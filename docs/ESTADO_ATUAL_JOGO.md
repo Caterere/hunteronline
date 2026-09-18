@@ -33,7 +33,8 @@
 - [x] **Greed Island mid/late polish** (Hisoka/Killua no mapa, ORDEM 9–36, demônios missão, toasts Aliança/Ginásio/Bomber)
 - [x] **NGL imersão early** (Fronteira→Peijin densificado, clues canônicos 4/16/18/22/26, ORDEM 1–26)
 - [x] **NGL mid/late polish** (Escadaria/Tumba, Guanyin/Rosa Pobre, Youpi/Pouf garantidos, ORDEM 27–48)
-- [ ] Play humano GI→NGL; Associação/Alluka depois se ritmo pedir
+- [x] **Associação / Alluka imersão** (Auditório→Tribuna, cela_alluka, Alluka NPC, ORDEM 1–20)
+- [ ] Continente Negro depois; play humano Yorknew→Associação
 
 ### Progresso desta sessão
 - [x] Merge PR #48
@@ -53,6 +54,7 @@
 - [x] **Greed Island mid/late** — Hisoka/Killua spawn; ORDEM etapas 9–36; toasts Aliança/Ginásio/Bomber; Gyo porto/ginásio/carta002/sopro; demônios/golems missão; walkers mid/late
 - [x] **NGL imersão early** — densificação Fronteira→Tumba; clues (`fabrica_d2_gyro`, `nascimento_rei_meruem`, `fronteira_goruto`, `portas_knov`, `chuva_dragoes_zeno`); ORDEM 1–26; suite `test_ngl_formigas_immersion_suite`
 - [x] **NGL mid/late** — toast Escadaria; Gyo Guanyin/Rosa/Youpi; Youpi/Pouf garantidos; ORDEM 27–48; walkers escadaria/tumba
+- [x] **Associação / Alluka** — densificação Auditório→Tribuna; `cela_alluka`; Alluka NPC; mission mordomos/agulhas; ORDEM 1–20; suite `test_associacao_alluka_immersion_suite`
 
 ---
 
@@ -251,8 +253,8 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 ### P2 — Conteúdo de sagas (profundidade, não sistemas novos)
 1. Validar play humano Kukuroo/Arena/Floresta/Ruínas densificados.
 2. Raid vertical Continente Negro (depois de Ruínas Zaban solo polish — feito).
-3. ~~Yorknew imersão~~ / ~~Greed Island imersão + mid/late~~ / ~~NGL early + mid/late~~ — densificados + clues + ORDEM 1–48. Play humano valida ritmo longo. Associação/Alluka é o próximo arco.
-4. Suites: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`, `test_nen_mundo_floresta_ruinas_suite`, `test_yorknew_density_xp_suite`, `test_greed_island_immersion_suite`, `test_ngl_formigas_immersion_suite`.
+3. ~~Yorknew~~ / ~~GI~~ / ~~NGL~~ / ~~Associação/Alluka~~ — densificados + clues + ORDEM. Play humano valida ritmo. Continente Negro é o próximo arco longo.
+4. Suites: `test_kukuroo_density_suite`, `test_zetsu_arena_density_suite`, `test_raid_solo_polish_suite`, `test_nen_mundo_floresta_ruinas_suite`, `test_yorknew_density_xp_suite`, `test_greed_island_immersion_suite`, `test_ngl_formigas_immersion_suite`, `test_associacao_alluka_immersion_suite`.
 
 ### P3 — Multiplayer produção (só se o foco for host público)
 1. Contratar/configurar VPS: `public_host`, `--no-lan-discovery`, `config/server_list.json`.

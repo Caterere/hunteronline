@@ -124,6 +124,12 @@ func describe() -> String:
 					desc_base = "🔍 [G] Gyo — Rosa Pobre (Poor Man's Rose)"
 				"escadaria_youpi":
 					desc_base = "🔍 [G] Gyo — Escadaria Central (Youpi)"
+				"cela_alluka":
+					desc_base = "🔍 [G] Gyo — Cela / Cofre de Alluka"
+				"uti_gon_associacao":
+					desc_base = "🔍 [G] Gyo — UTI de Gon (Hospital Hunter)"
+				"plenario_eleicao":
+					desc_base = "🔍 [G] Gyo — Plenário da Eleição"
 				"pista_furto_janela", "pista_furto_pegada", "pista_furto_esconderijo":
 					desc_base = "🔍 [G] Gyo — Pista do furto '%s'" % cid.replace("pista_furto_", "").capitalize()
 				_:
