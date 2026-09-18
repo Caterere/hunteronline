@@ -10,7 +10,9 @@ extends RefCounted
 # 2. Secundária 1: "Ervas Medicinais da Floresta"
 # 3. Secundária 2: "Minérios das Ruínas de Zaban"
 # 4. Secreta: "O Enigma da Rocha Rachada (Nen KO)"
-# 5. Investigativa: "Vestígios do Furto de Aura" (Gyo)
+# 5. Investigativa: "Vestígios do Furto de Aura" (Gyo — vila)
+# 6. Investigativa: "Trilha de Aura na Floresta" (Gyo + Zetsu)
+# 7. Investigativa: "Selos do Guardião Ancestral" (Gyo + Zetsu + KO — ruínas)
 #
 # ============================================================
 
@@ -229,6 +231,87 @@ static func obter_quest_investigacao_furto() -> Quest:
 
 
 # ------------------------------------------------------------
+# 9. QUEST INVESTIGATIVA: TRILHA DE AURA NA FLORESTA (GYO + ZETSU)
+# Semiaberto — um objetivo de cada vez, mentor direto via Herbalista.
+# ------------------------------------------------------------
+static func obter_quest_investigacao_floresta() -> Quest:
+	var q = QuestScript.new()
+	q.quest_name = "Trilha de Aura na Floresta"
+	q.description = "ORDEM: ① Fale com a Herbalista → ② [G] Gyo nas Raízes Pulsantes → ③ [G] Pegadas Predatórias (sul) → ④ [Z] Atravesse o Acampamento Norte em Zetsu → ⑤ Volte à Herbalista. Sem rush."
+	q.auto_complete = false
+	q.turn_in_npc_key = &"herbalista"
+	q.reward_xp = 320
+	q.reward_gold = 450
+
+	var obj1 = QuestObjectiveScript.new()
+	obj1.type = QuestObjectiveScript.Type.VISIT
+	obj1.target_npc_id = &"herbalista"
+	obj1.target_npc_name = "Herbalista da Floresta"
+
+	var obj2 = QuestObjectiveScript.new()
+	obj2.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj2.target_clue_id = &"floresta_aura_raizes"
+	obj2.required_amount = 1
+
+	var obj3 = QuestObjectiveScript.new()
+	obj3.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj3.target_clue_id = &"floresta_pegadas_fera"
+	obj3.required_amount = 1
+
+	var obj4 = QuestObjectiveScript.new()
+	obj4.type = QuestObjectiveScript.Type.STEALTH_PASS
+	obj4.target_zone_id = &"acampamento_salteadores_norte"
+	obj4.required_amount = 1
+
+	var objs: Array[QuestObjective] = [obj1, obj2, obj3, obj4]
+	q.objectives = objs
+	return q
+
+
+# ------------------------------------------------------------
+# 10. QUEST INVESTIGATIVA: SELOS DAS RUÍNAS (GYO + ZETSU + KO)
+# Solo-first no dungeon — mentor direto no Guia das Ruínas.
+# ------------------------------------------------------------
+static func obter_quest_investigacao_ruinas() -> Quest:
+	var q = QuestScript.new()
+	q.quest_name = "Selos do Guardião Ancestral"
+	q.description = "ORDEM: ① Fale com o Guia das Ruínas → ② [G] Selo da Antecâmara → ③ [G] Fissura de Aura → ④ [Z] Corredor das Sentinelas → ⑤ [KO] Pilar Rachado → ⑥ Volte ao Guia. Círculos vermelhos = saia."
+	q.auto_complete = false
+	q.turn_in_npc_key = &"guia_ruinas"
+	q.reward_xp = 380
+	q.reward_gold = 520
+
+	var obj1 = QuestObjectiveScript.new()
+	obj1.type = QuestObjectiveScript.Type.VISIT
+	obj1.target_npc_id = &"guia_ruinas"
+	obj1.target_npc_name = "Guia das Ruínas"
+
+	var obj2 = QuestObjectiveScript.new()
+	obj2.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj2.target_clue_id = &"zaban_selo_antecamara"
+	obj2.required_amount = 1
+
+	var obj3 = QuestObjectiveScript.new()
+	obj3.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj3.target_clue_id = &"zaban_fissura_aura"
+	obj3.required_amount = 1
+
+	var obj4 = QuestObjectiveScript.new()
+	obj4.type = QuestObjectiveScript.Type.STEALTH_PASS
+	obj4.target_zone_id = &"zaban_corredor_sentinelas"
+	obj4.required_amount = 1
+
+	var obj5 = QuestObjectiveScript.new()
+	obj5.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj5.target_clue_id = &"zaban_pilar_ko"
+	obj5.required_amount = 1
+
+	var objs: Array[QuestObjective] = [obj1, obj2, obj3, obj4, obj5]
+	q.objectives = objs
+	return q
+
+
+# ------------------------------------------------------------
 # LISTA COMPLETA
 # ------------------------------------------------------------
 static func obter_todas_quests() -> Array[Quest]:
@@ -240,6 +323,8 @@ static func obter_todas_quests() -> Array[Quest]:
 		obter_quest_desafio_ravina(),
 		obter_quest_secreta(),
 		obter_quest_secreta_altar(),
-		obter_quest_investigacao_furto()
+		obter_quest_investigacao_furto(),
+		obter_quest_investigacao_floresta(),
+		obter_quest_investigacao_ruinas()
 	]
 	return lista

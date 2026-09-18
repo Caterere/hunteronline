@@ -82,10 +82,34 @@ func describe() -> String:
 				desc_base = "💬 Fale com %s" % target_npc_name
 
 		Type.INVESTIGATE:
-			desc_base = "🔍 [GYO] Investigue a pista '%s'" % str(target_clue_id).replace("_", " ").capitalize()
+			var cid := str(target_clue_id).to_lower()
+			match cid:
+				"floresta_aura_raizes":
+					desc_base = "🔍 [G] Gyo — Raízes Pulsantes (Árvore Milenar)"
+				"floresta_pegadas_fera":
+					desc_base = "🔍 [G] Gyo — Pegadas Predatórias (sul → Ruínas)"
+				"zaban_selo_antecamara":
+					desc_base = "🔍 [G] Gyo — Selo de Pedra (Antecâmara)"
+				"zaban_fissura_aura":
+					desc_base = "🔍 [G] Gyo — Fissura de Aura (Câmara)"
+				"zaban_pilar_ko":
+					desc_base = "💥 [KO] Quebre o Pilar Rachado da Câmara"
+				"pista_furto_janela", "pista_furto_pegada", "pista_furto_esconderijo":
+					desc_base = "🔍 [G] Gyo — Pista do furto '%s'" % cid.replace("pista_furto_", "").capitalize()
+				_:
+					desc_base = "🔍 [GYO] Investigue a pista '%s'" % str(target_clue_id).replace("_", " ").capitalize()
 
 		Type.STEALTH_PASS:
-			desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
+			var zid := str(target_zone_id).to_lower()
+			match zid:
+				"acampamento_salteadores_norte":
+					desc_base = "🥷 [Z] Zetsu — atravesse o Acampamento Norte"
+				"zaban_corredor_sentinelas":
+					desc_base = "🥷 [Z] Zetsu — atravesse o Corredor das Sentinelas"
+				"clareira_predadores_leste":
+					desc_base = "🥷 [Z] Zetsu — atravesse a Clareira Leste"
+				_:
+					desc_base = "🥷 [ZETSU] Atravesse a zona '%s' furtivamente" % str(target_zone_id).replace("_", " ").capitalize()
 
 		Type.PERSUASION:
 			desc_base = "🤝 Convença / Negocie com %s" % (target_npc_name if not target_npc_name.is_empty() else str(target_npc_id).capitalize())

@@ -81,7 +81,10 @@ func _configurar_audio_e_hud() -> void:
 		
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("🏛️ Ruínas de Zaban — Antecâmara → Corredor → Boss. Círculos vermelhos = saia!")
+		if PlayerData != null and PlayerData.despertou_nen:
+			hud.exibir_notificacao("🏛️ Ruínas — Fale com o Guia. [G]/[Z]/[KO] · círculos vermelhos = saia!")
+		else:
+			hud.exibir_notificacao("🏛️ Ruínas de Zaban — Perigo Extremo. Desperte Nen para ver os selos.")
 
 
 func _gerar_mapa_dungeon() -> void:
@@ -125,6 +128,8 @@ func _instanciar_boss_e_sentinelas() -> void:
 	_criar_portal_saida(Vector2(320, 440))
 	_instanciar_sensores_nen_ruinas()
 	_criar_placa_checkpoint_entrada()
+	_popular_guia_ruinas()
+	_iniciar_quest_investigacao_ruinas()
 
 
 func _criar_placa_checkpoint_entrada() -> void:
@@ -144,29 +149,101 @@ func _criar_placa_checkpoint_entrada() -> void:
 	add_child(marker)
 
 
+func _popular_guia_ruinas() -> void:
+	if get_node_or_null("GuiaRuinas") != null:
+		return
+	var scn_npc = load("res://entities/npc/NPC.tscn")
+	if scn_npc == null:
+		return
+	var guia = scn_npc.instantiate()
+	guia.name = "GuiaRuinas"
+	guia.position = Vector2(280, 400)
+	guia.npc_name = "Guia das Ruínas"
+	guia.fala_padrao = "Ordem: 1) [G] Selo na Antecâmara. 2) [G] Fissura na Câmara. 3) [Z] Corredor das Sentinelas. 4) [KO] Pilar Rachado. 5) Volte falar comigo. Sem rush — saia dos círculos."
+	NpcSpriteBinder.aplicar(guia, ["npc_cacador_zaban", "npc_viajante_scout", "npc_guarda_fronteira"])
+	var living := LivingNPCBehavior.new()
+	living.name = "LivingNPCBehavior"
+	living.npc_nome = "Guia das Ruínas"
+	living.tipo_marcador = "quest"
+	living.hierarchy = LivingNPCBehavior.NPCHierarchy.IMPORTANT
+	living.raio_patrulha = 24.0
+	guia.add_child(living)
+	add_child(guia)
+	var inter = guia.get_node_or_null("InteractionComponent")
+	if inter != null and not inter.interacted.is_connected(_on_guia_ruinas_interacted):
+		inter.interacted.connect(_on_guia_ruinas_interacted)
+
+
+func _on_guia_ruinas_interacted(_player: Node = null) -> void:
+	if QuestSystem != null:
+		QuestSystem.register_npc_visit(&"guia_ruinas")
+		QuestSystem.register_npc_visit(&"guia das ruínas")
+	_iniciar_quest_investigacao_ruinas()
+	if EventBus != null and PlayerData != null and PlayerData.despertou_nen:
+		EventBus.emit_toast("🧭 Guia: [G] Selo → Fissura → [Z] Corredor → [KO] Pilar → volte.", Color(0.95, 0.8, 0.4))
+
+
+func _iniciar_quest_investigacao_ruinas() -> void:
+	if PlayerData == null or not PlayerData.despertou_nen:
+		return
+	if QuestSystem == null or not QuestSystem.has_method("start_quest"):
+		return
+	var PadokiaQuestCatalogScript = load("res://resource/quest/PadokiaQuestCatalog.gd")
+	if PadokiaQuestCatalogScript == null:
+		return
+	var q = PadokiaQuestCatalogScript.obter_quest_investigacao_ruinas()
+	if q == null:
+		return
+	if PlayerData.is_quest_active(q) or PlayerData.is_quest_completed(q):
+		return
+	QuestSystem.start_quest(q)
+	print("[DungeonRuinasZaban] Quest investigativa iniciada: ", q.quest_name)
+
+
 func _instanciar_sensores_nen_ruinas() -> void:
 	# Gyo pós-despertar; Ko/Zetsu ficam disponíveis como exploração física
 	if PlayerData != null and PlayerData.despertou_nen:
 		NenSensorFactory.criar_gyo(
 			self, "GyoClueAntecâmara", Vector2(320, 300),
 			&"zaban_selo_antecamara", "Selo de Pedra Resonante",
-			"A antecâmara guarda um selo de Nen. O Guardião Ancestral está vinculado a esta marca.",
+			"A antecâmara guarda um selo de Nen. Próximo: Fissura de Aura na câmara do chefe ([G]).",
 			"Especialização", 1, Color(0.85, 0.75, 0.35, 0.9)
 		)
 		NenSensorFactory.criar_gyo(
 			self, "GyoClueCamaraBoss", Vector2(200, 140),
 			&"zaban_fissura_aura", "Fissura de Aura Ancestral",
-			"Uma rachadura no piso emana aura densa. KO concentrado poderia abrir um atalho lateral.",
+			"Rachadura no piso emana aura densa. Próximo: [Z] Corredor das Sentinelas, depois [KO] no Pilar.",
 			"Intensificação", 2, Color(1.0, 0.45, 0.3, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoCluePortaoEntrada", Vector2(320, 400),
+			&"zaban_marca_portao", "Marca no Portão de Pedra",
+			"Quem selou as ruínas deixou um aviso: só quem domina Gyo, Zetsu e Ko avança com segurança.",
+			"Conjuração", 1, Color(0.6, 0.85, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoCluePilarNorte", Vector2(120, 180),
+			&"zaban_pilar_norte", "Eco no Pilar Norte",
+			"Eco de Intensificação. O Guardião Ancestral reforça a câmara por estes pilares.",
+			"Intensificação", 1, Color(0.95, 0.6, 0.4, 0.9)
 		)
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleCamaraLateral", Vector2(480, 160),
-		"Pilar Rachado da Câmara", &"pedra_aura"
+		"Pilar Rachado da Câmara", &"pedra_aura", &"zaban_pilar_ko"
+	)
+	NenSensorFactory.criar_ko(
+		self, "KoObstacleAntecâmara", Vector2(180, 300),
+		"Rocha Selada da Antecâmara", &"pocao_aura"
 	)
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuCorredorSentinelas", Vector2(320, 360),
 		&"zaban_corredor_sentinelas", "Corredor das Sentinelas",
-		Vector2(200, 80)
+		Vector2(200, 80), &"sentinela_pedra", "Sentinela Alertada"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCamaraLateral", Vector2(480, 220),
+		&"zaban_camara_lateral", "Câmara Lateral Vigilada",
+		Vector2(120, 90), &"sentinela_pedra", "Guarda de Pedra"
 	)
 
 

@@ -27,6 +27,7 @@
 ### Backlog explícito (não esquecer)
 - [x] **Raid Ruínas de Zaban — polish solo** (telegraph, wipe legível, pacing)
 - [x] Densidade Kukuroo / Arena (NPCs andando + falas diretas + props)
+- [x] **Trilha B — Nen no mundo** (sensores Floresta/Ruínas + 2 quests investigativas)
 - [ ] Arcos Yorknew / GI com duração longa e imersão alta
 
 ### Progresso desta sessão
@@ -41,6 +42,7 @@
 - [x] **Densidade Kukuroo** — walkers + props + falas diretas + toasts de zona com próximo passo
 - [x] **Densidade Arena** — espectadores/staff + props + placas com próximo passo
 - [x] **Raid solo polish** — telegraph AoE ~1.2s, enrage warning 60s, wipe solo → checkpoint, adds reduzidos
+- [x] **Nen no mundo (Trilha B)** — Floresta/Ruínas densificados; quests “Trilha de Aura” + “Selos do Guardião”; Ko registra INVESTIGATE; factory com props reais
 
 ---
 
