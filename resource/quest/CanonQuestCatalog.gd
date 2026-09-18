@@ -795,56 +795,56 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Greed Island 1/36: A Inserção no Console JoyStation"
-					q.description = "Fale com Battera, ative o jogo com fluxo de Nen no Memory Card e transporte-se para Greed Island!"
+					q.description = "ORDEM: Fale com Battera. GI é longa — um objetivo de cada vez. Depois: Quadro de Antokiba."
 					q.reward_xp = 35000
 					q.reward_gold = 600000
 					q.objectives = [_criar_obj_visit(&"battera", "Bilionário Battera")]
 
 				2:
 					q.quest_name = "Greed Island 2/36: A Cidade Inicial de Antokiba"
-					q.description = "Chegue à praça central de Antokiba e conheça as regras do torneio mensal da ilha."
+					q.description = "ORDEM: Fale com o Quadro de Antokiba (regras). Depois [G] no Spell Book."
 					q.reward_xp = 38000
 					q.reward_gold = 650000
 					q.objectives = [_criar_obj_visit(&"antokiba", "Quadro de Antokiba")]
 
 				3:
 					q.quest_name = "Greed Island 3/36: O Livro de Magia (Spell Book)"
-					q.description = "Aprenda os comandos 'Book' para invocar seu fichário de 100 cartas e 'Gain' para materializar itens."
+					q.description = "ORDEM: Ative [G] Gyo e inspecione o Spell Book em Antokiba. Sem Book, não caçe cartas."
 					q.reward_xp = 40000
 					q.reward_gold = 700000
 					q.objectives = [_criar_obj_investigate(&"livro_greed")]
 
 				4:
 					q.quest_name = "Greed Island 4/36: O Primeiro Feitiço de Rastreio"
-					q.description = "Derrote bandidos novatos nas colinas de Antokiba e obtenha a carta de feitiço 'Trace'."
+					q.description = "ORDEM: Derrote 2 monstros mágicos (GPS nas colinas). Use espaço de combate. Depois vá ao Desfiladeiro (Biscuit)."
 					q.reward_xp = 42000
 					q.reward_gold = 750000
 					q.objectives = [_criar_obj_kill(&"monstro_greed", 2)]
 
 				5:
 					q.quest_name = "Greed Island 5/36: O Encontro com Biscuit Krueger"
-					q.description = "Encontre a mestra Biscuit Krueger nas montanhas rochosas e aceite seu regime de treino infernal."
+					q.description = "ORDEM: Caminhe até o Desfiladeiro e fale com Biscuit. Treino longo começa agora — sem pular."
 					q.reward_xp = 45000
 					q.reward_gold = 800000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				6:
 					q.quest_name = "Greed Island 6/36: O Treino no Desfiladeiro de Pedras"
-					q.description = "Escave o desfiladeiro maciço usando pás comuns sem usar Nen para fortalecer os músculos."
+					q.description = "ORDEM: [G] Inspecione o Desfiladeiro de Pedras. Depois [KO] nas rochas quando Biscuit pedir."
 					q.reward_xp = 48000
 					q.reward_gold = 850000
 					q.objectives = [_criar_obj_investigate(&"desfiladeiro_biscuit")]
 
 				7:
 					q.quest_name = "Greed Island 7/36: O Domínio do Ko (Concentração Total)"
-					q.description = "Concentre 100% de toda a sua aura em um único punho para quebrar rochas com um golpe."
+					q.description = "ORDEM: Fale com Biscuit e treine Ko. Quebre rochas com concentração — um exercício."
 					q.reward_xp = 50000
 					q.reward_gold = 900000
 					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
 
 				8:
 					q.quest_name = "Greed Island 8/36: Os Golens de Rocha"
-					q.description = "Derrote 3 Golens de Pedra maciços utilizando a força pura de impacto do Ko concentrado."
+					q.description = "ORDEM: Derrote 3 Golens de Pedra (GPS). Use Ko/espaço de combate. Depois volte a Biscuit (Shu)."
 					q.reward_xp = 53000
 					q.reward_gold = 950000
 					q.objectives = [_criar_obj_kill(&"golem_pedra", 3)]
@@ -900,7 +900,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				16:
 					q.quest_name = "Greed Island 16/36: A Ameaça do Bomber Genthru"
-					q.description = "Genthru revela ser o assassino 'Bomber' e explode os aliados para roubar 95 cartas do fichário."
+					q.description = "ORDEM: [G] Inspecione a Marca da Explosão do Bomber. Proteja o Book — depois GPS (Goreinu)."
 					q.reward_xp = 70000
 					q.reward_gold = 1350000
 					q.objectives = [_criar_obj_investigate(&"explosao_bomber")]
@@ -998,7 +998,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				30:
 					q.quest_name = "Greed Island 30/36: A Cova de Pedra de Gon"
-					q.description = "Atrair Genthru para a vala de pedra cavada antecipadamente com pás de Nen."
+					q.description = "ORDEM: [Z] Atravesse a Cova-Armadilha em Zetsu. Sem Zetsu = Bomber alerta. Depois GPS (Genthru)."
 					q.reward_xp = 130000
 					q.reward_gold = 2700000
 					q.objectives = [_criar_obj_stealth(&"armadilha_cova_gon")]
