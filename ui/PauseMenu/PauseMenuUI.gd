@@ -183,7 +183,7 @@ func _atualizar_informacoes() -> void:
 		return
 
 	var nivel: int = int(PlayerData.attributes.get("nivel", 1))
-	var cat_name: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+	var cat_name: String = PlayerData.obter_nome_afinidade_exibivel()
 	lbl_info_player.text = "👤 %s (Lv. %d) — %s" % [PlayerData.nome_personagem, nivel, cat_name]
 
 	var scn = get_tree().current_scene

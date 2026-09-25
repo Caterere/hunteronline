@@ -175,7 +175,7 @@ func _atualizar_nen_menu() -> void:
 	# Afinidade Natal
 	if afinidade_label != null and afinidade_desc_label != null:
 		if PlayerData.despertou_nen:
-			var af_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+			var af_nome: String = PlayerData.obter_nome_afinidade_exibivel()
 			var af_desc: String = NenAffinityData.obter_descricao_afinidade(PlayerData.afinidade_nen)
 			afinidade_label.text = "Afinidade: " + af_nome
 			afinidade_desc_label.text = af_desc

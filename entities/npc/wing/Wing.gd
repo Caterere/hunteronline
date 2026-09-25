@@ -26,9 +26,6 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		QuestSystem.register_npc_visit(&"wing")
 
 	var falas_wing: Array[Dictionary] = []
-	var afinidade_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
-	var afinidade_desc: String = NenAffinityData.obter_descricao_afinidade(PlayerData.afinidade_nen)
-
 	var etapa_atual: int = PlayerData.etapa_quest_arco if PlayerData != null else 1
 	var arco_atual: int = PlayerData.arco_atual if PlayerData != null else 1
 
@@ -39,11 +36,25 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		return
 
 	elif not PlayerData.despertou_nen or (arco_atual == 3 and etapa_atual == 11):
+		# Revela a afinidade a partir da seed do questionário (90% candidata / 10% Specialist).
+		PlayerData.revelar_afinidade_nen()
+		var afinidade_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+		var afinidade_desc: String = NenAffinityData.obter_descricao_afinidade(PlayerData.afinidade_nen)
+		var QuizScript = load("res://resource/nen/NenPersonalityQuiz.gd")
+		var traco := ""
+		if QuizScript != null:
+			traco = QuizScript.traco_hisoka(int(PlayerData.afinidade_nen))
+
 		PlayerData.despertou_nen = true
 		PlayerData.aplicar_nivel_nen(1)
 		PlayerData.aplicar_bonuses_afinidade()
 
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns pelo Teste da Água! Sua Afinidade Natal é: " + afinidade_nome.to_upper() + "!"})
+		if int(PlayerData.afinidade_nen) == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+			falas_wing.append({"falante": "Mestre Wing", "texto": "Hmm… a água não reagiu como nenhuma das cinco categorias comuns."})
+			falas_wing.append({"falante": "Mestre Wing", "texto": "Sua aura %s. Isso é extremamente raro — Especialização!" % traco})
+		else:
+			falas_wing.append({"falante": "Mestre Wing", "texto": "A água reagiu. Sua personalidade… %s." % traco})
+			falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns pelo Teste da Água! Sua Afinidade Natal é: " + afinidade_nome.to_upper() + "!"})
 		falas_wing.append({"falante": "Mestre Wing", "texto": afinidade_desc})
 		falas_wing.append({"falante": "Mestre Wing", "texto": "Feito. Agora faça NESTA ordem — sem pular:"})
 		falas_wing.append({"falante": "Mestre Wing", "texto": "1) [TAB → Nen Tree] e gaste SP (Ten → Ren → Zetsu). 2) Pratique [Z]/[G]/[X] na Floresta/Ruínas. 3) Só depois siga a missão no GPS."})
@@ -57,7 +68,7 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
 			TutorialManager.disparar_tutorial_contextual("nen_despertar")
 		if EventBus != null:
-			EventBus.emit_toast("🥋 Nen despertado! Abra [TAB→Nen Tree] e gaste SP. Ativos: Z/G/X.", Color(0.35, 1.0, 0.55))
+			EventBus.emit_toast("🥋 Nen despertado! Afinidade: %s" % afinidade_nome, Color(0.35, 1.0, 0.55))
 		if PlayerData != null:
 			PlayerData.tour_lobby_concluido = true
 		if SaveManager != null:
