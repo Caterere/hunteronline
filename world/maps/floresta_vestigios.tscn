@@ -31,7 +31,7 @@ tile_map_data = PackedByteArray("AAAAAAAABQABAAEAAAABAAAABQACAAEAAAAAAAEABQABAAI
 tile_set = ExtResource("2_pwr3d")
 
 [node name="SpawnFromEstrada" type="Marker2D" parent="." unique_id=1671007187]
-position = Vector2(400, 70)
+position = Vector2(400, 140)
 script = ExtResource("3_n5tor")
 spawn_id = &"from_estrada"
 
@@ -45,7 +45,7 @@ is_default_spawn = false
 script = ExtResource("5_2p02w")
 
 [node name="Player" type="CharacterBody2D" parent="." unique_id=1023846740 node_paths=PackedStringArray("_animation_tree") instance=ExtResource("6_3x72v")]
-position = Vector2(400, 70)
+position = Vector2(400, 140)
 collision_layer = 2
 script = ExtResource("7_jq2ts")
 _animation_tree = NodePath("AnimationTree")

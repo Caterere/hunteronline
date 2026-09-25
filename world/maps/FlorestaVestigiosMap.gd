@@ -54,15 +54,21 @@ func _pintar_piso_floresta() -> void:
 
 func _garantir_spawn_points() -> void:
 	var wpm = get_node_or_null("/root/WorldProgressionManager")
-	if get_node_or_null("SpawnFromEstrada") == null:
-		var sp_est := SpawnPoint.new()
-		sp_est.name = "SpawnFromEstrada"
-		sp_est.spawn_id = &"from_estrada"
-		sp_est.is_default_spawn = true
-		sp_est.position = Vector2(400, 70)
-		add_child(sp_est)
-		if wpm != null and wpm.has_method("registrar_spawn_point"):
-			wpm.registrar_spawn_point(sp_est)
+	var sp_est := get_node_or_null("SpawnFromEstrada") as Node2D
+	if sp_est == null:
+		var criado := SpawnPoint.new()
+		criado.name = "SpawnFromEstrada"
+		criado.spawn_id = &"from_estrada"
+		criado.is_default_spawn = true
+		criado.position = Vector2(400, 140)
+		add_child(criado)
+		sp_est = criado
+	else:
+		# y=70 encostava no Portão Norte (retorno). O prompt "[E] Entrar"
+		# da Estrada aparecia junto com o GPS mandando voltar.
+		sp_est.position = Vector2(400, 140)
+	if wpm != null and wpm.has_method("registrar_spawn_point") and sp_est is SpawnPoint:
+		wpm.registrar_spawn_point(sp_est)
 
 	if get_node_or_null("SpawnFromDungeon") == null:
 		var sp_dun := SpawnPoint.new()
@@ -497,6 +503,8 @@ func _instanciar_feras_selvagens() -> void:
 	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
 	if enemy_scn:
 		var mobs_data = [
+			{"name": "FeraFloresta1", "pos": Vector2(300, 220), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.95, 0.7)},
+			{"name": "FeraFloresta2", "pos": Vector2(520, 260), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 100.0, "role": "bruiser", "tint": Color(0.65, 0.9, 0.6)},
 			{"name": "FeraSombra1", "pos": Vector2(240, 200), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0)},
 			{"name": "FeraSombra2", "pos": Vector2(560, 420), "id": &"lobo_sombras", "label": "Besta de Sombra Voraz", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0)},
 			{"name": "FeraSombra3", "pos": Vector2(200, 480), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE},

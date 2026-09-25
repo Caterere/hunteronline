@@ -97,6 +97,9 @@ static func resolve(tree: SceneTree, player: Node2D = null) -> Dictionary:
 	if quest == null:
 		QuestSystem.garantir_quest_do_arco(PlayerData.arco_atual if PlayerData != null else 1)
 		quest = get_focus_quest()
+	# Na cadeia de Padokia, o objetivo que vive NESTE mapa vence um arco distante.
+	# Sem isso o GPS manda entrar no portal e, no frame seguinte, manda voltar.
+	quest = _prefer_quest_on_current_map(quest, cena_lower)
 
 	if quest == null:
 		result["hud_title"] = "Sem Missão Ativa"
@@ -253,15 +256,14 @@ static func get_pending_objective(quest: Quest = null) -> QuestObjective:
 static func get_expected_map_path(quest: Quest = null) -> String:
 	if quest == null:
 		quest = get_focus_quest()
+	var regional := _map_for_regional_objective(quest)
+	if not regional.is_empty():
+		return regional
+
 	var arco: int = PlayerData.arco_atual if PlayerData != null else 1
-	var etapa: int = PlayerData.etapa_quest_arco if PlayerData != null else 1
 
 	if quest != null:
 		var q_name := quest.quest_name.to_lower()
-		if "padokia" in q_name or "wing" in q_name:
-			if "guardião" in q_name or "ruínas" in q_name or "dungeon" in q_name:
-				return "res://world/maps/dungeon_ruinas_zaban.tscn"
-			return "res://world/maps/regiao_vale_padokia.tscn"
 		# Infer arco from quest name when PlayerData lags
 		if "exame hunter" in q_name:
 			arco = 1
@@ -659,6 +661,153 @@ static func _find_search_zone(cur_scn: Node, obj: QuestObjective) -> Dictionary:
 
 
 # ============================================================
+# MAPA DO OBJETIVO (Padokia) + QUEST LOCAL
+# ============================================================
+
+const MAP_FLORESTA := "res://world/maps/floresta_vestigios.tscn"
+const MAP_ESTRADA := "res://world/maps/estrada_padokia.tscn"
+const MAP_VALE := "res://world/maps/regiao_vale_padokia.tscn"
+const MAP_DUNGEON := "res://world/maps/dungeon_ruinas_zaban.tscn"
+
+# Arestas reais dos portões. Dungeon não é atalho para a floresta:
+# o início da trilha sai do vale pelo lobby, não pelas ruínas.
+const REGION_LINKS: Dictionary = {
+	"lobby.tscn": ["estrada_padokia.tscn"],
+	"estrada_padokia.tscn": ["lobby.tscn", "floresta_vestigios.tscn"],
+	"floresta_vestigios.tscn": ["estrada_padokia.tscn", "dungeon_ruinas_zaban.tscn"],
+	"dungeon_ruinas_zaban.tscn": ["floresta_vestigios.tscn"],
+	"regiao_vale_padokia.tscn": ["lobby.tscn", "dungeon_ruinas_zaban.tscn"],
+}
+
+
+static func _is_padokia_quest(quest: Quest) -> bool:
+	if quest == null:
+		return false
+	var n := quest.quest_name.to_lower()
+	for token in ["despertar da aura", "ervas medicinais", "minérios das ruínas", "minerios das ruinas", "escolta noturna", "predadores da ravina", "rocha rachada", "altar da chama", "furto de aura", "trilha de aura", "selos do guardião", "selos do guardiao", "zaban", "padokia"]:
+		if token in n:
+			return true
+	return false
+
+
+static func _map_for_regional_objective(quest: Quest) -> String:
+	if not _is_padokia_quest(quest):
+		return ""
+	var obj := get_pending_objective(quest)
+	if obj == null:
+		return _map_for_turn_in(quest)
+	var enemy := str(obj.enemy_type).to_lower()
+	var npc := str(obj.target_npc_id).to_lower()
+	var clue := str(obj.target_clue_id).to_lower()
+	var zone := str(obj.target_zone_id).to_lower()
+	var nname := obj.target_npc_name.to_lower()
+
+	if enemy == "fera_floresta" or npc == "herbalista" or clue.begins_with("floresta_") or zone == "acampamento_salteadores_norte" or zone == "ninho_feras_padokia" or npc == "guardiao_da_floresta":
+		return MAP_FLORESTA
+	if enemy == "guardiao_ancestral" or enemy == "sentinela_pedra" or npc == "guia_ruinas" or clue.begins_with("zaban_") or zone.begins_with("zaban_"):
+		return MAP_DUNGEON
+	if enemy == "ladrao_estrada" or npc == "guarda_patrulha" or clue.begins_with("estrada_"):
+		return MAP_ESTRADA
+	if enemy == "predador_miasma" or npc == "cacador_de_zaban" or npc == "wing" or "wing" in nname or npc == "vendedor" or npc == "ferreiro" or npc == "ermitao" or clue.begins_with("pista_furto") or clue == "pista_rocha_nen":
+		return MAP_VALE
+	return ""
+
+
+static func _map_for_turn_in(quest: Quest) -> String:
+	var key := str(quest.turn_in_npc_key).to_lower()
+	match key:
+		"herbalista", "guardiao_da_floresta":
+			return MAP_FLORESTA
+		"guia_ruinas":
+			return MAP_DUNGEON
+		"guarda_patrulha":
+			return MAP_ESTRADA
+		"wing", "vendedor", "ferreiro", "cacador_de_zaban", "ermitao":
+			return MAP_VALE
+		_:
+			return ""
+
+
+static func _prefer_quest_on_current_map(focus: Quest, cena_lower: String) -> Quest:
+	if QuestSystem == null:
+		return focus
+	if focus != null and _is_on_expected_map(cena_lower, get_expected_map_path(focus)):
+		return focus
+	if QuestSystem.active_quests == null:
+		return focus
+	for q in QuestSystem.active_quests:
+		if q == null or ("is_secret" in q and q.is_secret):
+			continue
+		if get_pending_objective_index(q) < 0:
+			continue
+		var em := get_expected_map_path(q)
+		if em.is_empty() or not _is_on_expected_map(cena_lower, em):
+			continue
+		return q
+	return focus
+
+
+static func _scene_file_of(path: String) -> String:
+	return path.get_file().to_lower()
+
+
+static func _next_hop_scene_file(cur_scn: Node, expected_map: String) -> String:
+	if cur_scn == null or expected_map.is_empty():
+		return ""
+	var current := _scene_file_of(str(cur_scn.scene_file_path))
+	if current.is_empty() or not REGION_LINKS.has(current):
+		return ""
+	var dest := _scene_file_of(expected_map)
+	if current == dest:
+		return ""
+	var goal := dest if REGION_LINKS.has(dest) else "lobby.tscn"
+	var allow_dungeon := goal == "dungeon_ruinas_zaban.tscn"
+	var hop := _bfs_first_hop(current, goal, allow_dungeon)
+	if hop.is_empty() and not allow_dungeon:
+		hop = _bfs_first_hop(current, goal, true)
+	return hop
+
+
+static func _bfs_first_hop(current: String, goal: String, allow_dungeon: bool) -> String:
+	if current == goal or goal.is_empty():
+		return ""
+	var queue: Array[String] = [current]
+	var prev: Dictionary = {}
+	var seen := {current: true}
+	while not queue.is_empty():
+		var here: String = queue.pop_front()
+		var neighbors: Array = REGION_LINKS.get(here, [])
+		for nxt in neighbors:
+			var n := str(nxt)
+			if seen.has(n):
+				continue
+			if not allow_dungeon and n == "dungeon_ruinas_zaban.tscn" and goal != "dungeon_ruinas_zaban.tscn":
+				continue
+			seen[n] = true
+			prev[n] = here
+			if n == goal:
+				var step := n
+				while str(prev.get(step, "")) != current and prev.has(step):
+					step = str(prev[step])
+				return step
+			queue.append(n)
+	return ""
+
+
+static func _portal_targeting(transicoes: Array, expected_map: String, allow_story_gate: bool) -> Node2D:
+	var want := _scene_file_of(expected_map)
+	for t in transicoes:
+		if not (t is MapTransitionArea):
+			continue
+		if allow_story_gate == false and t.story_gate != null:
+			continue
+		var tp := str(t.target_scene_path)
+		if tp == expected_map or expected_map in tp or _scene_file_of(tp) == want:
+			return t
+	return null
+
+
+# ============================================================
 # PORTAIS
 # ============================================================
 
@@ -667,29 +816,24 @@ static func _find_travel_portal(cur_scn: Node, expected_map: String, allow_story
 	_collect_transitions(cur_scn, transicoes)
 
 	if not expected_map.is_empty():
-		for t in transicoes:
-			if t is MapTransitionArea:
-				if allow_story_gate == false and t.story_gate != null:
-					continue
-				var tp := str(t.target_scene_path)
-				if tp == expected_map or expected_map in tp or tp.get_file() == expected_map.get_file():
-					return t
+		var exact := _portal_targeting(transicoes, expected_map, allow_story_gate)
+		if exact != null:
+			return exact
+		var hop := _next_hop_scene_file(cur_scn, expected_map)
+		if not hop.is_empty():
+			var via := _portal_targeting(transicoes, hop, allow_story_gate)
+			if via != null:
+				return via
 
-	# Portão nomeado do lobby / saída
+	# Portão nomeado do lobby / saída — nunca um portal arbitrário.
+	# O fallback antigo pegava o primeiro portão "para frente" e fazia
+	# Estrada ↔ Floresta apontarem um para o outro (entrar e voltar).
 	for preferred in ["PortaoMundoExterior", "PortalExame", "PortalHunter", "SaidaLobby"]:
 		var n = cur_scn.get_node_or_null(preferred) if cur_scn != null else null
 		if n != null and n is Node2D:
+			if n is MapTransitionArea and allow_story_gate == false and (n as MapTransitionArea).story_gate != null:
+				continue
 			return n as Node2D
-
-	for t in transicoes:
-		if t is MapTransitionArea:
-			if allow_story_gate == false and t.story_gate != null:
-				continue
-			var target_p: String = str(t.target_scene_path).to_lower()
-			var t_name: String = str(t.name).to_lower()
-			if "interior" in target_p or "casa" in target_p or "retorno" in t_name or "lobby" in target_p:
-				continue
-			return t
 	return null
 
 
@@ -760,10 +904,22 @@ static func _score_enemy_match(enemy_id: String, enemy_name: String, node_name: 
 		return 4
 	if target in e_id or e_id in target or target in n_name or target in e_nome:
 		return 3
+	var pretty := target.replace("_", " ")
+	if not pretty.is_empty() and pretty in e_nome:
+		return 3
+	# Todos os tokens longos precisam aparecer. "fera" sozinho não pode
+	# apontar o GPS para FeraSombra quando o objetivo é fera_floresta.
+	var blob := "%s %s %s" % [e_id, e_nome, n_name]
 	var keywords := target.split("_")
+	var any_kw := false
 	for kw in keywords:
-		if kw.length() >= 4 and (kw in e_id or kw in n_name or kw in e_nome):
-			return 2
+		if str(kw).length() < 4:
+			continue
+		any_kw = true
+		if str(kw) not in blob:
+			return -1
+	if any_kw:
+		return 2
 	return -1
 
 

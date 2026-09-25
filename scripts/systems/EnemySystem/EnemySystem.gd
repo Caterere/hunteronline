@@ -1335,6 +1335,8 @@ func _vincular_textura_inimigo() -> void:
 		"lobo": "enemy_lobo_sombras",
 		"lobo_sombras": "enemy_lobo_sombras",
 		"fera_sombra": "enemy_lobo_sombras",
+		"fera_floresta": "enemy_phase4_fera_padokia",
+		"fera_padokia": "enemy_phase4_fera_padokia",
 		"fera_alada": "enemy_fera_alada",
 		"alada": "enemy_fera_alada",
 		"emboscadora": "enemy_fera_alada",
