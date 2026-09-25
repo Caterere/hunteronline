@@ -664,7 +664,7 @@ func _atualizar_conteudo_status() -> void:
 	var tit = PlayerData.titulo_equipado
 	var tit_str = " [%s]" % tit if not tit.is_empty() else ""
 	var lvl = int(PlayerData.attributes.get("nivel", 1))
-	var af = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+	var af = PlayerData.obter_nome_afinidade_exibivel()
 	lbl_status_header.text = "👤 %s%s | Nível %d | Afinidade: %s" % [nome_p, tit_str, lvl, af]
 
 	var hp = int(PlayerData.attributes.get("vida", 100))
@@ -822,7 +822,7 @@ func _atualizar_conteudo_hatsu() -> void:
 		c.queue_free()
 
 	# 1. Info de Afinidade do Personagem
-	var afinidade_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+	var afinidade_nome := PlayerData.obter_nome_afinidade_exibivel()
 	var lbl_af := Label.new()
 	lbl_af.text = "🧪 Afinidade Natal: %s%s" % [
 		afinidade_nome,

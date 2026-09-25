@@ -256,16 +256,30 @@ func _garantir_objeto_teste_agua() -> void:
 		print("[ArenaCelestial] Jogador inspecionou o Teste da Água!")
 		if QuestSystem != null:
 			QuestSystem.register_investigation(&"teste_agua_wing")
+		# Resolve a seed do questionário pela primeira vez (se ainda oculta).
+		PlayerData.revelar_afinidade_nen()
 		var afinidade_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+		var QuizScript = load("res://resource/nen/NenPersonalityQuiz.gd")
+		var traco := ""
+		if QuizScript != null:
+			traco = QuizScript.traco_hisoka(int(PlayerData.afinidade_nen))
 		if EventBus != null:
 			EventBus.emit_toast("🍵 A água reagiu! Afinidade revelada: %s!" % afinidade_nome.to_upper(), Color(0.2, 1.0, 0.6))
 		var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
 		if visual_dialogue != null:
-			visual_dialogue.exibir_sequencia_falas([
+			var falas: Array = [
 				{"falante": "Mestre Wing", "texto": "Incrível! Ao aproximar suas mãos do copo com aura concentrada, a reação foi instantânea!"},
-				{"falante": "Mestre Wing", "texto": "Sua afinidade é oficialmente comprovada como: %s!" % afinidade_nome.to_upper()},
-				{"falante": "Mestre Wing", "texto": "Agora que sua natureza de Nen foi revelada, fale comigo para abrir seus poros e dominar o TEN!"}
-			])
+			]
+			if int(PlayerData.afinidade_nen) == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+				falas.append({"falante": "Mestre Wing", "texto": "Mas… a água não se encaixa em nenhuma das cinco categorias. Sua aura %s." % traco})
+				falas.append({"falante": "Mestre Wing", "texto": "Sua afinidade é oficialmente comprovada como: ESPECIALIZAÇÃO!"})
+			else:
+				falas.append({"falante": "Mestre Wing", "texto": "Sua personalidade… %s. Isso explica a reação." % traco})
+				falas.append({"falante": "Mestre Wing", "texto": "Sua afinidade é oficialmente comprovada como: %s!" % afinidade_nome.to_upper()})
+			falas.append({"falante": "Mestre Wing", "texto": "Agora que sua natureza de Nen foi revelada, fale comigo para abrir seus poros e dominar o TEN!"})
+			visual_dialogue.exibir_sequencia_falas(falas)
+		if SaveManager != null:
+			SaveManager.salvar_jogo()
 	)
 	add_child(trigger)
 

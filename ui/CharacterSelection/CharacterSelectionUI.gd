@@ -3,13 +3,15 @@ extends Control
 
 signal personagem_selecionado
 
+const NenPersonalityQuizUIScene = preload("res://ui/CharacterSelection/NenPersonalityQuizUI.tscn")
+
 # ============================================================
 # HUNTER ONLINE - CHARACTER SELECTION & CREATION UI (3 SLOTS)
 # ============================================================
 #
 # Menu inicial de seleção de personagem (3 slots de save).
-# Permite criar novos personagens com nome e Afinidade Natal de Nen.
-# Resolução nativa 320x180 (pixel art).
+# Criação: nome + cores → questionário de personalidade (seed secreta).
+# Afinidade natal só é revelada no Teste da Água (Wing).
 #
 # ============================================================
 
@@ -24,9 +26,12 @@ var picker_cabelo: ColorPickerButton
 var picker_roupa: ColorPickerButton
 var lbl_afinidade_nome: Label
 var lbl_afinidade_desc: Label
+var quiz_overlay = null
 
-var afinidade_sorteada: NenAffinityData.CategoriaAfinidade = NenAffinityData.CategoriaAfinidade.INTENSIFICACAO
 var _ja_carregando: bool = false
+var _quiz_scores: Dictionary = {}
+var _quiz_seed: String = ""
+var _quiz_feito: bool = false
 
 
 func _ready() -> void:
@@ -139,16 +144,16 @@ func _construir_painel_criacao() -> void:
 	line_edit_nome.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(line_edit_nome)
 	
-	# Mensagem Secreta sobre a Natureza de Nen
+	# Perfil secreto — afinidade só no Wing
 	lbl_afinidade_nome = Label.new()
-	lbl_afinidade_nome.text = "🧪 Teste da Água: Oculto"
+	lbl_afinidade_nome.text = "🧪 Natureza de Nen: Selada"
 	lbl_afinidade_nome.add_theme_font_size_override("font_size", 6)
 	lbl_afinidade_nome.add_theme_color_override("font_color", Color(1, 0.85, 0.2, 1))
 	lbl_afinidade_nome.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(lbl_afinidade_nome)
 	
 	lbl_afinidade_desc = Label.new()
-	lbl_afinidade_desc.text = "Sua afinidade natal de Nen é secreta! Você só descobrirá sua verdadeira natureza durante o Teste da Água com o Mestre Wing na Arena Celestial."
+	lbl_afinidade_desc.text = "Depois do nome e das cores, um breve perfil de personalidade será registrado. Sua afinidade natal permanece em segredo até o Teste da Água com o Mestre Wing."
 	lbl_afinidade_desc.add_theme_font_size_override("font_size", 4)
 	lbl_afinidade_desc.autowrap_mode = TextServer.AUTOWRAP_WORD
 	lbl_afinidade_desc.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -202,9 +207,9 @@ func _construir_painel_criacao() -> void:
 	hbox_btns.add_child(spacer)
 	
 	var btn_confirmar := Button.new()
-	btn_confirmar.text = "CRIAR E JOGAR!"
+	btn_confirmar.text = "PRÓXIMO: PERFIL →"
 	btn_confirmar.add_theme_font_size_override("font_size", 5)
-	btn_confirmar.pressed.connect(_concluir_criacao_personagem)
+	btn_confirmar.pressed.connect(_abrir_questionario_personalidade)
 	hbox_btns.add_child(btn_confirmar)
 
 
@@ -244,8 +249,10 @@ func _atualizar_slots() -> void:
 			hbox.add_child(info_vbox)
 			
 			var lbl_nome := Label.new()
-			var cat_name: String = NenAffinityData.obter_nome_afinidade(resumo["afinidade"])
-			lbl_nome.text = "%s (Lv. %d) — %s" % [resumo["nome"], resumo["nivel"], cat_name]
+			var af_label := "Aura Oculta"
+			if bool(resumo.get("nen_affinity_revealed", false)):
+				af_label = NenAffinityData.obter_nome_afinidade(resumo["afinidade"])
+			lbl_nome.text = "%s (Lv. %d) — %s" % [resumo["nome"], resumo["nivel"], af_label]
 			lbl_nome.add_theme_font_size_override("font_size", 5)
 			lbl_nome.add_theme_color_override("font_color", HunterUIStyle.COLOR_GOLD_LIGHT)
 			info_vbox.add_child(lbl_nome)
@@ -293,24 +300,55 @@ func _atualizar_slots() -> void:
 
 func _abrir_criacao_para_slot(slot_idx: int) -> void:
 	slot_criacao_atual = slot_idx
+	_quiz_feito = false
+	_quiz_scores.clear()
+	_quiz_seed = ""
 	if GameManager != null:
 		GameManager.set_flow_state(GameManager.GameFlowState.CHARACTER_CREATION)
 		GameManager.change_state(GameManager.GameState.CHARACTER_CREATION)
 	line_edit_nome.text = ""
-	_sortear_afinidade()
+	lbl_afinidade_nome.text = "🧪 Natureza de Nen: Selada"
+	lbl_afinidade_desc.text = "Depois do nome e das cores, um breve perfil de personalidade será registrado. Sua afinidade natal permanece em segredo até o Teste da Água com o Mestre Wing."
 	panel_criacao.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	panel_criacao.visible = true
 	line_edit_nome.grab_focus()
 
 
-func _sortear_afinidade() -> void:
-	afinidade_sorteada = NenAffinityData.sortear_afinidade_aleatoria()
-	lbl_afinidade_nome.text = "Afinidade: " + NenAffinityData.obter_nome_afinidade(afinidade_sorteada)
-	lbl_afinidade_desc.text = NenAffinityData.obter_descricao_afinidade(afinidade_sorteada)
+func _abrir_questionario_personalidade() -> void:
+	if quiz_overlay != null and is_instance_valid(quiz_overlay):
+		return
+	var nome: String = line_edit_nome.text.strip_edges()
+	if nome.is_empty():
+		nome = "Hunter"
+		line_edit_nome.text = nome
+
+	panel_criacao.visible = false
+	quiz_overlay = NenPersonalityQuizUIScene.instantiate()
+	add_child(quiz_overlay)
+	quiz_overlay.configurar(nome)
+	quiz_overlay.quiz_concluido.connect(_on_quiz_concluido)
+	quiz_overlay.quiz_cancelado.connect(_on_quiz_cancelado)
+
+
+func _on_quiz_concluido(scores: Dictionary, seed_str: String, _answer_indices: Array) -> void:
+	_quiz_scores = scores.duplicate(true)
+	_quiz_seed = str(seed_str)
+	_quiz_feito = true
+	quiz_overlay = null
+	_concluir_criacao_personagem()
+
+
+func _on_quiz_cancelado() -> void:
+	quiz_overlay = null
+	panel_criacao.visible = true
+	line_edit_nome.grab_focus()
 
 
 func _concluir_criacao_personagem() -> void:
 	if _ja_carregando:
+		return
+	if not _quiz_feito:
+		_abrir_questionario_personalidade()
 		return
 	_ja_carregando = true
 
@@ -322,7 +360,15 @@ func _concluir_criacao_personagem() -> void:
 	PlayerData.slot_ativo = slot_criacao_atual
 	PlayerData.gerar_novo_character_id()
 	PlayerData.nome_personagem = nome
-	PlayerData.afinidade_nen = afinidade_sorteada
+	# Placeholder interno — bônus/UI só após revelação no Wing.
+	PlayerData.afinidade_nen = NenAffinityData.CategoriaAfinidade.INTENSIFICACAO
+	PlayerData.nen_affinity_revealed = false
+	if not _quiz_scores.is_empty():
+		PlayerData.registrar_questionario_personalidade(_quiz_scores, _quiz_seed, 1)
+	else:
+		PlayerData.nen_quiz_version = 0
+		PlayerData.nen_personality_scores.clear()
+		PlayerData.nen_personality_seed = ""
 	PlayerData.mapa_atual_salvo = "res://world/lobby.tscn"
 	PlayerData.posicao_salva = Vector2.ZERO
 	
@@ -345,11 +391,12 @@ func _concluir_criacao_personagem() -> void:
 	PlayerData.besta_nen_desbloqueada = false
 	PlayerData.besta_nen_equipada = null
 	
-	# Aplicar bônus de afinidade
-	PlayerData.aplicar_bonuses_afinidade()
+	# Sem bônus de afinidade até o Teste da Água
+	PlayerData.recalcular_todos_atributos()
 	
 	print("[CHARACTER]")
 	print("  Novo Personagem Criado: ", nome, " | ID: ", PlayerData.character_id, " | Slot: ", slot_criacao_atual)
+	print("  Perfil Nen selado (seed=%s)" % ("sim" if not PlayerData.nen_personality_seed.is_empty() else "não"))
 
 	# Salvar no slot correspondente
 	SaveManager.salvar_jogo(slot_criacao_atual)
@@ -455,6 +502,7 @@ func _gerar_save_teste_lvl100() -> void:
 	PlayerData.gerar_novo_character_id()
 	PlayerData.nome_personagem = "Hunter Supremo (Lvl 100)"
 	PlayerData.afinidade_nen = NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO
+	PlayerData.nen_affinity_revealed = true
 	PlayerData.dificuldade = PlayerData.Dificuldade.NORMAL
 	PlayerData.potencial = 1.0
 	PlayerData.reputacao_hunter = 99999

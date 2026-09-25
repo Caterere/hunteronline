@@ -238,6 +238,11 @@ func obter_nome_dificuldade() -> String:
 var character_id: String = ""
 var nome_personagem: String = "Hunter"
 var afinidade_nen: NenAffinityData.CategoriaAfinidade = NenAffinityData.CategoriaAfinidade.INTENSIFICACAO
+## false até o Teste da Água (Wing). Afinidade e bônus ficam ocultos.
+var nen_affinity_revealed: bool = false
+var nen_quiz_version: int = 0
+var nen_personality_scores: Dictionary = {}
+var nen_personality_seed: String = ""
 var slot_ativo: int = 1
 var is_character_ready: bool = false
 
@@ -527,21 +532,24 @@ func obter_stat_calculado(stat_name: String) -> float:
 			# Base canônica pelo Nível do personagem + refino adicional por maestria/nível_nen
 			base_val = ProgressionConfig.calcular_stat_base("aura_max", nivel) + float(nivel_nen * 25)
 
-	# 1. Bônus Base por Afinidade
+	# 1. Bônus Base por Afinidade (só após revelação no Wing)
 	var mult_afinidade: float = 1.0
-	match afinidade_nen:
-		NenAffinityData.CategoriaAfinidade.INTENSIFICACAO:
-			if stat_name == "forca" or stat_name == "vida_max": mult_afinidade = 1.20
-		NenAffinityData.CategoriaAfinidade.TRANSFORMACAO:
-			if stat_name == "aura_max": mult_afinidade = 1.25
-		NenAffinityData.CategoriaAfinidade.CONJURACAO:
-			if stat_name == "defesa": mult_afinidade = 1.30
-		NenAffinityData.CategoriaAfinidade.MANIPULACAO:
-			if stat_name == "velocidade": mult_afinidade = 1.25
-		NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
-			if stat_name == "vida_max" or stat_name == "forca" or stat_name == "defesa": mult_afinidade = 1.50
-			elif stat_name == "aura_max": mult_afinidade = 1.60
-			elif stat_name == "velocidade": mult_afinidade = 1.40
+	if nen_affinity_revealed:
+		match afinidade_nen:
+			NenAffinityData.CategoriaAfinidade.INTENSIFICACAO:
+				if stat_name == "forca" or stat_name == "vida_max": mult_afinidade = 1.20
+			NenAffinityData.CategoriaAfinidade.TRANSFORMACAO:
+				if stat_name == "aura_max": mult_afinidade = 1.25
+			NenAffinityData.CategoriaAfinidade.CONJURACAO:
+				if stat_name == "defesa": mult_afinidade = 1.30
+			NenAffinityData.CategoriaAfinidade.MANIPULACAO:
+				if stat_name == "velocidade": mult_afinidade = 1.25
+			NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
+				if stat_name == "vida_max" or stat_name == "forca" or stat_name == "defesa": mult_afinidade = 1.50
+				elif stat_name == "aura_max": mult_afinidade = 1.60
+				elif stat_name == "velocidade": mult_afinidade = 1.40
+			NenAffinityData.CategoriaAfinidade.EMISSAO:
+				pass
 
 	base_val *= mult_afinidade
 
@@ -1108,9 +1116,43 @@ func _remover_mods_equipamento(item_id: String) -> void:
 # ============================================================
 
 func aplicar_bonuses_afinidade() -> void:
+	if not nen_affinity_revealed:
+		return
 	recalcular_todos_atributos()
 
 
+func obter_nome_afinidade_exibivel() -> String:
+	if not nen_affinity_revealed:
+		return "Aura Oculta"
+	return NenAffinityData.obter_nome_afinidade(afinidade_nen)
+
+
+func registrar_questionario_personalidade(scores: Dictionary, seed_str: String, quiz_version: int = 1) -> void:
+	nen_quiz_version = quiz_version
+	nen_personality_scores = scores.duplicate(true)
+	nen_personality_seed = str(seed_str)
+	nen_affinity_revealed = false
+
+
+func revelar_afinidade_nen() -> int:
+	# Idempotente: Wing / Teste da Água podem chamar mais de uma vez.
+	if nen_affinity_revealed:
+		return int(afinidade_nen)
+
+	var QuizScript = load("res://resource/nen/NenPersonalityQuiz.gd")
+	if QuizScript != null and not nen_personality_seed.is_empty() and not nen_personality_scores.is_empty():
+		afinidade_nen = QuizScript.resolver_afinidade(nen_personality_scores, nen_personality_seed) as NenAffinityData.CategoriaAfinidade
+	elif QuizScript != null and not nen_personality_scores.is_empty():
+		# Seed ausente (save antigo parcial): candidata pura + roll fresco estável por character_id.
+		var fallback_seed := "legacy|%s|%s" % [character_id, str(nen_personality_scores)]
+		afinidade_nen = QuizScript.resolver_afinidade(nen_personality_scores, fallback_seed) as NenAffinityData.CategoriaAfinidade
+	else:
+		afinidade_nen = NenAffinityData.sortear_afinidade_aleatoria()
+
+	nen_affinity_revealed = true
+	aplicar_bonuses_afinidade()
+	print("[PlayerData] Afinidade revelada: ", NenAffinityData.obter_nome_afinidade(afinidade_nen))
+	return int(afinidade_nen)
 
 
 # ============================================================

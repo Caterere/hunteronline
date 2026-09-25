@@ -101,6 +101,7 @@ func obter_resumo_slot(slot: int) -> Dictionary:
 			"character_id": data.get("character_id", "hxr-legacy-s%d" % slot),
 			"nome": data.get("nome_personagem", "Hunter"),
 			"afinidade": data.get("afinidade_nen", 0),
+			"nen_affinity_revealed": bool(data.get("nen_affinity_revealed", data.get("despertou_nen", false))),
 			"nivel": attr.get("nivel", 1),
 			"nivel_nen": attr.get("nivel_nen", 0),
 			"gold": data.get("gold", 0),
@@ -176,6 +177,10 @@ func salvar_jogo(slot: int = -1) -> bool:
 		"story_data": StoryManager.serializar() if StoryManager != null else {},
 		"nome_personagem": PlayerData.nome_personagem,
 		"afinidade_nen": int(PlayerData.afinidade_nen),
+		"nen_affinity_revealed": PlayerData.nen_affinity_revealed,
+		"nen_quiz_version": PlayerData.nen_quiz_version,
+		"nen_personality_scores": PlayerData.nen_personality_scores.duplicate(true),
+		"nen_personality_seed": PlayerData.nen_personality_seed,
 		"dificuldade": int(PlayerData.dificuldade),
 		"potencial": PlayerData.potencial,
 		"reputacao_hunter": PlayerData.reputacao_hunter,
@@ -387,6 +392,15 @@ func carregar_jogo(slot: int = -1) -> bool:
 	PlayerData.is_debug_mode = bool(data.get("is_debug_save", false))
 	PlayerData.nome_personagem = data.get("nome_personagem", "Hunter")
 	PlayerData.afinidade_nen = data.get("afinidade_nen", 0) as NenAffinityData.CategoriaAfinidade
+	PlayerData.nen_quiz_version = int(data.get("nen_quiz_version", 0))
+	PlayerData.nen_personality_seed = str(data.get("nen_personality_seed", ""))
+	PlayerData.nen_personality_scores = (data.get("nen_personality_scores", {}) as Dictionary).duplicate(true)
+	# Saves antigos: se já despertou Nen, a afinidade já era pública.
+	var despertou_flag := bool(data.get("despertou_nen", false))
+	if data.has("nen_affinity_revealed"):
+		PlayerData.nen_affinity_revealed = bool(data.get("nen_affinity_revealed"))
+	else:
+		PlayerData.nen_affinity_revealed = despertou_flag
 	PlayerData.dificuldade = data.get("dificuldade", 1) as PlayerData.Dificuldade
 	PlayerData.potencial = float(data.get("potencial", 1.0))
 	PlayerData.reputacao_hunter = int(data.get("reputacao_hunter", 0))

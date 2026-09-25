@@ -32,6 +32,7 @@ func _ready() -> void:
 	await _test_gps_stage_complete_uses_story_gate()
 	await _test_hud_matches_gps()
 	await _test_npc_match_strict()
+	await _test_padokia_forest_entrance_no_bounce()
 	print("=== RESULT: %d pass, %d fail ===" % [_pass, _fail])
 	await get_tree().create_timer(0.05).timeout
 	get_tree().quit(0 if _fail == 0 else 1)
@@ -386,4 +387,85 @@ func _test_npc_match_strict() -> void:
 	assert_test(MissionObjectiveResolverScript.npc_matches_objective("Tonpa", "Tonpa o Quebrador de Novatos", obj), "display casa")
 	assert_test(not MissionObjectiveResolverScript.npc_matches_objective("GuiaCapituloSaga", "Guia do Capítulo", obj), "Guia NÃO casa")
 	assert_test(not MissionObjectiveResolverScript.npc_matches_objective("npc", "Viajante", obj), "NPC genérico NÃO casa")
+	await get_tree().process_frame
+
+
+func _test_padokia_forest_entrance_no_bounce() -> void:
+	print("-- Padokia floresta: sem entrar-e-voltar --")
+	var Padokia = load("res://resource/quest/PadokiaQuestCatalog.gd")
+	var qmain = Padokia.obter_quest_principal()
+	QuestSystem.active_quests.clear()
+	PlayerData.quest_states.clear()
+	QuestSystem.start_quest(qmain)
+	var mapa_wing := MissionObjectiveResolverScript.get_expected_map_path(qmain)
+	assert_test("regiao_vale_padokia" in mapa_wing, "passo Wing aponta o Vale (não a floresta)")
+
+	PlayerData.set_quest_objective_progress(qmain, 0, 1)
+	var mapa_feras := MissionObjectiveResolverScript.get_expected_map_path(qmain)
+	assert_test("floresta_vestigios" in mapa_feras, "passo das feras aponta a Floresta")
+
+	PlayerData.set_quest_objective_progress(qmain, 1, 2)
+	var mapa_boss := MissionObjectiveResolverScript.get_expected_map_path(qmain)
+	assert_test("dungeon_ruinas_zaban" in mapa_boss, "passo do guardião aponta as Ruínas")
+
+	var qf = Padokia.obter_quest_investigacao_floresta()
+	var mapa_trilha := MissionObjectiveResolverScript.get_expected_map_path(qf)
+	assert_test("floresta_vestigios" in mapa_trilha, "trilha da herbalista fica na floresta")
+
+	var obj_fera: QuestObjective = qmain.objectives[1]
+	assert_test(
+		MissionObjectiveResolverScript.enemy_matches_objective("fera_floresta", "Fera da Floresta", "FeraFloresta1", obj_fera),
+		"fera_floresta conta no objetivo"
+	)
+	assert_test(
+		not MissionObjectiveResolverScript.enemy_matches_objective("lobo_sombras", "Besta de Sombra", "FeraSombra1", obj_fera),
+		"FeraSombra não rouba o objetivo fera_floresta"
+	)
+
+	var floresta_packed := load("res://world/maps/floresta_vestigios.tscn") as PackedScene
+	var estrada_packed := load("res://world/maps/estrada_padokia.tscn") as PackedScene
+	assert_test(floresta_packed != null and estrada_packed != null, "cenas da floresta e da estrada carregam")
+	if floresta_packed == null or estrada_packed == null:
+		return
+
+	PlayerData.despertou_nen = true
+	var floresta := floresta_packed.instantiate()
+	var estrada := estrada_packed.instantiate()
+	add_child(floresta)
+	add_child(estrada)
+	await get_tree().process_frame
+	await get_tree().process_frame
+
+	var sp := floresta.get_node_or_null("SpawnFromEstrada") as Node2D
+	var portao_voltar := floresta.get_node_or_null("PortaoNorteEstrada") as Node2D
+	assert_test(sp != null and portao_voltar != null, "spawn e portão norte existem")
+	if sp != null and portao_voltar != null:
+		assert_test(sp.position.distance_to(portao_voltar.position) > 80.0, "entrada não nasce em cima do portal de volta")
+
+	assert_test(floresta.get_node_or_null("FeraFloresta1") != null, "Fera da Floresta 1 presente")
+	assert_test(floresta.get_node_or_null("FeraFloresta2") != null, "Fera da Floresta 2 presente")
+	assert_test(floresta.get_node_or_null("HerbalistaFloresta") != null, "Herbalista presente na entrada da floresta")
+
+	var exame := "res://world/maps/exame_maratona.tscn"
+	var saida := MissionObjectiveResolverScript._find_travel_portal(floresta, exame, false)
+	var avanco := MissionObjectiveResolverScript._find_travel_portal(estrada, exame, false)
+	assert_test(saida != null and saida.name == "PortaoNorteEstrada", "na floresta, arco distante sai pela estrada")
+	assert_test(avanco != null and avanco.name == "PortaoNorteLobby", "na estrada, arco distante segue ao lobby (não reentra na floresta)")
+
+	var para_floresta := MissionObjectiveResolverScript._find_travel_portal(estrada, "res://world/maps/floresta_vestigios.tscn", false)
+	assert_test(para_floresta != null and para_floresta.name == "PortaoSulFloresta", "objetivo da floresta usa o portão sul")
+
+	var para_ruinas := MissionObjectiveResolverScript._find_travel_portal(floresta, "res://world/maps/dungeon_ruinas_zaban.tscn", false)
+	assert_test(para_ruinas != null and para_ruinas.name == "PortaoSulDungeon", "objetivo das ruínas usa o portão sul, não a volta")
+
+	QuestSystem.active_quests.clear()
+	var canon := CanonQuestCatalog.obter_quest_da_etapa(1, 1)
+	QuestSystem.start_quest(canon)
+	QuestSystem.start_quest(qf)
+	var cena_floresta := str(floresta.scene_file_path).to_lower()
+	var preferida: Quest = MissionObjectiveResolverScript._prefer_quest_on_current_map(canon, cena_floresta)
+	assert_test(preferida != null and preferida.quest_name == qf.quest_name, "dentro da floresta o GPS fica na trilha local, não no arco distante")
+
+	floresta.queue_free()
+	estrada.queue_free()
 	await get_tree().process_frame

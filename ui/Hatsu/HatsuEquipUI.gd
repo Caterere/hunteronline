@@ -199,7 +199,7 @@ func _atualizar_ui() -> void:
 	if PlayerData == null:
 		return
 
-	var afinidade_nome := NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+	var afinidade_nome := PlayerData.obter_nome_afinidade_exibivel()
 	lbl_afinidade_info.text = "Afinidade: " + afinidade_nome + (" (100% de Eficiência em tudo!)" if PlayerData.afinidade_nen == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO else "")
 
 	# 1. Atualizar 4 Slots Ativos

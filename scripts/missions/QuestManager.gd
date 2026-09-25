@@ -723,12 +723,17 @@ func _enemy_id_corresponde(target: StringName, actual: StringName) -> bool:
 	if target_str == actual_str or target_str in actual_str or actual_str in target_str:
 		return true
 
+	# Todos os tokens longos precisam bater. "fera" sozinho não conta
+	# abate de Fera Alada / FeraSombra como "fera_floresta".
 	var keywords := target_str.split("_")
+	var any_kw := false
 	for kw in keywords:
-		if kw.length() >= 4 and (kw in actual_str or actual_str in kw):
-			return true
-
-	return false
+		if kw.length() < 4:
+			continue
+		any_kw = true
+		if kw not in actual_str and actual_str not in kw:
+			return false
+	return any_kw
 
 
 # =========================================================

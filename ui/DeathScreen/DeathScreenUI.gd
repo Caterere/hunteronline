@@ -185,7 +185,7 @@ func exibir(agressor: Node = null) -> void:
 	if lbl_status_hunter != null:
 		var sp: int = PlayerData.nen_skill_points
 		var nv: int = PlayerData.level
-		var cat_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen) if PlayerData.despertou_nen else "Aura Oculta"
+		var cat_nome: String = PlayerData.obter_nome_afinidade_exibivel()
 		lbl_status_hunter.text = "🔰 %s | Nv. %d | Afinidade: %s | ⚡ %d SP" % [PlayerData.nome_personagem, nv, cat_nome, sp]
 
 	# Derrota como Conteúdo: Título e Comentário Narrativo de Resgate

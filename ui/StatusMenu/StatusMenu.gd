@@ -489,7 +489,7 @@ func _atualizar_status() -> void:
 
 	if lbl_afinidade_licenca != null:
 		if PlayerData.despertou_nen:
-			var af_nome: String = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+			var af_nome: String = PlayerData.obter_nome_afinidade_exibivel()
 			lbl_afinidade_licenca.text = "Afinidade: %s" % af_nome
 			lbl_afinidade_licenca.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
 		else:
