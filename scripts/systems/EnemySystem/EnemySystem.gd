@@ -89,6 +89,8 @@ var tempo_defesa_quebrada: float = 3.5
 var tempo_timer_quebrada: float = 0.0
 var tempo_sem_receber_dano: float = 0.0
 var taxa_regeneracao_defesa: float = 25.0
+## Combat Density: guarda ativa (leve quase não drena; heavy quebra)
+var em_guarda_ativa: bool = false
 
 # Compatibilidade com sistemas legados de postura/stagger
 var postura: float = 100.0
@@ -505,17 +507,45 @@ func obter_dados_inspecao_gyo() -> Dictionary:
 # BARRA DE DEFESA & QUEBRA DE GUARDA
 # =========================================================
 
+func entrar_guarda_ativa() -> void:
+	em_guarda_ativa = true
+	if enemy_sprite != null and not em_defesa_quebrada:
+		enemy_sprite.modulate = Color(0.65, 0.85, 1.35, 1.0)
+
+
+func sair_guarda_ativa() -> void:
+	em_guarda_ativa = false
+	if enemy_sprite != null and not em_defesa_quebrada and not em_stagger:
+		enemy_sprite.modulate = Color.WHITE
+
+
 func aplicar_dano_defesa(quantidade: float, is_heavy: bool = false) -> void:
 	if is_dead or em_defesa_quebrada:
 		return
 
+	# Guarda ativa: leves quase não quebram; heavy atravessa com bônus
+	var pressao: float = quantidade
+	if em_guarda_ativa:
+		if is_heavy:
+			pressao = quantidade * 1.35
+			ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "💥 GUARDA ABALADA!", 1.2, -44.0)
+		else:
+			# Spam de leve na guarda: quase zero pressão + leve regeneração
+			pressao = quantidade * 0.12
+			defesa_barra_atual = min(defesa_barra_max, defesa_barra_atual + defesa_barra_max * 0.04)
+			if randf() < 0.35:
+				ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "🛡️ BLOQUEADO", 0.85, -40.0)
+			if AudioManager != null:
+				AudioManager.tocar_bloqueio()
+
 	tempo_sem_receber_dano = 0.0
-	defesa_barra_atual = max(0.0, defesa_barra_atual - quantidade)
+	defesa_barra_atual = max(0.0, defesa_barra_atual - pressao)
 	postura = (defesa_barra_atual / max(1.0, defesa_barra_max)) * postura_max
 	defesa_alterada.emit(defesa_barra_atual, defesa_barra_max)
 	postura_alterada.emit(postura, postura_max)
 
 	if defesa_barra_atual <= 0.0:
+		em_guarda_ativa = false
 		em_defesa_quebrada = true
 		em_stagger = true
 		em_knockdown = true
@@ -525,11 +555,14 @@ func aplicar_dano_defesa(quantidade: float, is_heavy: bool = false) -> void:
 		entrou_em_stagger.emit()
 		if EventBus != null:
 			EventBus.enemy_staggered.emit(enemy_body if enemy_body != null else self)
-			EventBus.emit_hitstop(0.12 if is_heavy else 0.08)
-			EventBus.emit_camera_shake(0.55 if is_heavy else 0.35, 0.25)
+			EventBus.emit_hitstop(0.14 if is_heavy else 0.10)
+			EventBus.emit_camera_shake(0.60 if is_heavy else 0.40, 0.28)
 		ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "💥 DEFESA QUEBRADA! (VULNERÁVEL)", 2.4, -46.0)
 		if enemy_sprite != null:
 			enemy_sprite.modulate = Color(0.6, 1.2, 2.5, 1.0)
+		if AudioManager != null:
+			var pos_sfx: Vector2 = enemy_body.global_position if enemy_body != null else Vector2.ZERO
+			AudioManager.tocar_sfx_posicional("stagger_break", pos_sfx, 1.10)
 
 
 func aplicar_dano_postura(quantidade: float) -> void:
@@ -601,6 +634,10 @@ func take_damage(
 		int(round(float(damage) * def_factor)),
 		1
 	)
+
+	# Guarda ativa mitiga HP de golpes leves (heavy ainda passa)
+	if em_guarda_ativa and damage < 45:
+		final_damage = max(1, int(round(float(final_damage) * 0.35)))
 
 	# Bônus de Dano Crítico se a Defesa estiver Quebrada (+80%)
 	if em_defesa_quebrada or em_stagger:

@@ -113,17 +113,17 @@ func _gerar_mapa_dungeon() -> void:
 
 
 func _instanciar_boss_e_sentinelas() -> void:
-	# Densidade: packs na antecâmara + corredor + câmara
-	_instanciar_mob(Vector2(180, 380), "Sentinela de Pedra 1", false)
-	_instanciar_mob(Vector2(460, 380), "Sentinela de Pedra 2", false)
-	_instanciar_mob(Vector2(260, 340), "Sentinela de Pedra 3", false)
-	_instanciar_mob(Vector2(380, 340), "Sentinela de Pedra 4", false)
-	_instanciar_mob(Vector2(320, 280), "Guardião Menor do Corredor", false, true)
-	_instanciar_mob(Vector2(200, 200), "Sentinela da Câmara L", false)
-	_instanciar_mob(Vector2(440, 200), "Sentinela da Câmara R", false)
+	# Combat Density: packs com papéis mistos (tank + ranged + bruiser), não clones
+	_instanciar_mob(Vector2(180, 380), "Sentinela de Pedra 1", false, false, "tank")
+	_instanciar_mob(Vector2(460, 380), "Sentinela Atiradora", false, false, "ranged")
+	_instanciar_mob(Vector2(260, 340), "Sentinela de Pedra 3", false, false, "bruiser")
+	_instanciar_mob(Vector2(380, 340), "Sentinela de Pedra 4", false, false, "bruiser")
+	_instanciar_mob(Vector2(320, 280), "Guardião Menor do Corredor", false, true, "tank")
+	_instanciar_mob(Vector2(200, 200), "Sentinela da Câmara L", false, false, "ranged")
+	_instanciar_mob(Vector2(440, 200), "Sentinela da Câmara R", false, false, "bruiser")
 
 	# Boss principal
-	_instanciar_mob(Vector2(320, 120), "Guardião Ancestral de Zaban", true)
+	_instanciar_mob(Vector2(320, 120), "Guardião Ancestral de Zaban", true, false, "boss")
 
 	_criar_portal_saida(Vector2(320, 440))
 	_instanciar_sensores_nen_ruinas()
@@ -247,7 +247,7 @@ func _instanciar_sensores_nen_ruinas() -> void:
 	)
 
 
-func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool = false) -> void:
+func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool = false, role: String = "bruiser") -> void:
 	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
 	if enemy_scn == null:
 		return
@@ -280,6 +280,7 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool =
 		es.enemy_id = &"guardiao_ancestral"
 		es.enemy_name = nome
 		if es.enemy_data != null:
+			es.enemy_data.role = "boss"
 			es.enemy_data.attack_telegraph_type = "aoe_circle"
 			if "attack_windup" in es.enemy_data:
 				es.enemy_data.attack_windup = maxf(float(es.enemy_data.attack_windup), 0.6)
@@ -308,6 +309,36 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool =
 			var ed2 = DataManager.get_enemy(&"sentinela_pedra")
 			if ed2 != null:
 				es.enemy_data = ed2.duplicate(true) if ed2.has_method("duplicate") else ed2
+		elif es.enemy_data != null and es.enemy_data.has_method("duplicate"):
+			es.enemy_data = es.enemy_data.duplicate(true)
+		if es.enemy_data != null:
+			es.enemy_data.role = role
+			match role:
+				"ranged":
+					es.enemy_data.attack_telegraph_type = "aoe_circle"
+					es.strength = max(14, es.strength - 2)
+				"tank":
+					es.enemy_data.attack_telegraph_type = "exclamation"
+					es.defesa_barra_max *= 1.25
+					es.defesa_barra_atual = es.defesa_barra_max
+				_:
+					es.enemy_data.attack_telegraph_type = "flash"
+		var ai = enemy.get_node_or_null("EnemyAI") as EnemyAI
+		if ai != null:
+			match role:
+				"ranged":
+					ai.move_speed = 70.0
+					ai.detection_range = 300.0
+					ai.attack_range = 180.0
+					ai.stop_distance = 150.0
+					ai.attack_cooldown = 1.40
+				"tank":
+					ai.move_speed = 55.0
+					ai.detection_range = 220.0
+					ai.attack_cooldown = 1.60
+				"bruiser":
+					ai.move_speed = 68.0
+					ai.attack_cooldown = 1.30
 		if QuestSystem != null:
 			if not es.died.is_connected(QuestSystem.register_enemy_kill):
 				es.died.connect(QuestSystem.register_enemy_kill)

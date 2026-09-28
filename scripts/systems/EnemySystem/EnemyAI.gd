@@ -62,7 +62,8 @@ enum State {
 	RETURN,
 	STAGGER,
 	ALERT,
-	FLEE
+	FLEE,
+	GUARD
 }
 
 var current_state = State.IDLE
@@ -71,6 +72,15 @@ var current_state = State.IDLE
 var windup_timer: float = 0.0
 var recovery_timer: float = 0.0
 var _telegraph_indicator: Node = null
+var _telegraph_slash: Node2D = null
+
+# Combat Density — guarda ativa + pressão de leves
+var guard_timer: float = 0.0
+var _golpes_leves_recentes: int = 0
+var _timer_golpes_leves: float = 0.0
+const GUARD_DURACAO_BASE: float = 1.15
+const GOLPES_LEVES_PARA_GUARDA: int = 3
+const PERFECT_DODGE_TELEGRAPH_RANGE: float = 96.0
 
 # Aggro & Estados Canônicos (Fase 4)
 var threat_table: Dictionary = {}
@@ -221,6 +231,43 @@ func obter_raio_deteccao_efetivo(target: Node2D = null) -> float:
 # PROCESSAMENTO
 # =========================================================
 
+func esta_telegrafando() -> bool:
+	return current_state == State.PREPARE_ATTACK and windup_timer > 0.0
+
+
+func esta_em_recovery() -> bool:
+	return current_state == State.RECOVERY and recovery_timer > 0.0
+
+
+func esta_em_guarda() -> bool:
+	return current_state == State.GUARD and guard_timer > 0.0
+
+
+func obter_raio_perfect_dodge() -> float:
+	return PERFECT_DODGE_TELEGRAPH_RANGE
+
+
+## Jogador acertou leve — acumula pressão; spam abre guarda ou retaliação.
+func registrar_golpe_leve_recebido() -> void:
+	if current_state in [State.PREPARE_ATTACK, State.ATTACK, State.STAGGER, State.FLEE]:
+		return
+	_golpes_leves_recentes += 1
+	_timer_golpes_leves = 1.4
+	if _golpes_leves_recentes >= GOLPES_LEVES_PARA_GUARDA and current_state in [State.CHASE, State.IDLE, State.RECOVERY, State.ALERT]:
+		_iniciar_guarda()
+
+
+## Perfect Dodge durante telegraph: golpe falha e abre janela de punish.
+func forcar_whiff_por_perfect_dodge() -> void:
+	if current_state != State.PREPARE_ATTACK:
+		return
+	_remover_telegraph()
+	windup_timer = 0.0
+	recovery_timer = maxf(recovery_timer, 0.70)
+	current_state = State.RECOVERY
+	ComicBalloon.mostrar(enemy_body, "…whiff!", 0.9, -36.0)
+
+
 func _physics_process(delta: float) -> void:
 
 	if attack_timer > 0.0:
@@ -228,6 +275,11 @@ func _physics_process(delta: float) -> void:
 
 	if hatsu_timer > 0.0:
 		hatsu_timer -= delta
+
+	if _timer_golpes_leves > 0.0:
+		_timer_golpes_leves -= delta
+		if _timer_golpes_leves <= 0.0:
+			_golpes_leves_recentes = 0
 
 	if intimidacao_en_timer > 0.0:
 		intimidacao_en_timer -= delta
@@ -238,7 +290,7 @@ func _physics_process(delta: float) -> void:
 		taunt_timer -= delta
 		if taunt_timer <= 0.0:
 			taunt_timer = randf_range(8.0, 14.0)
-			if enemy_system != null and current_state in [State.CHASE, State.PREPARE_ATTACK, State.ATTACK, State.RECOVERY]:
+			if enemy_system != null and current_state in [State.CHASE, State.PREPARE_ATTACK, State.ATTACK, State.RECOVERY, State.GUARD]:
 				if enemy_system.has_method("disparar_taunt"):
 					enemy_system.disparar_taunt()
 
@@ -562,8 +614,10 @@ func _update_state() -> void:
 					enemy_body.velocity = Vector2.ZERO
 				return
 
-	# Manter estados atômicos de combate (Windup, Ataque, Recuperação, Alerta, Fuga)
+	# Manter estados atômicos de combate (Windup, Ataque, Recuperação, Guarda, Alerta, Fuga)
 	if current_state == State.PREPARE_ATTACK or current_state == State.ATTACK or current_state == State.RECOVERY:
+		return
+	if current_state == State.GUARD and guard_timer > 0.0:
 		return
 	if current_state == State.ALERT and alert_timer > 0.0:
 		return
@@ -663,6 +717,9 @@ func _execute_state() -> void:
 		State.RECOVERY:
 			_recovery()
 
+		State.GUARD:
+			_guard()
+
 		State.RETURN:
 			_return()
 
@@ -684,6 +741,7 @@ func _alert() -> void:
 
 func _flee() -> void:
 	_remover_telegraph()
+	_sair_guarda()
 	var alvo = obter_alvo_principal()
 	if alvo != null and is_instance_valid(alvo) and enemy_body != null:
 		var flee_dir = (enemy_body.global_position - alvo.global_position).normalized()
@@ -701,6 +759,7 @@ func _flee() -> void:
 
 func _stagger() -> void:
 	_remover_telegraph()
+	_sair_guarda()
 	enemy_body.velocity = Vector2.ZERO
 
 
@@ -708,6 +767,61 @@ func _obter_role() -> String:
 	if enemy_system != null and enemy_system.enemy_data != null and not enemy_system.enemy_data.role.is_empty():
 		return enemy_system.enemy_data.role
 	return "bruiser"
+
+
+# =========================================================
+# GUARDA ATIVA (Combat Density — mini-jogo de pressão)
+# =========================================================
+
+func _iniciar_guarda() -> void:
+	if enemy_system != null and (enemy_system.em_defesa_quebrada or enemy_system.em_stagger):
+		return
+	var role: String = _obter_role()
+	# Assassinos / fast raramente guardam; tanks/bruisers guardam mais.
+	if role in ["fast", "assassin", "ambusher", "ranged"]:
+		if randf() > 0.35:
+			# Em vez de guardar: retaliação rápida após spam de leves
+			_golpes_leves_recentes = 0
+			attack_timer = 0.0
+			_iniciar_prepare_attack()
+			ComicBalloon.mostrar(enemy_body, "⚡ RETALIAÇÃO!", 1.2, -40.0)
+			return
+	current_state = State.GUARD
+	guard_timer = GUARD_DURACAO_BASE * (1.25 if role in ["tank", "brute", "bruiser"] else 1.0)
+	_golpes_leves_recentes = 0
+	_remover_telegraph()
+	if enemy_system != null and enemy_system.has_method("entrar_guarda_ativa"):
+		enemy_system.entrar_guarda_ativa()
+	ComicBalloon.mostrar(enemy_body, "🛡️ GUARDA!", 1.1, -40.0)
+	if AudioManager != null:
+		AudioManager.tocar_bloqueio()
+
+
+func _sair_guarda() -> void:
+	guard_timer = 0.0
+	if enemy_system != null and enemy_system.has_method("sair_guarda_ativa"):
+		enemy_system.sair_guarda_ativa()
+
+
+func _guard() -> void:
+	if enemy_body != null:
+		enemy_body.velocity = Vector2.ZERO
+		if player != null and is_instance_valid(player):
+			var direction = (player.global_position - enemy_body.global_position).normalized()
+			_set_animation_direction(direction)
+	guard_timer -= get_physics_process_delta_time()
+	if enemy_system != null and enemy_system.em_defesa_quebrada:
+		_sair_guarda()
+		current_state = State.STAGGER
+		return
+	if guard_timer <= 0.0:
+		_sair_guarda()
+		# Após guarda: janela de counter do jogador (recovery curto) ou retaliação
+		if randf() < 0.45 and attack_timer <= 0.0:
+			_iniciar_prepare_attack()
+		else:
+			recovery_timer = 0.55
+			current_state = State.RECOVERY
 
 
 # =========================================================
@@ -729,35 +843,53 @@ func _idle() -> void:
 # =========================================================
 
 func _iniciar_prepare_attack() -> void:
+	_sair_guarda()
 	current_state = State.PREPARE_ATTACK
-	windup_timer = _obter_windup() * (0.65 if is_fase_2 else 1.0)
+	# Combat Density: windups legíveis (mín. 0.22s) — fast ainda é rápido, mas dodgeável
+	windup_timer = maxf(0.22, _obter_windup() * (0.65 if is_fase_2 else 1.0))
 	_mostrar_telegraph()
+	if AudioManager != null:
+		AudioManager.tocar_sfx_tipo("slash", 0.55)
 	if enemy_system != null and randf() < 0.35 and enemy_system.has_method("disparar_fala_ataque"):
 		enemy_system.disparar_fala_ataque("")
 
 
 func _obter_windup() -> float:
-	if enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.attack_windup > 0.0:
-		return enemy_system.enemy_data.attack_windup
 	# Bosses: windup mais longo para Hatsu/esquiva legíveis em solo
 	if enemy_system != null and enemy_system.is_boss:
+		if enemy_system.enemy_data != null and enemy_system.enemy_data.attack_windup >= 0.5:
+			return enemy_system.enemy_data.attack_windup
 		return 0.55
 	var role: String = _obter_role()
+	var by_role: float = 0.30
 	match role:
-		"fast": return 0.15
-		"tank": return 0.45
-		"ambusher": return 0.18
-		_: return 0.25
+		"fast", "assassin": by_role = 0.22
+		"tank", "brute": by_role = 0.48
+		"ranged": by_role = 0.38
+		"ambusher": by_role = 0.26
+		"bruiser": by_role = 0.32
+		_: by_role = 0.30
+	# Override explícito no .tres (fora do default 0.25) ganha
+	if enemy_system != null and enemy_system.enemy_data != null:
+		var custom: float = float(enemy_system.enemy_data.attack_windup)
+		if custom > 0.0 and absf(custom - 0.25) > 0.001:
+			return custom
+	return by_role
 
 
 func _obter_recovery() -> float:
-	if enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.attack_recovery > 0.0:
-		return enemy_system.enemy_data.attack_recovery
 	var role: String = _obter_role()
+	var by_role: float = 0.45
 	match role:
-		"fast": return 0.45 # Tempo para executar o recuo tático
-		"tank": return 0.50
-		_: return 0.35
+		"fast": by_role = 0.55 # Hit-and-run: janela de contra-ataque do jogador
+		"tank", "brute": by_role = 0.70
+		"ranged": by_role = 0.50
+		_: by_role = 0.45
+	if enemy_system != null and enemy_system.enemy_data != null:
+		var custom: float = float(enemy_system.enemy_data.attack_recovery)
+		if custom > 0.0 and absf(custom - 0.35) > 0.001:
+			return custom
+	return by_role
 
 
 func _mostrar_telegraph() -> void:
@@ -766,42 +898,97 @@ func _mostrar_telegraph() -> void:
 	var telegraph_type := "flash"
 	if enemy_system != null and enemy_system.enemy_data != null:
 		telegraph_type = str(enemy_system.enemy_data.attack_telegraph_type)
+	# Ranged padrão usa círculo de perigo no chão
+	if telegraph_type == "flash" and _obter_role() == "ranged":
+		telegraph_type = "aoe_circle"
 
 	var sprite = enemy_body.get_node_or_null("Sprite2D") as Sprite2D
 	match telegraph_type:
 		"aoe_circle":
 			if sprite != null:
 				sprite.modulate = Color(2.2, 0.55, 0.2, 1.0)
-			_criar_indicador_chao_aoe(enemy_body.global_position, 48.0, maxf(0.2, windup_timer))
+			_criar_indicador_chao_aoe(enemy_body.global_position, 52.0, maxf(0.22, windup_timer))
 		"exclamation":
 			if sprite != null:
 				sprite.modulate = Color(2.0, 1.6, 0.3, 1.0)
 		_:
 			if sprite != null:
-				sprite.modulate = Color(2.4, 0.4, 0.4, 1.0) # Flash de alerta
+				sprite.modulate = Color(2.4, 0.35, 0.35, 1.0) # Flash de alerta
+
+	# Cone / slash direcional no chão — leitura de ângulo do golpe
+	_criar_telegraph_slash_direcional(maxf(0.22, windup_timer))
 
 	if _telegraph_indicator == null or not is_instance_valid(_telegraph_indicator):
 		var lbl = Label.new()
 		lbl.name = "TelegraphAlert"
-		lbl.text = "⚠" if telegraph_type != "aoe_circle" else "◎"
-		lbl.position = Vector2(-8, -42)
-		lbl.add_theme_font_size_override("font_size", 8)
-		lbl.add_theme_color_override("font_color", Color(1.0, 0.2, 0.2, 1.0) if telegraph_type != "aoe_circle" else Color(1.0, 0.55, 0.15, 1.0))
+		lbl.text = "!" if telegraph_type != "aoe_circle" else "◎"
+		lbl.position = Vector2(-6, -44)
+		lbl.add_theme_font_size_override("font_size", 10)
+		lbl.add_theme_color_override("font_color", Color(1.0, 0.15, 0.15, 1.0) if telegraph_type != "aoe_circle" else Color(1.0, 0.55, 0.15, 1.0))
+		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 		enemy_body.add_child(lbl)
 		_telegraph_indicator = lbl
+		# Pulso rápido para chamar atenção
+		var tw := lbl.create_tween()
+		tw.set_loops()
+		tw.tween_property(lbl, "modulate:a", 0.35, 0.12)
+		tw.tween_property(lbl, "modulate:a", 1.0, 0.12)
+
+
+func _criar_telegraph_slash_direcional(duracao: float) -> void:
+	if enemy_body == null:
+		return
+	if _telegraph_slash != null and is_instance_valid(_telegraph_slash):
+		_telegraph_slash.queue_free()
+		_telegraph_slash = null
+	var dir := Vector2.DOWN
+	if player != null and is_instance_valid(player):
+		dir = (player.global_position - enemy_body.global_position).normalized()
+	var slash := Node2D.new()
+	slash.name = "TelegraphSlash"
+	slash.z_index = -1
+	slash.global_position = enemy_body.global_position
+	slash.rotation = dir.angle()
+	var reach: float = 58.0
+	var half_arc: float = deg_to_rad(38.0)
+	slash.draw.connect(func():
+		var pts: PackedVector2Array = PackedVector2Array()
+		pts.append(Vector2.ZERO)
+		var steps := 8
+		for i in range(steps + 1):
+			var a: float = -half_arc + (half_arc * 2.0) * (float(i) / float(steps))
+			pts.append(Vector2(cos(a), sin(a)) * reach)
+		slash.draw_colored_polygon(pts, Color(1.0, 0.18, 0.12, 0.28))
+		slash.draw_arc(Vector2.ZERO, reach, -half_arc, half_arc, 16, Color(1.0, 0.35, 0.2, 0.9), 2.0)
+	)
+	var map_parent = enemy_body.get_parent()
+	if map_parent == null:
+		map_parent = enemy_body
+	map_parent.add_child(slash)
+	slash.queue_redraw()
+	_telegraph_slash = slash
+	var tween := slash.create_tween()
+	tween.tween_property(slash, "modulate:a", 1.0, duracao * 0.55)
+	tween.tween_property(slash, "modulate:a", 0.0, duracao * 0.45)
 
 
 func _remover_telegraph() -> void:
 	if enemy_body != null:
 		var sprite = enemy_body.get_node_or_null("Sprite2D") as Sprite2D
-		if sprite != null and not is_fase_2:
-			sprite.modulate = Color.WHITE
-		elif sprite != null and is_fase_2:
-			sprite.modulate = Color(1.5, 0.4, 0.4, 1.0)
+		if sprite != null:
+			if enemy_system != null and enemy_system.get("em_guarda_ativa") == true:
+				sprite.modulate = Color(0.65, 0.85, 1.35, 1.0)
+			elif is_fase_2:
+				sprite.modulate = Color(1.5, 0.4, 0.4, 1.0)
+			else:
+				sprite.modulate = Color.WHITE
 	
 	if _telegraph_indicator != null and is_instance_valid(_telegraph_indicator):
 		_telegraph_indicator.queue_free()
 		_telegraph_indicator = null
+	if _telegraph_slash != null and is_instance_valid(_telegraph_slash):
+		_telegraph_slash.queue_free()
+		_telegraph_slash = null
 
 
 func _prepare_attack() -> void:
@@ -809,6 +996,10 @@ func _prepare_attack() -> void:
 	if player != null and is_instance_valid(player):
 		var direction = (player.global_position - enemy_body.global_position).normalized()
 		_set_animation_direction(direction)
+		# Atualiza ângulo do cone conforme o jogador se move durante o windup
+		if _telegraph_slash != null and is_instance_valid(_telegraph_slash):
+			_telegraph_slash.global_position = enemy_body.global_position
+			_telegraph_slash.rotation = direction.angle()
 	
 	windup_timer -= get_physics_process_delta_time()
 	if windup_timer <= 0.0:
@@ -966,13 +1157,24 @@ func _recovery() -> void:
 		var retreat_dir: Vector2 = (enemy_body.global_position - player.global_position).normalized()
 		enemy_body.velocity = retreat_dir * (move_speed * 1.15)
 		enemy_body.move_and_slide()
+	elif role == "ranged" and player != null and is_instance_valid(player) and enemy_body != null:
+		var retreat_dir: Vector2 = (enemy_body.global_position - player.global_position).normalized()
+		enemy_body.velocity = retreat_dir * (move_speed * 0.95)
+		enemy_body.move_and_slide()
 	else:
 		enemy_body.velocity = Vector2.ZERO
 
 	recovery_timer -= get_physics_process_delta_time()
 	if recovery_timer <= 0.0:
 		attack_timer = attack_cooldown
-		current_state = State.IDLE
+		# Spam de leves durante recovery → retaliação imediata
+		if _golpes_leves_recentes >= 2 and randf() < 0.55:
+			_golpes_leves_recentes = 0
+			attack_timer = 0.0
+			_iniciar_prepare_attack()
+			ComicBalloon.mostrar(enemy_body, "💢 CONTRA!", 1.15, -40.0)
+		else:
+			current_state = State.IDLE
 
 
 
