@@ -1,6 +1,7 @@
 class_name NGLFormigasMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DAS FORMIGAS CHIMERA (ARCO 6 - 48 ETAPAS)
@@ -35,6 +36,7 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_densificar_ngl()
 	_instanciar_sensores_nen_ngl()
+	_densificar_steam_late_ngl()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -495,15 +497,15 @@ func _instanciar_sensores_nen_ngl() -> void:
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoBarreiraFabrica", Vector2(1400, 35),
-			"Barreira Rachada da Fábrica D2", &"pocao_aura", &"ngl_ko_fabrica"
+			"Barreira Rachada da Fábrica D2", &"pedra_aura", &"ngl_ko_fabrica"
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoPilastraPalacio", Vector2(2950, 35),
-			"Pilastra Rachada do Palácio", &"elixir_aura"
+			"Pilastra Rachada do Palácio", &"cristal_aura"
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoRochaTumba", Vector2(4000, 35),
-			"Rocha Fundida da Tumba", &"pocao_aura", &"ngl_ko_tumba"
+			"Rocha Fundida da Tumba", &"pedra_aura", &"ngl_ko_tumba"
 		)
 
 	NenSensorFactory.criar_zetsu(
@@ -526,6 +528,28 @@ func _instanciar_sensores_nen_ngl() -> void:
 		&"ngl_vestibulo_tumba", "Vestíbulo da Tumba Nuclear",
 		Vector2(140, 90), &"guarda_peijin", "Eco Alertado"
 	)
+
+
+func _densificar_steam_late_ngl() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 6,
+		"companion": true,
+		"baus": [
+			{"name": "BauNGLFronteira", "pos": Vector2(500, 80), "titulo": "Baú da Fronteira",
+				"loot": [{"id": &"escama_formiga", "qtd": 1}, {"id": &"pedra_aura", "qtd": 2}]},
+			{"name": "BauNGLPalacio", "pos": Vector2(3100, 80), "titulo": "Baú do Palácio",
+				"loot": [{"id": &"nucleo_nen_formiga", "qtd": 1}, {"id": &"cristal_sombra", "qtd": 1}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentNGL", "pos": Vector2(3000, -20),
+				"titulo": "Vontade sob o Palácio",
+				"descricao": "Contra Guardas Reais, Hatsu sem identidade quebra. Affirme seu vow.",
+				"flag": "hatsu_moment_ngl"},
+		],
+		"checkpoints": [
+			{"name": "CkptNGLPalacio", "pos": Vector2(2950, 0), "id": "ngl_palacio", "titulo": "Palácio"},
+		],
+	})
 
 
 func _configurar_portal_conclusao() -> void:

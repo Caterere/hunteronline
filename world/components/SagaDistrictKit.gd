@@ -633,7 +633,7 @@ static func _spawn_nen_sensors_for_saga(mapa: Node2D, saga_id: int) -> void:
 				)
 				NenSensorFactory.criar_ko(
 					mapa, "KoPedraGourmet", Vector2(4600, 30),
-					"Pedra Selada Gourmet", &"pocao_aura"
+					"Pedra Selada Gourmet", &"pedra_aura"
 				)
 			NenSensorFactory.criar_zetsu(
 				mapa, "ZetsuArbustoPantanal", Vector2(2200, -80),

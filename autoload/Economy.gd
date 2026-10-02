@@ -146,6 +146,199 @@ const ITEM_CATALOGO := {
 		"categoria": "Material",
 		"preco": 450,
 		"descricao": "Órgão sensorial raro de feras quiméricas que aprimora a percepção de Gyo."
+	},
+	# --- Steam mid/late densify: identidade por arco (sem poções clássicas) ---
+	"food_cha_erva": {
+		"nome": "Chá de Erva de Aura",
+		"categoria": "Gourmet",
+		"preco": 80,
+		"descricao": "Infusão Gourmet. Buff leve de regeneração de aura (sem poção HP)."
+	},
+	"food_ensopado_javali": {
+		"nome": "Ensopado de Javali Gourmet",
+		"categoria": "Gourmet",
+		"preco": 180,
+		"descricao": "Prato Menchi-style. Buff temporário de defesa após exploração."
+	},
+	"food_sushi_yorknew": {
+		"nome": "Sushi do Underground",
+		"categoria": "Gourmet",
+		"preco": 220,
+		"descricao": "Petisco de Yorknew. Sink de Jenny + buff curto de foco Gyo."
+	},
+	"food_biscoito_biscuit": {
+		"nome": "Biscoito de Treino (Biscuit)",
+		"categoria": "Gourmet",
+		"preco": 150,
+		"descricao": "Lanche de treino. Respiro entre ranks da Arena / GI."
+	},
+	"ficha_arena": {
+		"nome": "Ficha da Arena Celestial",
+		"categoria": "Colecionável",
+		"preco": 100,
+		"descricao": "Comprovante de luta. Troca no dojo Wing por Jenny ou treino."
+	},
+	"ticket_leilao": {
+		"nome": "Convite do Leilão Underground",
+		"categoria": "Colecionável",
+		"preco": 350,
+		"descricao": "Acesso ao piso do leilão de Yorknew. Sink social."
+	},
+	"carta_greed_comum": {
+		"nome": "Carta Greed (Comum)",
+		"categoria": "Colecionável",
+		"preco": 90,
+		"descricao": "Carta residual de Greed Island. Material de troca / flavor."
+	},
+	"carta_greed_rara": {
+		"nome": "Carta Greed (Rara)",
+		"categoria": "Colecionável",
+		"preco": 600,
+		"descricao": "Carta rara. Sink alto + identidade de arco GI."
+	},
+	"seda_yorknew": {
+		"nome": "Seda do Mercado de Yorknew",
+		"categoria": "Material",
+		"preco": 160,
+		"descricao": "Tecido fino para capas e reforço leve de Ten."
+	},
+	"fragmento_moeda_gotoh": {
+		"nome": "Fragmento de Moeda de Gotoh",
+		"categoria": "Material",
+		"preco": 140,
+		"descricao": "Lascas de ouro aceleradas. Forja leve / flavor Kukuroo."
+	},
+	"osso_mike": {
+		"nome": "Osso Marcado do Mike",
+		"categoria": "Material",
+		"preco": 130,
+		"descricao": "Resíduo de aura animal. Usado em treino de Zetsu."
+	},
+	"tinta_aranha": {
+		"nome": "Tinta da Trupe Fantasma",
+		"categoria": "Material",
+		"preco": 280,
+		"descricao": "Pigmento com assinatura de Especialização. Sink mid."
+	},
+	"cristal_leilao": {
+		"nome": "Cristal Falso do Leilão",
+		"categoria": "Material",
+		"preco": 200,
+		"descricao": "Aura adulterada. Gyo revela a fraude — loot de pechincha."
+	},
+	"escama_formiga": {
+		"nome": "Escama de Formiga Chimera",
+		"categoria": "Material",
+		"preco": 320,
+		"descricao": "Quitina reforçada. Forja late / sink NGL."
+	},
+	"nucleo_nen_formiga": {
+		"nome": "Núcleo de Nen Quimérico",
+		"categoria": "Material",
+		"preco": 700,
+		"descricao": "Núcleo denso de aura. Elite late — sem poção clássica."
+	},
+	"placa_hunter_bronze": {
+		"nome": "Placa Hunter (Bronze)",
+		"categoria": "Colecionável",
+		"preco": 250,
+		"descricao": "Símbolo de rank inicial. Flavor Associação."
+	},
+	"placa_hunter_prata": {
+		"nome": "Placa Hunter (Prata)",
+		"categoria": "Colecionável",
+		"preco": 500,
+		"descricao": "Rank intermediário. Sink de prestígio."
+	},
+	"essencia_brion": {
+		"nome": "Essência de Brion",
+		"categoria": "Material",
+		"preco": 900,
+		"descricao": "Extrato do Continente Negro. Risco alto / reward alto."
+	},
+	"fragmento_sucessao": {
+		"nome": "Fragmento da Guerra de Sucessão",
+		"categoria": "Material",
+		"preco": 550,
+		"descricao": "Lasca de aura principesca a bordo do Black Whale."
+	},
+	"oleo_xi_yu": {
+		"nome": "Óleo Selado Xi-Yu",
+		"categoria": "Material",
+		"preco": 380,
+		"descricao": "Lubrificante ritual de máfia a bordo. Sink Whale."
+	},
+	"po_heil_ly": {
+		"nome": "Pó da Seita Heil-Ly",
+		"categoria": "Material",
+		"preco": 420,
+		"descricao": "Resíduo de Manipulação. Manuseie com Zetsu."
+	},
+	"corda_bungee": {
+		"nome": "Fibra Estilo Bungee",
+		"categoria": "Material",
+		"preco": 340,
+		"descricao": "Fibra elástica inspirada em Transformação. Forja Hatsu."
+	},
+	"grao_ten": {
+		"nome": "Grão Condutor de Ten",
+		"categoria": "Material",
+		"preco": 60,
+		"descricao": "Semente Gourmet barata. Craft de chá / buff leve."
+	},
+	"sal_nen": {
+		"nome": "Sal de Aura",
+		"categoria": "Material",
+		"preco": 55,
+		"descricao": "Conservante Gourmet. Sink micro early→mid."
+	},
+	"medalhao_zoldyck": {
+		"nome": "Medalhão Zoldyck (réplica)",
+		"categoria": "Colecionável",
+		"preco": 300,
+		"descricao": "Réplica turística. Flavor Kukuroo — sem poder real."
+	},
+	"luvas_sparring": {
+		"nome": "Luvas de Sparring da Arena",
+		"categoria": "Equipamento",
+		"preco": 270,
+		"descricao": "Equipamento leve de ringue. Sink entre andares."
+	},
+	"capa_ten_leve": {
+		"nome": "Capa Leve de Ten",
+		"categoria": "Equipamento",
+		"preco": 450,
+		"descricao": "Capa condutora. Defesa modesta + identidade visual."
+	},
+	"anel_gyo": {
+		"nome": "Anel de Foco Gyo",
+		"categoria": "Acessório",
+		"preco": 380,
+		"descricao": "Acessório de exploração. Ajuda inspeções mid."
+	},
+	"pulseira_zetsu": {
+		"nome": "Pulseira de Supressão (Zetsu)",
+		"categoria": "Acessório",
+		"preco": 380,
+		"descricao": "Treino de apagar aura. Risco/reward em stealth."
+	},
+	"kit_forja_portatil": {
+		"nome": "Kit de Forja Portátil",
+		"categoria": "Material",
+		"preco": 520,
+		"descricao": "Sink de ferreiro em campo. Preparação MH-style."
+	},
+	"mapa_avenida_yorknew": {
+		"nome": "Mapa Rasgado da Avenida",
+		"categoria": "Colecionável",
+		"preco": 70,
+		"descricao": "Marca próximos distritos. Micro-reward de clareira."
+	},
+	"diário_hunter": {
+		"nome": "Diário de Campo Hunter",
+		"categoria": "Colecionável",
+		"preco": 120,
+		"descricao": "Anotações de rota. Flavor progressão narrativa."
 	}
 }
 

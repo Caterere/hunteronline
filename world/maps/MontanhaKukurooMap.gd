@@ -1,6 +1,7 @@
 class_name MontanhaKukurooMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DA MONTANHA KUKUROO (ARCO 2 - 18 ETAPAS)
@@ -35,6 +36,7 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_densificar_alameda_kukuroo()
 	_instanciar_sensores_nen_kukuroo()
+	_densificar_steam_mid_kukuroo()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -426,8 +428,55 @@ func _instanciar_sensores_nen_kukuroo() -> void:
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoPedraAlameda", Vector2(1600, 40),
-			"Pedra Selada da Alameda", &"pocao_aura"
+			"Pedra Selada da Alameda", &"pedra_aura"
 		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoDormitorioEmpregados", Vector2(600, 20),
+			&"kukuroo_dormitorio", "Dormitório dos Empregados",
+			"Aura residual de treinamento. Zebro dorme pouco — Gyo marca a rotina.",
+			"Intensificação", 1, Color(0.7, 0.85, 0.55, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoJardimNorte", Vector2(2000, -40),
+			&"kukuroo_jardim_norte", "Jardim Norte Selado",
+			"Arbustos com aura diluída. Atalho para a Mansão se Ko abrir a pedra.",
+			"Emissão", 1, Color(0.55, 0.9, 0.7, 0.9)
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoGradeJardim", Vector2(2050, 50),
+			"Grade Selada do Jardim", &"fragmento_moeda_gotoh", &"kukuroo_ko_jardim"
+		)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuArbustoSul", Vector2(1500, 120),
+		&"kukuroo_arbusto_sul", "Arbusto Sul da Alameda",
+		Vector2(140, 90), &"mordomo_combate", "Mordomo Alertado"
+	)
+
+
+func _densificar_steam_mid_kukuroo() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 2,
+		"companion": true,
+		"baus": [
+			{"name": "BauKukuPortao", "pos": Vector2(320, 80), "titulo": "Baú do Portão",
+				"loot": [{"id": &"pedra_aura", "qtd": 1}, {"id": &"osso_mike", "qtd": 1}]},
+			{"name": "BauKukuAlameda", "pos": Vector2(1350, 90), "titulo": "Baú da Alameda",
+				"loot": [{"id": &"fragmento_moeda_gotoh", "qtd": 1}, {"id": &"erva_nen", "qtd": 2}]},
+			{"name": "BauKukuMansao", "pos": Vector2(2500, 70), "titulo": "Baú da Mansão",
+				"loot": [{"id": &"medalhao_zoldyck", "qtd": 1}, {"id": &"pedra_aura", "qtd": 2}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentKukuroo", "pos": Vector2(1750, -30),
+				"titulo": "Pressão Zoldyck",
+				"descricao": "A aura da família esmaga o Ten fraco. Seu Hatsu aprende a não vacilar.",
+				"flag": "hatsu_moment_kukuroo"},
+		],
+		"checkpoints": [
+			{"name": "CkptKukuAlameda", "pos": Vector2(1150, 0), "id": "kukuroo_alameda", "titulo": "Alameda"},
+			{"name": "CkptKukuMansao", "pos": Vector2(2350, -20), "id": "kukuroo_mansao", "titulo": "Mansão"},
+		],
+	})
+
 
 func _configurar_portal_conclusao() -> void:
 	var portal = get_node_or_null("PortalArenaCelestial") as MapTransitionArea

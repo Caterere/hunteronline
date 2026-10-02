@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_lan_zaban_2client_proof_suite.gd" id="1"]
+
+[node name="TestLanZaban2ClientProofSuite" type="Node"]
+script = ExtResource("1")

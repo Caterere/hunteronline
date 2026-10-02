@@ -1,6 +1,7 @@
 class_name ArenaCelestialMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DA ARENA CELESTIAL (ARCO 3 - 26 ETAPAS)
@@ -35,6 +36,8 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_densificar_corredor_arena()
 	_popular_espectadores_arena()
+	_densificar_steam_mid_arena()
+	_garantir_training_wing_respiro()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	_garantir_tower_ui()
@@ -66,8 +69,34 @@ func _popular_sensores_nen_arena() -> void:
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoPoste200Andar", Vector2(3200, 20),
-			"Poste Selado do 200º Andar", &"pocao_aura"
+			"Poste Selado do 200º Andar", &"pedra_aura"
 		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoRingue100", Vector2(1650, -40),
+			&"arena_ringue_100", "Resíduo do 100º Andar",
+			"Lutadores de Nen deixaram marcas no tatame. Suba com calma.",
+			"Intensificação", 1, Color(0.6, 0.85, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoCorredor190", Vector2(2150, -30),
+			&"arena_corredor_190", "Eco do Pré-Final",
+			"Aura densa antes do 200º. Respire — Training Wing se precisar.",
+			"Emissão", 1, Color(0.85, 0.7, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoPoste100Andar", Vector2(1580, 40),
+			"Poste Selado do 100º", &"ficha_arena", &"arena_ko_100"
+		)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCorredorMedio", Vector2(1900, 80),
+		&"arena_corredor_medio", "Corredor dos Ringues Médios",
+		Vector2(150, 100), &"lutador_arena", "Lutador Alertado"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuVestiarioInferior", Vector2(750, -90),
+		&"arena_vestiario", "Vestiário dos Amadores",
+		Vector2(130, 90), &"lutador_arena", "Amador Alertado"
+	)
 
 
 func _process(_delta: float) -> void:
@@ -400,6 +429,68 @@ func _densificar_corredor_arena() -> void:
 		add_child(marker)
 
 	_plantar_props_estrutura_arena()
+
+
+func _densificar_steam_mid_arena() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 3,
+		"companion": true,
+		"baus": [
+			{"name": "BauArenaRecepcao", "pos": Vector2(180, 70), "titulo": "Baú da Recepção",
+				"loot": [{"id": &"ficha_arena", "qtd": 2}, {"id": &"pedra_aura", "qtd": 1}]},
+			{"name": "BauArenaDojo", "pos": Vector2(1120, 70), "titulo": "Baú do Dojo",
+				"loot": [{"id": &"food_biscoito_biscuit", "qtd": 1}, {"id": &"grao_ten", "qtd": 2}]},
+			{"name": "BauArena190", "pos": Vector2(2080, 70), "titulo": "Baú do 190º",
+				"loot": [{"id": &"luvas_sparring", "qtd": 1}, {"id": &"cristal_aura", "qtd": 1}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentArena", "pos": Vector2(1250, -20),
+				"titulo": "Identidade no Tatame",
+				"descricao": "Wing ensina: Hatsu é quem você é sob pressão. O ringue responde.",
+				"flag": "hatsu_moment_arena"},
+		],
+		"checkpoints": [
+			{"name": "CkptArenaWing", "pos": Vector2(1100, 0), "id": "arena_wing_dojo", "titulo": "Dojo Wing"},
+			{"name": "CkptArena200", "pos": Vector2(3300, 0), "id": "arena_pre_200", "titulo": "Pré-200º"},
+		],
+	})
+
+
+func _garantir_training_wing_respiro() -> void:
+	# Respiro Steam §6.4 — Wing/Biscuit entre ranks (não só no Lobby/GI).
+	if get_node_or_null("TrainingWingRespiro") != null:
+		return
+	var area := Area2D.new()
+	area.name = "TrainingWingRespiro"
+	area.position = Vector2(1020, 40)
+	area.collision_layer = 0
+	area.collision_mask = 2
+	var col := CollisionShape2D.new()
+	var circ := CircleShape2D.new()
+	circ.radius = 32.0
+	col.shape = circ
+	area.add_child(col)
+	var lbl := Label.new()
+	lbl.text = "🥋 Training Wing\n[E] Respiro / Treino"
+	lbl.position = Vector2(-55, -40)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 5)
+	lbl.add_theme_color_override("font_color", Color(0.7, 0.95, 0.85))
+	area.add_child(lbl)
+	var inter := InteractionComponent.new()
+	inter.name = "InteractionComponent"
+	inter.interaction_text = "[E] Abrir Training Wing (respiro entre ranks)"
+	inter.interaction_radius = 34.0
+	inter.interacted.connect(func(_p):
+		TrainingSystem.obter_ou_criar(get_tree())
+		if EventBus != null:
+			EventBus.emit_toast("🥋 Training Wing — fale com Wing/Zushi ao lado. Respire antes do próximo andar.", Color(0.55, 0.95, 0.8))
+		var hud = get_tree().get_first_node_in_group("player_hud")
+		if hud != null and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🥋 Respiro: treine com Wing antes do próximo rank.")
+	)
+	area.add_child(inter)
+	add_child(area)
 
 
 ## Postes de treino + marcos no corredor (leitura espacial).

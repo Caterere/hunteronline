@@ -33,7 +33,7 @@ O objetivo desta Bible é estabelecer a arquitetura do **Story Experience**, gar
 | **Story Pacing Save/Load** | `IMPLEMENTED` | `autoload/StoryManager.gd` | Serialização e restauração integral de estados de ritmo e dicionário de escolhas. |
 | **Living Story Gates** | `IMPLEMENTED` | `scripts/world/StoryGate.gd` | Portões e barreiras validadas contra StoryManager prevenindo desvios prematuros. |
 | **Ramificações Avançadas (Arcos 2-7)** | `PARTIAL` | `world/maps/` | Escolhas canônicas completas no Arco 1 (Zaban/Exame); Arcos 2 a 7 com estrutura de flags pronta. |
-| **Interjeições de Companheiros em Viagem** | `PLANNED` | `scripts/story/CompanionChatter.gd` | Comentários contextuais de Gon, Killua, Kurapika e Leorio durante travessias a pé. |
+| **Interjeições de Companheiros em Viagem** | `IMPLEMENTED` | `scripts/story/CompanionChatter.gd` | Comentários contextuais de Gon, Killua, Kurapika e Leorio durante travessias mid/late (toast por marco X). |
 | **Geração Procedural de Histórias** | `DEFERRED` | N/A | Postergado; fidelidade ao universo de Hunter x Hunter exige curadoria canônica artesanal. |
 | **Flags Locais Isoladas em Scripts de Cenas** | `LEGACY` | Vários scripts legados | Flags gravadas fora do StoryManager foram substituídas pelo registro centralizado. |
 

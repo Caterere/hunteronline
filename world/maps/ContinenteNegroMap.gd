@@ -1,6 +1,7 @@
 class_name ContinenteNegroMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DO CONTINENTE NEGRO (ARCO 8 - 22 ETAPAS)
@@ -34,6 +35,7 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_densificar_continente()
 	_instanciar_sensores_nen_continente()
+	_densificar_steam_late_continente()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -358,11 +360,11 @@ func _instanciar_sensores_nen_continente() -> void:
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoRaizSelada", Vector2(2300, 35),
-			"Raiz Selada de Brion", &"pocao_aura", &"cn_ko_brion"
+			"Raiz Selada de Brion", &"pedra_aura", &"cn_ko_brion"
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoTroncoArvore", Vector2(2950, 35),
-			"Tronco Rachado da Árvore", &"elixir_aura"
+			"Tronco Rachado da Árvore", &"cristal_aura"
 		)
 
 	NenSensorFactory.criar_zetsu(
@@ -380,6 +382,26 @@ func _instanciar_sensores_nen_continente() -> void:
 		&"cn_copa_intermediaria", "Copa Intermediária da Árvore",
 		Vector2(140, 90), &"guardiao_brion", "Fera Alada Alertada"
 	)
+
+
+func _densificar_steam_late_continente() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 8,
+		"companion": true,
+		"baus": [
+			{"name": "BauCNAcampamento", "pos": Vector2(350, 80), "titulo": "Baú do Acampamento",
+				"loot": [{"id": &"essencia_brion", "qtd": 1}, {"id": &"sal_nen", "qtd": 2}]},
+			{"name": "BauCNRaizes", "pos": Vector2(2400, 80), "titulo": "Baú das Raízes",
+				"loot": [{"id": &"cristal_aura", "qtd": 1}, {"id": &"pedra_aura", "qtd": 2}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentCN", "pos": Vector2(2000, -20),
+				"titulo": "Horizonte Sem Nome",
+				"descricao": "Fora do mapa humano, só identidade salva. Seu Hatsu é bússola.",
+				"flag": "hatsu_moment_continente"},
+		],
+		"checkpoints": [],
+	})
 
 
 func _configurar_portal_conclusao() -> void:

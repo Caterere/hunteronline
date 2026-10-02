@@ -1,6 +1,7 @@
 class_name AssociacaoHunterMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DA ASSOCIAÇÃO HUNTER (ARCO 7 - 20 ETAPAS)
@@ -34,6 +35,7 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_densificar_associacao()
 	_instanciar_sensores_nen_associacao()
+	_densificar_steam_late_associacao()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -379,11 +381,11 @@ func _instanciar_sensores_nen_associacao() -> void:
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoGradeCela", Vector2(2100, 35),
-			"Grade Selada da Cela", &"pocao_aura", &"assoc_ko_cela"
+			"Grade Selada da Cela", &"pedra_aura", &"assoc_ko_cela"
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoBarreiraRodovia", Vector2(2900, 35),
-			"Barreira Rachada da Rodovia", &"elixir_aura"
+			"Barreira Rachada da Rodovia", &"cristal_aura"
 		)
 
 	NenSensorFactory.criar_zetsu(
@@ -401,6 +403,26 @@ func _instanciar_sensores_nen_associacao() -> void:
 		&"assoc_tribuna_bastidores", "Bastidores da Tribuna",
 		Vector2(130, 90), &"humano_agulha", "Agente Alertado"
 	)
+
+
+func _densificar_steam_late_associacao() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 7,
+		"companion": true,
+		"baus": [
+			{"name": "BauAssocAuditorio", "pos": Vector2(400, 80), "titulo": "Baú do Auditório",
+				"loot": [{"id": &"placa_hunter_bronze", "qtd": 1}, {"id": &"diario_hunter", "qtd": 1}]},
+			{"name": "BauAssocHospital", "pos": Vector2(1500, 80), "titulo": "Baú do Hospital",
+				"loot": [{"id": &"food_cha_erva", "qtd": 2}, {"id": &"pedra_aura", "qtd": 1}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentAssoc", "pos": Vector2(3600, -20),
+				"titulo": "Voto sob Pressão",
+				"descricao": "Política e Nen. Identidade pública do Hatsu importa aqui.",
+				"flag": "hatsu_moment_associacao"},
+		],
+		"checkpoints": [],
+	})
 
 
 func _configurar_portal_conclusao() -> void:
