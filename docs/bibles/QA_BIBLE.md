@@ -78,3 +78,35 @@ Para rodar qualquer suíte via terminal:
 | **Stress Test de Memória / Leaks** | `[IN PROGRESS]` | Análise de ObjectDB e cleanup de nós temporários |
 | **Runner Integrado de CI/CD** | `[PLANNED]` | Script GitHub Actions para validação a cada commit |
 | **Simulação de Rede com Bots** | `[FUTURE]` | Carga de 100 clientes virtuais conectados ao Lobby |
+| **Steam Polish Gates G1–G5** | `[CANON]` | Ver §5 abaixo · [`STEAM_POLISH_BIBLE.md`](STEAM_POLISH_BIBLE.md) |
+| **Playtest humano early (G5)** | `[P0]` | Exame→Padokia→Floresta→Ruínas com gravação — suites não substituem |
+
+---
+
+## 5. STEAM POLISH GATES (PROTOCOLO DE SHIP)
+
+> Canon completo: [`STEAM_POLISH_BIBLE.md`](STEAM_POLISH_BIBLE.md) · checklist early: [`../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md`](../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md).
+
+Suites headless validam regressão de sistemas. **Ship / review Steam** exige os cinco gates perceptíveis:
+
+| Gate | Critério | Como validar |
+| :--- | :--- | :--- |
+| **G1** Regra dos 10s | Caminhada >10s em linha reta tem Gyo **ou** baú/recurso **ou** rastro/som; respiro 4–8s sem mob | Play humano + heatmap / walkthrough |
+| **G2** Nen fora do combate | Mapa early/mid com ≥1 Gyo, ≥1 Zetsu, ≥1 Ko reais | Checklist por mapa + telemetria de uso |
+| **G3** Legibilidade | Inimigo novo = silhueta + telegraph + 1 fraqueza Nen | Review visual + combate |
+| **G4** Reward em clareira | Clareira sem combate ainda entrega something | Walk das rotas laterais |
+| **G5** Playtest humano P0 | Rota Exame→Ruínas gravada; dead time contínuo ≤6s | Gravação + notas (obrigatório) |
+
+### 5.1 Critério de “review-proof” (bloqueia VPS)
+- G1–G5 verdes na rota early  
+- TTK early 4–8s · speeds ~112/58 · encontros 300–600px  
+- Boss Guardião: telegraph ~1.2s · loot no chão · wipe→checkpoint  
+- Save schema sem regressão  
+- Prova LAN 2 clientes em raid Zaban **antes** de host público  
+
+### 5.2 Ordem QA recomendada
+1. Suites Fase H/I/J (regressão)  
+2. Checklist early density (mapa a mapa)  
+3. Playtest humano G5  
+4. Vertical review 90–120 min ([`STEAM_POLISH_BIBLE.md` §7](STEAM_POLISH_BIBLE.md))  
+5. LAN raid proof → só então VPS

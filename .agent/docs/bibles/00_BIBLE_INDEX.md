@@ -27,7 +27,8 @@
 | 10_UI_UX_BIBLE.md | [UI_UX_BIBLE](../../../docs/bibles/UI_UX_BIBLE.md) |
 | 11_CONTENT_DESIGN_BIBLE.md | [guides/](../../../docs/guides/) · [ENEMY_AI_BIBLE](../../../docs/bibles/ENEMY_AI_BIBLE.md) |
 | 12_ARCHITECTURE_BIBLE.md | [TECHNICAL_ARCHITECTURE_BIBLE](../../../docs/bibles/TECHNICAL_ARCHITECTURE_BIBLE.md) · [architecture/](../../../docs/architecture/) |
-| 13_TESTING_DEBUG_BIBLE.md | [QA_BIBLE](../../../docs/bibles/QA_BIBLE.md) · [TESTING_STRATEGY](../../../docs/systems/TESTING_STRATEGY.md) |
+| 13_TESTING_DEBUG_BIBLE.md | [QA_BIBLE](../../../docs/bibles/QA_BIBLE.md) · [STEAM_POLISH_BIBLE](../../../docs/bibles/STEAM_POLISH_BIBLE.md) · [TESTING_STRATEGY](../../../docs/systems/TESTING_STRATEGY.md) |
+| (steam polish) | [STEAM_POLISH_BIBLE](../../../docs/bibles/STEAM_POLISH_BIBLE.md) · [STEAM_EARLY_DENSITY_CHECKLIST](../../../docs/roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md) · [PRODUCTION_ROADMAP](../../../docs/roadmap/PRODUCTION_ROADMAP.md) |
 | 14_DATA_SCHEMA_BIBLE.md | [PLAYER_DATA](../../../docs/systems/PLAYER_DATA.md) · [LIVE_OPS_CONTENT](../../../docs/roadmap/LIVE_OPS_CONTENT.md) |
 | 15_GAMEPLAY_FOUNDATION_BIBLE.md | [GAMEPLAY_BIBLE](../../../docs/bibles/GAMEPLAY_BIBLE.md) |
 | 16_PIXEL_ART_STYLE_BIBLE.md | [PIXEL_ART_STYLE_BIBLE](../../../docs/bibles/PIXEL_ART_STYLE_BIBLE.md) · [ART_PIPELINE_CANON](../../../docs/bibles/ART_PIPELINE_CANON.md) |
