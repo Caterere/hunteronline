@@ -33,6 +33,7 @@ O **Combat 2.0** preserva a total passividade da Nen Skill Tree (sem botões man
 | **Dano de Postura e Quebra (Stagger)** | `IMPLEMENTED` | `aplicar_dano_postura()` | Dano à postura do alvo; postura zerada resulta em atordoamento crítico. |
 | **Inimigos com Hatsu Modular** | `IMPLEMENTED` | `_executar_hatsu_modular()` | Inimigos executam recursos reais de `HatsuData` unificados com a engine do jogador. |
 | **6 Arquétipos de IA Inimiga** | `IMPLEMENTED` | `EnemyAI.gd` | Comportamentos distintos: `brute`, `assassin`, `ranged`, `tactician`, `nen_user`, `boss`. |
+| **Combat Density Pass** | `IMPLEMENTED` | `EnemyAI` / `CombatSystem` | Telegraph direcional + Perfect Dodge no windup; guarda ativa (leve bloqueado / heavy quebra); counter 0.85s; packs mistos floresta/ruínas. |
 | **Combos Aéreos e Wall Bounce** | `PARTIAL` | `CombatEngine.gd` | Lançamento vertical implementado; quique em paredes em polimento de física. |
 | **Formações Táticas de Emboscada (Zetsu)** | `PLANNED` | `EnemyFlockingManager` | Inimigos que coordenam cerco flanqueando com Zetsu silencioso. |
 | **Combate em Turnos** | `DEFERRED` | N/A | Totalmente descartado; o jogo é estritamente combate de ação em tempo real. |

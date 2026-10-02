@@ -47,10 +47,14 @@ var combo_step: int = 0 # 0 = Golpe 1, 1 = Golpe 2, 2 = Finalizador
 var combo_window_timer: float = 0.0
 const COMBO_WINDOW_MAX: float = 0.45
 
-# Contra-Ataque de Perfect Dodge
+# Contra-Ataque de Perfect Dodge (janela curta = skill, não buff longo)
 var contra_ataque_ativo: bool = false
 var contra_ataque_timer: float = 0.0
+const CONTRA_ATAQUE_JANELA: float = 0.85
+const PERFECT_DODGE_TELEGRAPH_RANGE: float = 96.0
 var ultimo_agressor: Node = null
+## Em combate aberto o cooldown da esquiva regenera mais lento (recurso competindo)
+var _pressao_combate_timer: float = 0.0
 
 
 # ============================================================
@@ -427,7 +431,18 @@ func _on_attack_hit(
 		dano = int(round(float(dano) * 1.50))
 		is_crit = true
 		contra_ataque_ativo = false
+		contra_ataque_timer = 0.0
 		_mostrar_texto_flutuante("💥 COUNTER STRIKE! +50%", Color(1.0, 0.8, 0.2))
+		if EventBus != null:
+			EventBus.emit_hitstop(0.16)
+			EventBus.emit_toast("COUNTER!", Color(1.0, 0.85, 0.25))
+
+	# Golpe durante recovery do inimigo (janela de skill pós-ataque)
+	var ai_alvo = enemy.get_node_or_null("EnemyAI") if enemy != null else null
+	if ai_alvo != null and ai_alvo.has_method("esta_em_recovery") and ai_alvo.esta_em_recovery():
+		dano = int(round(float(dano) * 1.25))
+		is_crit = true
+		_mostrar_texto_flutuante("⏱ PUNISH +25%", Color(0.95, 0.75, 0.35))
 
 	# Disparar Hitstop e Camera Shake direcional (Game Feel & Juice)
 	if EventBus != null:
@@ -463,12 +478,16 @@ func _on_attack_hit(
 					1: pct = 0.20
 					2: pct = 0.30
 				enemy_system.aplicar_dano_defesa(def_max * pct, false)
+				# Pressão de leves → inimigo pode entrar em guarda / retaliar
+				if ai_alvo != null and ai_alvo.has_method("registrar_golpe_leve_recebido"):
+					ai_alvo.registrar_golpe_leve_recebido()
 		elif is_heavy_attack and enemy_system.has_method("aplicar_dano_postura"):
 			enemy_system.aplicar_dano_postura(45.0)
 		if enemy_system.has_method("is_in_aerial_combo_window") and enemy_system.is_in_aerial_combo_window():
 			var bounces := int(enemy_system.wall_bounce_count) if "wall_bounce_count" in enemy_system else 0
 			dano = int(round(float(dano) * HitStopManager.aerial_combo_multiplier(true, bounces)))
 		enemy_system.take_damage(dano, ultima_direcao, knockback_val, owner_body, false)
+		_pressao_combate_timer = 2.5
 	elif alvo.has_method("receber_dano"):
 		alvo.receber_dano(dano, ultima_direcao, knockback_val, owner_body)
 	elif enemy.has_method("receber_dano"):
@@ -591,6 +610,7 @@ func receber_dano(
 
 	if atacante != null:
 		ultimo_agressor = atacante
+		_pressao_combate_timer = 2.5
 
 	# ========================================================
 	# MORTE
@@ -666,9 +686,35 @@ func tentar_esquivar(
 		hatsu_system.registrar_esquiva_perfeita()
 
 	esquiva_duracao_timer = esquiva_duracao
-	esquiva_timer = esquiva_cooldown
+	# Em combate aberto: dash custa mais (cooldown maior) — recurso competindo
+	var cd_mult: float = 1.55 if _pressao_combate_timer > 0.0 else 1.0
+	esquiva_timer = esquiva_cooldown * cd_mult
+
+	# Perfect Dodge por leitura de telegraph (não só i-frames mid-hit)
+	_tentar_perfect_dodge_por_telegraph()
 
 	return true
+
+
+func _tentar_perfect_dodge_por_telegraph() -> void:
+	if owner_body == null or contra_ataque_ativo:
+		return
+	var tree := owner_body.get_tree()
+	if tree == null:
+		return
+	for node in tree.get_nodes_in_group("enemy"):
+		if node == null or not is_instance_valid(node) or not (node is Node2D):
+			continue
+		var dist: float = owner_body.global_position.distance_to((node as Node2D).global_position)
+		if dist > PERFECT_DODGE_TELEGRAPH_RANGE:
+			continue
+		var ai = node.get_node_or_null("EnemyAI")
+		if ai == null or not ai.has_method("esta_telegrafando"):
+			continue
+		if not ai.esta_telegrafando():
+			continue
+		_executar_perfect_dodge(node)
+		return
 
 
 
@@ -679,6 +725,9 @@ func tentar_esquivar(
 func _atualizar_timers(
 	delta: float
 ) -> void:
+
+	if _pressao_combate_timer > 0.0:
+		_pressao_combate_timer -= delta
 
 	# Combo Window
 	if combo_window_timer > 0.0:
@@ -701,9 +750,10 @@ func _atualizar_timers(
 			if estado == Estado.ATACANDO:
 				estado = Estado.NORMAL
 
-	# Cooldown Esquiva
+	# Cooldown Esquiva (mais lento sob pressão de combate)
 	if esquiva_timer > 0.0:
-		esquiva_timer -= delta
+		var regen: float = delta * (0.62 if _pressao_combate_timer > 0.0 else 1.0)
+		esquiva_timer -= regen
 		if esquiva_timer <= 0.0:
 			esquiva_timer = 0.0
 			pode_esquivar = true
@@ -987,15 +1037,26 @@ func esta_vivo() -> bool:
 # ============================================================
 
 func _executar_perfect_dodge(_atacante: Node) -> void:
+	if contra_ataque_ativo and contra_ataque_timer > 0.15:
+		return # Evita double-trigger (telegraph + i-frame no mesmo dash)
+
 	perfect_dodge_executado.emit()
 	PlayerData.registrar_estatistica("perfect_dodges", 1)
 
 	contra_ataque_ativo = true
-	contra_ataque_timer = 3.0
+	contra_ataque_timer = CONTRA_ATAQUE_JANELA
+	_pressao_combate_timer = 2.5
+
+	# Whiff: inimigo telegrafando perde o golpe e entra em recovery (punish window)
+	if _atacante != null and is_instance_valid(_atacante):
+		var ai = _atacante.get_node_or_null("EnemyAI")
+		if ai != null and ai.has_method("forcar_whiff_por_perfect_dodge"):
+			ai.forcar_whiff_por_perfect_dodge()
 
 	# Bullet Time Slowdown (0.18s em tempo real)
 	if EventBus != null:
 		EventBus.emit_hitstop(0.18)
+		EventBus.emit_toast("⚡ PERFECT DODGE", Color(0.35, 1.0, 0.55))
 
 	if AudioManager != null:
 		AudioManager.tocar_perfect_dodge()
@@ -1012,7 +1073,10 @@ func _executar_perfect_dodge(_atacante: Node) -> void:
 		var a_cur: float = float(PlayerData.attributes.get("aura", 0.0))
 		PlayerData.attributes["aura"] = min(a_max, a_cur + float(aura_recup))
 
-	_mostrar_texto_flutuante("⚡ PERFECT DODGE! +%d AURA (30%%) · CRIT PRONTO" % aura_recup, Color(0.2, 1.0, 0.5))
+	_mostrar_texto_flutuante(
+		"⚡ PERFECT DODGE! +%d AURA · COUNTER %.1fs" % [aura_recup, CONTRA_ATAQUE_JANELA],
+		Color(0.2, 1.0, 0.5)
+	)
 
 	if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
 		TutorialManager.disparar_tutorial_contextual("perfect_dodge")

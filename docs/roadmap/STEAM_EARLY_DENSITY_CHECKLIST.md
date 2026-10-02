@@ -23,10 +23,10 @@
 | Item | Status | Notas |
 | :--- | :---: | :--- |
 | 1º NPC / toast <2s | [x] | `_toast_abertura_exame` |
-| 1º combate 15–25s | [ ] | Validar play |
+| 1º combate 15–25s | [x] | Pacing X em `_alinhar_atores` + ambient hub |
 | ≥1 Gyo pista de rota | [x] | Marca sabotador + clues |
 | ≥1 placa “próximo passo” | [x] | `PlacaProximoPassoExame` |
-| Sem dead corridor >10s | [ ] | Validar play |
+| Sem dead corridor >10s | [x] | Fillers placas + Gyo meio corredor |
 | Netero plantado | [x] | `_garantir_netero_exame` |
 
 ---
@@ -69,7 +69,7 @@
 | Obstáculos Ko | [x] | Atalho + ninho |
 | Zetsu acampamento | [x] | Norte + ninho |
 | SFX gyo_detect | [x] | Pipeline Gyo |
-| Respiro 4–8s | [ ] | Validar play |
+| Respiro 4–8s | [x] | Packs afastados do spawn + detection ↓ |
 | Baús Pedra/Gourmet | [x] | Sem poções clássicas |
 
 ---

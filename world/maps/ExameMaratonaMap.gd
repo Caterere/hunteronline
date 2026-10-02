@@ -328,6 +328,7 @@ func _popular_sensores_nen_exame() -> void:
 
 ## NPCs/inimigos do .tscn estavam em Y extremos (-300..-900) fora do corredor walkable (Y≈0).
 ## GPS apontava certo, mas o jogador não alcançava. Alinha ao path tiles.
+## Steam pacing: empurra 1º pack de combate para ~18s de caminhada LESTE.
 func _alinhar_atores_ao_corredor() -> void:
 	const Y_PATH := -20.0
 	var atores: Array[String] = [
@@ -344,9 +345,56 @@ func _alinhar_atores_ao_corredor() -> void:
 			var node := n as Node2D
 			if absf(node.position.y - Y_PATH) > 56.0:
 				node.position.y = Y_PATH
+	# 1º combate 15–25s: reposiciona pack maratona (antes em x=500 ≈ 2s)
+	var pacing_x := {
+		"InimigoMaratona1": 2350.0,
+		"InimigoMaratona2": 2550.0,
+		"InimigoMaratona3": 2750.0,
+		"MonstroPantanal1": 3200.0,
+		"MonstroPantanal2": 3450.0,
+		"MonstroPantanal3": 3700.0,
+		"MonstroPantanal4": 3950.0,
+	}
+	for nome in pacing_x.keys():
+		var n2 = get_node_or_null(nome)
+		if n2 != null and n2 is Node2D:
+			(n2 as Node2D).position.x = float(pacing_x[nome])
+			(n2 as Node2D).position.y = Y_PATH
 	# Âncoras de distrito / placas geradas pelo kit
 	for child in get_children():
 		if child is Node2D and (str(child.name).begins_with("Placa") or str(child.name).begins_with("Warp")):
 			var c := child as Node2D
 			if absf(c.position.y - Y_PATH) > 80.0:
 				c.position.y = Y_PATH
+	# Fillers intermediários (G1): placas/rastro entre spawn e 1º combate
+	_plantar_fillers_pacing_exame()
+
+
+func _plantar_fillers_pacing_exame() -> void:
+	var fillers := [
+		{"name": "PlacaPacingMeioTunel", "pos": Vector2(900, -40), "text": "→ Continue LESTE\nEvite emboscadas"},
+		{"name": "PlacaPacingPreCombate", "pos": Vector2(1800, -40), "text": "⚠ Zona hostil à frente\nPrepare esquiva"},
+	]
+	for f in fillers:
+		if get_node_or_null(f["name"]) != null:
+			continue
+		var placa := Node2D.new()
+		placa.name = f["name"]
+		placa.position = f["pos"]
+		var lbl := Label.new()
+		lbl.text = f["text"]
+		lbl.position = Vector2(-48, -18)
+		lbl.add_theme_font_size_override("font_size", 10)
+		placa.add_child(lbl)
+		add_child(placa)
+	# Pista Gyo leve no meio do corredor (regra 10s)
+	if get_node_or_null("GyoPistaMeioCorredor") == null:
+		var gyo = NenSensorFactory.criar_gyo(
+			self, "GyoPistaMeioCorredor", Vector2(1400, -20),
+			&"exame_meio_corredor", "Marca no Corredor",
+			"Arranhões recentes no piso. Com Gyo veria a aura do sabotador à frente.",
+			"Manipulação", 1, Color(0.9, 0.6, 0.4, 0.85)
+		)
+		if gyo != null:
+			gyo.requer_gyo = false
+			gyo.nivel_gyo_minimo = 0

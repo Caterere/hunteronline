@@ -529,14 +529,16 @@ func _instanciar_feras_selvagens() -> void:
 
 	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
 	if enemy_scn:
+		# Combat Density + Steam respiro 4–8s: pack longe do spawn (400,140)
+		# 1º pack ~550–700px (≈5–6s @112) · roles mistos · detection ↓
 		var mobs_data = [
-			{"name": "FeraFloresta1", "pos": Vector2(300, 220), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.95, 0.7)},
-			{"name": "FeraFloresta2", "pos": Vector2(520, 260), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 100.0, "role": "bruiser", "tint": Color(0.65, 0.9, 0.6)},
-			{"name": "FeraSombra1", "pos": Vector2(240, 200), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0)},
-			{"name": "FeraSombra2", "pos": Vector2(560, 420), "id": &"lobo_sombras", "label": "Besta de Sombra Voraz", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0)},
-			{"name": "FeraSombra3", "pos": Vector2(200, 480), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE},
-			{"name": "FeraSombra4", "pos": Vector2(600, 180), "id": &"fera_alada", "label": "Fera Alada Emboscadora", "def": 95.0, "role": "ambusher", "tint": Color.WHITE},
-			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 520), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0, "role": "tank", "tint": Color(0.7, 0.7, 0.65)}
+			{"name": "FeraFloresta1", "pos": Vector2(520, 320), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 100.0, "role": "bruiser", "tint": Color(0.65, 0.9, 0.6), "telegraph": "exclamation"},
+			{"name": "FeraFloresta2", "pos": Vector2(580, 280), "id": &"fera_alada", "label": "Fera Alada Atiradora", "def": 85.0, "role": "ranged", "tint": Color(0.85, 0.95, 0.55), "telegraph": "aoe_circle"},
+			{"name": "FeraSombra1", "pos": Vector2(200, 420), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0), "telegraph": "flash"},
+			{"name": "FeraSombra2", "pos": Vector2(560, 460), "id": &"lobo_sombras", "label": "Besta de Sombra Voraz", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0), "telegraph": "exclamation"},
+			{"name": "FeraSombra3", "pos": Vector2(160, 520), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE, "telegraph": "flash"},
+			{"name": "FeraSombra4", "pos": Vector2(640, 200), "id": &"fera_alada", "label": "Fera Alada Emboscadora", "def": 95.0, "role": "ambusher", "tint": Color.WHITE, "telegraph": "flash"},
+			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 560), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0, "role": "tank", "tint": Color(0.7, 0.7, 0.65), "telegraph": "aoe_circle"}
 		]
 		for m in mobs_data:
 			var mob = enemy_scn.instantiate()
@@ -557,23 +559,34 @@ func _instanciar_feras_selvagens() -> void:
 					es.enemy_data = es.enemy_data.duplicate(true)
 					es.enemy_data.role = m.get("role", "bruiser")
 					es.enemy_data.enemy_name = m["label"]
-				# Reaplica sheet caso _ready tenha corrido antes do id (fallback seguro)
+					es.enemy_data.attack_telegraph_type = String(m.get("telegraph", "flash"))
 				if es.has_method("_vincular_textura_inimigo"):
 					es._vincular_textura_inimigo()
 				var ai = mob.get_node_or_null("EnemyAI") as EnemyAI
 				if ai != null:
 					match String(m.get("role", "bruiser")):
 						"fast":
-							ai.move_speed = 118.0
-							ai.detection_range = 280.0
+							ai.move_speed = 100.0
+							ai.detection_range = 170.0
 							ai.attack_cooldown = 0.95
-						"ambusher":
-							ai.move_speed = 102.0
+							ai.attack_range = 48.0
+						"ranged":
+							ai.move_speed = 78.0
 							ai.detection_range = 200.0
+							ai.attack_cooldown = 1.35
+							ai.attack_range = 170.0
+							ai.stop_distance = 140.0
+						"ambusher":
+							ai.move_speed = 95.0
+							ai.detection_range = 160.0
 							ai.attack_cooldown = 1.05
+						"bruiser":
+							ai.move_speed = 70.0
+							ai.detection_range = 180.0
+							ai.attack_cooldown = 1.25
 						"tank":
-							ai.move_speed = 62.0
-							ai.detection_range = 220.0
-				if not es.died.is_connected(QuestSystem.register_enemy_kill):
+							ai.move_speed = 58.0
+							ai.detection_range = 180.0
+							ai.attack_cooldown = 1.55
+				if QuestSystem != null and not es.died.is_connected(QuestSystem.register_enemy_kill):
 					es.died.connect(QuestSystem.register_enemy_kill)
-
