@@ -1,6 +1,7 @@
 class_name GreedIslandMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DE GREED ISLAND (ARCO 5 - 36 ETAPAS)
@@ -36,6 +37,7 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_densificar_ilha_greed()
 	_instanciar_sensores_nen_greed()
+	_densificar_steam_mid_greed()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -475,15 +477,15 @@ func _instanciar_sensores_nen_greed() -> void:
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoRochaDesfiladeiro", Vector2(1600, 30),
-			"Rocha de Treino do Desfiladeiro", &"pocao_aura", &"greed_ko_desfiladeiro"
+			"Rocha de Treino do Desfiladeiro", &"pedra_aura", &"greed_ko_desfiladeiro"
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoBaúSoufrabi", Vector2(2600, 40),
-			"Baú Selado de Soufrabi", &"elixir_aura"
+			"Baú Selado de Soufrabi", &"cristal_aura"
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoRochaBomber", Vector2(3350, 35),
-			"Rocha Rachada do Corredor Bomber", &"pocao_aura", &"greed_ko_bomber"
+			"Rocha Rachada do Corredor Bomber", &"pedra_aura", &"greed_ko_bomber"
 		)
 
 	NenSensorFactory.criar_zetsu(
@@ -511,6 +513,31 @@ func _instanciar_sensores_nen_greed() -> void:
 		&"greed_castelo_vigias", "Vigias do Castelo",
 		Vector2(130, 90), &"monstro_greed", "Guarda Alertado"
 	)
+
+
+func _densificar_steam_mid_greed() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 5,
+		"companion": true,
+		"baus": [
+			{"name": "BauGreedAntokiba", "pos": Vector2(400, 80), "titulo": "Baú de Antokiba",
+				"loot": [{"id": &"carta_greed_comum", "qtd": 2}, {"id": &"pedra_aura", "qtd": 1}]},
+			{"name": "BauGreedDesfiladeiro", "pos": Vector2(1550, 80), "titulo": "Baú do Desfiladeiro",
+				"loot": [{"id": &"food_biscoito_biscuit", "qtd": 1}, {"id": &"erva_nen", "qtd": 2}]},
+			{"name": "BauGreedSoufrabi", "pos": Vector2(2550, 80), "titulo": "Baú de Soufrabi",
+				"loot": [{"id": &"carta_greed_rara", "qtd": 1}, {"id": &"cristal_aura", "qtd": 1}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentGreed", "pos": Vector2(1520, -10),
+				"titulo": "Treino com Biscuit",
+				"descricao": "Ko no desfiladeiro. Seu Hatsu ganha forma sob pressão controlada.",
+				"flag": "hatsu_moment_greed"},
+		],
+		"checkpoints": [
+			{"name": "CkptGreedBiscuit", "pos": Vector2(1480, 0), "id": "greed_biscuit", "titulo": "Desfiladeiro"},
+			{"name": "CkptGreedSoufrabi", "pos": Vector2(2500, 0), "id": "greed_soufrabi", "titulo": "Soufrabi"},
+		],
+	})
 
 
 func _configurar_portal_conclusao() -> void:

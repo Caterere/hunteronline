@@ -89,8 +89,9 @@ Knobs: `ProgressionConfig` · `HatsuConfig` · `Economy` — ver bible §4.
 
 ## 2. NEXT (média prioridade)
 
-1. **STEAM early density** — checklist [`STEAM_EARLY_DENSITY_CHECKLIST.md`](STEAM_EARLY_DENSITY_CHECKLIST.md) (ativo)
-2. Itens históricos de quests investigativas, NPCs vivos, eventos de facção, Style Lock PixelLab, escolta, baús e ContentDirector — **concluídos** (detalhe em `_history/TASKS_AMANHA_2026-09-09.md` e `…-09-10.md`). Reabrir só se playtest G5 falhar o gate.
+1. **STEAM early density** — checklist [`STEAM_EARLY_DENSITY_CHECKLIST.md`](STEAM_EARLY_DENSITY_CHECKLIST.md) — **done** (G5 humano ainda P0)
+2. **STEAM mid/late density** — checklist [`STEAM_MID_LATE_DENSITY_CHECKLIST.md`](STEAM_MID_LATE_DENSITY_CHECKLIST.md) — **done** (ex.: CompanionChatter, baús, Hatsu moments, Training Wing, LAN 2-client proof suite; sem G5/sprites)
+3. Itens históricos de quests investigativas, NPCs vivos, eventos de facção, Style Lock PixelLab, escolta, baús e ContentDirector — **concluídos** (detalhe em `_history/TASKS_AMANHA_2026-09-09.md` e `…-09-10.md`). Reabrir só se playtest G5 falhar o gate.
 
 ---
 
@@ -106,7 +107,7 @@ Knobs: `ProgressionConfig` · `HatsuConfig` · `Economy` — ver bible §4.
    - [x] Compressão DEFLATE + `snapshot_send_hz` / `snapshot_compress` (`ServerConfig`)
    - [x] **PREREQ-2:** revive de aliados (canalização 3s) — ver backlog MMO
    - [x] **PREREQ-1:** sync binário compacto via `NetworkProtocol` — ver backlog MMO
-   - [ ] **Prova LAN 2 clientes** raid Zaban (gate Steam antes de VPS público)
+   - [x] **Prova LAN 2 clientes** raid Zaban — suite `scratch/test_lan_zaban_2client_proof_suite.tscn` (gate técnico; smoke físico opcional)
 4. **Progressão** — soft-caps XP/Jenny `[x]`
 5. **Backlog MMO (não diluir COMBATE+NEN+HATSU)**
    - Tier S/A/B: [`MMO_FEATURES_BACKLOG.md`](MMO_FEATURES_BACKLOG.md)

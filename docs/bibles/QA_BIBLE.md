@@ -85,7 +85,7 @@ Para rodar qualquer suíte via terminal:
 
 ## 5. STEAM POLISH GATES (PROTOCOLO DE SHIP)
 
-> Canon completo: [`STEAM_POLISH_BIBLE.md`](STEAM_POLISH_BIBLE.md) · checklist early: [`../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md`](../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md).
+> Canon completo: [`STEAM_POLISH_BIBLE.md`](STEAM_POLISH_BIBLE.md) · early: [`../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md`](../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md) · mid/late: [`../roadmap/STEAM_MID_LATE_DENSITY_CHECKLIST.md`](../roadmap/STEAM_MID_LATE_DENSITY_CHECKLIST.md).
 
 Suites headless validam regressão de sistemas. **Ship / review Steam** exige os cinco gates perceptíveis:
 
@@ -102,7 +102,7 @@ Suites headless validam regressão de sistemas. **Ship / review Steam** exige os
 - TTK early 4–8s · speeds ~112/58 · encontros 300–600px  
 - Boss Guardião: telegraph ~1.2s · loot no chão · wipe→checkpoint  
 - Save schema sem regressão  
-- Prova LAN 2 clientes em raid Zaban **antes** de host público  
+- Prova LAN 2 clientes em raid Zaban **antes** de host público — suite `scratch/test_lan_zaban_2client_proof_suite.tscn` (gate técnico)  
 
 ### 5.2 Ordem QA recomendada
 1. Suites Fase H/I/J (regressão)  

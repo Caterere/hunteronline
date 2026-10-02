@@ -133,6 +133,12 @@ func _construir_ui() -> void:
 	btn_fila.pressed.connect(_on_fila_pressed)
 	col_esq.add_child(btn_fila)
 
+	var btn_treino := Button.new()
+	btn_treino.text = "🥋 Training Wing (respiro)"
+	btn_treino.add_theme_font_size_override("font_size", 4)
+	btn_treino.pressed.connect(_on_training_wing_pressed)
+	col_esq.add_child(btn_treino)
+
 	var btn_sacar := Button.new()
 	btn_sacar.text = "💰 Sacar Jenny Acumulado"
 	btn_sacar.add_theme_font_size_override("font_size", 4)
@@ -229,3 +235,15 @@ func _on_desafiar_pressed() -> void:
 
 func _on_sacar_pressed() -> void:
 	fechar_torneio()
+
+
+func _on_training_wing_pressed() -> void:
+	# Steam §6.4 — respiro entre ranks (volta ao dojo no mapa Arena).
+	fechar_torneio()
+	if EventBus != null:
+		EventBus.emit_toast("🥋 Training Wing — fale com Wing no 50º / Dojo. Respire, depois volte ao torneio.", Color(0.55, 0.95, 0.8))
+	TrainingSystem.obter_ou_criar(get_tree())
+	var wing = get_tree().get_first_node_in_group("wing") if get_tree() else null
+	if wing == null:
+		wing = get_tree().root.find_child("Wing", true, false) if get_tree() else null
+	# Player já está no mapa Arena; toast aponta o dojo.

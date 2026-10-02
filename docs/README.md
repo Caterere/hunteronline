@@ -91,6 +91,7 @@ Regras do que o jogo *deve ser*. Lista completa: [`bibles/README.md`](bibles/REA
 | [**ESTADO_ATUAL_JOGO.md**](ESTADO_ATUAL_JOGO.md) | **Handoff:** estado atual + próximos passos (para passar a outro agent) |
 | [PRODUCTION_ROADMAP.md](roadmap/PRODUCTION_ROADMAP.md) | **O que fazer agora / next / later** (+ STEAM_POLISH / DENSITY / PACING) |
 | [STEAM_EARLY_DENSITY_CHECKLIST.md](roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md) | Checklist operacional Exame→Ruínas (gates G1–G5) |
+| [STEAM_MID_LATE_DENSITY_CHECKLIST.md](roadmap/STEAM_MID_LATE_DENSITY_CHECKLIST.md) | Checklist mid/late Kukuroo→Whale (+ LAN 2-client proof) |
 | [MMO_FEATURES_BACKLOG.md](roadmap/MMO_FEATURES_BACKLOG.md) | **Sistemas MMO futuros** (Tier S/A/B + PREREQs) |
 | [LIVE_OPS_CONTENT.md](roadmap/LIVE_OPS_CONTENT.md) | Live ops + versionamento + migração de save |
 | [roadmap/_history/](roadmap/_history/) | Tasks diárias e fases antigas (arquivo) |

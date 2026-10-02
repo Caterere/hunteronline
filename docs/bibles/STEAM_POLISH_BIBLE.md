@@ -171,6 +171,25 @@ Checklist operacional espelhado: [`../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md`]
 
 ---
 
+## 5b. Densificação mid/late (Kukuroo → Black Whale)
+
+Mesma regra dos 10s + G2–G4. Kit: `world/components/exploration/MidLateDensityKit.gd` · `scripts/story/CompanionChatter.gd` · `scripts/cutscenes/CheckpointCutsceneLibrary.gd`.
+
+Checklist: [`../roadmap/STEAM_MID_LATE_DENSITY_CHECKLIST.md`](../roadmap/STEAM_MID_LATE_DENSITY_CHECKLIST.md).  
+Suites: `scratch/test_steam_mid_late_density_suite.tscn` · `scratch/test_lan_zaban_2client_proof_suite.tscn`.
+
+**Fora de escopo desta passada (pedido explícito):** G5 playtest humano gravado · novos sprites PixelLab.
+
+| Mapa | Baús G4 | Companion | Checkpoint cutscene | Hatsu moment | Sensores 8–15 |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| Kukuroo | [x] | [x] | [x] | [x] | [x] |
+| Arena (+ Training Wing) | [x] | [x] | [x] | [x] | [x] |
+| Yorknew (crowd) | [x] | [x] | [x] | [x] | [x] |
+| Greed Island | [x] | [x] | [x] | [x] | [x] |
+| NGL → Assoc → CN → Whale | [x] | [x] | parcial | [x] | [x] |
+
+---
+
 ## 6. Pass de densificação por pilar (Fase 2)
 
 Sem sistemas novos — alimentar o que já existe.
@@ -283,6 +302,7 @@ Novos sistemas MMO · housing · world PvP · battle pass P2W · segundo combat 
 | :--- | :--- |
 | [`../roadmap/PRODUCTION_ROADMAP.md`](../roadmap/PRODUCTION_ROADMAP.md) | Agora / next / later + STEAM_POLISH |
 | [`../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md`](../roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md) | Checklist operacional early |
+| [`../roadmap/STEAM_MID_LATE_DENSITY_CHECKLIST.md`](../roadmap/STEAM_MID_LATE_DENSITY_CHECKLIST.md) | Checklist operacional mid/late |
 | [`QA_BIBLE.md`](QA_BIBLE.md) | Suites + gates Steam no protocolo QA |
 | [`GAME_FEEL_BIBLE.md`](GAME_FEEL_BIBLE.md) | Juice de combate |
 | [`PERCEPTION_BIBLE.md`](PERCEPTION_BIBLE.md) | Gyo / Zetsu / En |

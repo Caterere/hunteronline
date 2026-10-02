@@ -7,20 +7,21 @@ extends Node
 # Centralizador de Escala de Poder, Tiers, Fórmulas de Defesa,
 # Escalonamento de Hatsu e Cálculo de TTK (Time-To-Kill).
 #
-# Escala:
-# - Começo: Números na casa de 100
-# - Endgame: Dezenas a centenas de milhões (50M HP / 500M Aura)
+# Escala alinhada a ProgressionConfig (MAX_LEVEL=1000 / TARGET_STATS_LEVEL_1000):
+# - Começo: números ~100 (Exame)
+# - Soft-cap saga → late ~350; endgame residual até 1000
+# - Stats de referência em TIER_DATA batem a curva de ProgressionConfig
 #
 # ============================================================
 
 enum Tier {
-	HUMANO = 0,             # Nível 1 ~ 10 (Exame Hunter início)
-	HUNTER_INICIANTE = 1,   # Nível 11 ~ 25 (Fim do Exame / Portão Zoldyck)
-	HUNTER_EXPERIENTE = 2,  # Nível 26 ~ 45 (Torre Celestial andares 100~200)
-	USUARIO_NEN = 3,        # Nível 46 ~ 65 (Yorknew / Greed Island)
-	HUNTER_ELITE = 4,       # Nível 66 ~ 80 (Chimera Ants / Palácio)
-	MONSTRO = 5,            # Nível 81 ~ 95 (Guardas Reais / Top Hunters)
-	ENDGAME = 6             # Nível 96 ~ 100 (Netero & Meruem / Dark Continent)
+	HUMANO = 0,             # lv 1–80 (Exame → early Kukuroo)
+	HUNTER_INICIANTE = 1,   # lv 81–200 (Arena → Yorknew early)
+	HUNTER_EXPERIENTE = 2,  # lv 201–400 (GI → Formigas early)
+	USUARIO_NEN = 3,        # lv 401–600 (Formigas → Eleição)
+	HUNTER_ELITE = 4,       # lv 601–750 (Continente Negro)
+	MONSTRO = 5,            # lv 751–900 (Guardas Reais / Whale)
+	ENDGAME = 6             # lv 901–1000 (ápice / farm residual)
 }
 
 enum MissionRank {

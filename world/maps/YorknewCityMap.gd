@@ -1,6 +1,7 @@
 class_name YorknewCityMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DE YORKNEW CITY (ARCO 4 - 34 ETAPAS)
@@ -32,6 +33,7 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_densificar_ruas_yorknew()
 	_instanciar_sensores_nen_yorknew()
+	_densificar_steam_mid_yorknew()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -482,11 +484,21 @@ func _instanciar_sensores_nen_yorknew() -> void:
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoCaixoteLeilao", Vector2(550, 20),
-			"Caixote Blindado do Leilão", &"pocao_aura", &"yorknew_ko_caixote"
+			"Caixote Blindado do Leilão", &"pedra_aura", &"yorknew_ko_caixote"
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoPortaoCemiterio", Vector2(2450, -20),
-			"Portão Selado do Cemitério", &"elixir_aura"
+			"Portão Selado do Cemitério", &"cristal_leilao"
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoGradeDocas", Vector2(1050, 50),
+			"Grade das Docas", &"seda_yorknew", &"yorknew_ko_docas"
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoBeiralAvenida", Vector2(2000, -50),
+			&"yorknew_beiral_avenida", "Beiral da Avenida Central",
+			"Aura de olheiros nos telhados. Caminhe — micro-reward a cada distrito.",
+			"Emissão", 1, Color(0.7, 0.8, 1.0, 0.9)
 		)
 
 	NenSensorFactory.criar_zetsu(
@@ -525,3 +537,64 @@ func _instanciar_sensores_nen_yorknew() -> void:
 		&"galpao_machinobunaga", "Galpão Machi / Nobunaga",
 		Vector2(160, 100), &"mafioso_yorknew", "Sentinela da Aranha"
 	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCalcadaHotel", Vector2(3300, 80),
+		&"yorknew_calcada_hotel", "Calçada do Hotel Beitacle",
+		Vector2(140, 90), &"mafioso_yorknew", "Olheiro do Hotel"
+	)
+
+
+func _densificar_steam_mid_yorknew() -> void:
+	# Crowd mínimo viável extra (Steam §6.7) + baús/clareiras G4
+	var scn_npc = load("res://entities/npc/NPC.tscn")
+	if scn_npc != null:
+		var crowd := [
+			{"name": "CrowdYork_A", "pos": Vector2(650, -80), "npc": "Civil do Leilão", "fala": "Fila enorme. Caminhe distrito a distrito.", "ids": ["npc_viajante_scout"], "r": 36.0},
+			{"name": "CrowdYork_B", "pos": Vector2(1250, 70), "npc": "Vendedor de Rua", "fala": "Mapa rasgado da avenida — micro-reward se explorar.", "ids": ["npc_viajante_scout"], "r": 40.0},
+			{"name": "CrowdYork_C", "pos": Vector2(1950, -90), "npc": "Turista Assustado", "fala": "Aranhas nos jornais. [Z] nos becos.", "ids": ["npc_viajante_scout"], "r": 38.0},
+			{"name": "CrowdYork_D", "pos": Vector2(2750, 80), "npc": "Faxineiro do Cemitério", "fala": "Battera dentro. Sem rush.", "ids": ["npc_guarda_fronteira"], "r": 34.0},
+			{"name": "CrowdYork_E", "pos": Vector2(3550, -70), "npc": "Olheiro Civil", "fala": "Trupe à frente. GPS um passo.", "ids": ["npc_viajante_scout"], "r": 42.0},
+		]
+		for w in crowd:
+			if get_node_or_null(w["name"]) != null:
+				continue
+			var npc = scn_npc.instantiate()
+			npc.name = w["name"]
+			npc.position = w["pos"]
+			npc.npc_name = w["npc"]
+			npc.fala_padrao = w["fala"]
+			NpcSpriteBinder.aplicar(npc, w["ids"])
+			var living := LivingNPCBehavior.new()
+			living.name = "LivingNPCBehavior"
+			living.npc_nome = w["npc"]
+			living.tipo_marcador = "ambient"
+			living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
+			living.raio_patrulha = float(w["r"])
+			npc.add_child(living)
+			add_child(npc)
+
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 4,
+		"companion": true,
+		"baus": [
+			{"name": "BauYorkLeilao", "pos": Vector2(420, 90), "titulo": "Baú do Leilão",
+				"loot": [{"id": &"ticket_leilao", "qtd": 1}, {"id": &"cristal_leilao", "qtd": 1}]},
+			{"name": "BauYorkAvenida", "pos": Vector2(1750, 90), "titulo": "Baú da Avenida",
+				"loot": [{"id": &"mapa_avenida_yorknew", "qtd": 1}, {"id": &"food_sushi_yorknew", "qtd": 1}]},
+			{"name": "BauYorkCemiterio", "pos": Vector2(2600, 90), "titulo": "Baú do Cemitério",
+				"loot": [{"id": &"tinta_aranha", "qtd": 1}, {"id": &"pedra_aura", "qtd": 2}]},
+			{"name": "BauYorkHotel", "pos": Vector2(3150, 90), "titulo": "Baú do Hotel",
+				"loot": [{"id": &"seda_yorknew", "qtd": 1}, {"id": &"erva_nen", "qtd": 2}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentYorknew", "pos": Vector2(1850, -20),
+				"titulo": "Contrato sob Neon",
+				"descricao": "A cidade força identidade. Seu Hatsu precisa de vow claro — ou a Trupe lê você.",
+				"flag": "hatsu_moment_yorknew"},
+		],
+		"checkpoints": [
+			{"name": "CkptYorkAvenida", "pos": Vector2(1600, 0), "id": "yorknew_avenida", "titulo": "Avenida"},
+			{"name": "CkptYorkCem", "pos": Vector2(2650, -40), "id": "yorknew_cemiterio", "titulo": "Cemitério"},
+		],
+	})
+

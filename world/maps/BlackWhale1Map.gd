@@ -1,6 +1,7 @@
 class_name BlackWhale1Map
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DO BLACK WHALE 1 (ARCO 9 - 26 ETAPAS)
@@ -33,6 +34,7 @@ func _ready() -> void:
 	_configurar_inimigos()
 	_densificar_black_whale()
 	_instanciar_sensores_nen_black_whale()
+	_densificar_steam_late_black_whale()
 	_configurar_portal_conclusao()
 	_garantir_quest_ativa()
 	if QuestSystem != null:
@@ -397,11 +399,33 @@ func _instanciar_sensores_nen_black_whale() -> void:
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoPortaCegada", Vector2(900, 35),
-			"Porta Cegada do Corredor", &"pocao_aura", &"bw_ko_corredor"
+			"Porta Cegada do Corredor", &"pedra_aura", &"bw_ko_corredor"
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoCofreXiYu", Vector2(1700, 35),
-			"Cofre Selado Xi-Yu", &"elixir_aura"
+			"Cofre Selado Xi-Yu", &"oleo_xi_yu"
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoConves1", Vector2(400, -20),
+			&"bw_conves1_aura", "Resíduo do Convés 1",
+			"Passageiros e aura misturada. Micro-reward a cada bloco do corredor.",
+			"Emissão", 1, Color(0.55, 0.8, 1.0, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoMafiososTier", Vector2(1400, -30),
+			&"bw_mafia_tier", "Marca das Máfias de Tier",
+			"Xi-Yu / Heil-Ly / Cha-R. Gyo separa facções no convés.",
+			"Manipulação", 1, Color(0.9, 0.6, 0.35, 0.9)
+		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPorãoKakin", Vector2(3400, -20),
+			&"bw_porao_kakin", "Eco do Porão Imperial",
+			"Aura principesca diluída. GPS um objetivo — sem rush.",
+			"Especialização", 2, Color(0.75, 0.45, 0.9, 0.9)
+		)
+		NenSensorFactory.criar_ko(
+			self, "KoGradeArmazem", Vector2(3300, 40),
+			"Grade do Armazém Profundo", &"fragmento_sucessao", &"bw_ko_armazem"
 		)
 
 	NenSensorFactory.criar_zetsu(
@@ -414,6 +438,40 @@ func _instanciar_sensores_nen_black_whale() -> void:
 		&"bw_armazem_profundo", "Armazém dos Conveses Profundos",
 		Vector2(150, 100), &"assassino_heilly", "Assassino Alertado"
 	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCorredorConves3", Vector2(1200, 60),
+		&"bw_corredor_conves3", "Corredor do Convés 3",
+		Vector2(140, 90), &"guarda_black_whale", "Guarda Alertado"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuEscotilhaHeilLy", Vector2(2100, 50),
+		&"bw_escotilha_heilly", "Escotilha Heil-Ly",
+		Vector2(130, 90), &"assassino_heilly", "Cultista Alertado"
+	)
+
+
+func _densificar_steam_late_black_whale() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 9,
+		"companion": true,
+		"baus": [
+			{"name": "BauBWConves", "pos": Vector2(450, 80), "titulo": "Baú do Convés",
+				"loot": [{"id": &"fragmento_sucessao", "qtd": 1}, {"id": &"pedra_aura", "qtd": 1}]},
+			{"name": "BauBWMafia", "pos": Vector2(1600, 80), "titulo": "Baú das Máfias",
+				"loot": [{"id": &"oleo_xi_yu", "qtd": 1}, {"id": &"po_heil_ly", "qtd": 1}]},
+			{"name": "BauBWPorão", "pos": Vector2(3450, 80), "titulo": "Baú do Porão",
+				"loot": [{"id": &"corda_bungee", "qtd": 1}, {"id": &"cristal_aura", "qtd": 1}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentBW", "pos": Vector2(2800, -10),
+				"titulo": "Vow a Bordo",
+				"descricao": "Guerra de Sucessão exige Hatsu com regra clara. Sem vow, você é presa.",
+				"flag": "hatsu_moment_black_whale"},
+		],
+		"checkpoints": [
+			{"name": "CkptBWConves", "pos": Vector2(500, 0), "id": "black_whale_conves", "titulo": "Convés"},
+		],
+	})
 
 
 func _configurar_portal_conclusao() -> void:
