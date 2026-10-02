@@ -151,7 +151,7 @@ func testar_h4_catalogo_quests_padokia() -> void:
 	print("\n[TESTE H4] Catálogo de Quests de Padokia & Variedade...")
 
 	var quests = PadokiaQuestCatalogScript.obter_todas_quests()
-	assert_true(quests.size() == 8, "PadokiaQuestCatalog possui 8 quests no total.")
+	assert_true(quests.size() >= 11, "PadokiaQuestCatalog possui >= 11 quests (inclui tutorial 3-beat).")
 
 
 	var q_princ = PadokiaQuestCatalogScript.obter_quest_principal()

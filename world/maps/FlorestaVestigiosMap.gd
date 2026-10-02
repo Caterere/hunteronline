@@ -325,14 +325,14 @@ func _iniciar_quest_investigacao_floresta() -> void:
 
 
 func _instanciar_baus_clareira() -> void:
-	# Clareiras periféricas (Quality Gap B): consumíveis Poção / Pedra de Aura
+	# Clareiras periféricas (Steam G4): Pedra de Aura / Gourmet — sem poções clássicas
 	_spawna_bau_clareira(
 		"BauClareiraOeste",
 		Vector2(100, 260),
 		"Baú da Clareira Oeste",
 		[
-			{"id": &"pocao_vida", "qtd": 2},
-			{"id": &"elixir_aura", "qtd": 1}
+			{"id": &"pedra_aura", "qtd": 2},
+			{"id": &"erva_nen", "qtd": 2}
 		]
 	)
 	_spawna_bau_clareira(
@@ -340,8 +340,8 @@ func _instanciar_baus_clareira() -> void:
 		Vector2(680, 300),
 		"Baú da Clareira Leste",
 		[
-			{"id": &"pocao_vida", "qtd": 1},
-			{"id": &"elixir_aura", "qtd": 2}
+			{"id": &"cristal_aura", "qtd": 1},
+			{"id": &"carne_javali", "qtd": 2}
 		]
 	)
 	_spawna_bau_clareira(
@@ -349,8 +349,18 @@ func _instanciar_baus_clareira() -> void:
 		Vector2(320, 560),
 		"Baú da Clareira Sul",
 		[
-			{"id": &"elixir_aura", "qtd": 1},
-			{"id": &"pocao_vida", "qtd": 1}
+			{"id": &"pedra_aura", "qtd": 1},
+			{"id": &"food_cha_erva", "qtd": 1}
+		]
+	)
+	# Floresta Profunda (DEAD ZONE histórica) — ninho + baú
+	_spawna_bau_clareira(
+		"BauFlorestaProfunda",
+		Vector2(620, 480),
+		"Baú do Ninho Profundo",
+		[
+			{"id": &"pedra_aura", "qtd": 2},
+			{"id": &"cristal_sombra", "qtd": 1}
 		]
 	)
 
@@ -464,15 +474,26 @@ func _instanciar_sensores_nen_floresta() -> void:
 			"Pressão de aura ancestral à frente. Entre nas Ruínas só depois de concluir a trilha da Herbalista.",
 			"Especialização", 2, Color(0.85, 0.55, 1.0, 0.9)
 		)
+		# Floresta Profunda — matar DEAD ZONE (Steam checklist)
+		NenSensorFactory.criar_gyo(
+			self, "GyoClueNinhoProfundo", Vector2(600, 440),
+			&"floresta_ninho_profundo", "Ninho de Aura Profunda",
+			"Vestígios de matilha. Gyo marca o centro do ninho — use Zetsu na aproximação leste.",
+			"Emissão", 2, Color(0.55, 1.0, 0.4, 0.9)
+		)
 
 	# Rochas KO — atalho oeste + quebra investigativa
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleAtalhoOeste", Vector2(120, 220),
-		"Rocha Rachada do Atalho Oeste", &"pocao_aura", &"floresta_ko_atalho"
+		"Rocha Rachada do Atalho Oeste", &"pedra_aura", &"floresta_ko_atalho"
 	)
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleClareiraSul", Vector2(500, 480),
-		"Rocha do Atalho Sul", &"elixir_aura"
+		"Rocha do Atalho Sul", &"cristal_aura"
+	)
+	NenSensorFactory.criar_ko(
+		self, "KoObstacleNinhoProfundo", Vector2(640, 460),
+		"Rocha do Ninho Profundo", &"pedra_aura", &"floresta_ko_ninho"
 	)
 
 	# Acampamentos / predadores com Zetsu (marcador visual já vem da factory zone)
@@ -493,6 +514,12 @@ func _instanciar_sensores_nen_floresta() -> void:
 		&"trilha_sul_ferais", "Trilha Sul Vigilada",
 		Vector2(130, 90),
 		&"lobo_sombras", "Sentinela da Trilha"
+	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuNinhoProfundo", Vector2(600, 500),
+		&"floresta_ninho_zetsu", "Ninho Profundo Vigilado",
+		Vector2(160, 120),
+		&"lobo_sombras", "Alfa do Ninho"
 	)
 
 

@@ -104,18 +104,97 @@ func _inicializar_quests_padokia() -> void:
 			QuestSystem.start_quest(quest_princ)
 			print("[RegiaoValePadokiaMap] Quest Principal iniciada: ", quest_princ.quest_name)
 
-		# Investigação com Gyo só após despertar Nen (pós Arena Celestial / Wing)
+		# Investigação com Gyo + tutorial 3-beat só após despertar Nen
 		if PlayerData != null and PlayerData.despertou_nen:
+			var quest_tut = PadokiaQuestCatalogScript.obter_quest_tutorial_nen_tres_beats()
+			if not PlayerData.is_quest_active(quest_tut) and not PlayerData.is_quest_completed(quest_tut):
+				QuestSystem.start_quest(quest_tut)
+				print("[RegiaoValePadokiaMap] Tutorial Nen 3-beat iniciado: ", quest_tut.quest_name)
+				if EventBus != null:
+					EventBus.emit_toast("Wing: [G] Moinho → [Z] Beco Norte → [KO] Barreira. Depois Ruínas.", Color(0.55, 0.9, 1.0))
 			var quest_inv = PadokiaQuestCatalogScript.obter_quest_investigacao_furto()
 			if not PlayerData.is_quest_active(quest_inv) and not PlayerData.is_quest_completed(quest_inv):
 				QuestSystem.start_quest(quest_inv)
 				print("[RegiaoValePadokiaMap] Quest Investigativa (Gyo) iniciada: ", quest_inv.quest_name)
 
+	_popular_densidade_vila_exterior()
 	_popular_pistas_furto_gyo()
 
 
+## Steam G4: Vila Exterior UNDERDENSE — baú + glifo leve (sem exigir Gyo formal).
+func _popular_densidade_vila_exterior() -> void:
+	# Glifo atrás das casas (sul da praça) — legível pré-Nen
+	var glifo = NenSensorFactory.criar_gyo(
+		self,
+		"GyoGlifoVilaExterior",
+		Vector2(78 * 16, 272 * 16),
+		&"vila_exterior_glifo",
+		"Glifo Atrás das Casas",
+		"Marca de aura apagada no muro. Hunters usam Gyo para ler o aviso dos salteadores.",
+		"Emissão",
+		1,
+		Color(0.7, 0.85, 1.0, 0.85)
+	)
+	if glifo != null and (PlayerData == null or not PlayerData.despertou_nen):
+		glifo.requer_gyo = false
+		glifo.nivel_gyo_minimo = 0
+
+	# Baú periférico — Pedra de Aura / material Gourmet (sem poção clássica)
+	if get_node_or_null("BauVilaExterior") == null:
+		var bau := Area2D.new()
+		bau.name = "BauVilaExterior"
+		bau.position = Vector2(70 * 16, 278 * 16)
+		bau.collision_layer = 0
+		bau.collision_mask = 0
+		var col := CollisionShape2D.new()
+		var box := RectangleShape2D.new()
+		box.size = Vector2(28, 28)
+		col.shape = box
+		bau.add_child(col)
+		var spr := Sprite2D.new()
+		spr.name = "Sprite2D"
+		if ResourceLoader.exists("res://assets/sprites/objects/nen_stone_monolith.png"):
+			spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
+			spr.scale = Vector2(0.32, 0.26)
+			spr.modulate = Color(0.95, 0.82, 0.4, 1.0)
+			spr.position = Vector2(0, -8)
+		bau.add_child(spr)
+		var inter_script = load("res://entities/components/InteractionComponent.gd")
+		if inter_script != null:
+			var inter = inter_script.new()
+			inter.interaction_text = "Abrir Baú da Vila Exterior [E]"
+			inter.interacted.connect(func(_p = null):
+				if PlayerData != null:
+					PlayerData.adicionar_item(&"pedra_aura", 1)
+					PlayerData.adicionar_item(&"erva_nen", 2)
+				if EventBus != null:
+					EventBus.emit_toast("📦 Baú: Pedra de Aura + Ervas de Nen", Color(0.95, 0.85, 0.4))
+				bau.queue_free()
+			)
+			bau.add_child(inter)
+		add_child(bau)
+
+
 func _popular_pistas_furto_gyo() -> void:
-	# Gyo / princípios avançados só existem após o despertar narrativo
+	# Zetsu/Ko do tutorial ficam sempre plantados (exploração física).
+	# Gyo avançado só após despertar narrativo.
+	NenSensorFactory.criar_ko(
+		self,
+		"KoObstacleValeAtalho",
+		Vector2(128 * 16, 254 * 16),
+		"Barreira de Pedra no Beco", &"pedra_aura", &"tutorial_nen_ko_atalho"
+	)
+	NenSensorFactory.criar_zetsu(
+		self,
+		"ZetsuValeBecoNorte",
+		Vector2(122 * 16, 250 * 16),
+		&"vale_beco_salteadores",
+		"Beco Norte Suspeito",
+		Vector2(150, 110),
+		&"ladrao_estrada",
+		"Salteador do Vale"
+	)
+
 	if PlayerData == null or not PlayerData.despertou_nen:
 		return
 
@@ -164,32 +243,17 @@ func _popular_pistas_furto_gyo() -> void:
 		1,
 		Color(0.5, 0.95, 0.85, 0.9)
 	)
+	# Tutorial beat ② — clue_id canônico do 3-beat
 	NenSensorFactory.criar_gyo(
 		self,
 		"PistaValeMoinho",
 		Vector2(105 * 16, 262 * 16),
-		&"pista_vale_moinho",
+		&"tutorial_nen_gyo_moinho",
 		"Resíduo no Moinho",
-		"O moinho da vila guarda poeira de Nen — alguém escondeu Jenny entre as engrenagens.",
+		"O moinho da vila guarda poeira de Nen. Wing: depois use [Z] no Beco Norte, então [KO] na barreira.",
 		"Transmutação",
 		1,
 		Color(0.95, 0.8, 0.4, 0.9)
-	)
-	NenSensorFactory.criar_ko(
-		self,
-		"KoObstacleValeAtalho",
-		Vector2(128 * 16, 254 * 16),
-		"Barreira de Pedra no Beco", &"pocao_aura"
-	)
-	NenSensorFactory.criar_zetsu(
-		self,
-		"ZetsuValeBecoNorte",
-		Vector2(122 * 16, 250 * 16),
-		&"vale_beco_salteadores",
-		"Beco Norte Suspeito",
-		Vector2(150, 110),
-		&"ladrao_estrada",
-		"Salteador do Vale"
 	)
 
 

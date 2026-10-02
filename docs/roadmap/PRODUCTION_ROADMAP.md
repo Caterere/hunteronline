@@ -17,10 +17,10 @@ Histórico de sprints diários: [`_history/`](_history/)
 ### 0.1 Agora (early review-proof)
 1. **Canon Steam** — bible + checklist early `[x]` docs
 2. **Densidade Exame→Padokia→Floresta→Ruínas** — ver [`STEAM_EARLY_DENSITY_CHECKLIST.md`](STEAM_EARLY_DENSITY_CHECKLIST.md)
-   - [ ] Sensores Gyo/Ko/Zetsu na regra dos 10s (factory existente)
-   - [ ] Tutorial Nen 3 beats antes da dungeon (Gyo→Zetsu→Ko)
-   - [ ] Desagregar vila OVERDENSE · matar Vila Exterior / Floresta Profunda DEAD
-   - [ ] Baús periféricos (Pedra de Aura / Gourmet — sem poções clássicas)
+   - [x] Sensores Gyo/Ko/Zetsu na regra dos 10s (factory existente)
+   - [x] Tutorial Nen 3 beats antes da dungeon (Gyo→Zetsu→Ko)
+   - [x] Desagregar vila OVERDENSE · matar Vila Exterior / Floresta Profunda DEAD
+   - [x] Baús periféricos (Pedra de Aura / Gourmet — sem poções clássicas)
    - [ ] Playtest humano G5 gravado
 3. **Combate early** — 3 arquétipos legíveis/bioma · TTK 4–8s · speeds ~112/58
 4. **Boss Guardião** — preservar 3 fases · juice entrada/saída · loot ritual

@@ -39,6 +39,18 @@ const ITEM_CATALOGO := {
 		"preco": 500,
 		"descricao": "Cristal raro capaz de canalizar Nen em armas e armaduras (+1 a +10)."
 	},
+	"pedra_aura": {
+		"nome": "Pedra de Aura",
+		"categoria": "Material",
+		"preco": 120,
+		"descricao": "Fragmento estabilizado de Nen. Substitui poções clássicas — usado em exploração e forja leve."
+	},
+	"erva_nen": {
+		"nome": "Erva de Aura",
+		"categoria": "Material",
+		"preco": 40,
+		"descricao": "Planta condutora de Nen. Ingrediente Gourmet (chá / tônicos de aura)."
+	},
 	"anel_concentracao": {
 		"nome": "Anel de Concentração",
 		"categoria": "Acessório",

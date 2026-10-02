@@ -63,7 +63,13 @@ func _test_catalog_quests() -> void:
 	_ok(qr.objectives[4].target_clue_id == &"zaban_pilar_ko", "Ruínas KO pilar")
 
 	var todas = PadokiaQuestCatalogScript.obter_todas_quests()
-	_ok(todas.size() >= 10, "Catálogo >= 10 quests (%d)" % todas.size())
+	_ok(todas.size() >= 11, "Catálogo >= 11 quests (%d)" % todas.size())
+
+	var qt = PadokiaQuestCatalogScript.obter_quest_tutorial_nen_tres_beats()
+	_ok(qt != null and qt.objectives.size() == 4, "Tutorial 3-beat: 4 objetivos")
+	_ok(qt.objectives[1].target_clue_id == &"tutorial_nen_gyo_moinho", "Tutorial Gyo moinho")
+	_ok(qt.objectives[2].target_zone_id == &"vale_beco_salteadores", "Tutorial Zetsu beco")
+	_ok(qt.objectives[3].target_clue_id == &"tutorial_nen_ko_atalho", "Tutorial KO atalho")
 
 
 func _test_objective_describe() -> void:

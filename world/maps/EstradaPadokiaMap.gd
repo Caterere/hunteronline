@@ -147,6 +147,12 @@ func _instanciar_sensores_nen_estrada() -> void:
 			"Runas apagadas sob a ponte. Gyo revela o fluxo de aura que alimentava o marco antigo.",
 			"Conjuração", 1, Color(0.4, 0.9, 1.0, 0.9)
 		)
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaFogueiraLateral", Vector2(340, 220),
+			&"estrada_fogueira_aura", "Brasa com Aura",
+			"Alguém manteve Ten na fogueira a noite toda. Associação e Máfia disputam esta rota.",
+			"Intensificação", 1, Color(1.0, 0.55, 0.3, 0.9)
+		)
 	else:
 		var dica = NenSensorFactory.criar_gyo(
 			self, "GyoPistaMarcoEstrada", Vector2(455, 155),
@@ -157,10 +163,24 @@ func _instanciar_sensores_nen_estrada() -> void:
 		if dica != null:
 			dica.requer_gyo = false
 			dica.nivel_gyo_minimo = 0
+		# Regra dos 10s pré-Nen: segunda pista leve no meio da via
+		var dica2 = NenSensorFactory.criar_gyo(
+			self, "GyoPistaPedraMeioVia", Vector2(380, 300),
+			&"estrada_pedra_meio", "Pedra Marcada na Via",
+			"Arranhões recentes. Com Gyo você veria se foi Máfia ou guarda da Associação.",
+			"Manipulação", 1, Color(0.8, 0.8, 0.95, 0.85)
+		)
+		if dica2 != null:
+			dica2.requer_gyo = false
+			dica2.nivel_gyo_minimo = 0
 
 	NenSensorFactory.criar_ko(
 		self, "KoObstaclePedregulhoPonte", Vector2(370, 410),
-		"Pedregulho Sob a Ponte", &"pocao_aura"
+		"Pedregulho Sob a Ponte", &"pedra_aura", &"estrada_ko_ponte"
+	)
+	NenSensorFactory.criar_ko(
+		self, "KoObstacleBarrancoLeste", Vector2(560, 360),
+		"Rocha do Barranco Leste", &"cristal_aura"
 	)
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuMataLateralEstrada", Vector2(180, 280),
@@ -168,6 +188,46 @@ func _instanciar_sensores_nen_estrada() -> void:
 		Vector2(130, 90),
 		&"ladrao_estrada", "Salteador Emboscado"
 	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCurvaSulEstrada", Vector2(440, 520),
+		&"estrada_curva_sul", "Curva Sul da Floresta",
+		Vector2(140, 100),
+		&"ladrao_estrada", "Batedor da Mata"
+	)
+
+	# Baú regra 10s — clareira lateral (G4)
+	if get_node_or_null("BauEstradaClareira") == null:
+		var bau := Area2D.new()
+		bau.name = "BauEstradaClareira"
+		bau.position = Vector2(200, 400)
+		bau.collision_layer = 0
+		bau.collision_mask = 0
+		var col := CollisionShape2D.new()
+		var box := RectangleShape2D.new()
+		box.size = Vector2(28, 28)
+		col.shape = box
+		bau.add_child(col)
+		var spr := Sprite2D.new()
+		if ResourceLoader.exists("res://assets/sprites/objects/nen_stone_monolith.png"):
+			spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
+			spr.scale = Vector2(0.32, 0.26)
+			spr.modulate = Color(0.9, 0.78, 0.35, 1.0)
+			spr.position = Vector2(0, -8)
+		bau.add_child(spr)
+		var inter_script = load("res://entities/components/InteractionComponent.gd")
+		if inter_script != null:
+			var inter = inter_script.new()
+			inter.interaction_text = "Abrir Baú da Clareira [E]"
+			inter.interacted.connect(func(_p = null):
+				if PlayerData != null:
+					PlayerData.adicionar_item(&"pedra_aura", 1)
+					PlayerData.adicionar_item(&"carne_javali", 1)
+				if EventBus != null:
+					EventBus.emit_toast("📦 Baú: Pedra de Aura + Carne de Javali", Color(0.95, 0.85, 0.4))
+				bau.queue_free()
+			)
+			bau.add_child(inter)
+		add_child(bau)
 
 
 func _densificar_vida_estrada() -> void:
@@ -177,6 +237,9 @@ func _densificar_vida_estrada() -> void:
 	var walkers := [
 		{"name": "ViajantePatrulha", "pos": Vector2(360, 180), "npc": "Viajante da Associação", "fala": "A Estrada Real fica perigosa depois do anoitecer. Fique perto da fogueira.", "ids": ["npc_viajante_scout"], "r": 56.0},
 		{"name": "GuardaItinerante", "pos": Vector2(420, 320), "npc": "Guarda Itinerante", "fala": "Mantenha a carroça à vista. Salteadores cheiram Jenny de longe.", "ids": ["npc_guarda_fronteira"], "r": 64.0},
+		# Evento social Associação × Máfia × Guardas (Steam density)
+		{"name": "AgenteAssociacaoEstrada", "pos": Vector2(300, 240), "npc": "Agente da Associação", "fala": "A Máfia quer pedágio nesta ponte. A Associação não negocia — reporte qualquer carroça marcada.", "ids": ["npc_viajante_scout"], "r": 48.0},
+		{"name": "ObservadorMafiaEstrada", "pos": Vector2(480, 260), "npc": "Observador da Máfia", "fala": "...só estou de passagem. Não olhe demais para a carroça do oeste.", "ids": ["npc_guarda_fronteira"], "r": 40.0},
 	]
 	for w in walkers:
 		if get_node_or_null(w["name"]) != null:
@@ -195,6 +258,18 @@ func _densificar_vida_estrada() -> void:
 		living.raio_patrulha = w["r"]
 		npc.add_child(living)
 		add_child(npc)
+
+	# Placa disputa de rota
+	if get_node_or_null("PlacaDisputaRota") == null:
+		var placa := Node2D.new()
+		placa.name = "PlacaDisputaRota"
+		placa.position = Vector2(400, 200)
+		var lbl := Label.new()
+		lbl.text = "⚠ Rota disputada\nAssociação × Máfia"
+		lbl.position = Vector2(-48, -28)
+		lbl.add_theme_font_size_override("font_size", 10)
+		placa.add_child(lbl)
+		add_child(placa)
 
 	# Lanternas extras ao longo da via
 	if get_node_or_null("LanternasEstradaExtra") == null:

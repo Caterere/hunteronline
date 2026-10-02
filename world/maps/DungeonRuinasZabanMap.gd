@@ -85,6 +85,13 @@ func _configurar_audio_e_hud() -> void:
 			hud.exibir_notificacao("🏛️ Ruínas — Fale com o Guia. [G]/[Z]/[KO] · círculos vermelhos = saia!")
 		else:
 			hud.exibir_notificacao("🏛️ Ruínas de Zaban — Perigo Extremo. Desperte Nen para ver os selos.")
+	# Entrada: aviso sonoro + runas (Steam checklist)
+	if EventBus != null:
+		EventBus.emit_toast("⚠ Portão selado — use Gyo nas runas. KO só com técnica ativa.", Color(0.95, 0.7, 0.35))
+	if AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):
+		AudioManager.tocar_sfx_tipo("nen_gyo")
+	elif AudioManager != null and AudioManager.has_method("tocar_sfx_path"):
+		AudioManager.tocar_sfx_path("res://assets/audio/sfx/nen_gyo.wav")
 
 
 func _gerar_mapa_dungeon() -> void:
@@ -233,7 +240,7 @@ func _instanciar_sensores_nen_ruinas() -> void:
 	)
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleAntecâmara", Vector2(180, 300),
-		"Rocha Selada da Antecâmara", &"pocao_aura"
+		"Rocha Selada da Antecâmara", &"cristal_aura", &"zaban_ko_antecamara"
 	)
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuCorredorSentinelas", Vector2(320, 360),
@@ -611,7 +618,8 @@ func _abrir_bau(bau_node: Node) -> void:
 	if PlayerData:
 		PlayerData.adicionar_item(&"licenca_hunter", 1)
 		PlayerData.adicionar_item(&"amuleto_forca", 1)
-		PlayerData.adicionar_item(&"pocao_vida", 5)
+		PlayerData.adicionar_item(&"pedra_aura", 3)
+		PlayerData.adicionar_item(&"cristal_aura", 1)
 		if Economy != null and Economy.has_method("adicionar_gold"):
 			Economy.adicionar_gold(5000)
 		PlayerData.aplicar_nivel_nen(2)

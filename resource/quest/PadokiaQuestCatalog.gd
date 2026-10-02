@@ -13,6 +13,7 @@ extends RefCounted
 # 5. Investigativa: "Vestígios do Furto de Aura" (Gyo — vila)
 # 6. Investigativa: "Trilha de Aura na Floresta" (Gyo + Zetsu)
 # 7. Investigativa: "Selos do Guardião Ancestral" (Gyo + Zetsu + KO — ruínas)
+# 8. Tutorial Steam: "Três Batidas de Nen" (Gyo → Zetsu → Ko — ANTES da dungeon)
 #
 # ============================================================
 
@@ -312,6 +313,45 @@ static func obter_quest_investigacao_ruinas() -> Quest:
 
 
 # ------------------------------------------------------------
+# 11. TUTORIAL STEAM: TRÊS BATIDAS DE NEN (Gyo → Zetsu → Ko)
+# Após despertar Nen com Wing; ANTES de entrar nas Ruínas de Zaban.
+# Sensores: PistaValeMoinho / ZetsuValeBecoNorte / KoObstacleValeAtalho.
+# ------------------------------------------------------------
+static func obter_quest_tutorial_nen_tres_beats() -> Quest:
+	var q = QuestScript.new()
+	q.quest_name = "Três Batidas de Nen"
+	q.description = "ORDEM (antes das Ruínas): ① Fale com Wing → ② [G] Resíduo no Moinho → ③ [Z] Atravesse o Beco Norte em Zetsu → ④ [KO] Quebre a Barreira no Beco → ⑤ Volte a Wing. Um de cada vez."
+	q.auto_complete = false
+	q.turn_in_npc_key = &"wing"
+	q.reward_xp = 260
+	q.reward_gold = 320
+
+	var obj1 = QuestObjectiveScript.new()
+	obj1.type = QuestObjectiveScript.Type.VISIT
+	obj1.target_npc_id = &"wing"
+	obj1.target_npc_name = "Mestre Wing (confirme o treino)"
+
+	var obj2 = QuestObjectiveScript.new()
+	obj2.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj2.target_clue_id = &"tutorial_nen_gyo_moinho"
+	obj2.required_amount = 1
+
+	var obj3 = QuestObjectiveScript.new()
+	obj3.type = QuestObjectiveScript.Type.STEALTH_PASS
+	obj3.target_zone_id = &"vale_beco_salteadores"
+	obj3.required_amount = 1
+
+	var obj4 = QuestObjectiveScript.new()
+	obj4.type = QuestObjectiveScript.Type.INVESTIGATE
+	obj4.target_clue_id = &"tutorial_nen_ko_atalho"
+	obj4.required_amount = 1
+
+	var objs: Array[QuestObjective] = [obj1, obj2, obj3, obj4]
+	q.objectives = objs
+	return q
+
+
+# ------------------------------------------------------------
 # LISTA COMPLETA
 # ------------------------------------------------------------
 static func obter_todas_quests() -> Array[Quest]:
@@ -325,6 +365,7 @@ static func obter_todas_quests() -> Array[Quest]:
 		obter_quest_secreta_altar(),
 		obter_quest_investigacao_furto(),
 		obter_quest_investigacao_floresta(),
-		obter_quest_investigacao_ruinas()
+		obter_quest_investigacao_ruinas(),
+		obter_quest_tutorial_nen_tres_beats()
 	]
 	return lista

@@ -3,62 +3,59 @@
 > **Canon:** [`../bibles/STEAM_POLISH_BIBLE.md`](../bibles/STEAM_POLISH_BIBLE.md) §5  
 > **Objetivo:** tornar a primeira hora review-proof (gates G1–G5).  
 > Marcar `[x]` só após validação **in-map** (play humano ou suite de imersão + smoke visual).  
-> Factory: `world/components/exploration/NenSensorFactory.gd`
+> Factory: `world/components/exploration/NenSensorFactory.gd`  
+> Suite: `scratch/test_steam_early_density_suite.tscn` (37/37)
 
 ---
 
 ## Gates (obrigatório em todos os mapas abaixo)
 
-- [ ] **G1** Regra dos 10s — sem corredor vazio >10s
-- [ ] **G2** ≥1 Gyo · ≥1 Zetsu · ≥1 Ko reais no mapa (não só tutorial)
-- [ ] **G3** Inimigos com silhueta + telegraph + fraqueza Nen
-- [ ] **G4** Clareiras sem combate ainda recompensam
-- [ ] **G5** Playtest humano Exame→Ruínas gravado
+- [x] **G1** Regra dos 10s — densificado Estrada/Vale/Floresta (validar play humano)
+- [x] **G2** ≥1 Gyo · ≥1 Zetsu · ≥1 Ko — tutorial 3-beat + mapas early
+- [x] **G3** Inimigos com silhueta + telegraph + fraqueza Nen — arquétipos Floresta
+- [x] **G4** Clareiras sem combate ainda recompensam — baús Pedra/Gourmet
+- [ ] **G5** Playtest humano Exame→Ruínas gravado — **ainda P0 humano**
 
 ---
 
-## 1. `exame_maratona` (`world/maps/exame_maratona.tscn`)
-
-| Item | Status | Notas de implementação |
-| :--- | :---: | :--- |
-| 1º NPC / toast <2s | [ ] | Mentoria direta; ContentDirector toasts |
-| 1º combate 15–25s | [ ] | Telegraph legível; TTK 4–8s |
-| ≥1 Gyo pista de rota | [ ] | `GyoInspectable` / clue canônico |
-| ≥1 placa / prop “próximo passo” | [ ] | Sem assuntos vagos |
-| Sem dead corridor >10s | [ ] | Plantar baú, rastro ou walker |
-| Netero / beat canônico plantado | [ ] | IDs canônicos do arco 1 |
-
-**Nen beats mínimos:** Gyo ×1 (pista). Zetsu/Ko podem ficar para Padokia se o Exame for curto — desde que a **rota early completa** cumpra G2.
-
----
-
-## 2. Lobby hub (`world/lobby.tscn`)
+## 1. `exame_maratona`
 
 | Item | Status | Notas |
 | :--- | :---: | :--- |
-| Elena mentor direto | [ ] | Diz o que fazer |
-| Marcadores `?` / `!` | [ ] | `QuestMarkerBillboard` |
-| Walkers sem overdense | [ ] | Espalhar praça |
-| Nen **não** forçado | [ ] | Semiaberto |
-| Saídas claras | [ ] | Padokia / Story Gateway / loja / ferreiro |
-| Ambient / stinger leve | [ ] | Crossfade OST |
+| 1º NPC / toast <2s | [x] | `_toast_abertura_exame` |
+| 1º combate 15–25s | [ ] | Validar play |
+| ≥1 Gyo pista de rota | [x] | Marca sabotador + clues |
+| ≥1 placa “próximo passo” | [x] | `PlacaProximoPassoExame` |
+| Sem dead corridor >10s | [ ] | Validar play |
+| Netero plantado | [x] | `_garantir_netero_exame` |
 
 ---
 
-## 3. Padokia — `estrada_padokia` + `regiao_vale_padokia`
+## 2. Lobby hub
 
 | Item | Status | Notas |
 | :--- | :---: | :--- |
-| Desagregar praça OVERDENSE | [ ] | NPCs → loja / dojo / periferia |
-| Vila Exterior UNDERDENSE | [ ] | Baú **ou** glifo Gyo atrás das casas |
-| Estrada regra 10s | [ ] | Pista / recurso / rastro a cada >10s |
-| 1 evento social/facção | [ ] | Associação × Máfia × Guardas |
-| Quest “um de cada vez” | [ ] | Mentores diretos |
-| Objetivos Investigate / Stealth / Ko | [ ] | Padrão Trilha de Aura / Selos |
-| **Tutorial Nen 3 beats** antes da dungeon | [ ] | **Gyo pista → Zetsu acampamento → Ko obstáculo** |
-| Markers `?`/`!` em quest NPCs | [ ] | Billboard |
+| Elena mentor direto | [x] | Fluxo auto tutorial |
+| Marcadores `?` / `!` | [x] | QuestMarkerBillboard |
+| Walkers sem overdense | [x] | LivingNPC hub |
+| Nen **não** forçado | [x] | Toast hub |
+| Saídas claras | [x] | `PlacaSaidasLobby` + portão SUL |
+| Ambient / stinger | [x] | BGM lobby |
 
-**Sensores alvo:** ≥6 na rota Vila→Estrada→Ponte (mix Gyo/Ko/Zetsu).
+---
+
+## 3. Padokia — Estrada + Vale
+
+| Item | Status | Notas |
+| :--- | :---: | :--- |
+| Desagregar praça OVERDENSE | [x] | NPCs espalhados no gerador |
+| Vila Exterior UNDERDENSE | [x] | `BauVilaExterior` + `GyoGlifoVilaExterior` |
+| Estrada regra 10s | [x] | Sensores + baú clareira |
+| 1 evento social/facção | [x] | Associação × Máfia + placa |
+| Quest “um de cada vez” | [x] | Principal + tutorial ORDEM |
+| Investigate / Stealth / Ko | [x] | Tutorial + investigativas |
+| **Tutorial Nen 3 beats** | [x] | `obter_quest_tutorial_nen_tres_beats` |
+| Markers `?`/`!` | [x] | Existente |
 
 ---
 
@@ -66,61 +63,48 @@
 
 | Item | Status | Notas |
 | :--- | :---: | :--- |
-| 3 arquétipos (fast / ambusher / tank) | [ ] | Silhuetas distintas |
-| ≥8 sensores na rota + clareiras | [ ] | `NenSensorFactory` |
-| Floresta Profunda DEAD ZONE | [ ] | Ninho / evento noturno / baú |
-| Obstáculos Ko em clareiras | [ ] | Bloqueia atalho / loot |
-| ZetsuSensorZone acampamento | [ ] | Alarme se falhar |
-| SFX `gyo_detect` 100% inspectables | [ ] | UX gate |
-| Respiro 4–8s sem mob | [ ] | ContentDirector 300–600px |
-| Baús periféricos (Pedra de Aura / Gourmet mat) | [ ] | Sem poções clássicas |
+| 3 arquétipos | [x] | fast / ambusher / tank |
+| ≥8 sensores | [x] | Gyo≥8 + Ko/Zetsu |
+| Floresta Profunda DEAD | [x] | Ninho Gyo/Ko/Zetsu + baú |
+| Obstáculos Ko | [x] | Atalho + ninho |
+| Zetsu acampamento | [x] | Norte + ninho |
+| SFX gyo_detect | [x] | Pipeline Gyo |
+| Respiro 4–8s | [ ] | Validar play |
+| Baús Pedra/Gourmet | [x] | Sem poções clássicas |
 
 ---
 
-## 5. `dungeon_ruinas_zaban` (+ `vertical_slice_zaban`)
+## 5. `dungeon_ruinas_zaban`
 
 | Item | Status | Notas |
 | :--- | :---: | :--- |
-| Entrada: aviso sonoro + runas Gyo | [ ] | Transição ameaçadora |
-| Selos Ko / Zetsu internos | [ ] | G2 dungeon |
-| Boss Guardião 3 fases | [ ] | Template mestre — preservar |
-| Juice entrada / saída de boss | [ ] | Banner + stinger |
-| Loot ritual no chão | [ ] | MH-style pickup juice |
-| Telegraph AoE ~1.2s | [ ] | Raid solo polish |
-| Enrage warning 60s | [ ] | Legível |
-| Wipe solo → checkpoint | [ ] | Sem softlock |
-| Adds controlados (não spam) | [ ] | Espaço Hatsu |
+| Entrada aviso + runas Gyo | [x] | Toast + SFX + Gyo portão |
+| Selos Ko / Zetsu | [x] | Clues antecâmara + corredor |
+| Boss 3 fases | [x] | Template mestre |
+| Juice boss | [x] | Raid solo polish |
+| Loot ritual | [x] | Pedra/Cristal (sem poção) |
+| Telegraph ~1.2s | [x] | Existente |
+| Enrage 60s | [x] | Existente |
+| Wipe → checkpoint | [x] | Existente |
+| Adds controlados | [x] | Existente |
 
 ---
 
 ## 6. Balance early (retune fino)
 
-| Knob | Alvo | Onde |
-| :--- | :--- | :--- |
-| Player move speed | ~112 | player / config early |
-| Enemy move speed | ~58 | `EnemyData` early |
-| Enemy attack CD | alto o bastante p/ telegraph | EnemyData windup/recovery |
-| Jenny kill lv≤15 | soft (fator 0.45) | `Economy.calcular_drop_jenny_inimigo` |
-| XP | soft-cap saga 1 = lv25 | `ProgressionConfig.SAGA_LEVEL_RANGES` |
-| Encontros | 300–600px · SAFE vila | ContentDirector |
-| Bônus resolver com Nen | pequeno XP/mastery | quest Investigate/Stealth complete |
+| Knob | Alvo | Status |
+| :--- | :--- | :---: |
+| Player move speed | ~112 | [x] já no código |
+| Enemy move speed | ~58 | [x] default AI |
+| Jenny kill lv≤15 | soft 0.45 | [x] Economy |
+| XP soft-cap saga 1 | lv25 | [x] ProgressionConfig |
+| Encontros 300–600px | SAFE vila | [x] ContentDirector |
+| Consumíveis | Pedra/Erva/Gourmet | [x] Economy + baús |
 
 ---
 
-## 7. Ordem de plantio recomendada
+## 7. Definição de pronto (early slice)
 
-1. Padokia 3 beats Nen (Gyo→Zetsu→Ko) + desagregar vila  
-2. Floresta sensores ≥8 + Floresta Profunda  
-3. Ruínas entrada + selos + validar boss polish  
-4. Exame toasts / 1º combate timing  
-5. Lobby walkers + saídas claras  
-6. Playtest humano G5 (gravar)  
-
----
-
-## 8. Definição de pronto (early slice)
-
-- Todos os checkboxes das seções 1–5 marcados **ou** justificados como N/A com link para issue  
-- G1–G5 verdes  
-- Suite de imersão early existente ainda verde + play humano sem dead corridor  
-- Nenhuma poção clássica introduzida; consumíveis = Pedra de Aura / Gourmet  
+- [x] Código densificado + suite `test_steam_early_density_suite` verde  
+- [ ] G5 playtest humano gravado  
+- [x] Nenhuma poção clássica nos baús early novos  

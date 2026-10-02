@@ -39,8 +39,29 @@ func _ready() -> void:
 	_configurar_portal_conclusao()
 	_configurar_portal_retorno_lobby()
 	_garantir_quest_ativa()
+	_toast_abertura_exame()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+
+
+## Steam early: 1º feedback <2s (mentor direto + juice).
+func _toast_abertura_exame() -> void:
+	if EventBus != null:
+		EventBus.emit_toast("Exame: corra LESTE pelo corredor. GPS marca o próximo marco.", Color(0.9, 0.85, 0.5))
+	var hud = get_tree().get_first_node_in_group("player_hud")
+	if hud and hud.has_method("exibir_notificacao"):
+		hud.exibir_notificacao("🏁 287º Exame Hunter — siga o GPS (LESTE)")
+	# Placa próximo passo no spawn
+	if get_node_or_null("PlacaProximoPassoExame") == null:
+		var placa := Node2D.new()
+		placa.name = "PlacaProximoPassoExame"
+		placa.position = Vector2(380, -40)
+		var lbl := Label.new()
+		lbl.text = "→ LESTE: Maratona\nEvite emboscadas"
+		lbl.position = Vector2(-40, -20)
+		lbl.add_theme_font_size_override("font_size", 10)
+		placa.add_child(lbl)
+		add_child(placa)
 
 
 func _process(_delta: float) -> void:
