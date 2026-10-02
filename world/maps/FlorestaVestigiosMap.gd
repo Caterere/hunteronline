@@ -325,14 +325,14 @@ func _iniciar_quest_investigacao_floresta() -> void:
 
 
 func _instanciar_baus_clareira() -> void:
-	# Clareiras periféricas (Quality Gap B): consumíveis Poção / Pedra de Aura
+	# Clareiras periféricas (Steam G4): Pedra de Aura / Gourmet — sem poções clássicas
 	_spawna_bau_clareira(
 		"BauClareiraOeste",
 		Vector2(100, 260),
 		"Baú da Clareira Oeste",
 		[
-			{"id": &"pocao_vida", "qtd": 2},
-			{"id": &"elixir_aura", "qtd": 1}
+			{"id": &"pedra_aura", "qtd": 2},
+			{"id": &"erva_nen", "qtd": 2}
 		]
 	)
 	_spawna_bau_clareira(
@@ -340,8 +340,8 @@ func _instanciar_baus_clareira() -> void:
 		Vector2(680, 300),
 		"Baú da Clareira Leste",
 		[
-			{"id": &"pocao_vida", "qtd": 1},
-			{"id": &"elixir_aura", "qtd": 2}
+			{"id": &"cristal_aura", "qtd": 1},
+			{"id": &"carne_javali", "qtd": 2}
 		]
 	)
 	_spawna_bau_clareira(
@@ -349,8 +349,18 @@ func _instanciar_baus_clareira() -> void:
 		Vector2(320, 560),
 		"Baú da Clareira Sul",
 		[
-			{"id": &"elixir_aura", "qtd": 1},
-			{"id": &"pocao_vida", "qtd": 1}
+			{"id": &"pedra_aura", "qtd": 1},
+			{"id": &"food_cha_erva", "qtd": 1}
+		]
+	)
+	# Floresta Profunda (DEAD ZONE histórica) — ninho + baú
+	_spawna_bau_clareira(
+		"BauFlorestaProfunda",
+		Vector2(620, 480),
+		"Baú do Ninho Profundo",
+		[
+			{"id": &"pedra_aura", "qtd": 2},
+			{"id": &"cristal_sombra", "qtd": 1}
 		]
 	)
 
@@ -464,15 +474,26 @@ func _instanciar_sensores_nen_floresta() -> void:
 			"Pressão de aura ancestral à frente. Entre nas Ruínas só depois de concluir a trilha da Herbalista.",
 			"Especialização", 2, Color(0.85, 0.55, 1.0, 0.9)
 		)
+		# Floresta Profunda — matar DEAD ZONE (Steam checklist)
+		NenSensorFactory.criar_gyo(
+			self, "GyoClueNinhoProfundo", Vector2(600, 440),
+			&"floresta_ninho_profundo", "Ninho de Aura Profunda",
+			"Vestígios de matilha. Gyo marca o centro do ninho — use Zetsu na aproximação leste.",
+			"Emissão", 2, Color(0.55, 1.0, 0.4, 0.9)
+		)
 
 	# Rochas KO — atalho oeste + quebra investigativa
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleAtalhoOeste", Vector2(120, 220),
-		"Rocha Rachada do Atalho Oeste", &"pocao_aura", &"floresta_ko_atalho"
+		"Rocha Rachada do Atalho Oeste", &"pedra_aura", &"floresta_ko_atalho"
 	)
 	NenSensorFactory.criar_ko(
 		self, "KoObstacleClareiraSul", Vector2(500, 480),
-		"Rocha do Atalho Sul", &"elixir_aura"
+		"Rocha do Atalho Sul", &"cristal_aura"
+	)
+	NenSensorFactory.criar_ko(
+		self, "KoObstacleNinhoProfundo", Vector2(640, 460),
+		"Rocha do Ninho Profundo", &"pedra_aura", &"floresta_ko_ninho"
 	)
 
 	# Acampamentos / predadores com Zetsu (marcador visual já vem da factory zone)
@@ -494,6 +515,12 @@ func _instanciar_sensores_nen_floresta() -> void:
 		Vector2(130, 90),
 		&"lobo_sombras", "Sentinela da Trilha"
 	)
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuNinhoProfundo", Vector2(600, 500),
+		&"floresta_ninho_zetsu", "Ninho Profundo Vigilado",
+		Vector2(160, 120),
+		&"lobo_sombras", "Alfa do Ninho"
+	)
 
 
 func _instanciar_feras_selvagens() -> void:
@@ -502,14 +529,16 @@ func _instanciar_feras_selvagens() -> void:
 
 	var enemy_scn = load("res://scripts/systems/EnemySystem/Enemy.tscn")
 	if enemy_scn:
+		# Combat Density + Steam respiro 4–8s: pack longe do spawn (400,140)
+		# 1º pack ~550–700px (≈5–6s @112) · roles mistos · detection ↓
 		var mobs_data = [
-			{"name": "FeraFloresta1", "pos": Vector2(300, 220), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.95, 0.7)},
-			{"name": "FeraFloresta2", "pos": Vector2(520, 260), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 100.0, "role": "bruiser", "tint": Color(0.65, 0.9, 0.6)},
-			{"name": "FeraSombra1", "pos": Vector2(240, 200), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0)},
-			{"name": "FeraSombra2", "pos": Vector2(560, 420), "id": &"lobo_sombras", "label": "Besta de Sombra Voraz", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0)},
-			{"name": "FeraSombra3", "pos": Vector2(200, 480), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE},
-			{"name": "FeraSombra4", "pos": Vector2(600, 180), "id": &"fera_alada", "label": "Fera Alada Emboscadora", "def": 95.0, "role": "ambusher", "tint": Color.WHITE},
-			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 520), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0, "role": "tank", "tint": Color(0.7, 0.7, 0.65)}
+			{"name": "FeraFloresta1", "pos": Vector2(520, 320), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 100.0, "role": "bruiser", "tint": Color(0.65, 0.9, 0.6), "telegraph": "exclamation"},
+			{"name": "FeraFloresta2", "pos": Vector2(580, 280), "id": &"fera_alada", "label": "Fera Alada Atiradora", "def": 85.0, "role": "ranged", "tint": Color(0.85, 0.95, 0.55), "telegraph": "aoe_circle"},
+			{"name": "FeraSombra1", "pos": Vector2(200, 420), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0), "telegraph": "flash"},
+			{"name": "FeraSombra2", "pos": Vector2(560, 460), "id": &"lobo_sombras", "label": "Besta de Sombra Voraz", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0), "telegraph": "exclamation"},
+			{"name": "FeraSombra3", "pos": Vector2(160, 520), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE, "telegraph": "flash"},
+			{"name": "FeraSombra4", "pos": Vector2(640, 200), "id": &"fera_alada", "label": "Fera Alada Emboscadora", "def": 95.0, "role": "ambusher", "tint": Color.WHITE, "telegraph": "flash"},
+			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 560), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0, "role": "tank", "tint": Color(0.7, 0.7, 0.65), "telegraph": "aoe_circle"}
 		]
 		for m in mobs_data:
 			var mob = enemy_scn.instantiate()
@@ -530,23 +559,34 @@ func _instanciar_feras_selvagens() -> void:
 					es.enemy_data = es.enemy_data.duplicate(true)
 					es.enemy_data.role = m.get("role", "bruiser")
 					es.enemy_data.enemy_name = m["label"]
-				# Reaplica sheet caso _ready tenha corrido antes do id (fallback seguro)
+					es.enemy_data.attack_telegraph_type = String(m.get("telegraph", "flash"))
 				if es.has_method("_vincular_textura_inimigo"):
 					es._vincular_textura_inimigo()
 				var ai = mob.get_node_or_null("EnemyAI") as EnemyAI
 				if ai != null:
 					match String(m.get("role", "bruiser")):
 						"fast":
-							ai.move_speed = 118.0
-							ai.detection_range = 280.0
+							ai.move_speed = 100.0
+							ai.detection_range = 170.0
 							ai.attack_cooldown = 0.95
-						"ambusher":
-							ai.move_speed = 102.0
+							ai.attack_range = 48.0
+						"ranged":
+							ai.move_speed = 78.0
 							ai.detection_range = 200.0
+							ai.attack_cooldown = 1.35
+							ai.attack_range = 170.0
+							ai.stop_distance = 140.0
+						"ambusher":
+							ai.move_speed = 95.0
+							ai.detection_range = 160.0
 							ai.attack_cooldown = 1.05
+						"bruiser":
+							ai.move_speed = 70.0
+							ai.detection_range = 180.0
+							ai.attack_cooldown = 1.25
 						"tank":
-							ai.move_speed = 62.0
-							ai.detection_range = 220.0
-				if not es.died.is_connected(QuestSystem.register_enemy_kill):
+							ai.move_speed = 58.0
+							ai.detection_range = 180.0
+							ai.attack_cooldown = 1.55
+				if QuestSystem != null and not es.died.is_connected(QuestSystem.register_enemy_kill):
 					es.died.connect(QuestSystem.register_enemy_kill)
-

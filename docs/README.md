@@ -22,6 +22,7 @@ Regras do que o jogo *deve ser*. Lista completa: [`bibles/README.md`](bibles/REA
 | [WORLD_BIBLE.md](bibles/WORLD_BIBLE.md) · [LIVING_WORLD_BIBLE.md](bibles/LIVING_WORLD_BIBLE.md) · [REGIONS_BIBLE.md](bibles/REGIONS_BIBLE.md) | Mundo |
 | [UI_UX_BIBLE.md](bibles/UI_UX_BIBLE.md) · [VISUAL_BIBLE.md](bibles/VISUAL_BIBLE.md) | UI / visual |
 | [PIXEL_ART_STYLE_BIBLE.md](bibles/PIXEL_ART_STYLE_BIBLE.md) · [PIXEL_ART_PRODUCTION_BIBLE.md](bibles/PIXEL_ART_PRODUCTION_BIBLE.md) · [ART_PIPELINE_CANON.md](bibles/ART_PIPELINE_CANON.md) | Pixel art |
+| [STEAM_POLISH_BIBLE.md](bibles/STEAM_POLISH_BIBLE.md) | Gates Steam · pacing deliberado · densificação · review slice |
 | [TECHNICAL_ARCHITECTURE_BIBLE.md](bibles/TECHNICAL_ARCHITECTURE_BIBLE.md) | Arquitetura técnica |
 
 ---
@@ -88,7 +89,8 @@ Regras do que o jogo *deve ser*. Lista completa: [`bibles/README.md`](bibles/REA
 | Doc | Uso |
 | :--- | :--- |
 | [**ESTADO_ATUAL_JOGO.md**](ESTADO_ATUAL_JOGO.md) | **Handoff:** estado atual + próximos passos (para passar a outro agent) |
-| [PRODUCTION_ROADMAP.md](roadmap/PRODUCTION_ROADMAP.md) | **O que fazer agora / next / later** |
+| [PRODUCTION_ROADMAP.md](roadmap/PRODUCTION_ROADMAP.md) | **O que fazer agora / next / later** (+ STEAM_POLISH / DENSITY / PACING) |
+| [STEAM_EARLY_DENSITY_CHECKLIST.md](roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md) | Checklist operacional Exame→Ruínas (gates G1–G5) |
 | [MMO_FEATURES_BACKLOG.md](roadmap/MMO_FEATURES_BACKLOG.md) | **Sistemas MMO futuros** (Tier S/A/B + PREREQs) |
 | [LIVE_OPS_CONTENT.md](roadmap/LIVE_OPS_CONTENT.md) | Live ops + versionamento + migração de save |
 | [roadmap/_history/](roadmap/_history/) | Tasks diárias e fases antigas (arquivo) |

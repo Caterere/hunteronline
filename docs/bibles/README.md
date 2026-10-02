@@ -36,6 +36,7 @@ Design canônico do Hunter Online. Complementa ADRs em `docs/architecture/`.
 | [AUDIO_BIBLE.md](AUDIO_BIBLE.md) | Áudio |
 | [CUTSCENE_SYSTEM_BIBLE.md](CUTSCENE_SYSTEM_BIBLE.md) | Cutscenes |
 | [QA_BIBLE.md](QA_BIBLE.md) | QA |
+| [STEAM_POLISH_BIBLE.md](STEAM_POLISH_BIBLE.md) | Gates Steam · pacing · densificação · review slice |
 | [TECHNICAL_ARCHITECTURE_BIBLE.md](TECHNICAL_ARCHITECTURE_BIBLE.md) | Arquitetura técnica |
 
 

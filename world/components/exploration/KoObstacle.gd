@@ -67,7 +67,7 @@ func destruir_com_ko() -> void:
 		if not item_recompensa_id.is_empty():
 			PlayerData.adicionar_item(item_recompensa_id, 1)
 		else:
-			PlayerData.adicionar_item(&"pocao_vida", 1)
+			PlayerData.adicionar_item(&"pedra_aura", 1)
 		if PlayerData.attributes.has("xp_nen"):
 			PlayerData.attributes["xp_nen"] += 50
 	

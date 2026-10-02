@@ -72,9 +72,10 @@
 1. Ler `Hunter Online — AGENTS.md` na raiz (regras de escopo, MODIFY DON'T REBUILD, save compatibility).
 2. Design canônico SSOT: `docs/bibles/` (não `.agent/docs/bibles/` — essas são só pontes).
 3. Índice mestre: `docs/README.md`.
-4. Roadmap ativo: `docs/roadmap/PRODUCTION_ROADMAP.md`.
-5. Backlog MMO: `docs/roadmap/MMO_FEATURES_BACKLOG.md`.
-6. **Não criar sistemas novos** se já existir autoload/UI/script equivalente — estender.
+4. Roadmap ativo: `docs/roadmap/PRODUCTION_ROADMAP.md` (seção **0. STEAM_POLISH**).
+5. Contrato Steam: `docs/bibles/STEAM_POLISH_BIBLE.md` · checklist early: `docs/roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md`.
+6. Backlog MMO: `docs/roadmap/MMO_FEATURES_BACKLOG.md`.
+7. **Não criar sistemas novos** se já existir autoload/UI/script equivalente — estender.
 
 ---
 
@@ -247,17 +248,18 @@ Conteúdo típico desse branch (ainda **não merged**):
 
 Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU** com mais sistemas MMO genéricos.
 
-### P0 — Continuidade / merge / estabilidade
-1. **Decidir destino do PR #48** — review/merge ou cherry-pick seletivo do que importa (Duty Finder stub vs polish real).
-2. **Smoke play do early game ponta a ponta** (Exame → Padokia → Floresta → Ruínas): spawn walkable, GPS, combate, Nen tips, loot Jenny, cutscenes maratona.
-3. **Corrigir docs desatualizados pontuais** (ex.: README viewport 640×360 vs 960×540; checkboxes do PRODUCTION_ROADMAP vs código).
+### P0 — Continuidade / Steam early (review-proof)
+1. **Canon Steam** — [`docs/bibles/STEAM_POLISH_BIBLE.md`](bibles/STEAM_POLISH_BIBLE.md) + [`docs/roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md`](roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md) + roadmap §0.
+2. **Smoke play do early game ponta a ponta** (Exame → Padokia → Floresta → Ruínas) — gate **G5**: spawn walkable, GPS, combate, Nen tips, loot Jenny, cutscenes maratona; **dead time ≤6s**; gravar.
+3. **Corrigir docs desatualizados pontuais** (ex.: README viewport 640×360 vs 960×540).
 
-### P1 — Qualidade de gameplay (maior ROI)
-1. ~~**Densidade de sensores Nen no mundo**~~ — feito (Floresta/Ruínas + factory props + Ko clue).
-2. ~~**Quests investigativas**~~ — “Trilha de Aura na Floresta” + “Selos do Guardião Ancestral” no `PadokiaQuestCatalog`.
-3. **Retune fino early-game** — balance de stats/Jenny se economia ainda inflar; legibilidade do Exame.
-4. **Combat feel / silhuetas** — garantir arquétipos fast/ambusher/tank legíveis no early.
+### P1 — Qualidade de gameplay (maior ROI) — densificar, não adicionar sistema
+1. ~~**Densidade de sensores Nen no mundo**~~ — factory + Floresta/Ruínas feitos; **ainda:** cumprir regra dos 10s em toda rota early (checklist).
+2. ~~**Quests investigativas**~~ — “Trilha de Aura” + “Selos do Guardião”; **ainda:** tutorial Nen 3 beats Gyo→Zetsu→Ko antes da dungeon.
+3. **Retune fino early-game** — Jenny/XP soft-caps; TTK 4–8s; speeds ~112/58 ([`STEAM_POLISH_BIBLE` §4](bibles/STEAM_POLISH_BIBLE.md)).
+4. **Combat feel / silhuetas** — arquétipos fast/ambusher/tank legíveis no early (G3).
 5. **HUD/combat log** — validar FOV 960×540; ajustar opacidade/legibilidade se necessário.
+6. **Clareiras / baús** — Pedra de Aura / Gourmet (sem poções clássicas); matar UNDERDENSE / DEAD zones Padokia.
 
 ### P2 — Conteúdo de sagas (profundidade, não sistemas novos)
 1. Validar play humano Kukuroo/Arena/Floresta/Ruínas densificados.
@@ -284,10 +286,11 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 
 Escolha **uma** trilha por sessão (escopo pequeno — AGENTS.md):
 
-### Trilha A — “Early game delicioso” (recomendado)
-- Playtest manual Exame + Padokia.
-- Bugs de pathing/spawn/GPS/missão.
-- Feedback de Nen no primeiro combate.
+### Trilha A — “Early game Steam / review-proof” (recomendado)
+- Seguir [`STEAM_EARLY_DENSITY_CHECKLIST.md`](roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md) mapa a mapa.
+- Gates G1–G5 em [`STEAM_POLISH_BIBLE.md`](bibles/STEAM_POLISH_BIBLE.md).
+- Playtest manual Exame + Padokia (+ Floresta → Ruínas).
+- Bugs de pathing/spawn/GPS/missão; feedback Nen no primeiro combate.
 - Suites: `scratch/test_exam_early_game_suite`, `test_exame_spawn_walkable_suite`, `test_mission_objective_gps_suite`, `test_p0_play_smoke_suite`.
 
 ### Trilha B — “Nen no mundo” ✅ (sessão atual)
@@ -351,7 +354,9 @@ godot --headless --path . res://scratch/test_<nome>_suite.tscn
 | :--- | :--- |
 | Regras de contribuição / escopo | `Hunter Online — AGENTS.md` |
 | O que o jogo deve ser | `docs/bibles/GAME_MASTER_BIBLE.md` (+ NEN/HATSU/COMBAT/…) |
-| O que fazer agora | `docs/roadmap/PRODUCTION_ROADMAP.md` |
+| O que fazer agora | `docs/roadmap/PRODUCTION_ROADMAP.md` (§0 STEAM_POLISH) |
+| Gates / pacing Steam | `docs/bibles/STEAM_POLISH_BIBLE.md` |
+| Checklist early density | `docs/roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md` |
 | Sistemas MMO futuros | `docs/roadmap/MMO_FEATURES_BACKLOG.md` |
 | Rede / LAN / protocolo | `docs/multiplayer/*` |
 | Como criar NPC/quest/região/boss | `docs/guides/*` |
@@ -364,7 +369,7 @@ godot --headless --path . res://scratch/test_<nome>_suite.tscn
 
 ## 10. Resumo executivo (1 parágrafo)
 
-Hunter Online em `main` (set/2026) é um **2D HxH RPG/MMO em Godot 4.6** com pilares sólidos de combate, Nen (passivo+ativo), Hatsu criável, progressão até 1000, 9 sagas data-driven, early world Padokia→Zaban, e **quase todo o backlog MMO Tier S/A já shipado** (auction, arena ranked, raid 8, GI cards, guilds, blacklist, gourmet) + fundação LAN autoritativa. O trabalho de maior valor agora **não é inventar sistemas novos**, e sim: **(1)** playtest/polimento do early game e sensores Nen no mundo, **(2)** decidir/mergear o PR #48 de Tier B/live-ops com critério, **(3)** aprofundar conteúdo das sagas 1–3 e raid co-op, **(4)** só então VPS/matchmaking público.
+Hunter Online em `main` (set/2026) é um **2D HxH RPG/MMO em Godot 4.6** com pilares sólidos de combate, Nen (passivo+ativo), Hatsu criável, progressão até 1000, 9 sagas data-driven, early world Padokia→Zaban, e **quase todo o backlog MMO Tier S/A já shipado** (auction, arena ranked, raid 8, GI cards, guilds, blacklist, gourmet) + fundação LAN autoritativa. O trabalho de maior valor agora **não é inventar sistemas novos**, e sim: **(1)** Steam polish early (gates G1–G5, densidade sensores/baús, playtest humano) per `STEAM_POLISH_BIBLE`, **(2)** retune pacing deliberado (TTK/speeds/Jenny), **(3)** vertical review 90–120 min antes de LAN proof, **(4)** só então VPS/matchmaking público.
 
 ---
 
@@ -375,15 +380,15 @@ Você vai trabalhar no Hunter Online (Godot 4.6, GDScript).
 Leia primeiro:
 1) docs/ESTADO_ATUAL_JOGO.md (este handoff)
 2) Hunter Online — AGENTS.md
-3) docs/roadmap/PRODUCTION_ROADMAP.md
-4) docs/roadmap/MMO_FEATURES_BACKLOG.md
+3) docs/bibles/STEAM_POLISH_BIBLE.md
+4) docs/roadmap/PRODUCTION_ROADMAP.md (§0 STEAM_POLISH)
+5) docs/roadmap/STEAM_EARLY_DENSITY_CHECKLIST.md
 
 Regras: MODIFY DON'T REBUILD; escopo mínimo; preservar saves v2.4;
 foco COMBATE+NEN+HATSU+PROGRESSÃO; não criar sistemas MMO novos
-se já existem stubs/implementações.
+se já existem stubs/implementações; cumprir gates G1–G5.
 
-Estado: main está em d399349 (PR #49 HUD). PR #48 (Tier B) ainda aberto.
-Tarefa sugerida: [PREENCHER — ex. Trilha A early game / Trilha B sensores Nen].
+Tarefa sugerida: [PREENCHER — ex. Trilha A early Steam density / playtest G5].
 ```
 
 ---

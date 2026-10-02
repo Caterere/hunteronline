@@ -141,9 +141,10 @@ static func config_for_saga(saga_id: int) -> Dictionary:
 					{"name": "PlacaTorre", "pos": Vector2(5200, -70), "text": "📍 Torre dos Truques / Ilha Zevil"},
 				],
 				"ambient": [
-					{"name": "SabotadorAmbient_A", "pos": Vector2(500, 40), "id": "candidato_exame", "label": "Candidato Sabotador"},
-					{"name": "MacacoAmbient_A", "pos": Vector2(2000, 30), "id": "criatura_pantanal", "label": "Macaco do Pântano"},
-					{"name": "JavaliAmbient_A", "pos": Vector2(4200, 40), "id": "javali_gourmet", "label": "Javali Gourmet"},
+					# Steam pacing: 1º combate ~18s (spawn~80, speed~112, detect~220 → x≈80+112*18+220≈2316)
+					{"name": "SabotadorAmbient_A", "pos": Vector2(2350, 40), "id": "candidato_exame", "label": "Candidato Sabotador"},
+					{"name": "MacacoAmbient_A", "pos": Vector2(3100, 30), "id": "criatura_pantanal", "label": "Macaco do Pântano"},
+					{"name": "JavaliAmbient_A", "pos": Vector2(4300, 40), "id": "javali_gourmet", "label": "Javali Gourmet"},
 				],
 				"bosses": [
 					{"name": "HisokaExameInimigo", "pos": Vector2(5600, -40), "id": "hisoka", "label": "Hisoka Morow (Exame)", "arc": 1, "etapa": 22},

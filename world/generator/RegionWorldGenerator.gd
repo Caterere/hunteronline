@@ -590,7 +590,7 @@ func _gerar_colinas_norte_e_caverna() -> void:
 		"KoObstacleBauColinas",
 		Vector2(270 * config.tile_size, 95 * config.tile_size),
 		"Rocha do Baú Secreto das Colinas",
-		&"pocao_vida"
+		&"pedra_aura"
 	)
 
 	# Pista Gyo adicional na trilha para a vila
@@ -626,16 +626,16 @@ func _posicionar_pois_e_segredos() -> void:
 # ------------------------------------------------------------
 func _instanciar_npcs_e_inimigos() -> void:
 	# 1. NPCs na Vila de Padokia (Zona Segura - 6 categorias de NPCs com rotinas)
-	_instanciar_npc_vila("Mestre Wing", Vector2(105 * 16, 260 * 16), "res://entities/npc/wing/Wing.tscn", "Mestre de Nen", "trainer", LivingNPCBehavior.NPCHierarchy.IMPORTANT)
-	_instanciar_npc_vila("Vendedor", Vector2(68 * 16, 260 * 16), "res://entities/npc/vendedor/Vendedor.tscn", "Comerciante do Empório", "merchant", LivingNPCBehavior.NPCHierarchy.FUNCTIONAL)
-	_instanciar_npc_vila("Ferreiro Duran", Vector2(85 * 16, 260 * 16), "res://entities/npc/NPC.tscn", "Mestre Forjador", "blacksmith", LivingNPCBehavior.NPCHierarchy.FUNCTIONAL)
+	_instanciar_npc_vila("Mestre Wing", Vector2(105 * 16, 268 * 16), "res://entities/npc/wing/Wing.tscn", "Mestre de Nen", "trainer", LivingNPCBehavior.NPCHierarchy.IMPORTANT)
+	_instanciar_npc_vila("Vendedor", Vector2(62 * 16, 255 * 16), "res://entities/npc/vendedor/Vendedor.tscn", "Comerciante do Empório", "merchant", LivingNPCBehavior.NPCHierarchy.FUNCTIONAL)
+	_instanciar_npc_vila("Ferreiro Duran", Vector2(85 * 16, 272 * 16), "res://entities/npc/NPC.tscn", "Mestre Forjador", "blacksmith", LivingNPCBehavior.NPCHierarchy.FUNCTIONAL)
 	_instanciar_npc_vila("Guarda da Vila", Vector2(130 * 16, 250 * 16), "res://entities/npc/NPC.tscn", "Guarda Patrulheiro", "", LivingNPCBehavior.NPCHierarchy.COMMON)
-	_instanciar_npc_vila("Cidadão Nicol", Vector2(75 * 16, 248 * 16), "res://entities/npc/nicol/Nicol.tscn", "Candidato Hunter", "recurring", LivingNPCBehavior.NPCHierarchy.RECURRING)
-	# Vila mais viva: rotinas e rumores na praça (não no lobby)
-	_instanciar_npc_vila("Feirante Lena", Vector2(92 * 16, 255 * 16), "res://entities/npc/NPC.tscn", "Feirante da Praça", "", LivingNPCBehavior.NPCHierarchy.COMMON)
-	_instanciar_npc_vila("Mensageiro Posto", Vector2(112 * 16, 252 * 16), "res://entities/npc/NPC.tscn", "Mensageiro da Associação", "quest", LivingNPCBehavior.NPCHierarchy.COMMON)
-	_instanciar_npc_vila("Aprendiz de Nen", Vector2(98 * 16, 265 * 16), "res://entities/npc/NPC.tscn", "Aprendiz do Dojo", "", LivingNPCBehavior.NPCHierarchy.COMMON)
-	_instanciar_npc_vila("Pescador do Rio", Vector2(140 * 16, 268 * 16), "res://entities/npc/NPC.tscn", "Pescador Local", "", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Cidadão Nicol", Vector2(72 * 16, 242 * 16), "res://entities/npc/nicol/Nicol.tscn", "Candidato Hunter", "recurring", LivingNPCBehavior.NPCHierarchy.RECURRING)
+	# Vila mais viva: rotinas espalhadas (anti-OVERDENSE da praça) — Steam polish
+	_instanciar_npc_vila("Feirante Lena", Vector2(88 * 16, 248 * 16), "res://entities/npc/NPC.tscn", "Feirante da Praça", "", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Mensageiro Posto", Vector2(118 * 16, 245 * 16), "res://entities/npc/NPC.tscn", "Mensageiro da Associação", "quest", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Aprendiz de Nen", Vector2(100 * 16, 278 * 16), "res://entities/npc/NPC.tscn", "Aprendiz do Dojo", "", LivingNPCBehavior.NPCHierarchy.COMMON)
+	_instanciar_npc_vila("Pescador do Rio", Vector2(148 * 16, 275 * 16), "res://entities/npc/NPC.tscn", "Pescador Local", "", LivingNPCBehavior.NPCHierarchy.COMMON)
 	
 	# 2. NPCs no Mundo (Estrada, Floresta e Entrada de Dungeon)
 	_instanciar_npc_vila("Explorador da Estrada", Vector2(180 * 16, 260 * 16), "res://entities/npc/NPC.tscn", "Viajante Aventureiro", "quest", LivingNPCBehavior.NPCHierarchy.COMMON)

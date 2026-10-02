@@ -75,6 +75,7 @@ func _ready() -> void:
 	_popular_portao_mundo_exterior()
 	_configurar_limites_camera()
 	_criar_limites_do_mapa()
+	_steam_lobby_saidas_claras()
 
 	# Fluxo de Início: apenas quando o Lobby é a cena principal em execução
 	if get_tree().current_scene == self:
@@ -771,6 +772,23 @@ func _garantir_spawn_points() -> void:
 		sp_world.is_default_spawn = false
 		sp_world.position = Vector2(0, 420)
 		add_child(sp_world)
+
+
+func _steam_lobby_saidas_claras() -> void:
+	# Steam checklist Lobby: saídas legíveis sem forçar Nen
+	if get_node_or_null("PlacaSaidasLobby") == null:
+		var placa := Node2D.new()
+		placa.name = "PlacaSaidasLobby"
+		placa.position = Vector2(0, 80)
+		var lbl := Label.new()
+		lbl.text = "Saídas: SUL → Estrada/Padokia\nPraça → Elena / História / Loja"
+		lbl.position = Vector2(-90, -24)
+		lbl.add_theme_font_size_override("font_size", 11)
+		placa.add_child(lbl)
+		add_child(placa)
+	if EventBus != null and PlayerData != null and not PlayerData.quest_states.get("lobby_steam_toast", false):
+		PlayerData.quest_states["lobby_steam_toast"] = true
+		EventBus.emit_toast("Hub: fale com Elena. Sul = mundo. Nen no campo, não aqui.", Color(0.75, 0.9, 1.0))
 
 
 func _popular_portao_mundo_exterior() -> void:

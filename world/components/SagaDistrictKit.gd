@@ -46,8 +46,8 @@ static func districts_for_saga(saga_id: int) -> Array:
 					"warp_target": Vector2(1900, 16),
 					"warp_label": "Atalho → Pantanal",
 					"fillers": [
-						{"name": "SabotadorAmbient_B", "pos": Vector2(900, 40), "id": "candidato_exame", "label": "Sabotador do Túnel"},
-						{"name": "SabotadorAmbient_C", "pos": Vector2(1300, -30), "id": "candidato_exame", "label": "Candidato Hostil"},
+						{"name": "SabotadorAmbient_B", "pos": Vector2(2800, 40), "id": "candidato_exame", "label": "Sabotador do Túnel"},
+						{"name": "SabotadorAmbient_C", "pos": Vector2(3400, -30), "id": "candidato_exame", "label": "Candidato Hostil"},
 					],
 					"npcs": [
 						{"name": "ExaminadorSatotzHint", "pos": Vector2(1500, -60), "npc": "Guia do Túnel", "fala": "Satotz espera na saída. Mantenha o ritmo — o pantanal come os lentos.", "ids": ["npc_viajante_scout"]},
