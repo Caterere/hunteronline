@@ -15,6 +15,9 @@
 - [x] **G3** Inimigos com silhueta + telegraph + fraqueza Nen — arquétipos Floresta
 - [x] **G4** Clareiras sem combate ainda recompensam — baús Pedra/Gourmet
 - [ ] **G5** Playtest humano Exame→Ruínas gravado — **ainda P0 humano**
+  - Agent 2026-10-05: lobby live HUD História%/Atividades OK; suite rota 34/34;
+    Estrada/Floresta/Ruínas carregados visualmente. Transição portal via automação flaky
+    (chat/pause roubam input). **Luiz ainda precisa gravar o G5 perceptivo.**
 
 ---
 
