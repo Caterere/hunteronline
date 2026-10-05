@@ -1,6 +1,7 @@
 class_name ExameMaratonaMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DO 287º EXAME HUNTER (MARATONA & PANTANAL)
@@ -263,6 +264,27 @@ func _densificar_zonas_exame() -> void:
 	if get_node_or_null("PlacaDistritoTunel") == null:
 		push_warning("[ExameMaratonaMap] SagaDistrictKit não aplicou distritos — verifique class_name.")
 	_popular_sensores_nen_exame()
+	_densificar_steam_early_exame()
+
+
+func _densificar_steam_early_exame() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 0,
+		"companion": false,
+		"baus": [
+			{"name": "BauExameCorredor", "pos": Vector2(900, -30), "titulo": "Baú do Corredor",
+				"loot": [{"id": &"pedra_aura", "qtd": 1}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentExame", "pos": Vector2(2100, -20),
+				"titulo": "Respiração da Maratona",
+				"descricao": "O ritmo da corrida ensina o Hatsu a esperar a janela certa — não spam.",
+				"flag": "hatsu_moment_exame"},
+		],
+		"checkpoints": [
+			{"name": "CkptExameLargada", "pos": Vector2(480, -10), "id": "exame_largada", "titulo": "Largada"},
+		],
+	})
 
 
 func _garantir_netero_exame() -> void:

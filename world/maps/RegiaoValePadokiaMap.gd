@@ -12,6 +12,7 @@ extends "res://world/generator/RegionWorldGenerator.gd"
 # ============================================================
 
 const PadokiaQuestCatalogScript = preload("res://resource/quest/PadokiaQuestCatalog.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 var _zonas_notificadas: Dictionary = {
 	"vila": false,
@@ -34,9 +35,27 @@ func _ready() -> void:
 	_inicializar_quests_padokia()
 	_notificar_entrada_regiao()
 	_checar_cutscene_chegada()
+	_densificar_steam_early_vale()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.VALE)
+
+
+func _densificar_steam_early_vale() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 0,
+		"companion": false,
+		"baus": [],
+		"hatsu_moments": [
+			{"name": "HatsuMomentVale", "pos": Vector2(420, 280),
+				"titulo": "Eco do Moinho",
+				"descricao": "Após Gyo→Zetsu→Ko, o Hatsu responde com identidade. Biscuit virá depois.",
+				"flag": "hatsu_moment_vale"},
+		],
+		"checkpoints": [
+			{"name": "CkptValeWing", "pos": Vector2(360, 220), "id": "vale_wing_nen", "titulo": "Wing / Nen"},
+		],
+	})
 
 
 func _configurar_iluminacao_e_clima() -> void:

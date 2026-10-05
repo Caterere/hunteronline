@@ -9,6 +9,8 @@ const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 const MissionObjectiveResolverScript = preload("res://scripts/missions/MissionObjectiveResolver.gd")
 
 var lbl_arco: Label
+var lbl_historia: Label
+var lbl_atividades: Label
 var lbl_quest_nome: Label
 var lbl_objetivo: Label
 var lbl_bussola: Label
@@ -18,6 +20,8 @@ var vbox_detalhes: VBoxContainer
 var _timer_update: float = 0.0
 var _expandido: bool = true
 var _player_ref: Node2D = null
+
+const CanonQuestCatalogScript = preload("res://resource/quest/CanonQuestCatalog.gd")
 
 const ARCO_NOMES: Dictionary = {
 	1: "EXAME HUNTER",
@@ -97,6 +101,18 @@ func _construir_ui() -> void:
 	vbox_detalhes.add_theme_constant_override("separation", 1)
 	vbox_main.add_child(vbox_detalhes)
 
+	lbl_historia = Label.new()
+	lbl_historia.text = "📖 História: —"
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_historia, 7, HunterUIStyle.COLOR_GOLD_LIGHT)
+	lbl_historia.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox_detalhes.add_child(lbl_historia)
+
+	lbl_atividades = Label.new()
+	lbl_atividades.text = "📌 Atividades: 0"
+	HunterUIStyle.aplicar_fonte_pixel(lbl_atividades, 6, Color(0.75, 0.9, 0.85, 1.0))
+	lbl_atividades.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox_detalhes.add_child(lbl_atividades)
+
 	lbl_quest_nome = Label.new()
 	lbl_quest_nome.text = "📜 Missão Ativa"
 	HunterUIStyle.aplicar_fonte_licenca(lbl_quest_nome, 9, HunterUIStyle.COLOR_AURA_CYAN)
@@ -142,6 +158,7 @@ func _atualizar_hud() -> void:
 
 	if resolved.get("is_lobby", false):
 		lbl_arco.text = "🏛️ PRAÇA CENTRAL (LOBBY)"
+		_atualizar_historia_atividades(null)
 		lbl_quest_nome.text = "📜 " + str(resolved.get("hud_title", "Guia da Cidade"))
 		lbl_objetivo.text = str(resolved.get("hud_objective", ""))
 		lbl_bussola.text = str(resolved.get("hud_action", resolved.get("gps_label", "")))
@@ -151,6 +168,7 @@ func _atualizar_hud() -> void:
 	lbl_arco.text = "🏛️ ARCO %d: %s" % [PlayerData.arco_atual, ARCO_NOMES.get(PlayerData.arco_atual, "HISTÓRIA")]
 
 	var quest: Quest = resolved.get("quest", null)
+	_atualizar_historia_atividades(quest)
 	if quest == null:
 		lbl_quest_nome.text = "📜 Sem Missão Ativa"
 		lbl_objetivo.text = str(resolved.get("hud_objective", "Aguardando..."))
@@ -183,6 +201,59 @@ func _atualizar_hud() -> void:
 	lbl_objetivo.text = obj_block
 	lbl_bussola.text = str(resolved.get("hud_action", resolved.get("gps_label", "")))
 	lbl_bussola.add_theme_color_override("font_color", resolved.get("gps_color", Color(1.0, 0.85, 0.3, 1.0)))
+
+
+func _atualizar_historia_atividades(quest_foco: Quest) -> void:
+	if lbl_historia == null or lbl_atividades == null:
+		return
+	var arco: int = PlayerData.arco_atual if PlayerData != null else 1
+	var etapa: int = max(1, int(PlayerData.etapa_quest_arco)) if PlayerData != null else 1
+	var total_arco: int = CanonQuestCatalogScript.obter_total_quests_do_arco(arco)
+	var pct: int = int(clamp(round((float(etapa - 1) / float(maxi(1, total_arco))) * 100.0), 0.0, 100.0))
+	if quest_foco != null and PlayerData != null:
+		var feitos := 0
+		for i in range(quest_foco.objectives.size()):
+			var o: QuestObjective = quest_foco.objectives[i]
+			if PlayerData.get_quest_objective_progress(quest_foco, i) >= o.required_amount:
+				feitos += 1
+		var total_obj: int = maxi(1, quest_foco.objectives.size())
+		pct = int(clamp(round(((float(etapa - 1) + float(feitos) / float(total_obj)) / float(maxi(1, total_arco))) * 100.0), 0.0, 99.0))
+	lbl_historia.text = "📖 História: %d%% · Etapa %d/%d" % [pct, etapa, total_arco]
+
+	var side_n := 0
+	var side_nomes: PackedStringArray = []
+	if QuestSystem != null:
+		for q in QuestSystem.active_quests:
+			if q == null:
+				continue
+			if _eh_quest_historia(q, arco):
+				continue
+			side_n += 1
+			if side_nomes.size() < 2:
+				side_nomes.append(str(q.quest_name))
+	if side_n <= 0:
+		lbl_atividades.text = "📌 Atividades: nenhuma"
+	else:
+		var extra := (" +%d" % (side_n - side_nomes.size())) if side_n > side_nomes.size() else ""
+		lbl_atividades.text = "📌 Atividades (%d): %s%s" % [side_n, ", ".join(side_nomes), extra]
+
+
+func _eh_quest_historia(q: Quest, arco: int) -> bool:
+	if q == null:
+		return false
+	var rp := str(q.resource_path)
+	if rp.contains("arco%d_etapa" % arco):
+		return true
+	var n := str(q.quest_name)
+	if "/%d:" % CanonQuestCatalogScript.obter_total_quests_do_arco(arco) in n:
+		return true
+	if n.begins_with("Exame Hunter") and arco == 1:
+		return true
+	if "Montanha Kukuroo" in n and arco == 2:
+		return true
+	if "Arena Celestial" in n and arco == 3:
+		return true
+	return false
 
 
 func _obter_player() -> Node2D:

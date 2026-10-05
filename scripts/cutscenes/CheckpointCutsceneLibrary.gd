@@ -35,6 +35,34 @@ static func executar(tree: SceneTree, cutscene_id: StringName, callback: Callabl
 
 static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 	match String(cutscene_id):
+		"exame_largada":
+			return _pack(
+				"Satotz (eco)",
+				"287º Exame. Corra LESTE. GPS marca o próximo marco.",
+				"Um objetivo de cada vez. Evite emboscadas no corredor.",
+				"exame_largada_seen"
+			)
+		"vale_wing_nen":
+			return _pack(
+				"Mestre Wing",
+				"Antes das Ruínas: Gyo → Zetsu → Ko. Nesta ordem.",
+				"ORDEM clara. Sem misturar. Depois Floresta.",
+				"vale_wing_nen_seen"
+			)
+		"floresta_ninho":
+			return _pack(
+				"Herbalista (eco)",
+				"Ninho profundo à frente. [G] pistas, [Z] acampamento, [KO] atalho.",
+				"Elites escondem fraqueza Nen. Leia o telegraph.",
+				"floresta_ninho_seen"
+			)
+		"ruinas_antes_guardiao":
+			return _pack(
+				"Guia das Ruínas",
+				"Guardião Ancestral: 3 fases. Telegraph vermelho = saia.",
+				"Loot no chão. Wipe → checkpoint. Sem rush.",
+				"ruinas_antes_guardiao_seen"
+			)
 		"kukuroo_alameda":
 			return _pack(
 				"Killua",

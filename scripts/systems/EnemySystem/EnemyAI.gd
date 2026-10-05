@@ -187,8 +187,25 @@ var _intro_disparada: bool = false
 
 
 func aplicar_intimidacao_en(red_def: float, duracao: float = 1.0) -> void:
-	if intimidacao_en_timer <= 0.0 and enemy_body != null:
+	var primeira := intimidacao_en_timer <= 0.0
+	if primeira and enemy_body != null:
 		ComicBalloon.mostrar(enemy_body, "⚡ Que aura sufocante...!", 1.2, -40.0)
+		# Fauna comum foge do En (Steam §6.2 — En assusta)
+		var eh_fauna := true
+		if enemy_system != null and enemy_system.enemy_data != null:
+			if enemy_system.enemy_data.is_boss or enemy_system.enemy_data.is_elite:
+				eh_fauna = false
+			elif enemy_system.enemy_data.npc_tier >= 3:
+				eh_fauna = false
+		if eh_fauna:
+			flee_timer = maxf(flee_timer, 1.4)
+			current_state = State.FLEE
+			var tree := get_tree()
+			var agora := Time.get_ticks_msec()
+			var ultimo: int = int(tree.get_meta("en_scare_toast_ms", 0)) if tree != null else 0
+			if EventBus != null and tree != null and agora - ultimo > 2500:
+				tree.set_meta("en_scare_toast_ms", agora)
+				EventBus.emit_toast("🌐 En: a fauna recua da sua presença!", Color(0.55, 0.85, 1.0))
 	intimidacao_red_defesa = max(intimidacao_red_defesa, red_def)
 	intimidacao_en_timer = duracao
 

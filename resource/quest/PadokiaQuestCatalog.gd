@@ -62,18 +62,23 @@ static func obter_quest_principal() -> Quest:
 static func obter_quest_secundaria_1() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Ervas Medicinais da Floresta"
-	q.description = "O Vendedor do Empório necessita de proteção contra as feras para reabastecer o estoque de tônicos com ervas da Árvore Milenar."
+	q.description = "ORDEM: ① Fale com o Vendedor → ② Vá à Floresta (GPS) → ③ Derrote 2 Feras da Floresta com espaço de combate → ④ Volte ao Empório. Sem misturar com a principal."
 	q.auto_complete = true
 	q.turn_in_npc_key = &"vendedor"
 	q.reward_xp = 150
 	q.reward_gold = 250
-	
+
+	var obj0 = QuestObjectiveScript.new()
+	obj0.type = QuestObjectiveScript.Type.VISIT
+	obj0.target_npc_id = &"vendedor"
+	obj0.target_npc_name = "Vendedor do Empório"
+
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.KILL
 	obj.enemy_type = &"fera_floresta"
 	obj.required_amount = 2
-	
-	var objs: Array[QuestObjective] = [obj]
+
+	var objs: Array[QuestObjective] = [obj0, obj]
 	q.objectives = objs
 	return q
 
@@ -84,18 +89,23 @@ static func obter_quest_secundaria_1() -> Quest:
 static func obter_quest_secundaria_2() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Minérios das Ruínas de Zaban"
-	q.description = "Ferreiro Duran precisa de fragmentos de pedra ancestral guardados pelas Sentinelas das Ruínas para aprimorar armas."
+	q.description = "ORDEM: ① Fale com Ferreiro Duran → ② Entre nas Ruínas (GPS) → ③ Derrote 2 Sentinelas de Pedra → ④ Volte ao ferreiro. Um passo."
 	q.auto_complete = true
 	q.turn_in_npc_key = &"ferreiro"
 	q.reward_xp = 250
 	q.reward_gold = 400
-	
+
+	var obj0 = QuestObjectiveScript.new()
+	obj0.type = QuestObjectiveScript.Type.VISIT
+	obj0.target_npc_id = &"ferreiro"
+	obj0.target_npc_name = "Ferreiro Duran"
+
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.KILL
 	obj.enemy_type = &"sentinela_pedra"
 	obj.required_amount = 2
-	
-	var objs: Array[QuestObjective] = [obj]
+
+	var objs: Array[QuestObjective] = [obj0, obj]
 	q.objectives = objs
 	return q
 
@@ -106,7 +116,7 @@ static func obter_quest_secundaria_2() -> Quest:
 static func obter_quest_secundaria_estrada() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Escolta Noturna da Caravana Real"
-	q.description = "O Guarda da Estrada pediu proteção à carroça de mercadores. Permaneça na Estrada Real após o anoitecer — salteadores emboscam a caravana sob a lua."
+	q.description = "ORDEM: ① Fale com o Guarda da Estrada → ② Permaneça na zona da carroça após o anoitecer → ③ Derrote 2 salteadores → ④ Volte ao Guarda. Sem abandonar a zona."
 	q.auto_complete = true
 	q.turn_in_npc_key = &"guarda_patrulha"
 	q.reward_xp = 220
@@ -133,18 +143,23 @@ static func obter_quest_secundaria_estrada() -> Quest:
 static func obter_quest_desafio_ravina() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Extermínio dos Predadores da Ravina"
-	q.description = "O Caçador de Zaban adverte que as criaturas venenosas da Ravina do Miasma estão se multiplicando. Mantenha TEN ativo para resistir ao veneno e abater os predadores."
+	q.description = "ORDEM: ① Fale com o Caçador de Zaban → ② Ative TEN na Ravina → ③ Derrote 2 Predadores do Miasma → ④ Volte ao Caçador. TEN = resistência ao veneno."
 	q.auto_complete = false
 	q.turn_in_npc_key = &"cacador_de_zaban"
 	q.reward_xp = 350
 	q.reward_gold = 550
-	
+
+	var obj0 = QuestObjectiveScript.new()
+	obj0.type = QuestObjectiveScript.Type.VISIT
+	obj0.target_npc_id = &"cacador_de_zaban"
+	obj0.target_npc_name = "Caçador de Zaban"
+
 	var obj = QuestObjectiveScript.new()
 	obj.type = QuestObjectiveScript.Type.KILL
 	obj.enemy_type = &"predador_miasma"
 	obj.required_amount = 2
-	
-	var objs: Array[QuestObjective] = [obj]
+
+	var objs: Array[QuestObjective] = [obj0, obj]
 	q.objectives = objs
 	return q
 

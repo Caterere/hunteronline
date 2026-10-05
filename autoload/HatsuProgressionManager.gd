@@ -658,31 +658,41 @@ func conceder_mastery_xp(hatsu_id: String, dano_causado: int, inimigo_context: D
 	var xp_from_dmg: float = float(max(1, dano_causado)) * HatsuConfig.MASTERY_XP_PER_DAMAGE
 	var total_xp: float = (xp_from_dmg + HatsuConfig.MASTERY_XP_PER_HIT_BASE) * anti_farm_factor * mob_mult
 
+	var mastery_antes: int = int(h.mastery)
 	var res: Dictionary = h.adicionar_mastery_xp(total_xp)
 	res["gained_xp"] = total_xp
 	res["anti_farm_factor"] = anti_farm_factor
 
 	hatsu_mastery_alterada.emit(hatsu_id, h.mastery, h.mastery_xp, h.is_mastered())
 
+	# Steam §6.3: feedback perceptível a cada +10 mastery (não spam por nível)
 	if res.get("subiu_nivel", false):
-		_exibir_notificacao_mastery(h, res.get("mastered", false))
+		var mastery_depois: int = int(h.mastery)
+		var cruzou_marco_10: bool = (mastery_depois // 10) > (mastery_antes // 10)
+		if cruzou_marco_10 or bool(res.get("mastered", false)):
+			_exibir_notificacao_mastery(h, res.get("mastered", false), mastery_antes)
 
 	return res
 
 
-func _exibir_notificacao_mastery(h: HatsuData, mastered: bool) -> void:
+func _exibir_notificacao_mastery(h: HatsuData, mastered: bool, mastery_antes: int = -1) -> void:
 	var msg: String = ""
 	var rank: int = h.obter_rank_maestria()
 	var rank_nome: String = h.obter_nome_rank_maestria()
 	var mods: Dictionary = h.obter_modificadores_maestria()
+	var lv: int = int(h.mastery)
 	if mastered or rank >= 6:
 		msg = "━━━━━━━━━━━━━━━━━━━━\n★ HATSU MASTERED! (RANK 6 — MESTRE) ★\n━━━━━━━━━━━━━━━━━━━━\n'%s' atingiu a maestria suprema!\nConjuração Instantânea | Custo de Aura -30%% | Alcance +20%%" % h.nome
 	else:
-		msg = "⭐ MASTERY DE HATSU: '%s' [Rank %d - %s] (Lv. %d/100)\nEficiência Aura: +%d%% | Redução Conjuração: -%d%%" % [
-			h.nome, rank, rank_nome, int(h.mastery),
+		msg = "⚡ MASTERY +10: '%s' → Lv.%d/100 [%s]\nAura +%d%% | Conjuração -%d%% | CD MH-style" % [
+			h.nome, lv, rank_nome,
 			int(mods.get("reducao_custo_pct", 0.0)),
 			int(mods.get("reducao_tempo_pct", 0.0))
 		]
+		if mastery_antes >= 0:
+			msg = "⚡ MASTERY +%d: '%s' Lv.%d→%d [%s]" % [
+				max(1, lv - mastery_antes), h.nome, mastery_antes, lv, rank_nome
+			]
 
 	if EventBus != null and EventBus.has_signal("toast_enviado"):
 		EventBus.emit_toast(msg, Color(1.0, 0.85, 0.2) if not mastered else Color(1.0, 0.95, 0.3))
