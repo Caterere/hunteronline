@@ -1304,7 +1304,8 @@ func _anexar_nameplate() -> void:
 		return
 	var np: Node = np_script.new()
 	np.name = "EnemyNameplate"
-	enemy_body.add_child(np)
+	# Defer: EnemySystem._ready frequentemente corre enquanto o body ainda está busy
+	enemy_body.add_child.call_deferred(np)
 
 
 func get_level() -> int:
