@@ -668,7 +668,7 @@ func conceder_mastery_xp(hatsu_id: String, dano_causado: int, inimigo_context: D
 	# Steam §6.3: feedback perceptível a cada +10 mastery (não spam por nível)
 	if res.get("subiu_nivel", false):
 		var mastery_depois: int = int(h.mastery)
-		var cruzou_marco_10: bool = (mastery_depois // 10) > (mastery_antes // 10)
+		var cruzou_marco_10: bool = int(mastery_depois / 10) > int(mastery_antes / 10)
 		if cruzou_marco_10 or bool(res.get("mastered", false)):
 			_exibir_notificacao_mastery(h, res.get("mastered", false), mastery_antes)
 
