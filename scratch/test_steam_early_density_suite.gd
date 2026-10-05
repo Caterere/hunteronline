@@ -1,8 +1,9 @@
 extends Node
 
 # ============================================================
-# HUNTER ONLINE — Steam Early Density (Exame→Ruínas)
-# Valida tutorial 3-beat, sensores, loot sem poção clássica.
+# HUNTER ONLINE — Steam Early Density (Exame→Ruínas) + ABC
+# Valida tutorial 3-beat, sensores, loot, HatsuMoment, cutscenes,
+# ORDEM secundárias e EnemyData/bioma.
 # ============================================================
 
 const PadokiaQuestCatalogScript = preload("res://resource/quest/PadokiaQuestCatalog.gd")
@@ -14,7 +15,7 @@ var _failures: PackedStringArray = []
 
 func _ready() -> void:
 	print("\n================================================================================")
-	print("🧪 STEAM EARLY DENSITY — TUTORIAL 3-BEAT + MAPAS")
+	print("🧪 STEAM EARLY DENSITY — TUTORIAL 3-BEAT + MAPAS + ABC")
 	print("================================================================================")
 	await get_tree().process_frame
 	_test_catalog_tutorial()
@@ -23,6 +24,7 @@ func _ready() -> void:
 	await _test_estrada_runtime()
 	await _test_floresta_runtime()
 	await _test_ruinas_runtime()
+	_test_abc_catalog_and_cutscenes()
 	print("\n================================================================================")
 	print("🏆 RESULTADO: %d / %d" % [_passed, _total])
 	if not _failures.is_empty():
@@ -88,6 +90,8 @@ func _test_vale_runtime() -> void:
 	_ok(map.get_node_or_null("ZetsuValeBecoNorte") != null or map.find_child("ZetsuValeBecoNorte", true, false) != null, "Zetsu beco plantado")
 	_ok(map.get_node_or_null("BauVilaExterior") != null or map.find_child("BauVilaExterior", true, false) != null, "Baú vila exterior")
 	_ok(map.get_node_or_null("GyoGlifoVilaExterior") != null or map.find_child("GyoGlifoVilaExterior", true, false) != null, "Glifo vila exterior")
+	_ok(map.get_node_or_null("HatsuMomentVale") != null or map.find_child("HatsuMomentVale", true, false) != null, "HatsuMoment vale")
+	_ok(map.get_node_or_null("CkptValeWing") != null or map.find_child("CkptValeWing", true, false) != null, "Checkpoint Wing")
 	var ko = map.find_child("KoObstacleValeAtalho", true, false)
 	if ko != null and "clue_id_on_break" in ko:
 		_ok(ko.clue_id_on_break == &"tutorial_nen_ko_atalho", "Ko clue_id tutorial")
@@ -113,6 +117,7 @@ func _test_estrada_runtime() -> void:
 	_ok(map.get_node_or_null("AgenteAssociacaoEstrada") != null, "Walker Associação")
 	_ok(map.get_node_or_null("ObservadorMafiaEstrada") != null, "Walker Máfia")
 	_ok(map.get_node_or_null("PlacaDisputaRota") != null, "Placa disputa social")
+	_ok(map.get_node_or_null("HatsuMomentEstrada") != null, "HatsuMoment estrada")
 	map.queue_free()
 	await get_tree().process_frame
 
@@ -138,6 +143,10 @@ func _test_floresta_runtime() -> void:
 	_ok(map.get_node_or_null("ZetsuNinhoProfundo") != null, "Zetsu ninho profundo")
 	_ok(map.get_node_or_null("BauFlorestaProfunda") != null, "Baú floresta profunda")
 	_ok(map.get_node_or_null("KoObstacleNinhoProfundo") != null, "Ko ninho")
+	_ok(map.get_node_or_null("AlfaNinhoElite") != null, "Elite Nen puzzle Alfa")
+	_ok(map.get_node_or_null("GyoClueEliteNinho") != null, "Gyo fraqueza elite")
+	_ok(map.get_node_or_null("HatsuMomentFloresta") != null, "HatsuMoment floresta")
+	_ok(map.get_node_or_null("CkptFlorestaNinho") != null, "Checkpoint ninho")
 	map.queue_free()
 	await get_tree().process_frame
 
@@ -162,5 +171,41 @@ func _test_ruinas_runtime() -> void:
 	else:
 		_ok(false, "Ko antecâmara tem clue")
 	_ok(map.get_node_or_null("ZetsuCorredorSentinelas") != null, "Zetsu corredor")
+	_ok(map.get_node_or_null("HatsuMomentRuinas") != null, "HatsuMoment ruínas")
+	_ok(map.get_node_or_null("CkptRuinasBoss") != null, "Checkpoint pré-guardião")
 	map.queue_free()
 	await get_tree().process_frame
+
+
+func _test_abc_catalog_and_cutscenes() -> void:
+	print("\n[7] ABC — ORDEM secundárias + cutscenes early...")
+	var s1 = PadokiaQuestCatalogScript.obter_quest_secundaria_1()
+	_ok(s1 != null and "ORDEM" in s1.description, "secundária 1 ORDEM")
+	_ok(s1.objectives.size() >= 2, "secundária 1 com VISIT+KILL")
+	var s2 = PadokiaQuestCatalogScript.obter_quest_secundaria_2()
+	_ok(s2 != null and "ORDEM" in s2.description, "secundária 2 ORDEM")
+	var desafio = PadokiaQuestCatalogScript.obter_quest_desafio_ravina()
+	_ok(desafio != null and "ORDEM" in desafio.description, "desafio ravina ORDEM")
+	var CkptLib = load("res://scripts/cutscenes/CheckpointCutsceneLibrary.gd")
+	_ok(CkptLib != null, "CheckpointCutsceneLibrary carrega")
+	if CkptLib != null:
+		for id in ["exame_largada", "vale_wing_nen", "floresta_ninho", "ruinas_antes_guardiao"]:
+			var passos = CkptLib.obter_passos(StringName(id))
+			_ok(passos.size() >= 4, "cutscene early %s" % id)
+	var q1 = CanonQuestCatalog.obter_quest_da_etapa(1, 1)
+	_ok(q1 != null and "ORDEM" in q1.description, "Arco1 etapa1 ORDEM")
+	var q4 = CanonQuestCatalog.obter_quest_da_etapa(1, 4)
+	_ok(q4 != null and "ORDEM" in q4.description, "Arco1 etapa4 ORDEM")
+	if DataManager != null:
+		var ids := [&"fera_floresta", &"fera_alada", &"lobo_padokia", &"javali_espinhoso", &"lobo_sombras"]
+		var ok_count := 0
+		for eid in ids:
+			if DataManager.get_enemy(eid) != null:
+				ok_count += 1
+		_ok(ok_count >= 4, "bioma Padokia >=4 EnemyData (%d)" % ok_count)
+		var elite = DataManager.get_enemy(&"alfa_ninho_elite")
+		_ok(elite != null and elite.is_elite and not str(elite.hatsu_name).is_empty(), "alfa elite com Hatsu")
+		var ge = DataManager.get_enemy(&"guardiao_elite")
+		_ok(ge != null and not str(ge.hatsu_name).is_empty(), "guardião elite com Hatsu")
+	else:
+		_ok(false, "DataManager disponível")

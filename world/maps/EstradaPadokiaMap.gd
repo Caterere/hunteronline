@@ -22,6 +22,7 @@ extends Node2D
 @onready var player: CharacterBody2D = get_node_or_null("Player")
 
 const PadokiaQuestCatalogScript = preload("res://resource/quest/PadokiaQuestCatalog.gd")
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 const ESCOLTA_ZONA_RAIO := 140.0
 const ESCOLTA_FORA_ZONA_MAX_S := 8.0
 
@@ -41,6 +42,7 @@ func _ready() -> void:
 	_criar_elementos_interativos()
 	_densificar_vida_estrada()
 	_instanciar_sensores_nen_estrada()
+	_densificar_steam_early_estrada()
 	_criar_zona_protecao_escolta()
 	_criar_grande_ponte()
 	_conectar_ciclo_noturno()
@@ -228,6 +230,21 @@ func _instanciar_sensores_nen_estrada() -> void:
 			)
 			bau.add_child(inter)
 		add_child(bau)
+
+
+func _densificar_steam_early_estrada() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 0,
+		"companion": false,
+		"baus": [],
+		"hatsu_moments": [
+			{"name": "HatsuMomentEstrada", "pos": Vector2(400, 280),
+				"titulo": "Respiro da Via",
+				"descricao": "Entre Associação e Máfia, o Hatsu pede timing — não pressa.",
+				"flag": "hatsu_moment_estrada"},
+		],
+		"checkpoints": [],
+	})
 
 
 func _densificar_vida_estrada() -> void:

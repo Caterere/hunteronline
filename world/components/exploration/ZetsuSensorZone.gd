@@ -97,10 +97,10 @@ func _checar_presenca_aura() -> void:
 func _acionar_alerta_emboscada() -> void:
 	var hud = get_tree().get_first_node_in_group("player_hud")
 	if hud != null and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("⚠️ ALARME! Sua presença de aura atraiu os predadores!")
+		hud.exibir_notificacao("⚠️ ALARME! Sua presença de aura atraiu os predadores! Use [Z] Zetsu.")
 
 	if EventBus != null:
-		EventBus.emit_toast("⚠️ Sensor de aura: emboscada!", Color(1.0, 0.35, 0.25, 1.0))
+		EventBus.emit_toast("⚠️ Zetsu falhou: emboscada! (próxima vez: [Z])", Color(1.0, 0.35, 0.25, 1.0))
 		EventBus.emit_camera_shake(0.25, 0.18)
 
 	if AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):

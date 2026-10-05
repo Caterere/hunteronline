@@ -407,6 +407,18 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"drops": [{"item_id": "couro_besta", "chance": 0.85, "quantidade": 1}, {"item_id": "carne_javali", "chance": 0.6, "quantidade": 1}]
 		},
 		{
+			"id": &"fera_alada",
+			"nome": "Fera Alada",
+			"level": 4,
+			"hp": 95,
+			"def": 3,
+			"str": 15,
+			"xp": 70,
+			"role": "ranged",
+			"weakness_tags": ["blunt", "nen"],
+			"drops": [{"item_id": "pena_rara", "chance": 0.55, "quantidade": 1}, {"item_id": "couro_besta", "chance": 0.4, "quantidade": 1}]
+		},
+		{
 			"id": &"lobo_padokia",
 			"nome": "Lobo das Planícies",
 			"level": 3,
@@ -417,6 +429,18 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"role": "fast",
 			"weakness_tags": ["blunt"],
 			"drops": [{"item_id": "couro_lobo", "chance": 0.8, "quantidade": 1}, {"item_id": "presa_serpente", "chance": 0.35, "quantidade": 1}]
+		},
+		{
+			"id": &"lobo_sombras",
+			"nome": "Lobo das Sombras",
+			"level": 4,
+			"hp": 100,
+			"def": 4,
+			"str": 16,
+			"xp": 72,
+			"role": "ambusher",
+			"weakness_tags": ["nen", "fire"],
+			"drops": [{"item_id": "cristal_sombra", "chance": 0.35, "quantidade": 1}, {"item_id": "couro_lobo", "chance": 0.7, "quantidade": 1}]
 		},
 		{
 			"id": &"javali_espinhoso",
@@ -467,8 +491,24 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"role": "tactician",
 			"is_elite": true,
 			"npc_tier": 2,
+			"hatsu_name": "Muralha de Pedra",
 			"weakness_tags": ["ko"],
 			"drops": [{"item_id": "nucleo_golem", "chance": 0.7, "quantidade": 1}, {"item_id": "cristal_aura", "chance": 0.4, "quantidade": 1}]
+		},
+		{
+			"id": &"alfa_ninho_elite",
+			"nome": "Alfa do Ninho (Elite Nen)",
+			"level": 6,
+			"hp": 210,
+			"def": 9,
+			"str": 22,
+			"xp": 180,
+			"role": "ambusher",
+			"is_elite": true,
+			"npc_tier": 2,
+			"hatsu_name": "Uivo de Aura",
+			"weakness_tags": ["ko", "nen", "gyo"],
+			"drops": [{"item_id": "cristal_aura", "chance": 0.55, "quantidade": 1}, {"item_id": "couro_lobo", "chance": 0.8, "quantidade": 1}]
 		},
 		# Miniboss e Boss de Padokia
 		{
@@ -482,6 +522,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"role": "fast",
 			"is_elite": true,
 			"npc_tier": 3,
+			"hatsu_name": "Garras Quimera",
 			"weakness_tags": ["nen"],
 			"drops": [{"item_id": "olho_quimera", "chance": 0.9, "quantidade": 1}, {"item_id": "pele_rara", "chance": 0.5, "quantidade": 1}]
 		},
@@ -496,6 +537,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"role": "boss",
 			"is_boss": true,
 			"npc_tier": 4,
+			"hatsu_name": "Selo Ancestral",
 			"weakness_tags": ["ko", "ren"],
 			"drops": [{"item_id": "nucleo_golem", "chance": 1.0, "quantidade": 2}, {"item_id": "amuleto_forca", "chance": 1.0, "quantidade": 1}]
 		},
@@ -522,6 +564,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"xp": 150,
 			"role": "nen_user",
 			"npc_tier": 2,
+			"hatsu_name": "Sombra Drenante",
 			"drops": [{"item_id": "cristal_aura", "chance": 0.8, "quantidade": 1}, {"item_id": "anel_concentracao", "chance": 0.2, "quantidade": 1}]
 		}
 	]
@@ -541,6 +584,8 @@ func _inicializar_bestiario_rpg_base() -> void:
 			mob.is_boss = data.get("is_boss", false)
 			mob.is_elite = data.get("is_elite", false)
 			mob.npc_tier = data.get("npc_tier", 1)
+			if data.has("hatsu_name"):
+				mob.hatsu_name = str(data["hatsu_name"])
 			if data.has("weakness_tags"):
 				mob.weakness_tags.clear()
 				for wt in data["weakness_tags"]:

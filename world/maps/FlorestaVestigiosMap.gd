@@ -1,6 +1,8 @@
 class_name FlorestaVestigiosMap
 extends Node2D
 
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
+
 # ============================================================
 # HUNTER ONLINE - FLORESTA DOS VESTÍGIOS (MAPA PERMANENTE CONECTADO)
 # ============================================================
@@ -30,6 +32,7 @@ func _ready() -> void:
 	_posicionar_player()
 	_criar_elementos_floresta()
 	_instanciar_feras_selvagens()
+	_densificar_steam_early_floresta()
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.FLORESTA)
 	WorldDensityKit.attach(self, WorldDensityKit.KitKind.FLORESTA)
 	WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
@@ -41,6 +44,30 @@ func _ready() -> void:
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)
+
+
+func _densificar_steam_early_floresta() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 0,
+		"companion": false,
+		"baus": [],
+		"hatsu_moments": [
+			{"name": "HatsuMomentFloresta", "pos": Vector2(480, 400),
+				"titulo": "Clareira do Eco",
+				"descricao": "Entre packs, o Hatsu pede janela. Heavy + mastery — não spam leve.",
+				"flag": "hatsu_moment_floresta"},
+		],
+		"checkpoints": [
+			{"name": "CkptFlorestaNinho", "pos": Vector2(560, 480), "id": "floresta_ninho", "titulo": "Ninho"},
+		],
+	})
+	# Elite puzzle Nen: Gyo revela fraqueza Ko; elite tem Hatsu
+	NenSensorFactory.criar_gyo(
+		self, "GyoClueEliteNinho", Vector2(620, 450),
+		&"floresta_elite_fraqueza", "Marca do Alfa",
+		"Gyo: o Alfa do Ninho esconde um núcleo de aura. Fraqueza: [KO] / Nen. Sem rush.",
+		"Intensificação", 1, Color(0.95, 0.55, 0.85, 0.9)
+	)
 
 
 func _pintar_piso_floresta() -> void:
@@ -534,11 +561,13 @@ func _instanciar_feras_selvagens() -> void:
 		var mobs_data = [
 			{"name": "FeraFloresta1", "pos": Vector2(520, 320), "id": &"fera_floresta", "label": "Fera da Floresta", "def": 100.0, "role": "bruiser", "tint": Color(0.65, 0.9, 0.6), "telegraph": "exclamation"},
 			{"name": "FeraFloresta2", "pos": Vector2(580, 280), "id": &"fera_alada", "label": "Fera Alada Atiradora", "def": 85.0, "role": "ranged", "tint": Color(0.85, 0.95, 0.55), "telegraph": "aoe_circle"},
+			{"name": "JavaliEspinhoso1", "pos": Vector2(300, 360), "id": &"javali_espinhoso", "label": "Javali Espinhoso", "def": 130.0, "role": "tank", "tint": Color(0.75, 0.65, 0.45), "telegraph": "exclamation"},
 			{"name": "FeraSombra1", "pos": Vector2(200, 420), "id": &"lobo_sombras", "label": "Besta de Sombra Ágil", "def": 90.0, "role": "fast", "tint": Color(0.75, 0.9, 1.0), "telegraph": "flash"},
-			{"name": "FeraSombra2", "pos": Vector2(560, 460), "id": &"lobo_sombras", "label": "Besta de Sombra Voraz", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0), "telegraph": "exclamation"},
+			{"name": "FeraSombra2", "pos": Vector2(560, 460), "id": &"lobo_padokia", "label": "Lobo das Planícies", "def": 110.0, "role": "bruiser", "tint": Color(0.85, 0.7, 1.0), "telegraph": "exclamation"},
 			{"name": "FeraSombra3", "pos": Vector2(160, 520), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE, "telegraph": "flash"},
 			{"name": "FeraSombra4", "pos": Vector2(640, 200), "id": &"fera_alada", "label": "Fera Alada Emboscadora", "def": 95.0, "role": "ambusher", "tint": Color.WHITE, "telegraph": "flash"},
-			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 560), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0, "role": "tank", "tint": Color(0.7, 0.7, 0.65), "telegraph": "aoe_circle"}
+			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 560), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0, "role": "tank", "tint": Color(0.7, 0.7, 0.65), "telegraph": "aoe_circle"},
+			{"name": "AlfaNinhoElite", "pos": Vector2(600, 500), "id": &"alfa_ninho_elite", "label": "Alfa do Ninho (Elite Nen)", "def": 180.0, "role": "ambusher", "tint": Color(0.95, 0.55, 0.9), "telegraph": "aoe_circle", "elite": true},
 		]
 		for m in mobs_data:
 			var mob = enemy_scn.instantiate()
@@ -550,16 +579,25 @@ func _instanciar_feras_selvagens() -> void:
 				es.enemy_name = m["label"]
 				es.defesa_barra_max = m["def"]
 				es.defesa_barra_atual = m["def"]
+				if DataManager != null and DataManager.has_method("get_enemy"):
+					var ed = DataManager.get_enemy(m["id"])
+					if ed != null:
+						es.enemy_data = ed.duplicate(true) if ed.has_method("duplicate") else ed
 			add_child(mob)
 			var spr = mob.get_node_or_null("Sprite2D") as Sprite2D
 			if spr != null and m.has("tint"):
 				spr.modulate = m["tint"]
 			if es:
 				if es.enemy_data != null:
-					es.enemy_data = es.enemy_data.duplicate(true)
+					es.enemy_data = es.enemy_data.duplicate(true) if es.enemy_data.has_method("duplicate") else es.enemy_data
 					es.enemy_data.role = m.get("role", "bruiser")
 					es.enemy_data.enemy_name = m["label"]
 					es.enemy_data.attack_telegraph_type = String(m.get("telegraph", "flash"))
+					if bool(m.get("elite", false)):
+						es.enemy_data.is_elite = true
+						es.enemy_data.npc_tier = maxi(2, int(es.enemy_data.npc_tier))
+						if str(es.enemy_data.hatsu_name).is_empty():
+							es.enemy_data.hatsu_name = "Uivo de Aura"
 				if es.has_method("_vincular_textura_inimigo"):
 					es._vincular_textura_inimigo()
 				var ai = mob.get_node_or_null("EnemyAI") as EnemyAI

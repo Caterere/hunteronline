@@ -61,91 +61,91 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Exame Hunter 1/24: Apresentação em Zaban"
-					q.description = "Apresente-se no túnel subterrâneo de Zaban para o 287º Exame Hunter. Fale com Tonpa, o Quebrador de Novatos."
+					q.description = "ORDEM: Fale com Tonpa no túnel. Um objetivo. Depois o GPS marca a maratona LESTE."
 					q.reward_xp = 350
 					q.reward_gold = 800
 					q.objectives = [_criar_obj_visit(&"tonpa", "Tonpa o Quebrador de Novatos")]
 
 				2:
 					q.quest_name = "Exame Hunter 2/24: A Maratona dos 80km"
-					q.description = "Observe os concorrentes veteranos no túnel escuro: o ninja Hanzo, o novato Nicol e o mestre marcial Bodoro."
+					q.description = "ORDEM: Fale com Nicol → Hanzo → Bodoro no corredor. Sem rush. GPS marca cada um."
 					q.reward_xp = 400
 					q.reward_gold = 1000
 					q.objectives = [_criar_obj_visit(&"nicol", "Nicol (Nº 187)"), _criar_obj_visit(&"hanzo", "Hanzo (Nº 294)"), _criar_obj_visit(&"bodoro", "Bodoro (Nº 191)")]
 
 				3:
 					q.quest_name = "Exame Hunter 3/24: O Ritmo dos Quatro Companheiros"
-					q.description = "Mantenha o ritmo da corrida com Gon, Killua em seu skate, Leorio e Kurapika."
+					q.description = "ORDEM: Fale com Gon → Killua → Gittarackur. Mantenha o ritmo LESTE."
 					q.reward_xp = 450
 					q.reward_gold = 1200
 					q.objectives = [_criar_obj_visit(&"gon", "Gon Freecss"), _criar_obj_visit(&"killua", "Killua Zoldyck"), _criar_obj_visit(&"gittarackur", "Gittarackur (Nº 301)")]
 
 				4:
 					q.quest_name = "Exame Hunter 4/24: Os Sabotadores de Novatos"
-					q.description = "Alguns candidatos desonestos tentam derrubar os participantes exaustos. Derrote os sabotadores do túnel!"
+					q.description = "ORDEM: Derrote 2 sabotadores (GPS). Espaço de combate. [G] na marca no chão se precisar."
 					q.reward_xp = 550
 					q.reward_gold = 1500
 					q.objectives = [_criar_obj_kill(&"candidato_exame", 2)]
 
 				5:
 					q.quest_name = "Exame Hunter 5/24: A Saída do Túnel de Zaban"
-					q.description = "Alcance as escadarias que levam à saída do túnel subterrâneo e apresente-se perante o Examinador Satotz."
+					q.description = "ORDEM: Alcance Satotz nas escadas do túnel (GPS LESTE). Um marco."
 					q.reward_xp = 600
 					q.reward_gold = 1800
 					q.objectives = [_criar_obj_visit(&"satotz", "Examinador Satotz")]
 
 				6:
 					q.quest_name = "Exame Hunter 6/24: O Nevoeiro do Pantanal Numere"
-					q.description = "Chegue ao temido 'Ninho dos Trapaceiros'. Fale com o arqueiro Pokkle e a especialista Ponzu."
+					q.description = "ORDEM: Fale com Pokkle → Ponzu no Ninho dos Trapaceiros. Sem misturar."
 					q.reward_xp = 700
 					q.reward_gold = 2000
 					q.objectives = [_criar_obj_visit(&"pokkle", "Pokkle (Nº 53)"), _criar_obj_visit(&"ponzu", "Ponzu (Nº 246)")]
 
 				7:
 					q.quest_name = "Exame Hunter 7/24: O Macaco Farsante"
-					q.description = "Um homem ferido com rosto de macaco tenta enganar os candidatos dizendo que Satotz é um monstro. Investigue a farsa!"
+					q.description = "ORDEM: [G]/[Investigar] a farsa do macaco ferido. Sem acreditar no blefe."
 					q.reward_xp = 750
 					q.reward_gold = 2200
 					q.objectives = [_criar_obj_investigate(&"farsa_macaco")]
 
 				8:
 					q.quest_name = "Exame Hunter 8/24: Feras Carnívoras do Nevoeiro"
-					q.description = "Elimine os monstros traiçoeiros do nevoeiro do Pantanal Numere que atacam a retaguarda."
+					q.description = "ORDEM: Derrote 3 criaturas do pantanal (GPS). Telegraph legível. Sem rush."
 					q.reward_xp = 800
 					q.reward_gold = 2500
 					q.objectives = [_criar_obj_kill(&"criatura_pantanal", 3)]
 
 				9:
 					q.quest_name = "Exame Hunter 9/24: O Julgamento Sinistro de Hisoka"
-					q.description = "Testemunhe a sede de sangue de Hisoka Morow no coração da névoa eliminando candidatos fracos."
+					q.description = "ORDEM: Fale com Hisoka na névoa. Observe — não provoque. Depois GPS."
 					q.reward_xp = 900
 					q.reward_gold = 3000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
 
 				10:
 					q.quest_name = "Exame Hunter 10/24: A Provação de Coragem"
-					q.description = "Sobreviva ao teste de olhar e presença assassina de Hisoka no nevoeiro denso."
+					q.description = "ORDEM: Sobreviva — derrote 2 criaturas sob a pressão de Hisoka (GPS)."
 					q.reward_xp = 1000
 					q.reward_gold = 3500
 					q.objectives = [_criar_obj_kill(&"criatura_pantanal", 2)]
 
 				11:
 					q.quest_name = "Exame Hunter 11/24: Acampamento da Floresta Biska"
-					q.description = "Chegue ao portão da Floresta Biska e apresente-se aos Examinadores Gourmet da 2ª Fase."
+					q.description = "ORDEM: Fale com Buhara → Menchi no portão da Floresta Biska."
 					q.reward_xp = 1100
 					q.reward_gold = 4000
 					q.objectives = [_criar_obj_visit(&"buhara", "Examinador Buhara"), _criar_obj_visit(&"menchi", "Examinadora Menchi")]
 
 				12:
 					q.quest_name = "Exame Hunter 12/24: A Caçada ao Great Stamp Pig"
-					q.description = "Rastreie e cace o temível Grande Javali Selvagem (Great Stamp Pig) na floresta!"
+					q.description = "ORDEM: Rastreie e derrote o Great Stamp Pig (GPS). Espaço pra Hatsu."
 					q.reward_xp = 1300
 					q.reward_gold = 5000
 					q.objectives = [_criar_obj_kill(&"great_stamp_pig", 1)]
 
 				13:
 					q.quest_name = "Exame Hunter 13/24: O Veredito Gourmet na Ravina"
-					q.description = "Colete ovos de águia-aranha descendo nas teias da ravina profunda com a aprovação de Menchi."
+					q.description = "ORDEM: Colete 1 ovo de águia-aranha (GPS). Depois Menchi libera o próximo marco."
 					q.reward_xp = 1400
 					q.reward_gold = 5500
 					q.objectives = [_criar_obj_collect(&"ovo_aguia", 1)]

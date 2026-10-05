@@ -21,18 +21,19 @@ Histórico de sprints diários: [`_history/`](_history/)
    - [x] Tutorial Nen 3 beats antes da dungeon (Gyo→Zetsu→Ko)
    - [x] Desagregar vila OVERDENSE · matar Vila Exterior / Floresta Profunda DEAD
    - [x] Baús periféricos (Pedra de Aura / Gourmet — sem poções clássicas)
-   - [ ] Playtest humano G5 gravado
-3. **Combate early** — 3 arquétipos legíveis/bioma · TTK 4–8s · speeds ~112/58
+   - [x] HatsuMoment + checkpoint cutscenes early (ABC)
+   - [ ] Playtest humano G5 gravado — **roteiro pronto; Luiz grava**
+3. **Combate early** — ≥4 variantes/bioma · elite Nen + Hatsu · TTK 4–8s · speeds ~112/58 `[x]` code
 4. **Boss Guardião** — preservar 3 fases · juice entrada/saída · loot ritual
 
 ### 0.2 DENSITY (pilares — sem sistemas novos)
 | Pilar | Meta | Status |
 | :--- | :--- | :---: |
-| Combate | ≥4 `EnemyData`/bioma · elite puzzle Nen/mapa · Hatsu inimigo em elites | [ ] |
-| Nen mundo | 8–15 sensores/mapa mid · SFX discovery 100% · falha Zetsu/En legível | [ ] |
-| Hatsu | Momento Hatsu/arco · mastery UI a cada 10 · CDs MH-style | [ ] |
+| Combate | ≥4 `EnemyData`/bioma · elite puzzle Nen/mapa · Hatsu inimigo em elites | [x] early |
+| Nen mundo | 8–15 sensores/mapa mid · SFX discovery 100% · falha Zetsu/En legível | [x] early+En flee |
+| Hatsu | Momento Hatsu/arco · mastery UI a cada 10 · CDs MH-style | [x] early moments |
 | Progressão | Identidade por cluster · training como respiro Arena · alinhar PowerScale docs | [ ] |
-| Quests/Story | Beats com fala/ORDEM · cutscenes 15–40s checkpoints | [ ] |
+| Quests/Story | Beats com fala/ORDEM · cutscenes 15–40s checkpoints · QuestHUD História% | [x] early slice |
 | Economia | 30–50 itens identidade · sinks Hatsu/blacksmith/gourmet | [ ] |
 | Mundo vivo | Schedules NPC · crowd Yorknew mínimo · 1 evento facção Estrada | [ ] |
 | Áudio/UI | Barks mentores · stingers reward · crossfade gates | [ ] |

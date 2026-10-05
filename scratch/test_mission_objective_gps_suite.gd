@@ -52,6 +52,8 @@ func _test_static_wiring() -> void:
 	var hud := FileAccess.get_file_as_string("res://ui/hud/QuestHUD.gd")
 	assert_test("MissionObjectiveResolverScript.resolve" in hud, "QuestHUD usa o resolver")
 	assert_test("ATIVIDADES" not in hud, "QuestHUD sem bloco ATIVIDADES poluído")
+	assert_test("_atualizar_historia_atividades" in hud, "QuestHUD História% vs Atividades")
+	assert_test("lbl_historia" in hud and "lbl_atividades" in hud, "QuestHUD labels história/atividades")
 
 	var qmgr := FileAccess.get_file_as_string("res://scripts/missions/QuestManager.gd")
 	assert_test("MissionObjectiveResolverScript.get_focus_quest" in qmgr, "QuestManager.get_active_objective usa focus")

@@ -16,6 +16,7 @@ extends Node2D
 # ============================================================
 
 const PATH_TILESET = "res://world/tilesets/world_tileset.tres"
+const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 @onready var chao_layer: TileMapLayer = get_node_or_null("Chao_TileMapLayer")
 @onready var paredes_layer: TileMapLayer = get_node_or_null("Paredes_TileMapLayer")
@@ -45,9 +46,30 @@ func _ready() -> void:
 	_posicionar_player()
 	_configurar_audio_e_hud()
 	_iniciar_raid_vertical()
+	_densificar_steam_early_ruinas()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.DUNGEON)
+
+
+func _densificar_steam_early_ruinas() -> void:
+	MidLateDensityKitScript.densify_profile(self, {
+		"saga_id": 0,
+		"companion": false,
+		"baus": [
+			{"name": "BauRuinasAntecâmara", "pos": Vector2(400, 340), "titulo": "Baú da Antecâmara",
+				"loot": [{"id": &"pedra_aura", "qtd": 1}, {"id": &"erva_nen", "qtd": 1}]},
+		],
+		"hatsu_moments": [
+			{"name": "HatsuMomentRuinas", "pos": Vector2(280, 240),
+				"titulo": "Eco do Guardião",
+				"descricao": "Antes do chefe: canalize, impacto, residual. Mastery cresce em elites.",
+				"flag": "hatsu_moment_ruinas"},
+		],
+		"checkpoints": [
+			{"name": "CkptRuinasBoss", "pos": Vector2(320, 180), "id": "ruinas_antes_guardiao", "titulo": "Pré-Guardião"},
+		],
+	})
 
 
 func _garantir_spawn_points() -> void:
@@ -310,16 +332,21 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool =
 		es.tempo_defesa_quebrada = 3.0
 		es.xp_reward = 200 if is_elite else 120
 		es.nen_xp_reward = 120 if is_elite else 80
-		es.enemy_id = &"sentinela_pedra"
+		es.enemy_id = &"sentinela_pedra" if not is_elite else &"guardiao_elite"
 		es.enemy_name = nome
 		if DataManager != null and DataManager.has_method("get_enemy"):
-			var ed2 = DataManager.get_enemy(&"sentinela_pedra")
+			var eid_lookup: StringName = &"guardiao_elite" if is_elite else &"sentinela_pedra"
+			var ed2 = DataManager.get_enemy(eid_lookup)
 			if ed2 != null:
 				es.enemy_data = ed2.duplicate(true) if ed2.has_method("duplicate") else ed2
 		elif es.enemy_data != null and es.enemy_data.has_method("duplicate"):
 			es.enemy_data = es.enemy_data.duplicate(true)
 		if es.enemy_data != null:
 			es.enemy_data.role = role
+			if is_elite:
+				es.enemy_data.is_elite = true
+				if str(es.enemy_data.hatsu_name).is_empty():
+					es.enemy_data.hatsu_name = "Muralha de Pedra"
 			match role:
 				"ranged":
 					es.enemy_data.attack_telegraph_type = "aoe_circle"

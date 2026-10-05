@@ -106,5 +106,22 @@
 ## 7. Definição de pronto (early slice)
 
 - [x] Código densificado + suite `test_steam_early_density_suite` verde  
+- [x] ABC: HatsuMoment + cutscenes early + ORDEM secundárias + QuestHUD História%  
 - [ ] G5 playtest humano gravado  
 - [x] Nenhuma poção clássica nos baús early novos  
+
+---
+
+## 8. Roteiro G5 (Luiz — gravar)
+
+Rota: **Character Select → Exame → Lobby Elena → Vale (tutorial Nen 3-beat) → Estrada → Floresta → Ruínas (Guardião 3 fases)**.
+
+Checklist durante gravação:
+1. Dead time contínuo ≤6s? Anotar corredores vazios.
+2. Usou Gyo / Zetsu / Ko de verdade fora do tutorial?
+3. HatsuMoment + checkpoint cutscene dispararam?
+4. Elite Alfa (Floresta) / Guardião Menor (Ruínas) legíveis?
+5. Quest HUD mostra História % vs Atividades?
+6. Boss Guardião: telegraph, loot no chão, wipe→checkpoint?
+
+Marcar G5 `[x]` só com gravação + notas.

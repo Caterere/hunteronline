@@ -63,10 +63,14 @@ func _initialize() -> void:
 	_assert("Fera Alada Atiradora" in floresta, "pack clareira com atiradora")
 	_assert("FeraFloresta2" in floresta, "FeraFloresta2 preservada (GPS/quests)")
 	_assert("aoe_circle" in floresta, "telegraph aoe no pack")
+	_assert("AlfaNinhoElite" in floresta, "elite Nen puzzle floresta")
+	_assert("alfa_ninho_elite" in floresta or "Uivo de Aura" in floresta, "elite com Hatsu")
 
 	# 5. Ruínas com roles mistos
 	_assert('"tank"' in ruinas and '"ranged"' in ruinas, "ruínas misturam tank+ranged")
 	_assert("role: String = \"bruiser\"" in ruinas or 'role: String = "bruiser"' in ruinas, "_instanciar_mob aceita role")
+	_assert("guardiao_elite" in ruinas, "elite ruínas usa guardiao_elite")
+	_assert("Muralha de Pedra" in ruinas or "hatsu_name" in ruinas, "elite ruínas com Hatsu")
 
 	# 6. Smoke runtime: CombatSystem instancia e tem APIs
 	var CombatScript = load("res://scripts/combat/CombatSystem.gd")
