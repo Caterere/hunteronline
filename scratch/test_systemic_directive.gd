@@ -218,13 +218,13 @@ func _testar_pilar_3_npc_dialogos_contextuais() -> void:
 	var fala_ferido = npc.obter_fala_contextual(player_scn)
 	assert_true("ferido" in fala_ferido.to_lower() or "sangrando" in fala_ferido.to_lower(), "NPC reage contextualmente quando o jogador está gravemente ferido")
 
-	# 3. Reação a Ren
+	# 3. Reação a Gyo (ativas: Zetsu/Gyo/En — Ren é passiva na Skill Tree)
 	PlayerData.attributes["vida"] = 100
-	var ren_ok = nen_sys.ativar_tecnica(NenSystem.Tecnica.REN)
-	assert_true(ren_ok, "Ren ativado com sucesso para teste de diálogo")
-	var fala_ren = npc.obter_fala_contextual(player_scn)
-	assert_true("pressão" in fala_ren.to_lower() or "aura" in fala_ren.to_lower(), "NPC reconhece e comenta sobre a pressão de Ren ativa no jogador")
-	nen_sys.desativar_tecnica(NenSystem.Tecnica.REN)
+	var gyo_ok = nen_sys.ativar_tecnica(NenSystem.Tecnica.GYO)
+	assert_true(gyo_ok, "Gyo ativado com sucesso para teste de diálogo")
+	var fala_gyo = npc.obter_fala_contextual(player_scn)
+	assert_true("gyo" in fala_gyo.to_lower() or "olhos" in fala_gyo.to_lower() or "focado" in fala_gyo.to_lower(), "NPC reconhece Gyo ativo no jogador")
+	nen_sys.desativar_tecnica(NenSystem.Tecnica.GYO)
 
 	# 4. Reação a Zetsu
 	var zetsu_ok = nen_sys.ativar_tecnica(NenSystem.Tecnica.ZETSU)
