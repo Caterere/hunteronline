@@ -126,6 +126,22 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 				"Um GPS. Uma luta. Sem misturar.",
 				"ngl_palacio_seen"
 			)
+		"associacao_eleicao":
+			return _pack(
+				"Beans (eco)",
+				"Eleição Hunter. Um voto. Um discurso. Sem rush.",
+				"Cure Gon no hospital antes do portal Continente.",
+				"associacao_eleicao_seen",
+				"scariness"
+			)
+		"continente_acampamento":
+			return _pack(
+				"Ging (eco)",
+				"Acampamento na Árvore. Fora do mapa humano.",
+				"Brion → topo. Hatsu é bússola. Sem improvisar.",
+				"continente_acampamento_seen",
+				"concentration"
+			)
 		"black_whale_conves":
 			return _pack(
 				"Kurapika",
@@ -137,16 +153,21 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 			return []
 
 
-static func _pack(speaker_a: String, text_a: String, text_b: String, flag: String) -> Array[Dictionary]:
+static func _pack(speaker_a: String, text_a: String, text_b: String, flag: String, bgm_id: String = "") -> Array[Dictionary]:
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunnerScript.StepType.LOCK_INPUT, "lock": true},
 		{"type": CutsceneSequenceRunnerScript.StepType.CAMERA_ZOOM, "zoom": Vector2(1.15, 1.15), "duration": 0.3},
 		{"type": CutsceneSequenceRunnerScript.StepType.WAIT, "seconds": 0.35},
+	]
+	# Crossfade OST nos story gates mid/late (Steam §6.8)
+	if not bgm_id.is_empty():
+		passos.append({"type": CutsceneSequenceRunnerScript.StepType.AUDIO_BGM, "bgm": bgm_id})
+	passos.append_array([
 		{"type": CutsceneSequenceRunnerScript.StepType.DIALOGUE, "speaker": speaker_a, "text": text_a},
 		{"type": CutsceneSequenceRunnerScript.StepType.WAIT, "seconds": 0.25},
 		{"type": CutsceneSequenceRunnerScript.StepType.DIALOGUE, "speaker": "Narrador", "text": text_b},
 		{"type": CutsceneSequenceRunnerScript.StepType.SET_FLAG, "flag": flag, "value": true},
 		{"type": CutsceneSequenceRunnerScript.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.25},
 		{"type": CutsceneSequenceRunnerScript.StepType.LOCK_INPUT, "lock": false},
-	]
+	])
 	return passos
