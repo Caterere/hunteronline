@@ -300,6 +300,11 @@ func obter_fala_contextual(player: CharacterBody2D) -> String:
 
 
 func _on_interacted(player: CharacterBody2D) -> void:
+	var am = get_node_or_null("/root/AudioManager")
+	if am != null and am.has_method("tocar_bark_mentor"):
+		var n := npc_name.to_lower()
+		if "elena" in n or "wing" in n or "biscuit" in n or "bisky" in n:
+			am.tocar_bark_mentor(npc_name)
 	QuestSystem.register_npc_visit(StringName(npc_name))
 	QuestSystem.register_persuasion(StringName(npc_name))
 	var texto_fala = obter_fala_contextual(player)

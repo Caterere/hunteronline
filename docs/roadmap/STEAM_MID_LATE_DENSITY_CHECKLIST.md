@@ -72,8 +72,8 @@
 | Mapa | Baús | Companion | Hatsu | Extra sensores |
 | :--- | :---: | :---: | :---: | :--- |
 | NGL | [x] | [x] | [x] | ckpt palácio |
-| Associação | [x] | [x] | [x] | placas hunter |
-| Continente Negro | [x] | [x] | [x] | essência Brion |
+| Associação | [x] | [x] | [x] | ckpt eleição + placas hunter |
+| Continente Negro | [x] | [x] | [x] | ckpt acampamento + essência Brion |
 | Black Whale | [x] | [x] | [x] | ≥8 Gyo/Ko/Zetsu densificados |
 
 ---
@@ -94,4 +94,5 @@
 ```bash
 godot --headless --path . res://scratch/test_steam_mid_late_density_suite.tscn
 godot --headless --path . res://scratch/test_lan_zaban_2client_proof_suite.tscn
+godot --headless --path . res://scratch/test_steam_polish_pass_suite.tscn
 ```

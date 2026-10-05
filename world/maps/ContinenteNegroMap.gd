@@ -400,7 +400,9 @@ func _densificar_steam_late_continente() -> void:
 				"descricao": "Fora do mapa humano, só identidade salva. Seu Hatsu é bússola.",
 				"flag": "hatsu_moment_continente"},
 		],
-		"checkpoints": [],
+		"checkpoints": [
+			{"name": "CkptCNAcampamento", "pos": Vector2(400, 40), "id": "continente_acampamento", "titulo": "Acampamento"},
+		],
 	})
 
 

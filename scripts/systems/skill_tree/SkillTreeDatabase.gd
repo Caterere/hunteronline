@@ -494,15 +494,17 @@ func _generate_cluster_branch(
 		var lat_scale := 1.0 + float(i) * 0.05
 		var pos = start_pos + (p_base_dir * step_dist) + (p_offset * lat_scale)
 
-		# Variação sutil a cada 4 nós para criar Nós Médios com multi-rank
+		# Variação sutil a cada 4 nós para criar Nós Médios com multi-rank + identidade de cluster
 		var n_type := p_type
 		var max_rk := 1
 		var val := p_val_per_rank
 		var cost := 1
+		var is_identity := false
 		if i % 4 == 0:
 			n_type = SkillTreeNodeData.NodeType.MEDIUM
 			max_rk = 3
 			val = p_val_per_rank * 1.5
+			is_identity = true
 
 		var eff := [{
 			"type": "stat_modifier",
@@ -511,10 +513,26 @@ func _generate_cluster_branch(
 			"value_per_rank": val
 		}]
 
+		var region_name: String = String(p_region)
+		if REGIONS.has(p_region):
+			region_name = str(REGIONS[p_region].get("name", p_region))
+		var desc: String
+		var tags: Array = [String(p_region), p_stat]
+		if is_identity:
+			desc = "Identidade %s: +%.1f%% %s/rank. Marco do cluster — não só número." % [
+				region_name, val * 100.0, _stat_label(p_stat)
+			]
+			tags.append("cluster_identity")
+			tags.append("milestone")
+		else:
+			desc = "%s — +%.1f%% %s por rank. Rumo ao marco do cluster." % [
+				region_name, val * 100.0, _stat_label(p_stat)
+			]
+
 		var n_data := SkillTreeNodeData.new(
 			node_id,
 			"%s %s" % [p_title, _to_roman(i)],
-			"+%.1f%% %s por rank." % [val * 100.0, p_stat.capitalize()],
+			desc,
 			p_region,
 			n_type,
 			pos,
@@ -523,11 +541,32 @@ func _generate_cluster_branch(
 			[prev_id],
 			eff,
 			[],
-			[String(p_region), p_stat]
+			tags
 		)
 
 		_add_node(n_data)
 		prev_id = node_id
+
+
+func _stat_label(stat: String) -> String:
+	match stat:
+		"vida_max": return "Vida Máx"
+		"aura_max": return "Aura Máx"
+		"regen_hp": return "Regen HP"
+		"regen_aura": return "Regen Aura"
+		"dano_ataque_basico": return "Dano Básico"
+		"velocidade_ataque": return "Cadência"
+		"dano_hatsu": return "Dano Hatsu"
+		"reducao_custo_aura": return "Eficiência de Aura"
+		"reducao_cooldown": return "CDR"
+		"crit_chance": return "Crit %"
+		"crit_damage": return "Crit Dmg"
+		"life_steal": return "Roubo de Vida"
+		"eficiencia_aura": return "Fluxo de Aura"
+		"zetsu_stealth": return "Furtividade Zetsu"
+		"reducao_dano": return "Mitigação"
+		"dano_fisico": return "Dano Físico"
+		_: return stat.capitalize()
 
 
 func _add_node(node_data: SkillTreeNodeData) -> void:

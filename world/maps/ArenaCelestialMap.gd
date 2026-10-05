@@ -483,6 +483,11 @@ func _garantir_training_wing_respiro() -> void:
 	inter.interaction_radius = 34.0
 	inter.interacted.connect(func(_p):
 		TrainingSystem.obter_ou_criar(get_tree())
+		var am = get_node_or_null("/root/AudioManager")
+		if am != null and am.has_method("tocar_bark_mentor"):
+			am.tocar_bark_mentor("wing")
+		if am != null and am.has_method("tocar_stinger_reward"):
+			am.tocar_stinger_reward("level")
 		if EventBus != null:
 			EventBus.emit_toast("🥋 Training Wing — fale com Wing/Zushi ao lado. Respire antes do próximo andar.", Color(0.55, 0.95, 0.8))
 		var hud = get_tree().get_first_node_in_group("player_hud")
