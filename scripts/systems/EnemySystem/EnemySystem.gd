@@ -1432,11 +1432,14 @@ func aplicar_folha_movimento(andando: bool) -> void:
 			enemy_sprite.texture = tex_walk_8x8
 			enemy_sprite.hframes = 8
 			enemy_sprite.vframes = 8
+			# Clamp: frame walk 0–63 não pode vazar para idle 0–7
+			enemy_sprite.frame = clampi(enemy_sprite.frame, 0, 63)
 		return
 	if tex_idle_8dir != null and enemy_sprite.texture != tex_idle_8dir:
 		enemy_sprite.texture = tex_idle_8dir
 		enemy_sprite.hframes = 8
 		enemy_sprite.vframes = 1
+		enemy_sprite.frame = clampi(enemy_sprite.frame % 8, 0, 7)
 
 
 func _ajustar_arvore_animacao_para_8dir() -> void:

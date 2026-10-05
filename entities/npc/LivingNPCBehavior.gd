@@ -53,6 +53,11 @@ const RUMORES_CIDADE := [
 @export var schedule_data: NPCScheduleData = null
 @export var npc_cargo: String = ""
 @export var tipo_marcador: String = ""
+@export var badge_proximity_only: bool = false
+@export var badge_show_radius: float = 72.0
+
+var _name_badge: CanvasItem = null
+
 
 func _ready() -> void:
 	npc_body = get_parent() as CharacterBody2D
@@ -136,6 +141,7 @@ func _ready() -> void:
 			"blacksmith": prefixo_marcador = "🔨 "
 			"recurring": prefixo_marcador = "👤 "
 			"important": prefixo_marcador = "💠 "
+			"ambient": prefixo_marcador = "· "
 
 		if prefixo_marcador.is_empty():
 			match hierarchy:
@@ -143,6 +149,13 @@ func _ready() -> void:
 				NPCHierarchy.IMPORTANT: prefixo_marcador = "💠 "
 				NPCHierarchy.FUNCTIONAL: prefixo_marcador = "💼 "
 				NPCHierarchy.RECURRING: prefixo_marcador = "👤 "
+				NPCHierarchy.COMMON: prefixo_marcador = "· "
+
+		# Crowd/ambient: só mostra badge perto do player (evita overlap Estrada/Yorknew)
+		if marcador_final == "ambient" or hierarchy == NPCHierarchy.COMMON:
+			badge_proximity_only = true
+			badge.modulate.a = 0.0
+			badge.visible = false
 
 		var lbl := Label.new()
 		lbl.name = "LivingNPCNameLabel"
@@ -170,6 +183,7 @@ func _ready() -> void:
 			lbl_sub.add_theme_constant_override("shadow_offset_y", 1)
 			vbox.add_child(lbl_sub)
 
+		_name_badge = badge
 		npc_body.add_child.call_deferred(badge)
 		_aplicar_estilo_visual_modular(cargo_final, marcador_final)
 
@@ -321,8 +335,12 @@ func _physics_process(delta: float) -> void:
 			_cached_player = players[0] as Node2D
 
 	if _cached_player != null and is_instance_valid(_cached_player):
-		if npc_body.global_position.distance_to(_cached_player.global_position) > 480.0:
+		var dist_player: float = npc_body.global_position.distance_to(_cached_player.global_position)
+		_atualizar_badge_proximidade(dist_player)
+		if dist_player > 480.0:
 			return
+	elif badge_proximity_only and _name_badge != null:
+		_name_badge.visible = false
 
 	if timer_espera > 0.0:
 		timer_espera -= delta
@@ -339,6 +357,14 @@ func _physics_process(delta: float) -> void:
 	var dir = (pos_alvo - npc_body.global_position).normalized()
 	npc_body.velocity = dir * velocidade_andar
 	npc_body.move_and_slide()
+
+
+func _atualizar_badge_proximidade(dist_player: float) -> void:
+	if not badge_proximity_only or _name_badge == null or not is_instance_valid(_name_badge):
+		return
+	var mostrar: bool = dist_player <= badge_show_radius
+	_name_badge.visible = mostrar
+	_name_badge.modulate.a = 1.0 if mostrar else 0.0
 
 
 func _escolher_novo_destino() -> void:
