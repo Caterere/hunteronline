@@ -1,5 +1,6 @@
 class_name GreedIslandMap
 extends Node2D
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 const StoryGate = preload("res://world/components/StoryGate.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
@@ -389,6 +390,10 @@ func _popular_walkers_greed() -> void:
 
 
 func _plantar_props_greed() -> void:
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+		return
+
 	if get_node_or_null("PropsEstruturaGreed") != null:
 		return
 	var root := Node2D.new()

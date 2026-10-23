@@ -1,6 +1,7 @@
 class_name WorldPropsKit
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 ## Hunter Online — Phase 3 props (Prompt Library §30–36 / ART_PIPELINE_CANON).
 ## Fences, signs, crates, barrel, well, lantern along Estrada / Floresta.
 
@@ -21,6 +22,10 @@ const LANTERN := "res://assets/sprites/objects/phase3_lantern_post.png"
 static func attach(mapa: Node2D, kind: KitKind) -> WorldPropsKit:
 	if mapa == null:
 		return null
+	# Modo interim: sem props/estruturas que destoam do estilo
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		SimpleGrassTerrainPolicyScript.apply_to_map(mapa)
+		return null
 	var existing := mapa.get_node_or_null("WorldPropsKit") as WorldPropsKit
 	if existing != null:
 		return existing
@@ -32,6 +37,8 @@ static func attach(mapa: Node2D, kind: KitKind) -> WorldPropsKit:
 
 
 func _ready() -> void:
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		return
 	_espalhar_props()
 
 

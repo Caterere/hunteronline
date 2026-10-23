@@ -1,6 +1,7 @@
 class_name EstradaPadokiaMap
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 # ============================================================
 # HUNTER ONLINE - ESTRADA REAL DE PADOKIA (MAPA PERMANENTE CONECTADO)
 # ============================================================
@@ -35,7 +36,10 @@ var _escolta_falhou: bool = false
 
 func _ready() -> void:
 	_garantir_spawn_points()
-	_pintar_piso_estrada()
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+	else:
+		_pintar_piso_estrada()
 	_configurar_limites_camera()
 	_configurar_audio_e_hud()
 	_posicionar_player()
@@ -44,17 +48,21 @@ func _ready() -> void:
 	_instanciar_sensores_nen_estrada()
 	_densificar_steam_early_estrada()
 	_criar_zona_protecao_escolta()
-	_criar_grande_ponte()
+	if not SimpleGrassTerrainPolicyScript.ENABLED:
+		_criar_grande_ponte()
 	_conectar_ciclo_noturno()
 	if not tree_exiting.is_connected(_on_estrada_tree_exiting):
 		tree_exiting.connect(_on_estrada_tree_exiting)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ESTRADA)
-	CalibrationArtKit.attach_to_estrada(self)
-	WorldDensityKit.attach(self, WorldDensityKit.KitKind.ESTRADA)
-	WorldPropsKit.attach(self, WorldPropsKit.KitKind.ESTRADA)
-	WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.ESTRADA)
-	WorldFxKit.attach(self, WorldFxKit.KitKind.ESTRADA)
-	WorldPolishKit.attach(self, WorldPolishKit.KitKind.ESTRADA)
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+	else:
+		CalibrationArtKit.attach_to_estrada(self)
+		WorldDensityKit.attach(self, WorldDensityKit.KitKind.ESTRADA)
+		WorldPropsKit.attach(self, WorldPropsKit.KitKind.ESTRADA)
+		WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.ESTRADA)
+		WorldFxKit.attach(self, WorldFxKit.KitKind.ESTRADA)
+		WorldPolishKit.attach(self, WorldPolishKit.KitKind.ESTRADA)
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)

@@ -63,7 +63,7 @@ static func obter_quest_secundaria_1() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Ervas Medicinais da Floresta"
 	q.description = "ORDEM: ① Fale com o Vendedor → ② Vá à Floresta (GPS) → ③ Derrote 2 Feras da Floresta com espaço de combate → ④ Volte ao Empório. Sem misturar com a principal."
-	q.auto_complete = true
+	q.auto_complete = false
 	q.turn_in_npc_key = &"vendedor"
 	q.reward_xp = 150
 	q.reward_gold = 250
@@ -90,7 +90,7 @@ static func obter_quest_secundaria_2() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Minérios das Ruínas de Zaban"
 	q.description = "ORDEM: ① Fale com Ferreiro Duran → ② Entre nas Ruínas (GPS) → ③ Derrote 2 Sentinelas de Pedra → ④ Volte ao ferreiro. Um passo."
-	q.auto_complete = true
+	q.auto_complete = false
 	q.turn_in_npc_key = &"ferreiro"
 	q.reward_xp = 250
 	q.reward_gold = 400
@@ -117,7 +117,7 @@ static func obter_quest_secundaria_estrada() -> Quest:
 	var q = QuestScript.new()
 	q.quest_name = "Escolta Noturna da Caravana Real"
 	q.description = "ORDEM: ① Fale com o Guarda da Estrada → ② Permaneça na zona da carroça após o anoitecer → ③ Derrote 2 salteadores → ④ Volte ao Guarda. Sem abandonar a zona."
-	q.auto_complete = true
+	q.auto_complete = false
 	q.turn_in_npc_key = &"guarda_patrulha"
 	q.reward_xp = 220
 	q.reward_gold = 350

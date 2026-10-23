@@ -1,5 +1,6 @@
 class_name ArenaCelestialMap
 extends Node2D
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 const StoryGate = preload("res://world/components/StoryGate.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
@@ -495,6 +496,10 @@ func _garantir_training_wing_respiro() -> void:
 
 ## Postes de treino + marcos no corredor (leitura espacial).
 func _plantar_props_estrutura_arena() -> void:
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+		return
+
 	if get_node_or_null("PropsEstruturaArena") != null:
 		return
 	var root := Node2D.new()

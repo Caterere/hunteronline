@@ -60,7 +60,8 @@ enum RequiresMode {
 @export_category("Turn In")
 
 ## Se preenchido, somente esse NPC poderá receber a quest.
-## Futuramente podemos ligar isso diretamente ao nosso sistema de NPC.
+## QuestManager._try_turn_in conclui a missão ao falar com esse NPC
+## quando todos os objetivos já estiverem feitos (auto_complete=false).
 @export var turn_in_npc_key: StringName = &""
 
 

@@ -22,6 +22,9 @@ func _ready() -> void:
 func _on_interacted(_player: CharacterBody2D) -> void:
 	print("[Menchi] Conversando com a Examinadora Menchi...")
 	QuestSystem.register_npc_visit(&"menchi")
+	# Exame etapa 13 — "O Veredito Gourmet": Menchi libera o ovo de águia-aranha
+	if QuestSystem != null and QuestSystem.has_method("register_item_collected"):
+		QuestSystem.register_item_collected(&"ovo_aguia")
 
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
 	if visual_dialogue != null:
