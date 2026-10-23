@@ -49,7 +49,11 @@ func _ready() -> void:
 	collision_layer = 2 # Layer 2 (Player)
 	collision_mask = 1 | 8  # Layer 1 (Cenário / Paredes) + Layer 4/Bit 3 (NPCs sólidos na base)
 
-	_state_machine = _animation_tree["parameters/playback"]
+	if _animation_tree != null:
+		_animation_tree.active = true
+		_state_machine = _animation_tree["parameters/playback"]
+		if _state_machine != null:
+			_state_machine.travel("idle")
 
 	combat_system.setup(self)
 

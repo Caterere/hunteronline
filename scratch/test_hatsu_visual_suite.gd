@@ -180,6 +180,10 @@ func _ready() -> void:
 	# -------------------------------------------------------------
 	var hatsu_sys := HatsuSystem.new()
 	add_child(hatsu_sys)
+	PlayerData.despertou_nen = true
+	PlayerData.desbloquear_hatsu_creator()
+	if Economy != null:
+		Economy.adicionar_gold(5000)
 	PlayerData.equipar_hatsu_slot(0, h1)
 	var s0 = PlayerData.obter_hatsu_slot(0)
 	var sys_visual_ok = (s0 != null and s0.obter_visual_profile() != null)

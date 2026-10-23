@@ -265,6 +265,16 @@ func unlock_slot(slot_id: int) -> bool:
 		push_warning("[HatsuProgressionManager] Bloqueio anti-bypass: Não é possível desbloquear slot %d. Motivo: %s" % [slot_id, check["reason"]])
 		return false
 
+	return force_unlock_slot(slot_id)
+
+
+## Desbloqueia sem revalidar story/nível — uso interno após Biscuit / desbloquear_hatsu_creator.
+func force_unlock_slot(slot_id: int) -> bool:
+	if not slots_catalog.has(slot_id):
+		return false
+	if is_slot_unlocked(slot_id):
+		return true
+
 	unlocked_slots[slot_id] = true
 
 	if slot_id == 1:

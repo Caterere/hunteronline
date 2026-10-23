@@ -120,12 +120,17 @@ func toggle_menu() -> void:
 func abrir() -> void:
 	if HatsuProgressionManager != null:
 		var check: Dictionary = HatsuProgressionManager.can_create_hatsu()
-		if not check.get("can_create", false):
-			push_warning("[HatsuCreationUI] Bloqueio de criação: %s" % check.get("reason", "DESCONHECIDO"))
+		var reason := str(check.get("reason", ""))
+		# Jenny insuficiente: ainda abre a UI (Biscuit ensina o fluxo; custo aparece na forja).
+		# Slot/CD/Archive cheio: bloqueia a abertura.
+		if not check.get("can_create", false) and reason != "INSUFFICIENT_JENNY" and reason != "OK":
+			push_warning("[HatsuCreationUI] Bloqueio de criação: %s" % reason)
 			if EventBus != null and EventBus.has_signal("toast_enviado"):
 				EventBus.emit_toast(check.get("message", "Criação de Hatsu indisponível."), Color(1.0, 0.4, 0.4))
 			fechar()
 			return
+		if reason == "INSUFFICIENT_JENNY" and EventBus != null and EventBus.has_signal("toast_enviado"):
+			EventBus.emit_toast(str(check.get("message", "Jenny insuficiente para forjar.")), Color(1.0, 0.75, 0.35))
 
 	if panel_main == null:
 		_construir_ui()
