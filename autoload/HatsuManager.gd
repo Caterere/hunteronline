@@ -548,6 +548,7 @@ func obter_hatsu_canonico(id_hatsu: String) -> HatsuData:
 	for info in CanonHatsuCatalog.obter_hatsus_canonicos():
 		if info["id"] == id_hatsu:
 			var h := HatsuData.new()
+			h.hatsu_id = str(info.get("id", id_hatsu))
 			h.nome = info.get("nome", "Hatsu")
 			h.categoria = info.get("categoria", HatsuData.Categoria.INTENSIFICACAO)
 			h.forma = info.get("forma", HatsuData.Forma.TOQUE)

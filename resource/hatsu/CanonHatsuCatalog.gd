@@ -179,15 +179,16 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"condicoes": [HatsuData.Condicao.AUTO_DANO],
 			"poder_base": 80.0,
 			"custo_aura": 40.0,
-			"cooldown": 20.0,
-			"duracao": 10.0,
+			"cooldown": 45.0,
+			"duracao": 90.0,
 			"activation_type": HatsuData.ActivationType.TRANSFORMATION,
 			"duration_type": HatsuData.DurationType.TIMED,
 			"channel": HatsuData.HatsuChannel.TRANSFORMATION,
 			"exclusive_group": "transformation_mode",
 			"concurrent_allowed": false,
-			"aura_drain_per_sec": 4.0,
-			"descricao": "Especialização (Olhos Escarlates). Concede 100% de Eficiência Absoluta em todas as categorias de Nen."
+			"aura_drain_per_sec": 3.0,
+			"tags": ["emperor_time", "lifespan", "scarlet_eyes"],
+			"descricao": "Especialização (Olhos Escarlates). 100% eficiência em todas as categorias por 90s. Consome Esperança de Vida (stat) — sabor canônico sem hardcore permanente."
 		},
 		{
 			"id": "kurapika_holy_chain",
@@ -245,8 +246,8 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"channel": HatsuData.HatsuChannel.OFFENSIVE,
 			"exclusive_group": "",
 			"concurrent_allowed": true,
-			"tags": ["judgement", "vow", "heart_stake"],
-			"descricao": "Conjuração + Emissão. Estaca no coração: 95 de Dano + voto absoluto (quebra da regra = sentença). Burst puro removido — fidelidade ao contrato."
+			"tags": ["judgement", "vow", "heart_stake", "requires_chain_jail"],
+			"descricao": "Conjuração + Emissão. Combo canônico: só explode após Chain Jail marcar o alvo. Sem marca = dano residual fraco."
 		},
 		{
 			"id": "kurapika_dowsing_chain",

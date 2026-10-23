@@ -440,7 +440,8 @@ func reset() -> void:
 		"nivel_nen": 1,
 		"xp_nen": 0,
 		"nivel": 1,
-		"xp": 0
+		"xp": 0,
+		"esperanca_vida": 100.0
 	}
 	recalcular_todos_atributos()
 	attributes["vida"] = attributes["vida_max"]
