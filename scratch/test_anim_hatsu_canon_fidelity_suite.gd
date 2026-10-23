@@ -176,15 +176,29 @@ func _test_kurapika_chains() -> void:
 	_ok(jail != null, "Chain Jail no catálogo")
 	if jail != null:
 		_ok(jail.categoria == HatsuData.Categoria.CONJURACAO, "Chain Jail = Conjuração")
+		_ok(jail.poder_base <= 50.0, "Chain Jail dano baixo (prisão, não burst) got %.0f" % jail.poder_base)
 		var has_elite := false
 		for c in jail.condicoes:
 			if int(c) == int(HatsuData.Condicao.ALVO_ELITE_BOSS):
 				has_elite = true
-		_ok(has_elite, "Chain Jail restrito a elite/boss (juramento Spiders)")
+		_ok(has_elite, "Chain Jail restrito a elite/boss (até decisão D1 Spiders)")
 	var emp = HatsuManager.obter_hatsu_canonico("kurapika_emperor_time")
 	_ok(emp != null and emp.categoria == HatsuData.Categoria.ESPECIALIZACAO, "Emperor Time = Especialização")
 	var holy = HatsuManager.obter_hatsu_canonico("kurapika_holy_chain")
-	_ok(holy != null and holy.objetivo == HatsuData.ObjetivoPrincipal.CURA, "Holy Chain cura")
+	_ok(holy != null and holy.objetivo == HatsuData.ObjetivoPrincipal.CURA and holy.cura_base >= 40.0, "Holy Chain cura ~45%")
+	var dowse = HatsuManager.obter_hatsu_canonico("kurapika_dowsing_chain")
+	_ok(dowse != null and dowse.objetivo == HatsuData.ObjetivoPrincipal.CONTROLE and dowse.poder_base <= 25.0, "Dowsing utilitário")
+	var hunter = HatsuManager.obter_hatsu_canonico("chrollo_skill_hunter")
+	_ok(hunter != null and hunter.steal_conditions.size() >= 4, "Skill Hunter ≥4 condições canônicas")
+	var tex = HatsuManager.obter_hatsu_canonico("hisoka_texture_surprise")
+	_ok(tex != null and tex.categoria == HatsuData.Categoria.CONJURACAO, "Texture Surprise no catálogo")
+	var blythe = HatsuManager.obter_hatsu_canonico("pitou_doctor_blythe")
+	var rooted := false
+	if blythe != null:
+		for c in blythe.condicoes:
+			if int(c) == int(HatsuData.Condicao.IMOVEL_DURANTE_USO):
+				rooted = true
+	_ok(rooted, "Doctor Blythe exige imóvel")
 
 
 func _test_hisoka_bungee() -> void:
