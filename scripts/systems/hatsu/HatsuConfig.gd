@@ -32,6 +32,13 @@ const HATSU_SWITCH_COOLDOWN: float = 600.0
 # Calibrado com a economia após Greed Island (recompensas médias de 5.000 a 50.000 Jenny).
 const HATSU_CREATION_JENNY_COST: int = 5000
 
+# --- 3b. GATES DE COMPLEXIDADE (Creator anti-OP early) ---
+# Nível mínimo do personagem para forjar cada faixa de raridade.
+const CREATOR_RANK_LEVEL_FRACO: int = 1
+const CREATOR_RANK_LEVEL_MEDIANO: int = 15
+const CREATOR_RANK_LEVEL_FORTE: int = 35
+const CREATOR_RANK_LEVEL_LENDARIO: int = 55
+
 # --- 4. MASTERY (POTENCIAL & ESCALA) ---
 # Nível inicial de maestria para qualquer Hatsu recém-forjado.
 const INITIAL_MASTERY: float = 0.0

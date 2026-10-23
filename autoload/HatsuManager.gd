@@ -1243,6 +1243,13 @@ func validate_hatsu(hatsu: HatsuData, player_context: Dictionary = {}) -> Dictio
 			"sugestoes": obter_sugestoes_balanceamento(hatsu)
 		}
 
+	# Tradeoffs de base guiada (ex.: grimório com 1 passo a menos → mais fraco)
+	var Judge = load("res://scripts/systems/hatsu/HatsuComplexityJudge.gd")
+	var trade_notes: Array = []
+	if Judge != null:
+		var trade: Dictionary = Judge.apply_guide_tradeoffs(hatsu)
+		trade_notes = trade.get("notes", [])
+
 	var pb = calculate_power_budget(hatsu, player_context)
 	var functional_power: float = float(pb.get("functional_power", 50.0))
 	var limitation_credits: float = float(pb.get("limitation_credits", 50.0))
@@ -1259,8 +1266,28 @@ func validate_hatsu(hatsu: HatsuData, player_context: Dictionary = {}) -> Dictio
 			"available_credits": limitation_credits,
 			"functional_power": functional_power,
 			"limitation_credits": limitation_credits,
+			"tradeoff_notes": trade_notes,
 			"sugestoes": obter_sugestoes_balanceamento(hatsu)
 		}
+
+	# Juiz de raridade / nível / afinidade
+	var judge: Dictionary = {}
+	if Judge != null:
+		judge = Judge.evaluate(hatsu, player_context)
+		if not bool(judge.get("allowed", true)):
+			return {
+				"status": "OVERPOWERED",
+				"reason": "⚖️ %s" % str(judge.get("reason", "Complexidade acima do seu nível")),
+				"excess_power": maxf(0.0, functional_power - float(judge.get("power_cap", 85.0))),
+				"credit_deficit": 0.0,
+				"required_credits": functional_power,
+				"available_credits": limitation_credits,
+				"functional_power": functional_power,
+				"limitation_credits": limitation_credits,
+				"complexity_rank": judge.get("rank_name", ""),
+				"tradeoff_notes": trade_notes,
+				"sugestoes": obter_sugestoes_balanceamento(hatsu)
+			}
 
 	if limitation_credits > (functional_power * 2.2):
 		return {
@@ -1272,18 +1299,26 @@ func validate_hatsu(hatsu: HatsuData, player_context: Dictionary = {}) -> Dictio
 			"available_credits": limitation_credits,
 			"functional_power": functional_power,
 			"limitation_credits": limitation_credits,
+			"complexity_rank": judge.get("rank_name", ""),
+			"tradeoff_notes": trade_notes,
 			"sugestoes": []
 		}
 
+	var rank_txt: String = str(judge.get("rank_name", "Mediano"))
+	var reason_ok := "✨ Técnica equilibrada [%s]: limitações pagam o poder (Déficit: 0)." % rank_txt
+	if not trade_notes.is_empty():
+		reason_ok += " | " + ", ".join(trade_notes)
 	return {
 		"status": "VALID",
-		"reason": "✨ Técnica 100% Equilibrada: As limitações pagam perfeitamente pelo poder funcional do Hatsu (Déficit: 0).",
+		"reason": reason_ok,
 		"excess_power": 0.0,
 		"credit_deficit": 0.0,
 		"required_credits": functional_power,
 		"available_credits": limitation_credits,
 		"functional_power": functional_power,
 		"limitation_credits": limitation_credits,
+		"complexity_rank": rank_txt,
+		"tradeoff_notes": trade_notes,
 		"sugestoes": []
 	}
 
