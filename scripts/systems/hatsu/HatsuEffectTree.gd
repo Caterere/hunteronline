@@ -153,6 +153,17 @@ func coletar_efeitos() -> Dictionary:
 	return merged
 
 
+func tem_compromisso_categoria() -> bool:
+	## Precisa de pelo menos um hub de categoria alocado (identidade do Hatsu).
+	for nid in allocated.keys():
+		if not nodes.has(nid):
+			continue
+		var def: Dictionary = nodes[nid]
+		if int(def.get("kind", -1)) == int(DB.NodeKind.HUB) and int(def.get("categoria", -1)) >= 0:
+			return true
+	return false
+
+
 func aplicar_em_hatsu(hatsu: HatsuData) -> void:
 	if hatsu == null:
 		return
@@ -190,16 +201,64 @@ func aplicar_em_hatsu(hatsu: HatsuData) -> void:
 	if "auto_dano" in flags or bool(fx.get("auto_dano", false)):
 		if not (HatsuData.Condicao.AUTO_DANO in hatsu.condicoes):
 			hatsu.condicoes.append(HatsuData.Condicao.AUTO_DANO)
+	if fx.has("stun") or "stun" in flags:
+		hatsu.stun_duracao = maxf(hatsu.stun_duracao, float(fx.get("stun", 1.0)))
+		if hatsu.objetivo != HatsuData.ObjetivoPrincipal.CONTROLE:
+			hatsu.objetivo = HatsuData.ObjetivoPrincipal.CONTROLE
+	if fx.has("aura_drain"):
+		hatsu.aura_drain_per_sec = maxf(hatsu.aura_drain_per_sec, float(fx.get("aura_drain", 0.0)))
+	if "exclusive_transform" in flags or bool(fx.get("exclusive_transform", false)):
+		hatsu.exclusive_group = "transformation_mode"
+		hatsu.concurrent_allowed = false
 	if fx.has("lock_category"):
 		hatsu.categoria = fx["lock_category"] as HatsuData.Categoria
 	elif primary_category >= 0:
 		hatsu.categoria = primary_category as HatsuData.Categoria
+
+	# Pacote de combate da árvore (lido pelo HatsuSystem / tags)
+	var combat: Dictionary = hatsu.parametros_conceito.get("effect_tree", {}) if hatsu.parametros_conceito is Dictionary else {}
+	if typeof(combat) != TYPE_DICTIONARY:
+		combat = {}
+	if fx.has("multishot"):
+		combat["multishot"] = int(fx.get("multishot", 1))
+	if fx.has("knockback"):
+		combat["knockback"] = float(fx.get("knockback", 0.0))
+	if fx.has("proj_speed"):
+		combat["proj_speed"] = float(fx.get("proj_speed", 0.0))
+	if fx.has("piercing"):
+		combat["piercing"] = float(fx.get("piercing", 0.0))
+	if fx.has("control_pull") or "control_pull" in flags:
+		combat["control_pull"] = true
+	if fx.has("control_bind") or "control_bind" in flags:
+		combat["control_bind"] = true
+	if fx.has("control") or "control" in flags:
+		combat["control"] = true
+	if fx.has("puppet_buff") or "puppet_buff" in flags:
+		combat["puppet_buff"] = true
+	if fx.has("versatile") or "versatile" in flags:
+		combat["versatile"] = true
+	if fx.has("emperor_like") or "emperor_like" in flags:
+		combat["emperor_like"] = true
+	combat["budget_spent"] = budget_spent
+	combat["budget_total"] = budget_total
+	if not hatsu.parametros_conceito is Dictionary:
+		hatsu.parametros_conceito = {}
+	hatsu.parametros_conceito["effect_tree"] = combat
+
 	# Tag dos nós alocados
 	var tags: Array[String] = []
 	for t in hatsu.tags:
 		if not str(t).begins_with("eft:"):
 			tags.append(str(t))
 	tags.append("eft:tree")
+	if combat.get("multishot", 0) > 1:
+		tags.append("multishot")
+	if combat.get("control_pull", false):
+		tags.append("control_pull")
+	if combat.get("knockback", 0.0) > 0.0:
+		tags.append("knockback")
+	if combat.get("piercing", 0.0) > 0.0:
+		tags.append("piercing")
 	for nid in allocated.keys():
 		if nid != &"hx_center":
 			tags.append("eft:%s" % str(nid))

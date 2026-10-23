@@ -14,6 +14,7 @@ func _ready() -> void:
 	_test_budget_and_allocate()
 	_test_off_category_cost()
 	_test_apply_to_hatsu()
+	_test_combat_bundle_and_commitment()
 	print("----------------------------------------------------------------")
 	print("Resultado: %d/%d | falhas %d" % [passed, total, failed])
 	await get_tree().create_timer(0.05).timeout
@@ -94,3 +95,30 @@ func _test_apply_to_hatsu() -> void:
 	tree.aplicar_em_hatsu(h)
 	_ok(h.alcance > alcance_before or h.forma == HatsuData.Forma.PROJETIL, "árvore alterou alcance/forma (alc %.0f→%.0f forma=%d)" % [alcance_before, h.alcance, int(h.forma)])
 	_ok("eft:tree" in h.tags, "tag eft:tree")
+
+
+func _test_combat_bundle_and_commitment() -> void:
+	print("\n[5] Compromisso + pacote de combate")
+	var tree := EffectTree.new()
+	tree.reset(24, int(HatsuData.Categoria.EMISSAO))
+	_ok(not tree.tem_compromisso_categoria(), "sem compromisso no início")
+	var em_hub := StringName("hx_c%d_hub" % int(HatsuData.Categoria.EMISSAO))
+	_ok(tree.alocar(em_hub), "hub emissão")
+	_ok(tree.tem_compromisso_categoria(), "compromisso após hub")
+	# Cadeia até rajada dupla (n0..n3)
+	for i in range(4):
+		var nid := StringName("hx_c%d_n%d" % [int(HatsuData.Categoria.EMISSAO), i])
+		if tree.pode_alocar(nid).get("ok", false):
+			tree.alocar(nid)
+	var h := HatsuData.new()
+	h.categoria = HatsuData.Categoria.EMISSAO
+	h.poder_base = 40.0
+	h.forma = HatsuData.Forma.TOQUE
+	tree.aplicar_em_hatsu(h)
+	var combat: Dictionary = h.parametros_conceito.get("effect_tree", {})
+	var has_multi := int(combat.get("multishot", 0)) >= 2 or ("multishot" in h.tags)
+	_ok(has_multi or h.forma == HatsuData.Forma.PROJETIL, "pacote combate/multishot ou forma projetil")
+	# Ramo lateral existe
+	var side0 := StringName("hx_c%d_s0" % int(HatsuData.Categoria.EMISSAO))
+	_ok(tree.nodes.has(side0), "ramo lateral s0 existe")
+

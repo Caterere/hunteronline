@@ -796,6 +796,17 @@ func _aplicar_feel_impacto_hatsu(enemy_sys: Node, dano: int, direcao: Vector2, f
 		return
 	if enemy_sys.has_method("take_damage"):
 		enemy_sys.take_damage(dano, direcao, forca, owner_body)
+	if hatsu != null and hatsu.stun_duracao > 0.0 and "stun_timer" in enemy_sys:
+		enemy_sys.stun_timer = maxf(float(enemy_sys.stun_timer), float(hatsu.stun_duracao))
+	# control_pull da árvore: puxa levemente o inimigo
+	if hatsu != null and hatsu.parametros_conceito is Dictionary:
+		var et = hatsu.parametros_conceito.get("effect_tree", {})
+		if typeof(et) == TYPE_DICTIONARY and bool(et.get("control_pull", false)) and owner_body != null:
+			if enemy_sys.get_parent() != null and enemy_sys.get_parent() is Node2D:
+				var body: Node2D = enemy_sys.get_parent()
+				var pull: Vector2 = (owner_body.global_position - body.global_position).normalized() * 40.0
+				if enemy_sys.has_method("_apply_knockback"):
+					enemy_sys._apply_knockback(pull, 80.0)
 	var intens = HitStopManager.HitIntensity.HATSU
 	if hatsu != null and hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO:
 		HitStopManager.aplicar_screen_shake(0.55)
@@ -1673,10 +1684,41 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	elif owner_body.velocity != Vector2.ZERO:
 		direcao = owner_body.velocity.normalized()
 
+	var combat: Dictionary = {}
+	if hatsu.parametros_conceito is Dictionary:
+		var raw_et = hatsu.parametros_conceito.get("effect_tree", {})
+		if typeof(raw_et) == TYPE_DICTIONARY:
+			combat = raw_et
+	var shots: int = clampi(int(combat.get("multishot", 1)), 1, 5)
+	var vel_bonus: float = float(combat.get("proj_speed", 0.0))
+	var kb_bonus: float = float(combat.get("knockback", 0.0))
+	var velocidade: float = 240.0 + vel_bonus
+	var alcance_max: float = hatsu.alcance
+	var kb_base: float = 120.0 + kb_bonus
+
 	# Resolver perfil visual com herança opcional da aura do personagem
 	var raw_vp: VisualProfile = hatsu.obter_visual_profile()
 	var vp: VisualProfile = PlayerData.aura_visual_profile.blend_with_hatsu(raw_vp) if PlayerData.aura_visual_profile != null else raw_vp
 
+	HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
+
+	for si in range(shots):
+		var spread: float = 0.0
+		if shots > 1:
+			spread = deg_to_rad((-12.0 + 24.0 * float(si) / float(shots - 1)))
+		var dir_shot: Vector2 = direcao.rotated(spread)
+		_spawn_um_projetil(hatsu, eficiencia, dir_shot, vp, velocidade, alcance_max, kb_base)
+
+
+func _spawn_um_projetil(
+	hatsu: HatsuData,
+	eficiencia: float,
+	direcao: Vector2,
+	vp: VisualProfile,
+	velocidade: float,
+	alcance_max: float,
+	kb_force: float
+) -> void:
 	var area := Area2D.new()
 	area.name = "HatsuProjetil"
 	area.collision_layer = 1 << 3
@@ -1688,7 +1730,6 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	col.shape = shape
 	area.add_child(col)
 
-	# Renderizador Visual Modular
 	var visual := HatsuVisual.new()
 	visual.setup(vp)
 	area.add_child(visual)
@@ -1696,26 +1737,20 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	owner_body.get_parent().add_child(area)
 	area.global_position = owner_body.global_position
 
-	# Efeito de Cast ao Disparar
-	HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
-
-	var velocidade: float = 240.0
-	var alcance_max: float = hatsu.alcance
-
 	area.area_entered.connect(func(alvo_area: Area2D):
 		var enemy: Node = alvo_area.get_parent()
 		if enemy != null and enemy != owner_body:
 			var enemy_sys = enemy.get_node_or_null("EnemySystem")
 			if enemy_sys != null:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
-				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, 120.0, hatsu)
+				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, kb_force, hatsu)
 				if is_instance_valid(area):
 					HatsuVisual.spawn_impact_effect(area.global_position, vp, owner_body.get_parent())
 					area.queue_free()
 	)
 
 	var tween := area.create_tween()
-	tween.tween_property(area, "global_position", area.global_position + (direcao * alcance_max), alcance_max / velocidade)
+	tween.tween_property(area, "global_position", area.global_position + (direcao * alcance_max), alcance_max / maxf(velocidade, 40.0))
 	tween.tween_callback(func():
 		if is_instance_valid(area):
 			HatsuVisual.spawn_impact_effect(area.global_position, vp, owner_body.get_parent())
