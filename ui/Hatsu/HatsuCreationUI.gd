@@ -3,6 +3,8 @@ extends CanvasLayer
 
 const HatsuGuideBasesScript = preload("res://resource/hatsu/HatsuGuideBases.gd")
 const HatsuComplexityJudgeScript = preload("res://scripts/systems/hatsu/HatsuComplexityJudge.gd")
+const HatsuEffectTreeScript = preload("res://scripts/systems/hatsu/HatsuEffectTree.gd")
+const HatsuEffectTreeUIScript = preload("res://ui/Hatsu/HatsuEffectTreeUI.gd")
 
 # ============================================================
 # HUNTER ONLINE - HATSU CREATION UI (v1.5: CRÉDITOS DE LIMITAÇÃO)
@@ -45,6 +47,9 @@ var etapa_atual: Etapa = Etapa.TIPO_NEN
 var sel_tipo_especial: bool = false
 var sel_preset_id: HatsuPresetLibrary.PresetId = HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO
 var sel_guide_base_id: String = "" ## Base guiada (inspiração cânone, nome original)
+var sel_effect_tree: RefCounted = null ## HatsuEffectTree após fase de árvore
+var sel_effect_tree_done: bool = false
+var _tree_overlay: CanvasLayer = null
 var sel_nome: String = "Meu Hatsu"
 var sel_categoria: HatsuData.Categoria = HatsuData.Categoria.INTENSIFICACAO
 var sel_objetivo: HatsuData.ObjetivoPrincipal = HatsuData.ObjetivoPrincipal.DANO
@@ -142,6 +147,8 @@ func abrir() -> void:
 	sel_tipo_especial = false
 	sel_preset_id = HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO
 	sel_guide_base_id = ""
+	sel_effect_tree = null
+	sel_effect_tree_done = false
 	sel_nome = "Novo Hatsu"
 	sel_categoria = PlayerData.afinidade_nen as HatsuData.Categoria
 	sel_objetivo = HatsuData.ObjetivoPrincipal.DANO
@@ -1294,9 +1301,33 @@ func _montar_etapa_resumo() -> void:
 		]
 	container_opcoes.add_child(lbl_res)
 
+	# Fase 2: saldo de pontos → árvore de efeitos
+	var tree_pts: int = HatsuEffectTreeScript.calcular_budget_de_hatsu(h_temp)
+	var lbl_tree := Label.new()
+	lbl_tree.add_theme_font_size_override("font_size", 4)
+	lbl_tree.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if sel_effect_tree_done and sel_effect_tree != null:
+		lbl_tree.add_theme_color_override("font_color", Color(0.45, 1.0, 0.65))
+		lbl_tree.text = "🌌 Árvore de Efeitos: OK (gastou %d/%d pts no raio Nen)." % [
+			sel_effect_tree.budget_spent, sel_effect_tree.budget_total
+		]
+	else:
+		lbl_tree.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+		lbl_tree.text = "🌌 Saldo da Árvore: %d pts (vêm das suas condições/restrições).\nAbra a constelação, siga o raio da categoria e gaste pontos no que a habilidade FAZ." % tree_pts
+	container_opcoes.add_child(lbl_tree)
+
+	var btn_tree := Button.new()
+	btn_tree.text = "🌌 Abrir Árvore de Efeitos (%d pts)" % tree_pts if not sel_effect_tree_done else "🌌 Revisar Árvore de Efeitos"
+	btn_tree.add_theme_font_size_override("font_size", 4)
+	btn_tree.pressed.connect(func(): _abrir_arvore_efeitos(h_temp))
+	container_opcoes.add_child(btn_tree)
+
 	if deficit > 0:
 		btn_proximo.modulate = Color(1.0, 0.4, 0.4, 1.0)
 		btn_proximo.text = "⚠️ Déficit Pendente"
+	elif not sel_effect_tree_done:
+		btn_proximo.modulate = Color(1.0, 0.75, 0.35, 1.0)
+		btn_proximo.text = "🌌 Abrir Árvore primeiro"
 	else:
 		btn_proximo.modulate = Color(0.4, 1.0, 0.6, 1.0)
 		btn_proximo.text = "⚡ FORJAR HATSU!"
@@ -1365,8 +1396,51 @@ func _on_avancar_pressed() -> void:
 	if etapa_atual < Etapa.RESUMO:
 		etapa_atual = (int(etapa_atual) + 1) as Etapa
 		_atualizar_etapa()
+	elif not sel_effect_tree_done:
+		# Força a árvore de efeitos antes da forja
+		var h_temp := HatsuManager.criar_hatsu(
+			sel_nome, sel_categoria, sel_forma, sel_condicoes,
+			sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
+			sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
+			sel_preparation_steps, sel_efeitos_secundarios,
+			sel_restricoes, sel_opcoes_preset_escolhidas,
+			sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
+		)
+		_abrir_arvore_efeitos(h_temp)
 	else:
 		_finalizar_criacao(false)
+
+
+func _abrir_arvore_efeitos(h_temp: HatsuData) -> void:
+	if _tree_overlay != null and is_instance_valid(_tree_overlay):
+		_tree_overlay.queue_free()
+	var budget: int = HatsuEffectTreeScript.calcular_budget_de_hatsu(h_temp)
+	var et = HatsuEffectTreeScript.new()
+	et.reset(budget, int(sel_categoria))
+	sel_effect_tree = et
+
+	_tree_overlay = CanvasLayer.new()
+	_tree_overlay.layer = 40
+	_tree_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_tree_overlay)
+	var ui = HatsuEffectTreeUIScript.new()
+	_tree_overlay.add_child(ui)
+	ui.setup(et)
+	ui.confirmado.connect(func(t):
+		sel_effect_tree = t
+		sel_effect_tree_done = true
+		if _tree_overlay != null:
+			_tree_overlay.queue_free()
+			_tree_overlay = null
+		_atualizar_etapa()
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("Árvore confirmada — pode forjar.", Color(0.5, 1.0, 0.6))
+	)
+	ui.cancelado.connect(func():
+		if _tree_overlay != null:
+			_tree_overlay.queue_free()
+			_tree_overlay = null
+	)
 
 
 func _finalizar_criacao(is_draft: bool = false) -> void:
@@ -1390,6 +1464,10 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 	novo_hatsu.sub_effects = sel_efeitos_secundarios.duplicate()
 	novo_hatsu.modular_restrictions = sel_restricoes.duplicate()
 	novo_hatsu.parametros_conceito = sel_opcoes_preset_escolhidas.duplicate(true)
+
+	# Aplica árvore de efeitos (o que a habilidade FAZ)
+	if sel_effect_tree != null and sel_effect_tree.has_method("aplicar_em_hatsu"):
+		sel_effect_tree.aplicar_em_hatsu(novo_hatsu)
 
 	# Marca base guiada para tradeoffs no juiz (ex.: -1 passo → mais fraco)
 	if not sel_guide_base_id.is_empty():
