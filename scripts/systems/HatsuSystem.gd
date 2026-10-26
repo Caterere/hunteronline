@@ -5,6 +5,7 @@ const HatsuVisual = preload("res://scripts/visual/HatsuVisual.gd")
 const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit.gd")
 const CanonFidelityKit = preload("res://scripts/systems/hatsu/CanonFidelityKit.gd")
 const HitStopManager = preload("res://scripts/combat/HitStopManager.gd")
+const HatsuProceduralFxKit = preload("res://entities/effects/HatsuProceduralFxKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - HATSU SYSTEM (MOTOR DE COMBATE E VOWS)
@@ -743,6 +744,11 @@ func usar_hatsu(slot_index: int) -> bool:
 			var raw_vp: VisualProfile = hatsu.obter_visual_profile()
 			var vp: VisualProfile = PlayerData.aura_visual_profile.blend_with_hatsu(raw_vp) if PlayerData.aura_visual_profile != null else raw_vp
 			HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
+			# Camada procedural (EstiloVisual + categoria) — código only, sem PNG
+			var cast_dir: Vector2 = Vector2.DOWN
+			if combat_system != null and combat_system.ultima_direcao != Vector2.ZERO:
+				cast_dir = combat_system.ultima_direcao
+			HatsuProceduralFxKit.play_for_hatsu(owner_body, owner_body.global_position, cast_dir, hatsu, 1.05)
 			var shake_amt: float = 0.42 if hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO else 0.32
 			HitStopManager.aplicar_screen_shake(shake_amt)
 			HitStopManager.aplicar_hitstop(HitStopManager.HitIntensity.HATSU, 0.12)
@@ -807,6 +813,15 @@ func _aplicar_feel_impacto_hatsu(enemy_sys: Node, dano: int, direcao: Vector2, f
 				var pull: Vector2 = (owner_body.global_position - body.global_position).normalized() * 40.0
 				if enemy_sys.has_method("_apply_knockback"):
 					enemy_sys._apply_knockback(pull, 80.0)
+	# Impacto visual procedural no alvo
+	var hit_pos: Vector2 = owner_body.global_position if owner_body != null else Vector2.ZERO
+	if enemy_sys.get_parent() != null and enemy_sys.get_parent() is Node2D:
+		hit_pos = (enemy_sys.get_parent() as Node2D).global_position
+	var hit_dir: Vector2 = direcao if direcao != Vector2.ZERO else Vector2.RIGHT
+	if hatsu != null:
+		HatsuProceduralFxKit.play_estilo(enemy_sys, hit_pos, hit_dir, int(hatsu.estilo_visual), hatsu.cor_aura, 0.85)
+	else:
+		HatsuProceduralFxKit.impact_ring(enemy_sys, hit_pos, Color(0.5, 0.85, 1.0), 26.0)
 	var intens = HitStopManager.HitIntensity.HATSU
 	if hatsu != null and hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO:
 		HitStopManager.aplicar_screen_shake(0.55)

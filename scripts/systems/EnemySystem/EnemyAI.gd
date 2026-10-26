@@ -5,6 +5,7 @@ const ComicBalloon = preload("res://scripts/ui/ComicBalloon.gd")
 const CombatComicQuotes = preload("res://resource/dialogue/CombatComicQuotes.gd")
 const BossPhaseDataScript = preload("res://resource/status/BossPhaseData.gd")
 const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit.gd")
+const HatsuProceduralFxKit = preload("res://entities/effects/HatsuProceduralFxKit.gd")
 
 # =========================================================
 # CONFIGURAÇÕES
@@ -1461,6 +1462,7 @@ func _hatsu_muralha_pedra(dir: Vector2) -> void:
 	ComicBalloon.mostrar(enemy_body, "🪨 MURALHA DE PEDRA!", 2.0, -40.0)
 	if EventBus != null:
 		EventBus.emit_hatsu_dramatic_callout(enemy_body, "Muralha de Pedra", "Conjuração (Barreira Telúrica)", Color(0.7, 0.55, 0.3))
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Muralha de Pedra")
 	var fx := HatsuAreaExplosionNode.new()
 	fx.setup(70.0, Color(0.65, 0.5, 0.3), Color(0.35, 0.25, 0.15))
 	enemy_body.add_child(fx)
@@ -1477,6 +1479,7 @@ func _hatsu_muralha_pedra(dir: Vector2) -> void:
 
 func _hatsu_uivo_aura(dir: Vector2) -> void:
 	ComicBalloon.mostrar(enemy_body, "🐺 UIVO DE AURA!", 2.0, -40.0)
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Uivo de Aura")
 	var fx := HatsuAreaExplosionNode.new()
 	fx.setup(110.0, Color(0.55, 0.35, 0.95), Color(0.2, 0.1, 0.4))
 	enemy_body.add_child(fx)
@@ -1487,6 +1490,7 @@ func _hatsu_uivo_aura(dir: Vector2) -> void:
 
 func _hatsu_garras_quimera(dir: Vector2) -> void:
 	ComicBalloon.mostrar(enemy_body, "🦂 GARRAS QUIMERA!", 1.8, -40.0)
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Garras Quimera")
 	if EventBus != null:
 		EventBus.emit_camera_shake(0.35, 0.18)
 	var dist: float = enemy_body.global_position.distance_to(player.global_position)
@@ -1504,9 +1508,10 @@ func _hatsu_garras_quimera(dir: Vector2) -> void:
 
 func _hatsu_sombra_drenante(dir: Vector2) -> void:
 	ComicBalloon.mostrar(enemy_body, "🌑 SOMBRA DRENANTE!", 2.0, -40.0)
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Sombra Drenante")
 	var h := HatsuData.new()
 	h.nome = "Sombra Drenante"
-	h.estilo_visual = HatsuData.EstiloVisual.PURO_PULSANTE
+	h.estilo_visual = HatsuData.EstiloVisual.NEVOA_SOMBRIAS
 	h.cor_aura = Color(0.35, 0.1, 0.45)
 	var proj := HatsuProjectileNode.new()
 	var dmg := 18 + (int(enemy_system.strength * 0.2) if enemy_system else 0)
@@ -1520,6 +1525,7 @@ func _hatsu_sombra_drenante(dir: Vector2) -> void:
 
 func _hatsu_ko_selvagem(dir: Vector2) -> void:
 	ComicBalloon.mostrar(enemy_body, "💥 KO / SHU!", 1.6, -40.0)
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Ko Selvagem")
 	var dist: float = enemy_body.global_position.distance_to(player.global_position)
 	if dist <= 60.0:
 		_aplicar_dano_jogador(32 + int(enemy_system.strength * 0.3) if enemy_system else 32, dir, 220.0)
@@ -1527,6 +1533,7 @@ func _hatsu_ko_selvagem(dir: Vector2) -> void:
 
 func _hatsu_emissao_flecha(dir: Vector2) -> void:
 	ComicBalloon.mostrar(enemy_body, "🏹 DISPARO DE AURA!", 1.6, -38.0)
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Flecha de Aura")
 	var h := HatsuData.new()
 	h.nome = "Flecha de Aura"
 	h.estilo_visual = HatsuData.EstiloVisual.PURO_PULSANTE
@@ -1540,6 +1547,7 @@ func _hatsu_emissao_flecha(dir: Vector2) -> void:
 
 func _hatsu_nevoa_toxica(dir: Vector2) -> void:
 	ComicBalloon.mostrar(enemy_body, "☠️ NÉVOA TÓXICA!", 2.0, -40.0)
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Névoa Tóxica")
 	var fx := HatsuAreaExplosionNode.new()
 	fx.setup(85.0, Color(0.45, 0.85, 0.35), Color(0.15, 0.35, 0.1))
 	enemy_body.add_child(fx)
@@ -1550,6 +1558,7 @@ func _hatsu_nevoa_toxica(dir: Vector2) -> void:
 
 func _hatsu_aura_comando(dir: Vector2) -> void:
 	ComicBalloon.mostrar(enemy_body, "👑 AURA DE COMANDO!", 2.0, -42.0)
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Aura de Comando")
 	if EventBus != null:
 		EventBus.emit_camera_shake(0.45, 0.22)
 	var fx := HatsuAreaExplosionNode.new()
@@ -1568,6 +1577,7 @@ func _hatsu_aura_comando(dir: Vector2) -> void:
 func _executar_hatsu_modular(dir: Vector2, h: HatsuData) -> void:
 	if h == null: return
 	ComicBalloon.mostrar(enemy_body, "⚡ [%s]!" % h.nome.to_upper(), 2.0, -42.0)
+	HatsuProceduralFxKit.play_for_hatsu(enemy_body, enemy_body.global_position, dir, h, 1.0)
 	if EventBus != null:
 		EventBus.emit_camera_shake(0.40, 0.20)
 	var dano_calc: int = CombatEngine.calcular_dano(enemy_body, player, h, false, h.tags if "tags" in h else [])
@@ -1983,6 +1993,7 @@ func _hatsu_monstro_padrao(dir: Vector2) -> void:
 	h.nome = "Disparo de Aura"
 	h.estilo_visual = HatsuData.EstiloVisual.PURO_PULSANTE
 	h.cor_aura = Color(0.8, 0.3, 0.2)
+	HatsuProceduralFxKit.cast_flash(enemy_body, enemy_body.global_position, h.cor_aura, 0.85)
 
 	var proj := HatsuProjectileNode.new()
 	proj.setup(enemy_body.global_position, dir, 180.0, 220.0, 14, h.cor_aura, enemy_body, h)
