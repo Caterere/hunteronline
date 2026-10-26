@@ -177,6 +177,7 @@ var is_fase_2: bool = false
 var enemy_system: EnemySystem = null
 var hatsu_timer: float = 2.0
 var hatsu_cooldown: float = 4.5
+var attack_pattern_id: String = "pressure"
 var nobunaga_en_ativo: bool = false
 var phinks_windup_count: int = 0
 
@@ -1099,6 +1100,30 @@ func _chase() -> void:
 		"boss":
 			vel_atual *= (1.20 if is_fase_2 else 1.0)
 
+	# Padrões de ação HxH (EnemyNenKit)
+	match attack_pattern_id:
+		"kite":
+			if distance < 140.0:
+				direction = -direction
+				vel_atual *= 1.2
+		"charge":
+			if distance > stop_distance * 1.8:
+				vel_atual *= 1.45
+		"ambush":
+			if distance > detection_range * 0.55:
+				vel_atual *= 1.55
+		"hatsu_focus":
+			# Mantém range médio e prioriza Hatsu (CD reduzido indireto via timer)
+			if distance < 90.0:
+				direction = -direction
+				vel_atual *= 1.1
+			elif hatsu_timer > 0.5:
+				hatsu_timer = maxf(0.0, hatsu_timer - 0.35)
+		"poison_burst", "guard_bash":
+			if role == "tank" and distance < stop_distance * 1.2 and attack_timer <= 0.0 and randf() < 0.25:
+				_iniciar_guarda()
+				return
+
 	# Modificador de velocidade se intimidado por Ren do jogador
 	var nen_sys = player.get_node_or_null("NenSystem")
 	if nen_sys != null and nen_sys.has_method("tecnica_ativa") and nen_sys.tecnica_ativa(NenSystem.Tecnica.REN):
@@ -1384,13 +1409,160 @@ func executar_hatsu_inimigo() -> void:
 	elif "morel" in e_name:
 		_hatsu_morel()
 
-	# 6. Hatsu Modular Orientado a Dados (Fase F - Universal Nen Engine)
-	elif enemy_system != null and enemy_system.enemy_data != null and enemy_system.enemy_data.modular_hatsu != null:
-		_executar_hatsu_modular(dir, enemy_system.enemy_data.modular_hatsu)
+	# 6. Hatsus de arquétipo (elites / fauna Nen / constructos) por hatsu_name
+	elif enemy_system != null and enemy_system.enemy_data != null and _tentar_hatsu_por_nome(dir, str(enemy_system.enemy_data.hatsu_name)):
+		pass
 
-	# 7. Monstros e Quimeras Menores
+	# 7. Hatsu Modular Orientado a Dados (Fase F - Universal Nen Engine)
+	elif enemy_system != null and enemy_system.enemy_data != null:
+		var mh: HatsuData = enemy_system.enemy_data.obter_hatsu_real()
+		if mh != null:
+			_executar_hatsu_modular(dir, mh)
+		else:
+			_hatsu_monstro_padrao(dir)
+
+	# 8. Monstros sem identidade de Nen
 	else:
 		_hatsu_monstro_padrao(dir)
+
+
+func _tentar_hatsu_por_nome(dir: Vector2, hatsu_nome: String) -> bool:
+	var n := hatsu_nome.to_lower()
+	if n.is_empty():
+		return false
+	if "muralha" in n or "selo ancestral" in n:
+		_hatsu_muralha_pedra(dir)
+		return true
+	if "uivo" in n:
+		_hatsu_uivo_aura(dir)
+		return true
+	if "garras" in n or "quimera" in n:
+		_hatsu_garras_quimera(dir)
+		return true
+	if "sombra" in n or "drenante" in n:
+		_hatsu_sombra_drenante(dir)
+		return true
+	if "ko " in n or n.begins_with("ko") or "ren de" in n or "punho shu" in n or "ko de" in n:
+		_hatsu_ko_selvagem(dir)
+		return true
+	if "flecha" in n or "disparo" in n or "rajada" in n:
+		_hatsu_emissao_flecha(dir)
+		return true
+	if "névoa" in n or "nevoa" in n or "lodo" in n or "presas" in n:
+		_hatsu_nevoa_toxica(dir)
+		return true
+	if "comando" in n or "besta de nen" in n or "trupe" in n or "zoldyck" in n or "guarda real" in n:
+		_hatsu_aura_comando(dir)
+		return true
+	return false
+
+
+func _hatsu_muralha_pedra(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "🪨 MURALHA DE PEDRA!", 2.0, -40.0)
+	if EventBus != null:
+		EventBus.emit_hatsu_dramatic_callout(enemy_body, "Muralha de Pedra", "Conjuração (Barreira Telúrica)", Color(0.7, 0.55, 0.3))
+	var fx := HatsuAreaExplosionNode.new()
+	fx.setup(70.0, Color(0.65, 0.5, 0.3), Color(0.35, 0.25, 0.15))
+	enemy_body.add_child(fx)
+	if enemy_system != null:
+		enemy_system.escudo_imune_ativo = true
+		get_tree().create_timer(1.4).timeout.connect(func():
+			if is_instance_valid(enemy_system):
+				enemy_system.escudo_imune_ativo = false
+		)
+	var dist: float = enemy_body.global_position.distance_to(player.global_position)
+	if dist <= 75.0:
+		_aplicar_dano_jogador(18 + int(enemy_system.strength * 0.15) if enemy_system else 18, dir, 140.0)
+
+
+func _hatsu_uivo_aura(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "🐺 UIVO DE AURA!", 2.0, -40.0)
+	var fx := HatsuAreaExplosionNode.new()
+	fx.setup(110.0, Color(0.55, 0.35, 0.95), Color(0.2, 0.1, 0.4))
+	enemy_body.add_child(fx)
+	var dist: float = enemy_body.global_position.distance_to(player.global_position)
+	if dist <= 110.0:
+		_aplicar_dano_jogador(16 + int(enemy_system.strength * 0.12) if enemy_system else 16, dir, 90.0)
+
+
+func _hatsu_garras_quimera(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "🦂 GARRAS QUIMERA!", 1.8, -40.0)
+	if EventBus != null:
+		EventBus.emit_camera_shake(0.35, 0.18)
+	var dist: float = enemy_body.global_position.distance_to(player.global_position)
+	if dist <= 70.0:
+		_aplicar_dano_jogador(28 + int(enemy_system.strength * 0.25) if enemy_system else 28, dir, 180.0)
+		# Segundo golpe rápido (combo Intensificação)
+		get_tree().create_timer(0.22).timeout.connect(func():
+			if not is_instance_valid(enemy_body) or not is_instance_valid(player):
+				return
+			var d2 := (player.global_position - enemy_body.global_position).normalized()
+			if enemy_body.global_position.distance_to(player.global_position) <= 75.0:
+				_aplicar_dano_jogador(14, d2, 100.0)
+		)
+
+
+func _hatsu_sombra_drenante(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "🌑 SOMBRA DRENANTE!", 2.0, -40.0)
+	var h := HatsuData.new()
+	h.nome = "Sombra Drenante"
+	h.estilo_visual = HatsuData.EstiloVisual.PURO_PULSANTE
+	h.cor_aura = Color(0.35, 0.1, 0.45)
+	var proj := HatsuProjectileNode.new()
+	var dmg := 18 + (int(enemy_system.strength * 0.2) if enemy_system else 0)
+	proj.setup(enemy_body.global_position, dir, 160.0, 260.0, dmg, h.cor_aura, enemy_body, h)
+	if enemy_body.get_parent() != null:
+		enemy_body.get_parent().add_child(proj)
+	# Cura leve no usuário (drenagem)
+	if enemy_system != null and enemy_system.health < enemy_system.max_health:
+		enemy_system.health = mini(enemy_system.max_health, enemy_system.health + 8)
+
+
+func _hatsu_ko_selvagem(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "💥 KO / SHU!", 1.6, -40.0)
+	var dist: float = enemy_body.global_position.distance_to(player.global_position)
+	if dist <= 60.0:
+		_aplicar_dano_jogador(32 + int(enemy_system.strength * 0.3) if enemy_system else 32, dir, 220.0)
+
+
+func _hatsu_emissao_flecha(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "🏹 DISPARO DE AURA!", 1.6, -38.0)
+	var h := HatsuData.new()
+	h.nome = "Flecha de Aura"
+	h.estilo_visual = HatsuData.EstiloVisual.PURO_PULSANTE
+	h.cor_aura = Color(0.4, 0.85, 1.0)
+	var dmg := 20 + (int(enemy_system.strength * 0.22) if enemy_system else 0)
+	var proj := HatsuProjectileNode.new()
+	proj.setup(enemy_body.global_position, dir, 200.0, 320.0, dmg, h.cor_aura, enemy_body, h)
+	if enemy_body.get_parent() != null:
+		enemy_body.get_parent().add_child(proj)
+
+
+func _hatsu_nevoa_toxica(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "☠️ NÉVOA TÓXICA!", 2.0, -40.0)
+	var fx := HatsuAreaExplosionNode.new()
+	fx.setup(85.0, Color(0.45, 0.85, 0.35), Color(0.15, 0.35, 0.1))
+	enemy_body.add_child(fx)
+	var dist: float = enemy_body.global_position.distance_to(player.global_position)
+	if dist <= 85.0:
+		_aplicar_dano_jogador(14 + int(enemy_system.strength * 0.12) if enemy_system else 14, dir, 60.0)
+
+
+func _hatsu_aura_comando(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "👑 AURA DE COMANDO!", 2.0, -42.0)
+	if EventBus != null:
+		EventBus.emit_camera_shake(0.45, 0.22)
+	var fx := HatsuAreaExplosionNode.new()
+	fx.setup(100.0, Color(0.95, 0.85, 0.35), Color(0.5, 0.35, 0.1))
+	enemy_body.add_child(fx)
+	var dist: float = enemy_body.global_position.distance_to(player.global_position)
+	if dist <= 100.0:
+		_aplicar_dano_jogador(26 + int(enemy_system.strength * 0.2) if enemy_system else 26, dir, 160.0)
+	# Buff curto de velocidade (pressão de líder)
+	move_speed *= 1.15
+	get_tree().create_timer(3.0).timeout.connect(func():
+		move_speed /= 1.15
+	)
 
 
 func _executar_hatsu_modular(dir: Vector2, h: HatsuData) -> void:
