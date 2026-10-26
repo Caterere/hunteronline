@@ -2,19 +2,24 @@ class_name HatsuEffectTree
 extends RefCounted
 
 # ============================================================
-# Runtime: saldo de pontos → alocação na árvore de efeitos
+# Runtime: saldo → alocação com gates de anel (Lv + mastery)
 # ============================================================
 
 const DB = preload("res://scripts/systems/hatsu/HatsuEffectTreeDatabase.gd")
+const Cfg = preload("res://scripts/systems/hatsu/HatsuConfig.gd")
 
 signal pontos_alterados(restantes: int)
 signal no_alocado(node_id: StringName)
 
-var nodes: Dictionary = {} ## id -> def
-var allocated: Dictionary = {} ## id -> true
+var nodes: Dictionary = {}
+var allocated: Dictionary = {}
 var budget_total: int = 0
 var budget_spent: int = 0
-var primary_category: int = -1 ## categoria escolhida na base
+var primary_category: int = -1
+var player_level: int = 1
+var mastery_level: float = 0.0
+var bond_uses: int = 0
+var deepen_count: int = 0
 
 
 func _init() -> void:
@@ -23,14 +28,23 @@ func _init() -> void:
 	allocated[&"hx_center"] = true
 
 
-func reset(budget: int, categoria_primaria: int = -1) -> void:
+func reset(budget: int, categoria_primaria: int = -1, p_level: int = 1, mastery: float = 0.0) -> void:
 	nodes = DB.build_tree()
 	allocated.clear()
 	allocated[&"hx_center"] = true
 	budget_total = maxi(0, budget)
 	budget_spent = 0
 	primary_category = categoria_primaria
+	player_level = maxi(1, p_level)
+	mastery_level = maxf(0.0, mastery)
 	pontos_alterados.emit(obter_saldo())
+
+
+func configurar_contexto(p_level: int, mastery: float, uses: int = 0, deepens: int = 0) -> void:
+	player_level = maxi(1, p_level)
+	mastery_level = maxf(0.0, mastery)
+	bond_uses = maxi(0, uses)
+	deepen_count = maxi(0, deepens)
 
 
 func obter_saldo() -> int:
@@ -43,22 +57,16 @@ func obter_custo_efetivo(node_id: StringName) -> int:
 	var def: Dictionary = nodes[node_id]
 	var base_cost: int = int(def.get("cost", 1))
 	var cat: int = int(def.get("categoria", -1))
-	if primary_category < 0 or cat < 0:
+	if primary_category < 0 or cat < 0 or cat == primary_category:
 		return base_cost
-	if cat == primary_category:
-		return base_cost
-	# Adjacente no hexágono Nen: +1; oposto: +2
+	# Fora do raio: caro de propósito (apego ao caminho)
 	var dist: int = _nen_distance(primary_category, cat)
 	if dist == 1:
-		return base_cost + 1
-	if dist >= 2:
 		return base_cost + 2
-	return base_cost
+	return base_cost + 3
 
 
 func _nen_distance(a: int, b: int) -> int:
-	# Ordem HxH no hexágono (enum do projeto):
-	# Intensificação(0)-Transformação(1)-Emissão(2)-Conjuração(3)-Manipulação(4) | Especialização(5)
 	if a == b:
 		return 0
 	if a == int(HatsuData.Categoria.ESPECIALIZACAO) or b == int(HatsuData.Categoria.ESPECIALIZACAO):
@@ -78,6 +86,35 @@ func _nen_distance(a: int, b: int) -> int:
 	return mini(d, ring.size() - d)
 
 
+func gate_anel(ring: int) -> Dictionary:
+	var lvl_need: int = 0
+	var mast_need: int = 0
+	if ring >= 0 and ring < Cfg.TREE_RING_LEVEL.size():
+		lvl_need = int(Cfg.TREE_RING_LEVEL[ring])
+	if ring >= 0 and ring < Cfg.TREE_RING_MASTERY.size():
+		mast_need = int(Cfg.TREE_RING_MASTERY[ring])
+	var lvl_ok: bool = player_level >= lvl_need
+	var mast_ok: bool = mastery_level + 0.001 >= float(mast_need)
+	if ring >= 3 and Cfg.TREE_KEYSTONE_REQUIRES_BOTH:
+		if not lvl_ok or not mast_ok:
+			return {
+				"ok": false,
+				"reason": "Anel 3 exige Lv.%d E Mastery %d (agora Lv.%d / M%.0f)" % [
+					lvl_need, mast_need, player_level, mastery_level
+				]
+			}
+	else:
+		# Anéis 1–2: nível OU mastery (crescer como caçador OU com a técnica)
+		if ring >= 2 and not lvl_ok and not mast_ok:
+			return {
+				"ok": false,
+				"reason": "Anel %d: precisa Lv.%d ou Mastery %d" % [ring, lvl_need, mast_need]
+			}
+		if ring == 1 and not lvl_ok and not mast_ok:
+			return {"ok": false, "reason": "Anel 1 bloqueado"}
+	return {"ok": true, "reason": "OK", "lvl_need": lvl_need, "mast_need": mast_need}
+
+
 func pode_alocar(node_id: StringName) -> Dictionary:
 	if allocated.get(node_id, false):
 		return {"ok": false, "reason": "Já alocado"}
@@ -87,6 +124,9 @@ func pode_alocar(node_id: StringName) -> Dictionary:
 	for p in def.get("prereqs", []):
 		if not allocated.get(p, false):
 			return {"ok": false, "reason": "Pré-requisito bloqueado"}
+	var gate := gate_anel(int(def.get("ring", 0)))
+	if not gate.get("ok", false):
+		return gate
 	var cost: int = obter_custo_efetivo(node_id)
 	if cost > obter_saldo():
 		return {"ok": false, "reason": "Pontos insuficientes (%d)" % cost}
@@ -100,7 +140,6 @@ func alocar(node_id: StringName) -> bool:
 	var cost: int = int(check.get("cost", obter_custo_efetivo(node_id)))
 	allocated[node_id] = true
 	budget_spent += cost
-	# Se for hub de categoria e ainda não há primary, fixa
 	var def: Dictionary = nodes[node_id]
 	if primary_category < 0 and int(def.get("categoria", -1)) >= 0 and def.get("effects", {}).has("lock_category"):
 		primary_category = int(def["categoria"])
@@ -110,7 +149,6 @@ func alocar(node_id: StringName) -> bool:
 
 
 func desfazer_folha(node_id: StringName) -> bool:
-	## Só desfaz se nenhum outro nó depende dele
 	if node_id == &"hx_center" or not allocated.get(node_id, false):
 		return false
 	for nid in nodes.keys():
@@ -125,16 +163,20 @@ func desfazer_folha(node_id: StringName) -> bool:
 	return true
 
 
+func tem_compromisso_categoria() -> bool:
+	for nid in allocated.keys():
+		if not nodes.has(nid):
+			continue
+		var def: Dictionary = nodes[nid]
+		if int(def.get("kind", -1)) == int(DB.NodeKind.HUB) and int(def.get("categoria", -1)) >= 0:
+			return true
+	return false
+
+
 func coletar_efeitos() -> Dictionary:
 	var merged: Dictionary = {
-		"poder": 0.0,
-		"alcance": 0.0,
-		"cura": 0.0,
-		"raio": 0.0,
-		"duracao": 0.0,
-		"aura_cost": 0.0,
-		"cooldown": 0.0,
-		"flags": []
+		"poder": 0.0, "alcance": 0.0, "cura": 0.0, "raio": 0.0,
+		"duracao": 0.0, "aura_cost": 0.0, "cooldown": 0.0, "flags": []
 	}
 	for nid in allocated.keys():
 		if not nodes.has(nid):
@@ -153,20 +195,125 @@ func coletar_efeitos() -> Dictionary:
 	return merged
 
 
-func tem_compromisso_categoria() -> bool:
-	## Precisa de pelo menos um hub de categoria alocado (identidade do Hatsu).
+func serializar_alocacao() -> Dictionary:
+	var ids: Array = []
 	for nid in allocated.keys():
-		if not nodes.has(nid):
-			continue
-		var def: Dictionary = nodes[nid]
-		if int(def.get("kind", -1)) == int(DB.NodeKind.HUB) and int(def.get("categoria", -1)) >= 0:
-			return true
-	return false
+		ids.append(str(nid))
+	return {
+		"allocated": ids,
+		"budget_total": budget_total,
+		"budget_spent": budget_spent,
+		"primary_category": primary_category,
+		"deepen_count": deepen_count,
+		"bond_uses": bond_uses
+	}
+
+
+func restaurar_alocacao(state: Dictionary) -> void:
+	nodes = DB.build_tree()
+	allocated.clear()
+	allocated[&"hx_center"] = true
+	budget_total = int(state.get("budget_total", budget_total))
+	budget_spent = 0
+	primary_category = int(state.get("primary_category", primary_category))
+	deepen_count = int(state.get("deepen_count", deepen_count))
+	bond_uses = int(state.get("bond_uses", bond_uses))
+	var ids: Array = state.get("allocated", [])
+	# Reaplica na ordem de dependência (várias passadas)
+	var pending: Array = ids.duplicate()
+	var guard := 0
+	while not pending.is_empty() and guard < 64:
+		guard += 1
+		var next_pending: Array = []
+		for raw in pending:
+			var nid := StringName(str(raw))
+			if nid == &"hx_center" or allocated.get(nid, false):
+				continue
+			if not nodes.has(nid):
+				continue
+			var ok_prereq := true
+			for p in nodes[nid].get("prereqs", []):
+				if not allocated.get(p, false):
+					ok_prereq = false
+					break
+			if not ok_prereq:
+				next_pending.append(raw)
+				continue
+			# Força alocação ignorando gates de anel (já conquistado)
+			var cost: int = obter_custo_efetivo(nid)
+			allocated[nid] = true
+			budget_spent += cost
+			var def: Dictionary = nodes[nid]
+			if primary_category < 0 and int(def.get("categoria", -1)) >= 0 and def.get("effects", {}).has("lock_category"):
+				primary_category = int(def["categoria"])
+		pending = next_pending
+	# Corrige spent se state tinha valor explícito inconsistente
+	if int(state.get("budget_spent", -1)) >= 0:
+		budget_spent = mini(budget_total, maxi(budget_spent, int(state.get("budget_spent", budget_spent))))
+	pontos_alterados.emit(obter_saldo())
+
+
+func expandir_budget(novos_pontos: int) -> void:
+	budget_total += maxi(0, novos_pontos)
+	pontos_alterados.emit(obter_saldo())
 
 
 func aplicar_em_hatsu(hatsu: HatsuData) -> void:
 	if hatsu == null:
 		return
+	if not hatsu.parametros_conceito is Dictionary:
+		hatsu.parametros_conceito = {}
+	var bag: Dictionary = hatsu.parametros_conceito.get("effect_tree", {})
+	if typeof(bag) != TYPE_DICTIONARY:
+		bag = {}
+
+	# Snapshot da forja (antes da árvore) para reaplicar sem duplicar
+	if not bag.has("forge_snapshot"):
+		bag["forge_snapshot"] = {
+			"poder_base": hatsu.poder_base,
+			"alcance": hatsu.alcance,
+			"cura_base": hatsu.cura_base,
+			"raio": hatsu.raio,
+			"duracao": hatsu.duracao,
+			"custo_aura_base": hatsu.custo_aura_base,
+			"cooldown_base": hatsu.cooldown_base,
+			"forma": int(hatsu.forma),
+			"activation_type": int(hatsu.activation_type),
+			"stun_duracao": hatsu.stun_duracao,
+			"aura_drain_per_sec": hatsu.aura_drain_per_sec,
+			"exclusive_group": hatsu.exclusive_group,
+			"concurrent_allowed": hatsu.concurrent_allowed,
+			"arquetipo": int(hatsu.arquetipo),
+			"is_storage_hatsu": hatsu.is_storage_hatsu,
+			"storage_capacity": hatsu.storage_capacity,
+			"core_component": hatsu.core_component,
+			"absorption_rate": hatsu.absorption_rate,
+			"categoria": int(hatsu.categoria),
+			"objetivo": int(hatsu.objetivo),
+		}
+	else:
+		var snap: Dictionary = bag["forge_snapshot"]
+		hatsu.poder_base = float(snap.get("poder_base", hatsu.poder_base))
+		hatsu.alcance = float(snap.get("alcance", hatsu.alcance))
+		hatsu.cura_base = float(snap.get("cura_base", hatsu.cura_base))
+		hatsu.raio = float(snap.get("raio", hatsu.raio))
+		hatsu.duracao = float(snap.get("duracao", hatsu.duracao))
+		hatsu.custo_aura_base = float(snap.get("custo_aura_base", hatsu.custo_aura_base))
+		hatsu.cooldown_base = float(snap.get("cooldown_base", hatsu.cooldown_base))
+		hatsu.forma = int(snap.get("forma", int(hatsu.forma))) as HatsuData.Forma
+		hatsu.activation_type = int(snap.get("activation_type", int(hatsu.activation_type))) as HatsuData.ActivationType
+		hatsu.stun_duracao = float(snap.get("stun_duracao", hatsu.stun_duracao))
+		hatsu.aura_drain_per_sec = float(snap.get("aura_drain_per_sec", hatsu.aura_drain_per_sec))
+		hatsu.exclusive_group = str(snap.get("exclusive_group", hatsu.exclusive_group))
+		hatsu.concurrent_allowed = bool(snap.get("concurrent_allowed", hatsu.concurrent_allowed))
+		hatsu.arquetipo = int(snap.get("arquetipo", int(hatsu.arquetipo))) as HatsuData.Arquetipo
+		hatsu.is_storage_hatsu = bool(snap.get("is_storage_hatsu", hatsu.is_storage_hatsu))
+		hatsu.storage_capacity = int(snap.get("storage_capacity", hatsu.storage_capacity))
+		hatsu.core_component = int(snap.get("core_component", hatsu.core_component))
+		hatsu.absorption_rate = float(snap.get("absorption_rate", hatsu.absorption_rate))
+		hatsu.categoria = int(snap.get("categoria", int(hatsu.categoria))) as HatsuData.Categoria
+		hatsu.objetivo = int(snap.get("objetivo", int(hatsu.objetivo))) as HatsuData.ObjetivoPrincipal
+
 	var fx := coletar_efeitos()
 	hatsu.poder_base = maxf(10.0, hatsu.poder_base + float(fx.get("poder", 0.0)))
 	hatsu.alcance = maxf(20.0, hatsu.alcance + float(fx.get("alcance", 0.0)))
@@ -188,10 +335,10 @@ func aplicar_em_hatsu(hatsu: HatsuData) -> void:
 	if "library" in flags or bool(fx.get("library", false)):
 		hatsu.arquetipo = HatsuData.Arquetipo.LIVRO_COLECAO
 		hatsu.is_storage_hatsu = true
-		hatsu.storage_capacity = int(fx.get("storage", 3))
+		hatsu.storage_capacity = int(fx.get("storage", 2))
 	if "absorb" in flags or bool(fx.get("absorb", false)):
 		hatsu.core_component = HatsuComponentLibrary.CoreType.ABSORPTION
-		hatsu.absorption_rate = float(fx.get("absorb_rate", 0.03))
+		hatsu.absorption_rate = float(fx.get("absorb_rate", 0.025))
 	if "require_stationary" in flags:
 		if not (HatsuData.Condicao.PARADO_CANALIZACAO in hatsu.condicoes):
 			hatsu.condicoes.append(HatsuData.Condicao.PARADO_CANALIZACAO)
@@ -215,10 +362,7 @@ func aplicar_em_hatsu(hatsu: HatsuData) -> void:
 	elif primary_category >= 0:
 		hatsu.categoria = primary_category as HatsuData.Categoria
 
-	# Pacote de combate da árvore (lido pelo HatsuSystem / tags)
-	var combat: Dictionary = hatsu.parametros_conceito.get("effect_tree", {}) if hatsu.parametros_conceito is Dictionary else {}
-	if typeof(combat) != TYPE_DICTIONARY:
-		combat = {}
+	var combat: Dictionary = {}
 	if fx.has("multishot"):
 		combat["multishot"] = int(fx.get("multishot", 1))
 	if fx.has("knockback"):
@@ -239,13 +383,17 @@ func aplicar_em_hatsu(hatsu: HatsuData) -> void:
 		combat["versatile"] = true
 	if fx.has("emperor_like") or "emperor_like" in flags:
 		combat["emperor_like"] = true
-	combat["budget_spent"] = budget_spent
-	combat["budget_total"] = budget_total
-	if not hatsu.parametros_conceito is Dictionary:
-		hatsu.parametros_conceito = {}
-	hatsu.parametros_conceito["effect_tree"] = combat
 
-	# Tag dos nós alocados
+	var ser := serializar_alocacao()
+	for k in ser.keys():
+		bag[k] = ser[k]
+	bag["combat"] = combat
+	bag["budget_spent"] = budget_spent
+	bag["budget_total"] = budget_total
+	if not bag.has("chronicle"):
+		bag["chronicle"] = []
+	hatsu.parametros_conceito["effect_tree"] = bag
+
 	var tags: Array[String] = []
 	for t in hatsu.tags:
 		if not str(t).begins_with("eft:"):
@@ -266,10 +414,31 @@ func aplicar_em_hatsu(hatsu: HatsuData) -> void:
 
 
 static func calcular_budget_de_hatsu(hatsu: HatsuData) -> int:
-	## Saldo = créditos de limitação (já existentes) convertidos em pontos de árvore.
 	if hatsu == null:
 		return 0
 	var credits: float = hatsu.calcular_limitation_credits()
-	# 10 créditos ≈ 1 ponto; mínimo 3, máximo 28 (árvore compacta)
-	var pts: int = int(floor(credits / 10.0))
-	return clampi(pts, 3, 28)
+	var pts: int = int(floor(credits / Cfg.TREE_CREDITS_PER_POINT))
+	return clampi(pts, Cfg.TREE_BUDGET_MIN, Cfg.TREE_BUDGET_MAX)
+
+
+static func calcular_pontos_deepen(creditos_antes: float, creditos_depois: float, deepen_ja: int) -> int:
+	var ganho: float = maxf(0.0, creditos_depois - creditos_antes)
+	if ganho < Cfg.DEEPEN_MIN_CREDIT_GAIN:
+		return 0
+	var raw: float = ganho / Cfg.TREE_CREDITS_PER_POINT
+	var eff: float = Cfg.DEEPEN_POINT_EFFICIENCY * pow(0.88, float(deepen_ja))
+	return maxi(0, int(floor(raw * eff)))
+
+
+static func obter_bond_chapter(uses: int) -> int:
+	return clampi(int(floor(float(uses) / float(Cfg.BOND_USES_PER_CHAPTER))) + 1, 1, Cfg.BOND_MAX_CHAPTER)
+
+
+static func bond_titulo(chapter: int) -> String:
+	match chapter:
+		1: return "Conhecidos"
+		2: return "Companheiros"
+		3: return "Cicatrizes Compartilhadas"
+		4: return "Pacto Silencioso"
+		5: return "Lenda Pessoal"
+		_: return "Vínculo"

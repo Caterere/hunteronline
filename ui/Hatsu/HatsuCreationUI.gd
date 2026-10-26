@@ -55,6 +55,9 @@ var sel_guide_base_id: String = "" ## Base guiada (inspiração cânone, nome or
 var sel_effect_tree: RefCounted = null ## HatsuEffectTree após fase de árvore
 var sel_effect_tree_done: bool = false
 var _tree_overlay: CanvasLayer = null
+var modo_aprofundar: bool = false
+var hatsu_aprofundar: HatsuData = null
+var _deepen_credits_before: float = 0.0
 var sel_nome: String = "Meu Hatsu"
 var sel_categoria: HatsuData.Categoria = HatsuData.Categoria.INTENSIFICACAO
 var sel_objetivo: HatsuData.ObjetivoPrincipal = HatsuData.ObjetivoPrincipal.DANO
@@ -148,6 +151,9 @@ func abrir() -> void:
 
 	if panel_main == null:
 		_construir_ui()
+	modo_aprofundar = false
+	hatsu_aprofundar = null
+	_deepen_credits_before = 0.0
 	etapa_atual = Etapa.TIPO_NEN
 	sel_tipo_especial = false
 	sel_preset_id = HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO
@@ -177,9 +183,53 @@ func abrir() -> void:
 
 func fechar() -> void:
 	visible = false
+	modo_aprofundar = false
+	hatsu_aprofundar = null
 	if get_tree() != null:
 		get_tree().paused = false
 	menu_fechado.emit()
+
+
+func abrir_aprofundar(hatsu: HatsuData) -> void:
+	## Reabre votos/constelação de um Hatsu já forjado (deepen).
+	if hatsu == null:
+		return
+	if HatsuProgressionManager != null:
+		var check: Dictionary = HatsuProgressionManager.can_deepen_hatsu(hatsu.hatsu_id)
+		if not check.get("can_deepen", false):
+			if EventBus != null and EventBus.has_method("emit_toast"):
+				EventBus.emit_toast(str(check.get("message", "Não pode aprofundar.")), Color(1.0, 0.45, 0.4))
+			return
+	if panel_main == null:
+		_construir_ui()
+	modo_aprofundar = true
+	hatsu_aprofundar = hatsu
+	_deepen_credits_before = hatsu.calcular_limitation_credits()
+	sel_nome = hatsu.nome
+	sel_categoria = hatsu.categoria
+	sel_objetivo = hatsu.objetivo
+	sel_forma = hatsu.forma
+	sel_elemento = hatsu.elemento
+	sel_condicoes = hatsu.condicoes.duplicate()
+	sel_restricoes = hatsu.modular_restrictions.duplicate()
+	sel_preparation_steps = hatsu.preparation_steps.duplicate(true)
+	sel_efeitos_secundarios = hatsu.sub_effects.duplicate()
+	custom_vow_input = ""
+	sel_effect_tree = null
+	sel_effect_tree_done = false
+	sel_opcoes_preset_escolhidas = {}
+	if hatsu.parametros_conceito is Dictionary:
+		for k in hatsu.parametros_conceito.keys():
+			if str(k) != "effect_tree":
+				sel_opcoes_preset_escolhidas[k] = hatsu.parametros_conceito[k]
+	etapa_atual = Etapa.CONDICOES
+	visible = true
+	if get_tree() != null:
+		get_tree().paused = true
+	lbl_titulo.text = "🌌 Aprofundar: %s" % hatsu.nome
+	_atualizar_etapa()
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("Aprofunde o voto — só créditos NOVOS viram pontos.", Color(0.75, 0.6, 1.0))
 
 
 func _ir_para_etapa(nova_etapa: Etapa) -> void:
@@ -493,9 +543,14 @@ func _atualizar_etapa() -> void:
 			_montar_etapa_custos()
 
 		Etapa.RESUMO:
-			lbl_titulo.text = "C · Constelação & Forja"
-			lbl_desc.text = "Saldo das limitações → gaste no raio da categoria → forje:"
-			btn_proximo.text = "⚡ FORJAR HATSU!"
+			if modo_aprofundar:
+				lbl_titulo.text = "C · Aprofundar Constelação"
+				lbl_desc.text = "Novos votos → poucos pontos → gaste no raio e confirme o pacto:"
+				btn_proximo.text = "🌌 CONFIRMAR APROFUNDAMENTO"
+			else:
+				lbl_titulo.text = "C · Constelação & Forja"
+				lbl_desc.text = "Saldo das limitações → gaste no raio da categoria → forje:"
+				btn_proximo.text = "⚡ FORJAR HATSU!"
 			_montar_etapa_resumo()
 
 	_atualizar_gauge()
@@ -1474,9 +1529,35 @@ func _on_avancar_pressed() -> void:
 func _abrir_arvore_efeitos(h_temp: HatsuData) -> void:
 	if _tree_overlay != null and is_instance_valid(_tree_overlay):
 		_tree_overlay.queue_free()
-	var budget: int = HatsuEffectTreeScript.calcular_budget_de_hatsu(h_temp)
+	var p_lv: int = int(PlayerData.attributes.get("nivel", 1)) if PlayerData != null else 1
+	var mastery: float = 0.0
+	var bond_uses: int = 0
+	var deepen_n: int = 0
+	var bag: Dictionary = {}
+	if modo_aprofundar and hatsu_aprofundar != null:
+		mastery = hatsu_aprofundar.mastery
+		if hatsu_aprofundar.parametros_conceito is Dictionary:
+			var raw = hatsu_aprofundar.parametros_conceito.get("effect_tree", {})
+			if typeof(raw) == TYPE_DICTIONARY:
+				bag = raw
+		bond_uses = int(bag.get("bond_uses", 0))
+		deepen_n = int(bag.get("deepen_count", 0))
+
 	var et = HatsuEffectTreeScript.new()
-	et.reset(budget, int(sel_categoria))
+	if modo_aprofundar and not bag.is_empty() and bag.has("allocated"):
+		et.configurar_contexto(p_lv, mastery, bond_uses, deepen_n)
+		et.restaurar_alocacao(bag)
+		var pts_extra: int = HatsuEffectTreeScript.calcular_pontos_deepen(
+			_deepen_credits_before,
+			h_temp.calcular_limitation_credits(),
+			deepen_n
+		)
+		et.expandir_budget(pts_extra)
+		et.primary_category = int(sel_categoria)
+	else:
+		var budget: int = HatsuEffectTreeScript.calcular_budget_de_hatsu(h_temp)
+		et.reset(budget, int(sel_categoria), p_lv, mastery)
+		et.configurar_contexto(p_lv, mastery, bond_uses, deepen_n)
 	sel_effect_tree = et
 
 	_tree_overlay = CanvasLayer.new()
@@ -1494,7 +1575,8 @@ func _abrir_arvore_efeitos(h_temp: HatsuData) -> void:
 			_tree_overlay = null
 		_atualizar_etapa()
 		if EventBus != null and EventBus.has_method("emit_toast"):
-			EventBus.emit_toast("Árvore confirmada — pode forjar.", Color(0.5, 1.0, 0.6))
+			var msg := "Constelação aprofundada." if modo_aprofundar else "Árvore confirmada — pode forjar."
+			EventBus.emit_toast(msg, Color(0.5, 1.0, 0.6))
 	)
 	ui.cancelado.connect(func():
 		if _tree_overlay != null:
@@ -1506,6 +1588,10 @@ func _abrir_arvore_efeitos(h_temp: HatsuData) -> void:
 func _finalizar_criacao(is_draft: bool = false) -> void:
 	if line_edit_nome != null and not line_edit_nome.text.is_empty():
 		sel_nome = line_edit_nome.text
+
+	if modo_aprofundar and hatsu_aprofundar != null:
+		_finalizar_aprofundamento()
+		return
 
 	var novo_hatsu := HatsuManager.criar_hatsu(
 		sel_nome, sel_categoria, sel_forma, sel_condicoes,
@@ -1630,4 +1716,54 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 	else:
 		print("[HatsuCreationUI] ⚡ Novo Hatsu v1.6 forjado com sucesso! Slot index: ", index, " | Demanda: ", novo_hatsu.functional_power, " | Créditos: ", novo_hatsu.limitation_credits)
 
+	fechar()
+
+
+func _montar_hatsu_aprofundar_temp() -> HatsuData:
+	## Cópia de trabalho — não muta o archive até confirmar.
+	var h := hatsu_aprofundar.duplicate(true) if hatsu_aprofundar != null and hatsu_aprofundar.has_method("duplicate") else null
+	if h == null:
+		h = HatsuData.new()
+		if hatsu_aprofundar != null and hatsu_aprofundar.has_method("to_dict"):
+			h = HatsuData.from_dict(hatsu_aprofundar.to_dict())
+		else:
+			return hatsu_aprofundar
+	h.condicoes = sel_condicoes.duplicate()
+	h.modular_restrictions = sel_restricoes.duplicate()
+	h.preparation_steps = sel_preparation_steps.duplicate(true)
+	h.sub_effects = sel_efeitos_secundarios.duplicate()
+	return h
+
+
+func _finalizar_aprofundamento() -> void:
+	if hatsu_aprofundar == null:
+		return
+	if not sel_effect_tree_done or sel_effect_tree == null:
+		_abrir_arvore_efeitos(_montar_hatsu_aprofundar_temp())
+		return
+
+	# Só agora grava no archive
+	hatsu_aprofundar.condicoes = sel_condicoes.duplicate()
+	hatsu_aprofundar.modular_restrictions = sel_restricoes.duplicate()
+	hatsu_aprofundar.preparation_steps = sel_preparation_steps.duplicate(true)
+	hatsu_aprofundar.sub_effects = sel_efeitos_secundarios.duplicate()
+
+	if HatsuProgressionManager != null:
+		var cob: Dictionary = HatsuProgressionManager.cobrar_deepen_jenny(hatsu_aprofundar.hatsu_id)
+		if not cob.get("success", false):
+			lbl_desc.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
+			lbl_desc.text = "❌ %s" % str(cob.get("message", "Jenny insuficiente."))
+			return
+		var res: Dictionary = HatsuProgressionManager.finalizar_aprofundamento(
+			hatsu_aprofundar, _deepen_credits_before, sel_effect_tree
+		)
+		if not res.get("success", false):
+			lbl_desc.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
+			lbl_desc.text = "❌ %s" % str(res.get("message", "Aprofundamento falhou."))
+			return
+	else:
+		sel_effect_tree.aplicar_em_hatsu(hatsu_aprofundar)
+
+	hatsu_criado.emit(hatsu_aprofundar)
+	print("[HatsuCreationUI] 🌌 Hatsu aprofundado: ", hatsu_aprofundar.nome)
 	fechar()

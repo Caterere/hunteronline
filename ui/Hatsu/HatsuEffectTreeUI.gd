@@ -135,7 +135,7 @@ func _build_chrome() -> void:
 	lbl_tip.add_theme_font_size_override("font_size", 4)
 	lbl_tip.add_theme_color_override("font_color", Color(0.85, 0.9, 1.0))
 	lbl_tip.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	lbl_tip.text = "Arraste · Scroll zoom · Clique gasta pontos no raio da categoria"
+	lbl_tip.text = "Arraste · Zoom · Clique gasta pts · Anel 3 exige Lv+Mastery — maximizar é raro"
 	add_child(lbl_tip)
 
 
@@ -144,11 +144,15 @@ func _on_pts(n: int) -> void:
 		var cat_n := "—"
 		if tree != null and tree.primary_category >= 0:
 			cat_n = HatsuManager.obter_nome_categoria(tree.primary_category as HatsuData.Categoria)
-		lbl_points.text = "Saldo: %d pts  |  gastos: %d/%d  |  raio: %s" % [
+		var bond_ch: int = EffectTree.obter_bond_chapter(tree.bond_uses if tree else 0)
+		var bond_t: String = EffectTree.bond_titulo(bond_ch)
+		lbl_points.text = "Saldo: %d  |  %d/%d  |  %s  |  M%.0f  |  %s" % [
 			n,
 			tree.budget_spent if tree else 0,
 			tree.budget_total if tree else 0,
-			cat_n
+			cat_n,
+			tree.mastery_level if tree else 0.0,
+			bond_t
 		]
 	_refresh_confirm_btn()
 	queue_redraw()
@@ -497,7 +501,13 @@ func _refresh_inspector() -> void:
 		if k == "core":
 			continue
 		fx_txt += "\n• %s: %s" % [str(k), str(fx[k])]
-	lbl_insp_body.text = "%s · custo %d pts\n%s%s" % [st, cost, str(def.get("desc", "")), fx_txt]
+	var ring: int = int(def.get("ring", 0))
+	var ring_n: String = DB.ring_label(ring)
+	var gate := tree.gate_anel(ring) if tree != null else {"ok": true}
+	var gate_txt := ""
+	if not allocated and not can.get("ok", false):
+		gate_txt = "\n🔒 %s" % str(can.get("reason", gate.get("reason", "")))
+	lbl_insp_body.text = "%s · %s · custo %d\n%s%s%s" % [st, ring_n, cost, str(def.get("desc", "")), fx_txt, gate_txt]
 	if btn_alloc != null:
 		btn_alloc.text = "Remover folha" if allocated else ("Alocar (%d)" % cost)
 		btn_alloc.disabled = selected == &"hx_center" or (not allocated and not can.get("ok", false))
