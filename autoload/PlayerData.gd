@@ -939,10 +939,24 @@ func adicionar_item(
 	if quantidade <= 0:
 		return
 
+	# Packs flavor de GI → cartas reais do catálogo (binder/duelo)
+	var id_str := String(item_id)
+	var GICatalog = load("res://resource/greed_island/GreedIslandCardCatalog.gd")
+	if GICatalog != null and GICatalog.is_flavor_pack(id_str):
+		GICatalog.grant_from_flavor(id_str, quantidade)
+		return
+
+	var era_novo_gi := false
+	if GICatalog != null and GICatalog.is_catalog_card(id_str):
+		era_novo_gi = not tem_item(item_id)
+
 	if not inventory.has(item_id):
 		inventory[item_id] = 0
 
 	inventory[item_id] += quantidade
+
+	if era_novo_gi or (GICatalog != null and GICatalog.is_catalog_card(id_str)):
+		GICatalog.on_catalog_card_obtained(id_str)
 
 	if EventBus != null:
 		EventBus.item_obtained.emit(String(item_id), quantidade)
