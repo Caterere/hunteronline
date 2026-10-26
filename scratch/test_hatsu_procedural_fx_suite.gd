@@ -138,6 +138,10 @@ func _capture_gallery() -> void:
 	RenderingServer.force_draw()
 	await get_tree().process_frame
 
+	# Headless não tem framebuffer — API/FX já foram validados acima.
+	if DisplayServer.get_name() == "headless":
+		_ok(true, "headless — screenshot skip (FX API ok)")
+		return
 	var vp := get_viewport()
 	if vp != null:
 		var tex: ViewportTexture = vp.get_texture()
