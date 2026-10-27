@@ -10,7 +10,7 @@ func _ready() -> void:
 	_test_hud_scale()
 	_test_zoom()
 	_test_balance()
-	_test_netero_dirigivel()
+	await _test_netero_dirigivel()
 	print("----------------------------------------------------------------")
 	print("Resultado: %d/%d | falhas %d" % [_ok, _ok + _fail, _fail])
 	await get_tree().process_frame

@@ -8,9 +8,13 @@ extends Node2D
 # (2ª visita). Portal LESTE → Trick Tower (alçapão no Exame).
 # ============================================================
 
+const PlaytestVisualModeScript = preload("res://world/components/PlaytestVisualMode.gd")
+const MapAtmosphereDecoratorScript = preload("res://world/components/MapAtmosphereDecorator.gd")
+
+
 func _ready() -> void:
-	PlaytestVisualMode.apply_grass_floor(self, Vector2(900, 420), Color(0.35, 0.42, 0.55))
-	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.EXAME)
+	PlaytestVisualModeScript.apply_grass_floor(self, Vector2(900, 420), Color(0.35, 0.42, 0.55))
+	MapAtmosphereDecoratorScript.attach(self, MapAtmosphereDecoratorScript.MapKind.EXAME)
 	_garantir_dialogue_ui()
 	_garantir_spawn()
 	_garantir_netero()
