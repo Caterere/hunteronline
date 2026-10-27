@@ -81,11 +81,11 @@ func _test_toast_queue_api() -> void:
 func _test_hud_scale_const() -> void:
 	print("-- HUD scale --")
 	var qsrc := FileAccess.get_file_as_string("res://ui/hud/QuestHUD.gd")
-	assert_test("scale = Vector2(0.75, 0.75)" in qsrc, "QuestHUD scale 0.75")
+	assert_test("scale = Vector2(1.35, 1.35)" in qsrc, "QuestHUD scale 1.35 (PlayerHUD)")
 	var nsrc := FileAccess.get_file_as_string("res://ui/hud/NenQuickActionBar.gd")
 	assert_test("scale = Vector2(0.75, 0.75)" in nsrc, "NenQuickActionBar scale 0.75")
 	var gsrc := FileAccess.get_file_as_string("res://ui/hud/MissionGPSIndicator.gd")
-	assert_test("scale = Vector2(0.75, 0.75)" in gsrc, "MissionGPS GPS panel scale 0.75")
+	assert_test("scale = Vector2(1.35, 1.35)" in gsrc, "MissionGPS GPS panel scale 1.35")
 
 
 func _test_gps_no_story_gate_while_pending() -> void:

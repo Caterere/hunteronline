@@ -8,12 +8,12 @@ extends RefCounted
 # PixelLab nem kits de densidade visual (árvores/rochas/landmarks).
 # Portais, NPCs, inimigos, sensores Nen e baús de gameplay ficam.
 #
-# Desligar arte completa:
-#   ProjectSettings.set_setting("hunter_online/playtest_grass_floor", false)
+# Ativar grama playtest (desliga Wang/kits):
+#   ProjectSettings.set_setting("hunter_online/playtest_grass_floor", true)
 # ou altere ENABLED_DEFAULT abaixo.
 # ============================================================
 
-const ENABLED_DEFAULT := true
+const ENABLED_DEFAULT := false
 const PATH_GRASS := "res://assets/sprites/tilesets/grass.png"
 const SETTING_KEY := "hunter_online/playtest_grass_floor"
 

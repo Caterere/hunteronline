@@ -396,67 +396,8 @@ func _instanciar_baus_clareira() -> void:
 
 
 func _spawna_bau_clareira(nome: String, pos: Vector2, titulo: String, loot: Array) -> void:
-	if get_node_or_null(nome) != null:
-		return
-	var bau := Area2D.new()
-	bau.name = nome
-	bau.position = pos
-	bau.collision_layer = 0
-	bau.collision_mask = 0
-
-	var col := CollisionShape2D.new()
-	var box := RectangleShape2D.new()
-	box.size = Vector2(28, 28)
-	col.shape = box
-	bau.add_child(col)
-
-	var spr := Sprite2D.new()
-	spr.name = "Sprite2D"
-	if ResourceLoader.exists("res://assets/sprites/objects/nen_stone_monolith.png"):
-		spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
-		spr.scale = Vector2(0.35, 0.28)
-		spr.modulate = Color(0.95, 0.8, 0.35, 1.0)
-		spr.position = Vector2(0, -8)
-	bau.add_child(spr)
-
-	var lbl := Label.new()
-	lbl.text = "📦 %s" % titulo
-	lbl.position = Vector2(-55, -36)
-	lbl.custom_minimum_size = Vector2(110, 12)
-	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 6, Color(0.95, 0.88, 0.55))
-	bau.add_child(lbl)
-
-	var inter = InteractionComponent.new()
-	inter.name = "InteractionComponent"
-	inter.interaction_text = "[E] Abrir %s" % titulo
-	inter.interaction_radius = 28.0
-	inter.interacted.connect(func(_p):
-		_abrir_bau_clareira(bau, titulo, loot)
-	)
-	bau.add_child(inter)
-	add_child(bau)
-
-
-func _abrir_bau_clareira(bau_node: Node, titulo: String, loot: Array) -> void:
-	if bau_node == null or not is_instance_valid(bau_node):
-		return
-	var partes: PackedStringArray = []
-	if PlayerData != null:
-		for entry in loot:
-			var id: StringName = entry.get("id", &"")
-			var qtd: int = int(entry.get("qtd", 1))
-			if id.is_empty() or qtd <= 0:
-				continue
-			PlayerData.adicionar_item(id, qtd)
-			partes.append("%dx %s" % [qtd, str(id)])
-	var resumo := ", ".join(partes) if not partes.is_empty() else "nada"
-	if EventBus != null:
-		EventBus.emit_toast("✨ %s: %s" % [titulo, resumo], Color(0.35, 1.0, 0.55))
-	var hud = get_tree().get_first_node_in_group("player_hud")
-	if hud and hud.has_method("exibir_notificacao"):
-		hud.exibir_notificacao("📦 Você abriu [%s] e encontrou: %s" % [titulo, resumo])
-	bau_node.queue_free()
+	# Delega ao kit (sprites chest_01 reais + loot SSOT)
+	MidLateDensityKitScript.spawna_bau(self, nome, pos, titulo, loot)
 
 
 func _instanciar_sensores_nen_floresta() -> void:

@@ -25,14 +25,22 @@ func _assert(c: bool, msg: String) -> void:
 
 
 func _test_playtest_mode() -> void:
-	_assert(PlaytestVisualMode.is_enabled(), "PlaytestVisualMode ENABLED (grama playtest)")
+	# Default OFF = mapas ricos (Wang + kits). Grama só via ProjectSettings ou ENABLED_DEFAULT.
+	_assert(not PlaytestVisualMode.ENABLED_DEFAULT, "ENABLED_DEFAULT false (arte rica)")
+	_assert(not PlaytestVisualMode.is_enabled(), "playtest grass OFF por padrão")
 	_assert(ResourceLoader.exists(PlaytestVisualMode.PATH_GRASS), "grass.png existe")
 	var host := Node2D.new()
 	host.name = "HostMap"
 	add_child(host)
+	var skipped := PlaytestVisualMode.apply_grass_floor(host, Vector2(800, 600))
+	_assert(not skipped, "apply_grass_floor no-op com modo OFF")
+	_assert(host.get_node_or_null("ChaoGramaPlaytest") == null, "sem ChaoGramaPlaytest no default")
+	ProjectSettings.set_setting(PlaytestVisualMode.SETTING_KEY, true)
 	var applied := PlaytestVisualMode.apply_grass_floor(host, Vector2(800, 600))
-	_assert(applied, "apply_grass_floor retorna true")
+	_assert(PlaytestVisualMode.is_enabled(), "ProjectSettings liga playtest grass")
+	_assert(applied, "apply_grass_floor retorna true quando ligado")
 	_assert(host.get_node_or_null("ChaoGramaPlaytest") != null, "nó ChaoGramaPlaytest criado")
+	ProjectSettings.set_setting(PlaytestVisualMode.SETTING_KEY, false)
 	var estrada := FileAccess.get_file_as_string("res://world/maps/EstradaPadokiaMap.gd")
 	_assert("PlaytestVisualMode.apply_grass_floor" in estrada, "Estrada usa PlaytestVisualMode")
 	_assert("if not playtest_grass" in estrada, "Estrada pula kits visuais no playtest")

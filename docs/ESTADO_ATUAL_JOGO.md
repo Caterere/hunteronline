@@ -1,8 +1,8 @@
 # Hunter Online — Estado Atual do Jogo (Handoff para Agente)
 
-> **Data do snapshot:** 2026-09-18 (auditoria progressão arcos 1–9)  
-> **Branch de trabalho:** `cursor/arcs-progression-audit-dab2`  
-> **Branch base histórico:** `main` @ `548a152` (PR #52 Yorknew bugfix)  
+> **Data do snapshot:** 2026-10-27 (evolução MMORPG Phase 1 + refino Steam)  
+> **Branch de trabalho:** `cursor/refine-bugs-balance-8573`  
+> **Branch base histórico:** `main`  
 > **Objetivo deste doc:** handoff completo para outro agent continuar o trabalho sem redescobrir o projeto.  
 > **Regra de ouro:** código e cenas vencem docs desatualizados. Em conflito design vs código → preferir código e reportar.
 

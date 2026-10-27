@@ -3,6 +3,7 @@ extends RefCounted
 
 const CheckpointCutsceneLibraryScript = preload("res://scripts/cutscenes/CheckpointCutsceneLibrary.gd")
 const CompanionChatterScript = preload("res://scripts/story/CompanionChatter.gd")
+const HatsuConfigScript = preload("res://scripts/systems/hatsu/HatsuConfig.gd")
 
 # ============================================================
 # HUNTER ONLINE — Mid/Late Steam density helpers (G1–G4)
@@ -11,13 +12,20 @@ const CompanionChatterScript = preload("res://scripts/story/CompanionChatter.gd"
 # CompanionChatter — sem sistemas MMO novos.
 # ============================================================
 
+const PATH_CHEST_WOOD := "res://assets/sprites/objects/chest_01.png"
+const PATH_CHEST_GOLD := "res://assets/sprites/objects/chest_02.png"
+const PATH_CHEST_FALLBACK := "res://assets/sprites/objects/nen_stone_monolith.png"
+## Spritesheet 64×16 = 4 frames 16×16; frame 0 = fechado.
+const CHEST_FRAME := Rect2(0, 0, 16, 16)
+
 
 static func spawna_bau(
 	parent: Node2D,
 	nome: String,
 	pos: Vector2,
 	titulo: String,
-	loot: Array
+	loot: Array,
+	dourado: bool = false
 ) -> void:
 	if parent == null or parent.get_node_or_null(nome) != null:
 		return
@@ -35,11 +43,7 @@ static func spawna_bau(
 
 	var spr := Sprite2D.new()
 	spr.name = "Sprite2D"
-	if ResourceLoader.exists("res://assets/sprites/objects/nen_stone_monolith.png"):
-		spr.texture = load("res://assets/sprites/objects/nen_stone_monolith.png")
-		spr.scale = Vector2(0.35, 0.28)
-		spr.modulate = Color(0.95, 0.8, 0.35, 1.0)
-		spr.position = Vector2(0, -8)
+	_aplicar_sprite_bau(spr, dourado)
 	bau.add_child(spr)
 
 	var lbl := Label.new()
@@ -59,6 +63,26 @@ static func spawna_bau(
 	)
 	bau.add_child(inter)
 	parent.add_child(bau)
+
+
+static func _aplicar_sprite_bau(spr: Sprite2D, dourado: bool = false) -> void:
+	var path := PATH_CHEST_GOLD if dourado else PATH_CHEST_WOOD
+	if not ResourceLoader.exists(path):
+		path = PATH_CHEST_FALLBACK if ResourceLoader.exists(PATH_CHEST_FALLBACK) else ""
+	if path.is_empty():
+		return
+	spr.texture = load(path) as Texture2D
+	spr.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	if path == PATH_CHEST_WOOD or path == PATH_CHEST_GOLD:
+		spr.region_enabled = true
+		spr.region_rect = CHEST_FRAME
+		spr.scale = Vector2(1.5, 1.5)
+		spr.position = Vector2(0, -6)
+		spr.modulate = Color.WHITE
+	else:
+		spr.scale = Vector2(0.35, 0.28)
+		spr.modulate = Color(0.95, 0.8, 0.35, 1.0)
+		spr.position = Vector2(0, -8)
 
 
 static func _abrir_bau(bau_node: Node, titulo: String, loot: Array) -> void:
@@ -134,10 +158,12 @@ static func _ativar_hatsu_moment(area: Node, titulo: String, descricao: String, 
 				EventBus.emit_toast("⚡ %s — já vivido." % titulo, Color(0.7, 0.8, 0.95))
 			return
 		StoryManager.set_story_flag(flag, true)
-	if PlayerData != null:
-		PlayerData.attributes["hatsu_mastery"] = int(PlayerData.attributes.get("hatsu_mastery", 0)) + 10
+	var mastery_msg := _conceder_mastery_real_momento()
 	if EventBus != null:
-		EventBus.emit_toast("⚡ Momento Hatsu: %s — +10 mastery" % titulo, Color(0.85, 0.55, 1.0))
+		if mastery_msg.is_empty():
+			EventBus.emit_toast("⚡ Momento Hatsu: %s" % titulo, Color(0.85, 0.55, 1.0))
+		else:
+			EventBus.emit_toast("⚡ Momento Hatsu: %s — %s" % [titulo, mastery_msg], Color(0.85, 0.55, 1.0))
 	var tree := area.get_tree() if area != null else null
 	if tree != null:
 		var visual = tree.get_first_node_in_group("visual_dialogue_ui")
@@ -146,6 +172,42 @@ static func _ativar_hatsu_moment(area: Node, titulo: String, descricao: String, 
 				{"falante": "Narrador", "texto": descricao},
 				{"falante": "Aura", "texto": "A identidade do seu Hatsu fica um pouco mais clara. Continue."}
 			])
+
+
+## Concede mastery real via HatsuData (não o atributo fantasma attributes["hatsu_mastery"]).
+static func _conceder_mastery_real_momento() -> String:
+	var h: HatsuData = _obter_hatsu_para_momento()
+	if h == null:
+		return "equipe um Hatsu para receber mastery"
+	if h.is_mastered():
+		return "%s já mastered" % h.nome
+	var antes: int = int(h.mastery)
+	var xp_nivel: float = HatsuConfigScript.get_xp_for_mastery_level(antes)
+	# ~+10 níveis early (100 XP/nível) — reward narrativo, sem farm infinito
+	var res: Dictionary = h.adicionar_mastery_xp(xp_nivel * 10.0)
+	if HatsuProgressionManager != null:
+		HatsuProgressionManager.hatsu_mastery_alterada.emit(
+			h.hatsu_id, h.mastery, h.mastery_xp, h.is_mastered()
+		)
+	var ganho: int = int(h.mastery) - antes
+	if bool(res.get("mastered", false)):
+		return "%s MASTERED" % h.nome
+	if ganho > 0:
+		return "%s +%d mastery" % [h.nome, ganho]
+	return "%s +%.0f XP mastery" % [h.nome, xp_nivel * 10.0]
+
+
+static func _obter_hatsu_para_momento() -> HatsuData:
+	if PlayerData == null:
+		return null
+	for i in range(4):
+		var slot_h: HatsuData = PlayerData.obter_hatsu_slot(i)
+		if slot_h != null:
+			return slot_h
+	for entry in PlayerData.hatsu_criados:
+		if entry is HatsuData:
+			return entry as HatsuData
+	return null
 
 
 static func plant_checkpoint_cutscene(
@@ -215,7 +277,8 @@ static func densify_profile(parent: Node2D, profile: Dictionary) -> void:
 				str(b.get("name", "BauClareira")),
 				b.get("pos", Vector2.ZERO),
 				str(b.get("titulo", "Baú da Clareira")),
-				b.get("loot", [{"id": &"pedra_aura", "qtd": 1}])
+				b.get("loot", [{"id": &"pedra_aura", "qtd": 1}]),
+				bool(b.get("dourado", false))
 			)
 	for h in profile.get("hatsu_moments", []):
 		if h is Dictionary:
