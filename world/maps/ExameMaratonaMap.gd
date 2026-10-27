@@ -26,6 +26,7 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	PlaytestVisualMode.apply_grass_floor(self, Vector2(6000, 4000), Color(0.75, 0.92, 0.60))
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.EXAME)
 	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(1))
 	SagaDistrictKit.densify_saga(self, 1)

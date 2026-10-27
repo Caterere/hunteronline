@@ -42,6 +42,8 @@ func _ready() -> void:
 		
 	_garantir_spawn_points()
 	_gerar_mapa_dungeon()
+	# Playtest: grama sob o layout; paredes/colisão da dungeon ficam
+	PlaytestVisualMode.apply_grass_floor(self, Vector2(640, 480), Color(0.55, 0.58, 0.52))
 	_instanciar_boss_e_sentinelas()
 	_posicionar_player()
 	_configurar_audio_e_hud()

@@ -29,6 +29,8 @@ var canvas_modulate: CanvasModulate = null
 
 func _ready() -> void:
 	super._ready()
+	# Overlay de grama playtest por cima do gerador (sem remover colisão/POIs)
+	PlaytestVisualMode.apply_grass_floor(self, Vector2(512 * 16, 512 * 16), Color(0.68, 0.90, 0.58))
 	_garantir_dialogue_ui()
 	_configurar_audio_ambiente()
 	_configurar_iluminacao_e_clima()

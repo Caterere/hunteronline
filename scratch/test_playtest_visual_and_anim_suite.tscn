@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_playtest_visual_and_anim_suite.gd" id="1"]
+
+[node name="TestPlaytestVisualAndAnimSuite" type="Node"]
+script = ExtResource("1")

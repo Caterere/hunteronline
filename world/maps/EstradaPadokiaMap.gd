@@ -35,7 +35,9 @@ var _escolta_falhou: bool = false
 
 func _ready() -> void:
 	_garantir_spawn_points()
-	_pintar_piso_estrada()
+	var playtest_grass := PlaytestVisualMode.apply_grass_floor(self, Vector2(800, 900), Color(0.72, 0.92, 0.62))
+	if not playtest_grass:
+		_pintar_piso_estrada()
 	_configurar_limites_camera()
 	_configurar_audio_e_hud()
 	_posicionar_player()
@@ -49,12 +51,13 @@ func _ready() -> void:
 	if not tree_exiting.is_connected(_on_estrada_tree_exiting):
 		tree_exiting.connect(_on_estrada_tree_exiting)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ESTRADA)
-	CalibrationArtKit.attach_to_estrada(self)
-	WorldDensityKit.attach(self, WorldDensityKit.KitKind.ESTRADA)
-	WorldPropsKit.attach(self, WorldPropsKit.KitKind.ESTRADA)
-	WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.ESTRADA)
-	WorldFxKit.attach(self, WorldFxKit.KitKind.ESTRADA)
-	WorldPolishKit.attach(self, WorldPolishKit.KitKind.ESTRADA)
+	if not playtest_grass:
+		CalibrationArtKit.attach_to_estrada(self)
+		WorldDensityKit.attach(self, WorldDensityKit.KitKind.ESTRADA)
+		WorldPropsKit.attach(self, WorldPropsKit.KitKind.ESTRADA)
+		WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.ESTRADA)
+		WorldFxKit.attach(self, WorldFxKit.KitKind.ESTRADA)
+		WorldPolishKit.attach(self, WorldPolishKit.KitKind.ESTRADA)
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)

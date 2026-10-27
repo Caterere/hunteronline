@@ -26,7 +26,9 @@ const MidLateDensityKitScript = preload("res://world/components/exploration/MidL
 
 func _ready() -> void:
 	_garantir_spawn_points()
-	_pintar_piso_floresta()
+	var playtest_grass := PlaytestVisualMode.apply_grass_floor(self, Vector2(800, 900), Color(0.55, 0.85, 0.55))
+	if not playtest_grass:
+		_pintar_piso_floresta()
 	_configurar_limites_camera()
 	_configurar_audio_e_hud()
 	_posicionar_player()
@@ -34,13 +36,14 @@ func _ready() -> void:
 	_instanciar_feras_selvagens()
 	_densificar_steam_early_floresta()
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.FLORESTA)
-	WorldDensityKit.attach(self, WorldDensityKit.KitKind.FLORESTA)
-	WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
-	WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.FLORESTA)
-	WorldFxKit.attach(self, WorldFxKit.KitKind.FLORESTA)
-	WorldPolishKit.attach(self, WorldPolishKit.KitKind.FLORESTA)
-	if has_method("_espalhar_detalhes_clareira"):
-		_espalhar_detalhes_clareira()
+	if not playtest_grass:
+		WorldDensityKit.attach(self, WorldDensityKit.KitKind.FLORESTA)
+		WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
+		WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.FLORESTA)
+		WorldFxKit.attach(self, WorldFxKit.KitKind.FLORESTA)
+		WorldPolishKit.attach(self, WorldPolishKit.KitKind.FLORESTA)
+		if has_method("_espalhar_detalhes_clareira"):
+			_espalhar_detalhes_clareira()
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)
