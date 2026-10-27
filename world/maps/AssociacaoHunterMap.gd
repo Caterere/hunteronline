@@ -1,5 +1,6 @@
 class_name AssociacaoHunterMap
 extends Node2D
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 const StoryGate = preload("res://world/components/StoryGate.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
@@ -330,6 +331,10 @@ func _popular_walkers_associacao() -> void:
 
 
 func _plantar_props_associacao() -> void:
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+		return
+
 	if get_node_or_null("PropsEstruturaAssociacao") != null:
 		return
 	var root := Node2D.new()
@@ -421,7 +426,9 @@ func _densificar_steam_late_associacao() -> void:
 				"descricao": "Política e Nen. Identidade pública do Hatsu importa aqui.",
 				"flag": "hatsu_moment_associacao"},
 		],
-		"checkpoints": [],
+		"checkpoints": [
+			{"name": "CkptAssocEleicao", "pos": Vector2(800, 40), "id": "associacao_eleicao", "titulo": "Eleição"},
+		],
 	})
 
 

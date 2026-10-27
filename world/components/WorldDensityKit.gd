@@ -1,6 +1,7 @@
 class_name WorldDensityKit
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 ## Hunter Online — Phase 2 world density (Prompt Library §97).
 ## Soft olive grass / jagged dirt / bubbly canopy trees — calibrated to
 ## assets/reference/world_detail_grass_dirt_trees_ref.png
@@ -26,6 +27,10 @@ const STUMP := "res://assets/sprites/objects/phase2_stump.png"
 static func attach(mapa: Node2D, kind: KitKind) -> WorldDensityKit:
 	if mapa == null:
 		return null
+	# Terreno denso PixelLab desligado — só grama simples
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		SimpleGrassTerrainPolicyScript.apply_to_map(mapa)
+		return null
 	var existing := mapa.get_node_or_null("WorldDensityKit") as WorldDensityKit
 	if existing != null:
 		return existing
@@ -37,6 +42,8 @@ static func attach(mapa: Node2D, kind: KitKind) -> WorldDensityKit:
 
 
 func _ready() -> void:
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		return
 	_aplicar_terreno()
 	_espalhar_vegetacao()
 

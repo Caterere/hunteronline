@@ -1,6 +1,11 @@
 class_name HatsuCreationUI
 extends CanvasLayer
 
+const HatsuGuideBasesScript = preload("res://resource/hatsu/HatsuGuideBases.gd")
+const HatsuComplexityJudgeScript = preload("res://scripts/systems/hatsu/HatsuComplexityJudge.gd")
+const HatsuEffectTreeScript = preload("res://scripts/systems/hatsu/HatsuEffectTree.gd")
+const HatsuEffectTreeUIScript = preload("res://ui/Hatsu/HatsuEffectTreeUI.gd")
+
 # ============================================================
 # HUNTER ONLINE - HATSU CREATION UI (v1.5: CRÉDITOS DE LIMITAÇÃO)
 # ============================================================
@@ -8,16 +13,11 @@ extends CanvasLayer
 # Interface de criação de Hatsu com sistema modular de Vow & Limitation.
 # Ajustada estritamente para viewport 320x180 (Painel 304x168 centralizado).
 #
-# FLUXO EM 9 ETAPAS COM EQUILÍBRIO DE LIMITAÇÃO:
-# 1. Tipo de Nen (Reforço, Emissão, Transmutação, Conjuração, Manipulação, Especialização, Outro / Especial)
-# 2. Conceito / Preset (Biblioteca com 15 Conceitos Temáticos ou Criar do Zero)
-# 3. Nome & Identidade Visual
-# 4. Efeito Principal & Funcionamento (Parâmetros específicos do conceito)
-# 5. Efeitos Secundários & Modificadores
-# 6. Condições de Ativação & Cadeia de Preparação (Preparation Chain)
-# 7. Juramentos & Restrições (Vows & Limitations + IA de Nen)
-# 8. Custos, Alcance & Consumo
-# 9. Resumo, Auditoria de Créditos & Forjar Hatsu
+# FLUXO PRINCIPAL (jogável) — 3 FASES:
+#   A) Base: Tipo → Conceito/Base guiada → Nome
+#   B) Preço: Condições → Juramentos/Restrições  →  saldo de pontos
+#   C) Constelação: Árvore radial (o que a habilidade FAZ) → Forjar
+# Abas Função / Extras / Custos continuam acessíveis (avançado).
 #
 # ============================================================
 
@@ -25,22 +25,39 @@ signal hatsu_criado(hatsu: HatsuData)
 signal menu_fechado
 
 enum Etapa {
-	TIPO_NEN,            # 1/9
-	CONCEITO,            # 2/9
-	NOME,                # 3/9
-	FUNCIONAMENTO,       # 4/9
-	EFEITOS_SECUNDARIOS, # 5/9
-	CONDICOES,           # 6/9
-	RESTRICOES,          # 7/9
-	CUSTOS,              # 8/9
-	RESUMO               # 9/9
+	TIPO_NEN,            # A1
+	CONCEITO,            # A2
+	NOME,                # A3
+	FUNCIONAMENTO,       # avançado
+	EFEITOS_SECUNDARIOS, # avançado
+	CONDICOES,           # B1
+	RESTRICOES,          # B2
+	CUSTOS,              # avançado
+	RESUMO               # C — árvore + forja
 }
+
+## Ordem linear recomendada (abas avançadas ficam de lado).
+const FLUXO_PRINCIPAL: Array[int] = [
+	Etapa.TIPO_NEN,
+	Etapa.CONCEITO,
+	Etapa.NOME,
+	Etapa.CONDICOES,
+	Etapa.RESTRICOES,
+	Etapa.RESUMO,
+]
 
 var etapa_atual: Etapa = Etapa.TIPO_NEN
 
 # Configurações do Hatsu
 var sel_tipo_especial: bool = false
 var sel_preset_id: HatsuPresetLibrary.PresetId = HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO
+var sel_guide_base_id: String = "" ## Base guiada (inspiração cânone, nome original)
+var sel_effect_tree: RefCounted = null ## HatsuEffectTree após fase de árvore
+var sel_effect_tree_done: bool = false
+var _tree_overlay: CanvasLayer = null
+var modo_aprofundar: bool = false
+var hatsu_aprofundar: HatsuData = null
+var _deepen_credits_before: float = 0.0
 var sel_nome: String = "Meu Hatsu"
 var sel_categoria: HatsuData.Categoria = HatsuData.Categoria.INTENSIFICACAO
 var sel_objetivo: HatsuData.ObjetivoPrincipal = HatsuData.ObjetivoPrincipal.DANO
@@ -120,18 +137,29 @@ func toggle_menu() -> void:
 func abrir() -> void:
 	if HatsuProgressionManager != null:
 		var check: Dictionary = HatsuProgressionManager.can_create_hatsu()
-		if not check.get("can_create", false):
-			push_warning("[HatsuCreationUI] Bloqueio de criação: %s" % check.get("reason", "DESCONHECIDO"))
+		var reason := str(check.get("reason", ""))
+		# Jenny insuficiente: ainda abre a UI (Biscuit ensina o fluxo; custo aparece na forja).
+		# Slot/CD/Archive cheio: bloqueia a abertura.
+		if not check.get("can_create", false) and reason != "INSUFFICIENT_JENNY" and reason != "OK":
+			push_warning("[HatsuCreationUI] Bloqueio de criação: %s" % reason)
 			if EventBus != null and EventBus.has_signal("toast_enviado"):
 				EventBus.emit_toast(check.get("message", "Criação de Hatsu indisponível."), Color(1.0, 0.4, 0.4))
 			fechar()
 			return
+		if reason == "INSUFFICIENT_JENNY" and EventBus != null and EventBus.has_signal("toast_enviado"):
+			EventBus.emit_toast(str(check.get("message", "Jenny insuficiente para forjar.")), Color(1.0, 0.75, 0.35))
 
 	if panel_main == null:
 		_construir_ui()
+	modo_aprofundar = false
+	hatsu_aprofundar = null
+	_deepen_credits_before = 0.0
 	etapa_atual = Etapa.TIPO_NEN
 	sel_tipo_especial = false
 	sel_preset_id = HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO
+	sel_guide_base_id = ""
+	sel_effect_tree = null
+	sel_effect_tree_done = false
 	sel_nome = "Novo Hatsu"
 	sel_categoria = PlayerData.afinidade_nen as HatsuData.Categoria
 	sel_objetivo = HatsuData.ObjetivoPrincipal.DANO
@@ -155,9 +183,53 @@ func abrir() -> void:
 
 func fechar() -> void:
 	visible = false
+	modo_aprofundar = false
+	hatsu_aprofundar = null
 	if get_tree() != null:
 		get_tree().paused = false
 	menu_fechado.emit()
+
+
+func abrir_aprofundar(hatsu: HatsuData) -> void:
+	## Reabre votos/constelação de um Hatsu já forjado (deepen).
+	if hatsu == null:
+		return
+	if HatsuProgressionManager != null:
+		var check: Dictionary = HatsuProgressionManager.can_deepen_hatsu(hatsu.hatsu_id)
+		if not check.get("can_deepen", false):
+			if EventBus != null and EventBus.has_method("emit_toast"):
+				EventBus.emit_toast(str(check.get("message", "Não pode aprofundar.")), Color(1.0, 0.45, 0.4))
+			return
+	if panel_main == null:
+		_construir_ui()
+	modo_aprofundar = true
+	hatsu_aprofundar = hatsu
+	_deepen_credits_before = hatsu.calcular_limitation_credits()
+	sel_nome = hatsu.nome
+	sel_categoria = hatsu.categoria
+	sel_objetivo = hatsu.objetivo
+	sel_forma = hatsu.forma
+	sel_elemento = hatsu.elemento
+	sel_condicoes = hatsu.condicoes.duplicate()
+	sel_restricoes = hatsu.modular_restrictions.duplicate()
+	sel_preparation_steps = hatsu.preparation_steps.duplicate(true)
+	sel_efeitos_secundarios = hatsu.sub_effects.duplicate()
+	custom_vow_input = ""
+	sel_effect_tree = null
+	sel_effect_tree_done = false
+	sel_opcoes_preset_escolhidas = {}
+	if hatsu.parametros_conceito is Dictionary:
+		for k in hatsu.parametros_conceito.keys():
+			if str(k) != "effect_tree":
+				sel_opcoes_preset_escolhidas[k] = hatsu.parametros_conceito[k]
+	etapa_atual = Etapa.CONDICOES
+	visible = true
+	if get_tree() != null:
+		get_tree().paused = true
+	lbl_titulo.text = "🌌 Aprofundar: %s" % hatsu.nome
+	_atualizar_etapa()
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("Aprofunde o voto — só créditos NOVOS viram pontos.", Color(0.75, 0.6, 1.0))
 
 
 func _ir_para_etapa(nova_etapa: Etapa) -> void:
@@ -176,8 +248,20 @@ func _construir_ui() -> void:
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(root)
 
+	# Fundo cósmico (mesmo tema da árvore / skill tree de Nen)
+	var bg_tex: Texture2D = null
+	if ResourceLoader.exists("res://assets/sprites/ui/nen_skill_tree_bg.png"):
+		bg_tex = load("res://assets/sprites/ui/nen_skill_tree_bg.png") as Texture2D
+	if bg_tex != null:
+		var bg_img := TextureRect.new()
+		bg_img.texture = bg_tex
+		bg_img.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		bg_img.stretch_mode = TextureRect.STRETCH_SCALE
+		bg_img.modulate = Color(0.55, 0.55, 0.72, 1.0)
+		bg_img.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		root.add_child(bg_img)
 	var bg := ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.85)
+	bg.color = Color(0.02, 0.02, 0.06, 0.72)
 	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	root.add_child(bg)
 
@@ -187,16 +271,18 @@ func _construir_ui() -> void:
 	panel_main.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.08, 0.12, 0.98)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.border_color = Color(0.3, 0.6, 0.9, 1.0)
-	style.corner_radius_top_left = 4
-	style.corner_radius_top_right = 4
-	style.corner_radius_bottom_right = 4
-	style.corner_radius_bottom_left = 4
+	style.bg_color = Color(0.05, 0.06, 0.10, 0.96)
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.border_color = Color(0.78, 0.58, 0.22, 1.0) # ouro antigo
+	style.corner_radius_top_left = 3
+	style.corner_radius_top_right = 3
+	style.corner_radius_bottom_right = 3
+	style.corner_radius_bottom_left = 3
+	style.shadow_color = Color(0.55, 0.35, 0.9, 0.35)
+	style.shadow_size = 4
 	panel_main.add_theme_stylebox_override("panel", style)
 	root.add_child(panel_main)
 
@@ -224,10 +310,17 @@ func _construir_ui() -> void:
 
 	lbl_titulo = Label.new()
 	lbl_titulo.add_theme_font_size_override("font_size", 4)
-	lbl_titulo.add_theme_color_override("font_color", Color(1.0, 0.85, 0.2, 1.0))
+	lbl_titulo.add_theme_color_override("font_color", Color(0.95, 0.82, 0.35, 1.0))
 	lbl_titulo.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	lbl_titulo.text = "⚡ FORJADOR DE HATSU"
+	lbl_titulo.text = "🌌 CONSTELAÇÃO DO HATSU"
 	hbox_hdr.add_child(lbl_titulo)
+
+	var btn_guia := Button.new()
+	btn_guia.text = "📖 Guia"
+	btn_guia.add_theme_font_size_override("font_size", 4)
+	btn_guia.tooltip_text = "Raridade, nível, afinidade e anti-abuso"
+	btn_guia.pressed.connect(_mostrar_guia_jogador)
+	hbox_hdr.add_child(btn_guia)
 
 	btn_fechar = Button.new()
 	btn_fechar.text = "✖ Sair"
@@ -271,7 +364,12 @@ func _construir_ui() -> void:
 	btn_salvar_rascunho = Button.new()
 	btn_salvar_rascunho.text = "💾 Rascunho"
 	btn_salvar_rascunho.add_theme_font_size_override("font_size", 4)
-	btn_salvar_rascunho.pressed.connect(func(): _finalizar_criacao(true))
+	btn_salvar_rascunho.tooltip_text = "Salva sem forjar. A árvore ainda é recomendada."
+	btn_salvar_rascunho.pressed.connect(func():
+		if not sel_effect_tree_done and EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("Rascunho sem árvore — abra a constelação antes de forjar.", Color(1.0, 0.75, 0.35))
+		_finalizar_criacao(true)
+	)
 	hbox_nav.add_child(btn_salvar_rascunho)
 
 	btn_anterior = Button.new()
@@ -295,7 +393,8 @@ func _construir_barra_abas() -> void:
 	hbox_tabs.add_theme_constant_override("separation", 1)
 	vbox_content.add_child(hbox_tabs)
 
-	var nomes_abas = ["1.Tipo", "2.Conceito", "3.Nome", "4.Função", "5.Efeitos", "6.Cond.", "7.Votos", "8.Custos", "9.Resumo"]
+	# Fluxo A→B→C; Função/Extras/Custos = avançado (*)
+	var nomes_abas = ["A1.Tipo", "A2.Base", "A3.Nome", "Função*", "Extras*", "B1.Cond", "B2.Votos", "Custos*", "C.Árvore"]
 	tab_buttons.clear()
 
 	for i in range(nomes_abas.size()):
@@ -305,6 +404,11 @@ func _construir_barra_abas() -> void:
 		btn_tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var etapa_alvo = i as Etapa
 		btn_tab.pressed.connect(func(): _ir_para_etapa(etapa_alvo))
+		# Destaca abas do fluxo principal
+		if i in FLUXO_PRINCIPAL:
+			btn_tab.modulate = Color(0.95, 0.9, 0.75, 1.0)
+		else:
+			btn_tab.modulate = Color(0.55, 0.55, 0.65, 0.85)
 		hbox_tabs.add_child(btn_tab)
 		tab_buttons.append(btn_tab)
 
@@ -313,12 +417,12 @@ func _construir_gauge(parent: Control) -> void:
 	panel_gauge = PanelContainer.new()
 	panel_gauge.custom_minimum_size = Vector2(95, 162)
 	var st_g := StyleBoxFlat.new()
-	st_g.bg_color = Color(0.09, 0.11, 0.16, 0.95)
+	st_g.bg_color = Color(0.07, 0.06, 0.12, 0.96)
 	st_g.border_width_left = 1
 	st_g.border_width_top = 1
 	st_g.border_width_right = 1
 	st_g.border_width_bottom = 1
-	st_g.border_color = Color(0.4, 0.7, 0.4, 1.0)
+	st_g.border_color = Color(0.55, 0.4, 0.9, 0.95)
 	st_g.corner_radius_top_left = 3
 	st_g.corner_radius_top_right = 3
 	st_g.corner_radius_bottom_right = 3
@@ -338,9 +442,9 @@ func _construir_gauge(parent: Control) -> void:
 	m.add_child(vb)
 
 	var lbl_ghdr := Label.new()
-	lbl_ghdr.text = "EQUILÍBRIO DE NEN"
+	lbl_ghdr.text = "SALDO & EQUILÍBRIO"
 	lbl_ghdr.add_theme_font_size_override("font_size", 4)
-	lbl_ghdr.add_theme_color_override("font_color", Color(0.4, 1.0, 0.5, 1.0))
+	lbl_ghdr.add_theme_color_override("font_color", Color(0.95, 0.8, 0.4, 1.0))
 	lbl_ghdr.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(lbl_ghdr)
 
@@ -390,56 +494,63 @@ func _atualizar_etapa() -> void:
 		var b = tab_buttons[i]
 		if i == int(etapa_atual):
 			b.modulate = Color(1.0, 0.85, 0.2, 1.0)
-		elif i < int(etapa_atual):
-			b.modulate = Color(0.5, 0.8, 1.0, 1.0)
+		elif i in FLUXO_PRINCIPAL and int(etapa_atual) in FLUXO_PRINCIPAL and FLUXO_PRINCIPAL.find(i) < FLUXO_PRINCIPAL.find(int(etapa_atual)):
+			b.modulate = Color(0.5, 0.9, 0.7, 1.0)
+		elif i in FLUXO_PRINCIPAL:
+			b.modulate = Color(0.85, 0.8, 0.65, 1.0)
 		else:
-			b.modulate = Color(0.6, 0.6, 0.7, 0.8)
+			b.modulate = Color(0.5, 0.5, 0.6, 0.75)
 
 	match etapa_atual:
 		Etapa.TIPO_NEN:
-			lbl_titulo.text = "1/9: Tipo de Hatsu"
-			lbl_desc.text = "Escolha sua afinidade de Nen ou acesse o catálogo especial:"
+			lbl_titulo.text = "A1 · Tipo de Nen (Base)"
+			lbl_desc.text = "Escolha a categoria — ela define o raio principal da constelação:"
 			_montar_etapa_tipo_nen()
 
 		Etapa.CONCEITO:
-			lbl_titulo.text = "2/9: Conceito Principal / Preset"
-			lbl_desc.text = "Defina O QUE seu Hatsu fará logo no início da criação:"
+			lbl_titulo.text = "A2 · Base / Conceito"
+			lbl_desc.text = "Base guiada (editável) ou criar do zero — ainda sem gastar pontos:"
 			_montar_etapa_conceito()
 
 		Etapa.NOME:
-			lbl_titulo.text = "3/9: Nome & Identidade Visual"
-			lbl_desc.text = "Como se chamará sua técnica especial de Hatsu?"
+			lbl_titulo.text = "A3 · Nome & Identidade"
+			lbl_desc.text = "Batize a técnica. Em seguida você paga com condições/votos:"
 			_montar_etapa_nome()
 
 		Etapa.FUNCIONAMENTO:
-			lbl_titulo.text = "4/9: Efeito Principal & Funcionamento"
-			lbl_desc.text = "Configure objetivo, alvo, forma e parâmetros do conceito:"
+			lbl_titulo.text = "Avançado · Função (opcional)"
+			lbl_desc.text = "Objetivo/forma — a árvore também define isso com pontos:"
 			_montar_etapa_funcionamento()
 
 		Etapa.EFEITOS_SECUNDARIOS:
-			lbl_titulo.text = "5/9: Efeitos Secundários & Modificadores"
-			lbl_desc.text = "Adicione propriedades táticas acopláveis ao Hatsu:"
+			lbl_titulo.text = "Avançado · Extras (opcional)"
+			lbl_desc.text = "Modificadores extras; a constelação cobre o núcleo do efeito:"
 			_montar_etapa_efeitos_secundarios()
 
 		Etapa.CONDICOES:
-			lbl_titulo.text = "6/9: Condições Táticas & Preparação"
-			lbl_desc.text = "Pague pelo poder com condições de ativação e passos prévios:"
+			lbl_titulo.text = "B1 · Condições & Preparação"
+			lbl_desc.text = "Quanto mais restrição, maior o saldo de pontos da árvore:"
 			_montar_etapa_condicoes()
 
 		Etapa.RESTRICOES:
-			lbl_titulo.text = "7/9: Juramentos & Restrições (Vows)"
-			lbl_desc.text = "Pactos rígidos, limitações de combate e avaliação de Nen:"
+			lbl_titulo.text = "B2 · Juramentos & Restrições"
+			lbl_desc.text = "Votos duros geram créditos — depois gaste na constelação:"
 			_montar_etapa_restricoes()
 
 		Etapa.CUSTOS:
-			lbl_titulo.text = "8/9: Custos, Alcance & Consumo"
-			lbl_desc.text = "Calibre consumo de aura, alcance e ritmo do Hatsu:"
+			lbl_titulo.text = "Avançado · Custos (opcional)"
+			lbl_desc.text = "Calibre aura/alcance manualmente (a árvore também ajusta):"
 			_montar_etapa_custos()
 
 		Etapa.RESUMO:
-			lbl_titulo.text = "9/9: Resumo & Auditoria de Créditos"
-			lbl_desc.text = "Confira o balanço entre poder funcional e limitações:"
-			btn_proximo.text = "⚡ FORJAR HATSU!"
+			if modo_aprofundar:
+				lbl_titulo.text = "C · Aprofundar Constelação"
+				lbl_desc.text = "Novos votos → poucos pontos → gaste no raio e confirme o pacto:"
+				btn_proximo.text = "🌌 CONFIRMAR APROFUNDAMENTO"
+			else:
+				lbl_titulo.text = "C · Constelação & Forja"
+				lbl_desc.text = "Saldo das limitações → gaste no raio da categoria → forje:"
+				btn_proximo.text = "⚡ FORJAR HATSU!"
 			_montar_etapa_resumo()
 
 	_atualizar_gauge()
@@ -483,6 +594,52 @@ func _montar_etapa_tipo_nen() -> void:
 # ============================================================
 
 func _montar_etapa_conceito() -> void:
+	# --- Bases guiadas (desbloqueadas por nível) ---
+	var lbl_g := Label.new()
+	lbl_g.text = "— Bases Guiadas (editáveis) —"
+	lbl_g.add_theme_font_size_override("font_size", 4)
+	lbl_g.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+	container_opcoes.add_child(lbl_g)
+
+	var nivel: int = int(PlayerData.attributes.get("nivel", 1)) if PlayerData != null else 1
+	var max_rank_name: String = HatsuComplexityJudgeScript.rank_nome(HatsuComplexityJudgeScript.max_rank_for_player_level(nivel))
+	var lbl_cap := Label.new()
+	lbl_cap.text = "Seu Lv.%d forja até: %s" % [nivel, max_rank_name]
+	lbl_cap.add_theme_font_size_override("font_size", 3)
+	lbl_cap.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+	container_opcoes.add_child(lbl_cap)
+
+	for base in HatsuGuideBasesScript.obter_todas():
+		var min_lv: int = int(base.get("min_nivel", 1))
+		var unlocked: bool = nivel >= min_lv
+		var tier_n: String = HatsuGuideBasesScript.tier_nome(int(base.get("tier", 0)))
+		var btn_b := Button.new()
+		btn_b.add_theme_font_size_override("font_size", 4)
+		btn_b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		if unlocked:
+			btn_b.text = "[%s] %s (Lv%d+)\n  %s" % [tier_n, str(base.get("nome", "")), min_lv, str(base.get("desc", ""))]
+			if str(base.get("id", "")) == sel_guide_base_id:
+				btn_b.modulate = Color(0.45, 1.0, 0.55, 1.0)
+			# Destaca afinidade natal
+			if PlayerData != null and int(PlayerData.afinidade_nen) == int(base.get("afinidade", -1)):
+				btn_b.modulate = Color(0.55, 0.95, 1.0, 1.0)
+			var base_ref: Dictionary = base
+			btn_b.pressed.connect(func():
+				_aplicar_guide_base(base_ref)
+				_on_avancar_pressed()
+			)
+		else:
+			btn_b.text = "🔒 [%s] %s — requer Lv%d" % [tier_n, str(base.get("nome", "")), min_lv]
+			btn_b.disabled = true
+			btn_b.modulate = Color(0.5, 0.5, 0.55, 1.0)
+		container_opcoes.add_child(btn_b)
+
+	var sep := Label.new()
+	sep.text = "— Conceitos clássicos / do zero —"
+	sep.add_theme_font_size_override("font_size", 4)
+	sep.add_theme_color_override("font_color", Color(0.75, 0.8, 0.9))
+	container_opcoes.add_child(sep)
+
 	var presets: Array[Dictionary] = []
 	if sel_tipo_especial:
 		presets = HatsuPresetLibrary.obter_presets_especiais()
@@ -496,14 +653,61 @@ func _montar_etapa_conceito() -> void:
 		btn.text = p["nome"] + "\n  " + p["desc"]
 		btn.add_theme_font_size_override("font_size", 4)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		if p["id"] == sel_preset_id:
+		if p["id"] == sel_preset_id and sel_guide_base_id.is_empty():
 			btn.modulate = Color(0.4, 1.0, 0.6, 1.0)
 
 		btn.pressed.connect(func():
+			sel_guide_base_id = ""
 			_aplicar_preset(p)
 			_on_avancar_pressed()
 		)
 		container_opcoes.add_child(btn)
+
+
+func _aplicar_guide_base(base: Dictionary) -> void:
+	sel_guide_base_id = str(base.get("id", ""))
+	sel_preset_id = HatsuPresetLibrary.PresetId.CRIAR_DO_ZERO
+	sel_nome = str(base.get("nome", "Nova Técnica"))
+	sel_categoria = base.get("categoria", HatsuData.Categoria.INTENSIFICACAO)
+	sel_objetivo = base.get("objetivo", HatsuData.ObjetivoPrincipal.DANO)
+	sel_forma = base.get("forma", HatsuData.Forma.TOQUE)
+	sel_arquetipo = base.get("arquetipo", HatsuData.Arquetipo.SIMPLES)
+	sel_condicoes = base.get("condicoes", []).duplicate()
+	sel_restricoes = base.get("restricoes", []).duplicate()
+	sel_preparation_steps.clear()
+	var n_steps: int = int(base.get("preparation_steps_base", 0))
+	for i in range(n_steps):
+		sel_preparation_steps.append({
+			"id": "guide_step_%d" % (i + 1),
+			"description": "Passo %d (editável — remover enfraquece)" % (i + 1),
+			"action_required": "PREP",
+			"time_required": 0.0,
+			"credit_value": 25.0
+		})
+	sel_steal_conditions.clear()
+	for sc in base.get("steal_conditions_base", []):
+		sel_steal_conditions.append(str(sc))
+	sel_is_storage_hatsu = bool(base.get("is_storage_hatsu", false))
+	custom_vow_input = str(base.get("tradeoff_hint", ""))
+	sel_consumo = HatsuData.ConsumoDesejado.MEDIO
+	if float(base.get("custo_aura", 30.0)) >= 45.0:
+		sel_consumo = HatsuData.ConsumoDesejado.ALTO
+	elif float(base.get("custo_aura", 30.0)) <= 20.0:
+		sel_consumo = HatsuData.ConsumoDesejado.BAIXO
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("Base: %s — edite passos/poder com tradeoff." % sel_nome, Color(0.9, 0.85, 0.4))
+
+
+func _mostrar_guia_jogador() -> void:
+	var texto: String = HatsuComplexityJudgeScript.obter_guia_jogador()
+	var popup := AcceptDialog.new()
+	popup.title = "Guia do Hatsu Creator"
+	popup.dialog_text = texto
+	popup.ok_button_text = "Entendi"
+	add_child(popup)
+	popup.popup_centered(Vector2i(280, 160))
+	popup.confirmed.connect(func(): popup.queue_free())
+	popup.canceled.connect(func(): popup.queue_free())
 
 
 func _aplicar_preset(preset: Dictionary) -> void:
@@ -1184,9 +1388,33 @@ func _montar_etapa_resumo() -> void:
 		]
 	container_opcoes.add_child(lbl_res)
 
+	# Fase 2: saldo de pontos → árvore de efeitos
+	var tree_pts: int = HatsuEffectTreeScript.calcular_budget_de_hatsu(h_temp)
+	var lbl_tree := Label.new()
+	lbl_tree.add_theme_font_size_override("font_size", 4)
+	lbl_tree.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	if sel_effect_tree_done and sel_effect_tree != null:
+		lbl_tree.add_theme_color_override("font_color", Color(0.45, 1.0, 0.65))
+		lbl_tree.text = "🌌 Árvore de Efeitos: OK (gastou %d/%d pts no raio Nen)." % [
+			sel_effect_tree.budget_spent, sel_effect_tree.budget_total
+		]
+	else:
+		lbl_tree.add_theme_color_override("font_color", Color(1.0, 0.85, 0.35))
+		lbl_tree.text = "🌌 Saldo da Árvore: %d pts (vêm das suas condições/restrições).\nAbra a constelação, siga o raio da categoria e gaste pontos no que a habilidade FAZ." % tree_pts
+	container_opcoes.add_child(lbl_tree)
+
+	var btn_tree := Button.new()
+	btn_tree.text = "🌌 Abrir Árvore de Efeitos (%d pts)" % tree_pts if not sel_effect_tree_done else "🌌 Revisar Árvore de Efeitos"
+	btn_tree.add_theme_font_size_override("font_size", 4)
+	btn_tree.pressed.connect(func(): _abrir_arvore_efeitos(h_temp))
+	container_opcoes.add_child(btn_tree)
+
 	if deficit > 0:
 		btn_proximo.modulate = Color(1.0, 0.4, 0.4, 1.0)
 		btn_proximo.text = "⚠️ Déficit Pendente"
+	elif not sel_effect_tree_done:
+		btn_proximo.modulate = Color(1.0, 0.75, 0.35, 1.0)
+		btn_proximo.text = "🌌 Abrir Árvore primeiro"
 	else:
 		btn_proximo.modulate = Color(0.4, 1.0, 0.6, 1.0)
 		btn_proximo.text = "⚡ FORJAR HATSU!"
@@ -1217,26 +1445,61 @@ func _atualizar_gauge() -> void:
 	var v_score: int = int(h_temp.calcular_versatility_score())
 	var equilibrado: bool = (deficit == 0)
 
+	var tree_pts: int = HatsuEffectTreeScript.calcular_budget_de_hatsu(h_temp)
 	lbl_compat.text = "Compatib.: " + str(compat_pct) + "%"
 	lbl_aura.text = "Demanda: %d cr" % f_power
 	lbl_potencial.text = "Créditos: %d cr" % l_credits
-	lbl_complexidade.text = "Déficit: %d cr" % deficit
+	lbl_complexidade.text = "Árvore: %d pts" % tree_pts
 
-	if equilibrado:
+	var judge: Dictionary = HatsuComplexityJudgeScript.evaluate(h_temp)
+	var rank_n: String = str(judge.get("rank_name", "?"))
+	if equilibrado and bool(judge.get("allowed", true)):
 		lbl_dica_dinamica.add_theme_color_override("font_color", Color(0.4, 1.0, 0.6, 1.0))
-		lbl_dica_dinamica.text = "✅ TÉCNICA 100%% EQUILIBRADA\nNecessários: %d cr | Pagos: %d cr\nDéficit: 0 cr\nPronto para forjar!" % [f_power, l_credits]
+		lbl_dica_dinamica.text = "✅ [%s] equilibrada\nSaldo árvore: %d pts\nTeto Lv: %s\nDéficit: %d cr" % [
+			rank_n, tree_pts, str(judge.get("max_rank_name", "?")), deficit
+		]
+	elif equilibrado and not bool(judge.get("allowed", true)):
+		lbl_dica_dinamica.add_theme_color_override("font_color", Color(1.0, 0.65, 0.3, 1.0))
+		lbl_dica_dinamica.text = "⚖️ %s" % str(judge.get("reason", "Acima do seu nível"))
 	else:
 		lbl_dica_dinamica.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
-		lbl_dica_dinamica.text = "⚠️ DÉFICIT DE %d CRÉDITOS:\nNecessários: %d cr | Pagos: %d cr\nAdicione condições, restrições ou passos de preparação!" % [deficit, f_power, l_credits]
+		lbl_dica_dinamica.text = "⚠️ Faltam %d cr\n(condições/votos)\nSaldo atual: %d pts" % [deficit, tree_pts]
 
 
 # ============================================================
 # NAVEGAÇÃO & FINALIZAÇÃO
 # ============================================================
 
+func _proxima_etapa_fluxo(atual: Etapa) -> Etapa:
+	var idx: int = FLUXO_PRINCIPAL.find(int(atual))
+	if idx >= 0 and idx + 1 < FLUXO_PRINCIPAL.size():
+		return FLUXO_PRINCIPAL[idx + 1] as Etapa
+	# Se estiver numa aba avançada, volta ao fluxo principal na próxima lógica
+	if atual == Etapa.FUNCIONAMENTO or atual == Etapa.EFEITOS_SECUNDARIOS:
+		return Etapa.CONDICOES
+	if atual == Etapa.CUSTOS:
+		return Etapa.RESUMO
+	if int(atual) < int(Etapa.RESUMO):
+		return (int(atual) + 1) as Etapa
+	return Etapa.RESUMO
+
+
+func _etapa_anterior_fluxo(atual: Etapa) -> Etapa:
+	var idx: int = FLUXO_PRINCIPAL.find(int(atual))
+	if idx > 0:
+		return FLUXO_PRINCIPAL[idx - 1] as Etapa
+	if atual == Etapa.FUNCIONAMENTO or atual == Etapa.EFEITOS_SECUNDARIOS:
+		return Etapa.NOME
+	if atual == Etapa.CUSTOS:
+		return Etapa.RESTRICOES
+	if int(atual) > 0:
+		return (int(atual) - 1) as Etapa
+	return Etapa.TIPO_NEN
+
+
 func _on_voltar_pressed() -> void:
-	if etapa_atual > Etapa.TIPO_NEN:
-		etapa_atual = (int(etapa_atual) - 1) as Etapa
+	if etapa_atual != Etapa.TIPO_NEN:
+		etapa_atual = _etapa_anterior_fluxo(etapa_atual)
 		_atualizar_etapa()
 
 
@@ -1245,16 +1508,90 @@ func _on_avancar_pressed() -> void:
 		if line_edit_nome != null and not line_edit_nome.text.is_empty():
 			sel_nome = line_edit_nome.text
 
-	if etapa_atual < Etapa.RESUMO:
-		etapa_atual = (int(etapa_atual) + 1) as Etapa
+	if etapa_atual != Etapa.RESUMO:
+		etapa_atual = _proxima_etapa_fluxo(etapa_atual)
 		_atualizar_etapa()
+	elif not sel_effect_tree_done:
+		# Força a árvore de efeitos antes da forja
+		var h_temp := HatsuManager.criar_hatsu(
+			sel_nome, sel_categoria, sel_forma, sel_condicoes,
+			sel_objetivo, sel_elemento, sel_alvo, sel_alcance, sel_consumo, custom_vow_input, sel_arquetipo,
+			sel_cor_primaria, sel_cor_secundaria, sel_estilo_visual,
+			sel_preparation_steps, sel_efeitos_secundarios,
+			sel_restricoes, sel_opcoes_preset_escolhidas,
+			sel_is_storage_hatsu, sel_storage_capacity, sel_storage_duration, sel_storage_usage, sel_steal_conditions, sel_steal_target
+		)
+		_abrir_arvore_efeitos(h_temp)
 	else:
 		_finalizar_criacao(false)
+
+
+func _abrir_arvore_efeitos(h_temp: HatsuData) -> void:
+	if _tree_overlay != null and is_instance_valid(_tree_overlay):
+		_tree_overlay.queue_free()
+	var p_lv: int = int(PlayerData.attributes.get("nivel", 1)) if PlayerData != null else 1
+	var mastery: float = 0.0
+	var bond_uses: int = 0
+	var deepen_n: int = 0
+	var bag: Dictionary = {}
+	if modo_aprofundar and hatsu_aprofundar != null:
+		mastery = hatsu_aprofundar.mastery
+		if hatsu_aprofundar.parametros_conceito is Dictionary:
+			var raw = hatsu_aprofundar.parametros_conceito.get("effect_tree", {})
+			if typeof(raw) == TYPE_DICTIONARY:
+				bag = raw
+		bond_uses = int(bag.get("bond_uses", 0))
+		deepen_n = int(bag.get("deepen_count", 0))
+
+	var et = HatsuEffectTreeScript.new()
+	if modo_aprofundar and not bag.is_empty() and bag.has("allocated"):
+		et.configurar_contexto(p_lv, mastery, bond_uses, deepen_n)
+		et.restaurar_alocacao(bag)
+		var pts_extra: int = HatsuEffectTreeScript.calcular_pontos_deepen(
+			_deepen_credits_before,
+			h_temp.calcular_limitation_credits(),
+			deepen_n
+		)
+		et.expandir_budget(pts_extra)
+		et.primary_category = int(sel_categoria)
+	else:
+		var budget: int = HatsuEffectTreeScript.calcular_budget_de_hatsu(h_temp)
+		et.reset(budget, int(sel_categoria), p_lv, mastery)
+		et.configurar_contexto(p_lv, mastery, bond_uses, deepen_n)
+	sel_effect_tree = et
+
+	_tree_overlay = CanvasLayer.new()
+	_tree_overlay.layer = 40
+	_tree_overlay.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(_tree_overlay)
+	var ui = HatsuEffectTreeUIScript.new()
+	_tree_overlay.add_child(ui)
+	ui.setup(et)
+	ui.confirmado.connect(func(t):
+		sel_effect_tree = t
+		sel_effect_tree_done = true
+		if _tree_overlay != null:
+			_tree_overlay.queue_free()
+			_tree_overlay = null
+		_atualizar_etapa()
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			var msg := "Constelação aprofundada." if modo_aprofundar else "Árvore confirmada — pode forjar."
+			EventBus.emit_toast(msg, Color(0.5, 1.0, 0.6))
+	)
+	ui.cancelado.connect(func():
+		if _tree_overlay != null:
+			_tree_overlay.queue_free()
+			_tree_overlay = null
+	)
 
 
 func _finalizar_criacao(is_draft: bool = false) -> void:
 	if line_edit_nome != null and not line_edit_nome.text.is_empty():
 		sel_nome = line_edit_nome.text
+
+	if modo_aprofundar and hatsu_aprofundar != null:
+		_finalizar_aprofundamento()
+		return
 
 	var novo_hatsu := HatsuManager.criar_hatsu(
 		sel_nome, sel_categoria, sel_forma, sel_condicoes,
@@ -1273,6 +1610,37 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 	novo_hatsu.sub_effects = sel_efeitos_secundarios.duplicate()
 	novo_hatsu.modular_restrictions = sel_restricoes.duplicate()
 	novo_hatsu.parametros_conceito = sel_opcoes_preset_escolhidas.duplicate(true)
+
+	# Aplica árvore de efeitos (o que a habilidade FAZ)
+	if sel_effect_tree != null and sel_effect_tree.has_method("aplicar_em_hatsu"):
+		sel_effect_tree.aplicar_em_hatsu(novo_hatsu)
+
+	# Marca base guiada para tradeoffs no juiz (ex.: -1 passo → mais fraco)
+	if not sel_guide_base_id.is_empty():
+		var tags: Array[String] = []
+		for t in novo_hatsu.tags:
+			tags.append(str(t))
+		tags.append("guide")
+		tags.append("guide_base:%s" % sel_guide_base_id)
+		novo_hatsu.tags = tags
+		var base_g: Dictionary = HatsuGuideBasesScript.obter_por_id(sel_guide_base_id)
+		if not base_g.is_empty():
+			if float(base_g.get("poder_base", 0.0)) > 0.0 and novo_hatsu.poder_base <= 25.0:
+				novo_hatsu.poder_base = float(base_g.get("poder_base", 50.0))
+			if float(base_g.get("custo_aura", 0.0)) > 0.0:
+				novo_hatsu.custo_aura_base = float(base_g.get("custo_aura", novo_hatsu.custo_aura_base))
+			if float(base_g.get("cooldown", 0.0)) > 0.0:
+				novo_hatsu.cooldown_base = float(base_g.get("cooldown", novo_hatsu.cooldown_base))
+			if float(base_g.get("cura_base", 0.0)) > 0.0:
+				novo_hatsu.cura_base = float(base_g.get("cura_base", 0.0))
+			if float(base_g.get("duracao", 0.0)) > 0.0:
+				novo_hatsu.duracao = float(base_g.get("duracao", 0.0))
+			if base_g.has("activation_type"):
+				novo_hatsu.activation_type = base_g["activation_type"]
+			if base_g.has("core_component"):
+				novo_hatsu.core_component = base_g["core_component"]
+			if base_g.has("exclusive_group"):
+				novo_hatsu.exclusive_group = str(base_g["exclusive_group"])
 
 	# Mapear Core Component
 	match sel_forma:
@@ -1303,7 +1671,7 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 		_: vp.shape = VisualProfile.VisualShape.SPHERE
 	novo_hatsu.visual_profile = vp
 
-	# Validar Power & Limitation Budget
+	# Validar Power & Limitation Budget + juiz de raridade/nível
 	var validacao = HatsuManager.validate_hatsu(novo_hatsu)
 	HatsuManager.calculate_power_budget(novo_hatsu)
 
@@ -1312,6 +1680,12 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 		lbl_desc.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
 		lbl_desc.text = "❌ DÉFICIT DE %d CRÉDITOS: Não é possível forjar o Hatsu até pagar todas as limitações! Adicione condições/restrições ou salve como Rascunho." % int(novo_hatsu.credit_deficit)
 		print("[HatsuCreationUI] ❌ Criação bloqueada devido a Déficit de Créditos: ", novo_hatsu.credit_deficit)
+		return
+
+	if not is_draft and str(validacao.get("status", "")) in ["OVERPOWERED", "INVALID"]:
+		lbl_desc.add_theme_color_override("font_color", Color(1.0, 0.45, 0.3, 1.0))
+		lbl_desc.text = "❌ %s" % str(validacao.get("reason", "Técnica rejeitada pelo juiz de complexidade."))
+		print("[HatsuCreationUI] ❌ Bloqueado pelo validador: ", validacao.get("status"), " | ", validacao.get("reason"))
 		return
 
 	var index: int = -1
@@ -1342,4 +1716,54 @@ func _finalizar_criacao(is_draft: bool = false) -> void:
 	else:
 		print("[HatsuCreationUI] ⚡ Novo Hatsu v1.6 forjado com sucesso! Slot index: ", index, " | Demanda: ", novo_hatsu.functional_power, " | Créditos: ", novo_hatsu.limitation_credits)
 
+	fechar()
+
+
+func _montar_hatsu_aprofundar_temp() -> HatsuData:
+	## Cópia de trabalho — não muta o archive até confirmar.
+	var h := hatsu_aprofundar.duplicate(true) if hatsu_aprofundar != null and hatsu_aprofundar.has_method("duplicate") else null
+	if h == null:
+		h = HatsuData.new()
+		if hatsu_aprofundar != null and hatsu_aprofundar.has_method("to_dict"):
+			h = HatsuData.from_dict(hatsu_aprofundar.to_dict())
+		else:
+			return hatsu_aprofundar
+	h.condicoes = sel_condicoes.duplicate()
+	h.modular_restrictions = sel_restricoes.duplicate()
+	h.preparation_steps = sel_preparation_steps.duplicate(true)
+	h.sub_effects = sel_efeitos_secundarios.duplicate()
+	return h
+
+
+func _finalizar_aprofundamento() -> void:
+	if hatsu_aprofundar == null:
+		return
+	if not sel_effect_tree_done or sel_effect_tree == null:
+		_abrir_arvore_efeitos(_montar_hatsu_aprofundar_temp())
+		return
+
+	# Só agora grava no archive
+	hatsu_aprofundar.condicoes = sel_condicoes.duplicate()
+	hatsu_aprofundar.modular_restrictions = sel_restricoes.duplicate()
+	hatsu_aprofundar.preparation_steps = sel_preparation_steps.duplicate(true)
+	hatsu_aprofundar.sub_effects = sel_efeitos_secundarios.duplicate()
+
+	if HatsuProgressionManager != null:
+		var cob: Dictionary = HatsuProgressionManager.cobrar_deepen_jenny(hatsu_aprofundar.hatsu_id)
+		if not cob.get("success", false):
+			lbl_desc.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
+			lbl_desc.text = "❌ %s" % str(cob.get("message", "Jenny insuficiente."))
+			return
+		var res: Dictionary = HatsuProgressionManager.finalizar_aprofundamento(
+			hatsu_aprofundar, _deepen_credits_before, sel_effect_tree
+		)
+		if not res.get("success", false):
+			lbl_desc.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4, 1.0))
+			lbl_desc.text = "❌ %s" % str(res.get("message", "Aprofundamento falhou."))
+			return
+	else:
+		sel_effect_tree.aplicar_em_hatsu(hatsu_aprofundar)
+
+	hatsu_criado.emit(hatsu_aprofundar)
+	print("[HatsuCreationUI] 🌌 Hatsu aprofundado: ", hatsu_aprofundar.nome)
 	fechar()

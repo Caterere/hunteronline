@@ -491,6 +491,10 @@ func calcular_limitation_credits() -> float:
 			"TARGET_DEFEATED":
 				credits += 35.0
 				c_cred += 35.0
+			"WITHIN_ONE_HOUR":
+				# Mangá: ver + perguntar + palma no livro dentro de 1 hora.
+				credits += 40.0
+				c_cred += 40.0
 			"FOUR_STRICT_CONDITIONS":
 				credits += 120.0
 				c_cred += 120.0

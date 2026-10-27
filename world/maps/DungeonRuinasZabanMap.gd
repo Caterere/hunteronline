@@ -1,6 +1,7 @@
 class_name DungeonRuinasZabanMap
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 # ============================================================
 # HUNTER ONLINE - DUNGEON: RUÍNAS DE ZABAN (SANTUÁRIO ANCESTRAL)
 # ============================================================
@@ -42,8 +43,15 @@ func _ready() -> void:
 		
 	_garantir_spawn_points()
 	_gerar_mapa_dungeon()
-	# Playtest: grama sob o layout; paredes/colisão da dungeon ficam
-	PlaytestVisualMode.apply_grass_floor(self, Vector2(640, 480), Color(0.55, 0.58, 0.52))
+	# Playtest opt-in; senão política de grama interim (colisões / layout do raid)
+	if not PlaytestVisualMode.apply_grass_floor(self, Vector2(640, 480), Color(0.55, 0.58, 0.52)):
+		if SimpleGrassTerrainPolicyScript.ENABLED:
+			SimpleGrassTerrainPolicyScript.apply_to_map(self)
+			if paredes_layer != null:
+				paredes_layer.modulate = Color(0.75, 0.95, 0.70, 0.85)
+			if decor_layer != null:
+				decor_layer.clear()
+				decor_layer.visible = false
 	_instanciar_boss_e_sentinelas()
 	_posicionar_player()
 	_configurar_audio_e_hud()

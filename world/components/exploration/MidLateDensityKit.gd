@@ -104,6 +104,9 @@ static func _abrir_bau(bau_node: Node, titulo: String, loot: Array) -> void:
 		CombatImpactEffect.spawn_aura_burst(bau_node, pos, Color(1.0, 0.85, 0.35, 0.95))
 		if DamageNumberSystem != null:
 			DamageNumberSystem.spawn_texto(pos, "✨ LOOT", Color(1.0, 0.88, 0.4), 1.15, 0.85)
+	var am = Engine.get_main_loop().root.get_node_or_null("/root/AudioManager") if Engine.get_main_loop() else null
+	if am != null and am.has_method("tocar_stinger_reward"):
+		am.tocar_stinger_reward("chest")
 	if EventBus != null:
 		EventBus.emit_toast("✨ %s: %s" % [titulo, resumo], Color(0.35, 1.0, 0.55))
 	var tree := bau_node.get_tree()
@@ -165,6 +168,9 @@ static func _ativar_hatsu_moment(area: Node, titulo: String, descricao: String, 
 			return
 		StoryManager.set_story_flag(flag, true)
 	var mastery_msg := _conceder_mastery_real_momento()
+	var am_hatsu = Engine.get_main_loop().root.get_node_or_null("/root/AudioManager") if Engine.get_main_loop() else null
+	if am_hatsu != null and am_hatsu.has_method("tocar_stinger_reward"):
+		am_hatsu.tocar_stinger_reward("hatsu")
 	if EventBus != null:
 		if mastery_msg.is_empty():
 			EventBus.emit_toast("⚡ Momento Hatsu: %s" % titulo, Color(0.85, 0.55, 1.0))

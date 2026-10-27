@@ -34,7 +34,8 @@ var _chat_open: bool = false
 
 
 func _ready() -> void:
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	# Fechado: não rouba clique/tecla do gameplay (G5 portal E / movimento).
+	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	custom_minimum_size = Vector2(LOG_WIDTH + 12, LOG_HEIGHT + 28)
 	anchor_left = 0.0
 	anchor_top = 1.0
@@ -100,11 +101,14 @@ func _ready() -> void:
 	line_input.custom_minimum_size = Vector2(120, 16)
 	line_input.max_length = MAX_CHAT_CHARS
 	line_input.add_theme_font_size_override("font_size", 5)
+	line_input.focus_mode = Control.FOCUS_NONE
+	line_input.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line_input.text_submitted.connect(_on_mensagem_enviada)
 	line_input.text_changed.connect(_on_texto_alterado)
 	line_input.focus_entered.connect(_on_chat_focus_entered)
 	line_input.focus_exited.connect(_on_chat_focus_exited)
 	hbox_in.add_child(line_input)
+	_aplicar_filtro_mouse_chat(false)
 
 	lbl_counter = Label.new()
 	lbl_counter.text = "0/%d" % MAX_CHAT_CHARS
@@ -219,8 +223,12 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _abrir_chat() -> void:
-	if line_input != null:
-		line_input.grab_focus()
+	if line_input == null:
+		return
+	_aplicar_filtro_mouse_chat(true)
+	line_input.focus_mode = Control.FOCUS_ALL
+	line_input.mouse_filter = Control.MOUSE_FILTER_STOP
+	line_input.grab_focus()
 
 
 func _fechar_chat() -> void:
@@ -228,11 +236,23 @@ func _fechar_chat() -> void:
 		return
 	line_input.release_focus()
 	line_input.clear()
+	line_input.focus_mode = Control.FOCUS_NONE
+	line_input.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_aplicar_filtro_mouse_chat(false)
 	_atualizar_contador()
+
+
+func _aplicar_filtro_mouse_chat(aberto: bool) -> void:
+	mouse_filter = Control.MOUSE_FILTER_STOP if aberto else Control.MOUSE_FILTER_IGNORE
+	if btn_canal != null:
+		btn_canal.mouse_filter = Control.MOUSE_FILTER_STOP if aberto else Control.MOUSE_FILTER_IGNORE
+	if scroll_log != null:
+		scroll_log.mouse_filter = Control.MOUSE_FILTER_STOP if aberto else Control.MOUSE_FILTER_IGNORE
 
 
 func _on_chat_focus_entered() -> void:
 	_chat_open = true
+	_aplicar_filtro_mouse_chat(true)
 	var icm := get_node_or_null("/root/InputContextManager")
 	if icm != null and icm.has_method("push_context"):
 		if icm.get_context() != icm.Context.CHAT:
@@ -241,6 +261,10 @@ func _on_chat_focus_entered() -> void:
 
 func _on_chat_focus_exited() -> void:
 	_chat_open = false
+	if line_input != null:
+		line_input.focus_mode = Control.FOCUS_NONE
+		line_input.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_aplicar_filtro_mouse_chat(false)
 	_fechar_contexto_chat()
 
 

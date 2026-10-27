@@ -180,14 +180,20 @@ func is_greed_island_concluida() -> bool:
 
 
 func desbloquear_hatsu_creator() -> void:
+	# Sempre marca as flags — chamada explícita (Biscuit / fim da saga / debug).
+	hatsu_creation_unlocked = true
+	hatsu_desbloqueado = true
 	if HatsuProgressionManager != null and not HatsuProgressionManager.is_slot_unlocked(1):
-		HatsuProgressionManager.unlock_slot(1)
-	elif not hatsu_creation_unlocked or not hatsu_desbloqueado:
-		hatsu_creation_unlocked = true
-		hatsu_desbloqueado = true
-		print("[PlayerData] 🥋 HATSU CREATOR DESBLOQUEADO PERMANENTEMENTE!")
-		if SaveManager != null and SaveManager.has_method("salvar_jogo"):
-			SaveManager.salvar_jogo()
+		# Força Slot 1: unlock_slot() exige story gate; aqui o desbloqueio já foi autorizado.
+		if HatsuProgressionManager.has_method("force_unlock_slot"):
+			HatsuProgressionManager.force_unlock_slot(1)
+		else:
+			var ok := HatsuProgressionManager.unlock_slot(1)
+			if not ok:
+				HatsuProgressionManager.unlocked_slots[1] = true
+	print("[PlayerData] 🥋 HATSU CREATOR DESBLOQUEADO PERMANENTEMENTE!")
+	if SaveManager != null and SaveManager.has_method("salvar_jogo"):
+		SaveManager.salvar_jogo()
 
 
 
@@ -434,7 +440,8 @@ func reset() -> void:
 		"nivel_nen": 1,
 		"xp_nen": 0,
 		"nivel": 1,
-		"xp": 0
+		"xp": 0,
+		"esperanca_vida": 100.0
 	}
 	recalcular_todos_atributos()
 	attributes["vida"] = attributes["vida_max"]

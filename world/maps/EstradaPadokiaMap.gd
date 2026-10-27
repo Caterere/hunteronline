@@ -1,6 +1,7 @@
 class_name EstradaPadokiaMap
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 # ============================================================
 # HUNTER ONLINE - ESTRADA REAL DE PADOKIA (MAPA PERMANENTE CONECTADO)
 # ============================================================
@@ -37,7 +38,10 @@ func _ready() -> void:
 	_garantir_spawn_points()
 	var playtest_grass := PlaytestVisualMode.apply_grass_floor(self, Vector2(800, 900), Color(0.72, 0.92, 0.62))
 	if not playtest_grass:
-		_pintar_piso_estrada()
+		if SimpleGrassTerrainPolicyScript.ENABLED:
+			SimpleGrassTerrainPolicyScript.apply_to_map(self)
+		else:
+			_pintar_piso_estrada()
 	_configurar_limites_camera()
 	_configurar_audio_e_hud()
 	_posicionar_player()
@@ -46,12 +50,13 @@ func _ready() -> void:
 	_instanciar_sensores_nen_estrada()
 	_densificar_steam_early_estrada()
 	_criar_zona_protecao_escolta()
-	_criar_grande_ponte()
+	if not SimpleGrassTerrainPolicyScript.ENABLED:
+		_criar_grande_ponte()
 	_conectar_ciclo_noturno()
 	if not tree_exiting.is_connected(_on_estrada_tree_exiting):
 		tree_exiting.connect(_on_estrada_tree_exiting)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ESTRADA)
-	if not playtest_grass:
+	if not playtest_grass and not SimpleGrassTerrainPolicyScript.ENABLED:
 		CalibrationArtKit.attach_to_estrada(self)
 		WorldDensityKit.attach(self, WorldDensityKit.KitKind.ESTRADA)
 		WorldPropsKit.attach(self, WorldPropsKit.KitKind.ESTRADA)
@@ -254,12 +259,14 @@ func _densificar_vida_estrada() -> void:
 	var scn_npc = load("res://entities/npc/NPC.tscn")
 	if scn_npc == null:
 		return
+	var NPCScheduleDataScript = preload("res://world/content/NPCScheduleData.gd")
+	# Posições espalhadas — evita stack de badges na fogueira (G5)
 	var walkers := [
-		{"name": "ViajantePatrulha", "pos": Vector2(360, 180), "npc": "Viajante da Associação", "fala": "A Estrada Real fica perigosa depois do anoitecer. Fique perto da fogueira.", "ids": ["npc_viajante_scout"], "r": 56.0},
-		{"name": "GuardaItinerante", "pos": Vector2(420, 320), "npc": "Guarda Itinerante", "fala": "Mantenha a carroça à vista. Salteadores cheiram Jenny de longe.", "ids": ["npc_guarda_fronteira"], "r": 64.0},
-		# Evento social Associação × Máfia × Guardas (Steam density)
-		{"name": "AgenteAssociacaoEstrada", "pos": Vector2(300, 240), "npc": "Agente da Associação", "fala": "A Máfia quer pedágio nesta ponte. A Associação não negocia — reporte qualquer carroça marcada.", "ids": ["npc_viajante_scout"], "r": 48.0},
-		{"name": "ObservadorMafiaEstrada", "pos": Vector2(480, 260), "npc": "Observador da Máfia", "fala": "...só estou de passagem. Não olhe demais para a carroça do oeste.", "ids": ["npc_guarda_fronteira"], "r": 40.0},
+		{"name": "ViajantePatrulha", "pos": Vector2(360, 180), "npc": "Viajante da Associação", "fala": "A Estrada Real fica perigosa depois do anoitecer. Fique perto da fogueira.", "ids": ["npc_viajante_scout"], "r": 56.0, "work": Vector2(360, 180), "home": Vector2(280, 240)},
+		{"name": "GuardaItinerante", "pos": Vector2(520, 360), "npc": "Guarda Itinerante", "fala": "Mantenha a carroça à vista. Salteadores cheiram Jenny de longe.", "ids": ["npc_guarda_fronteira"], "r": 64.0, "work": Vector2(520, 360), "home": Vector2(460, 140)},
+		# Evento social Associação × Máfia × Guardas (Steam density) — lados opostos da via
+		{"name": "AgenteAssociacaoEstrada", "pos": Vector2(260, 220), "npc": "Agente da Associação", "fala": "A Máfia quer pedágio nesta ponte. A Associação não negocia — reporte qualquer carroça marcada.", "ids": ["npc_viajante_scout"], "r": 48.0, "work": Vector2(260, 220), "home": Vector2(300, 140)},
+		{"name": "ObservadorMafiaEstrada", "pos": Vector2(560, 280), "npc": "Observador da Máfia", "fala": "...só estou de passagem. Não olhe demais para a carroça do oeste.", "ids": ["npc_guarda_fronteira"], "r": 40.0, "work": Vector2(560, 280), "home": Vector2(600, 200)},
 	]
 	for w in walkers:
 		if get_node_or_null(w["name"]) != null:
@@ -276,6 +283,15 @@ func _densificar_vida_estrada() -> void:
 		living.tipo_marcador = "ambient"
 		living.hierarchy = LivingNPCBehavior.NPCHierarchy.COMMON
 		living.raio_patrulha = w["r"]
+		living.badge_proximity_only = true
+		living.badge_show_radius = 64.0
+		var sched = NPCScheduleDataScript.new()
+		sched.npc_name = w["npc"]
+		sched.workplace_pos = w["work"]
+		sched.home_pos = w["home"]
+		sched.patrol_route = [w["work"], w["work"] + Vector2(36, 0), w["home"]]
+		sched.move_speed = 22.0
+		living.schedule_data = sched
 		npc.add_child(living)
 		add_child(npc)
 

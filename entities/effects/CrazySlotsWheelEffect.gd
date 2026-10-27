@@ -21,8 +21,8 @@ var finalizou_giro: bool = false
 
 func setup(player_body: CharacterBody2D) -> void:
 	target_player = player_body
-	# Sortear entre as 3 armas canônicas (2 = Foice, 3 = Clava, 4 = Rifle)
-	var opcoes := [2, 2, 3, 4] # Maior probabilidade para a famosa Foice
+	# D5-B: 3 armas (foice / clava / rifle) com pesos — foice mais comum (Silent Waltz)
+	var opcoes := [2, 2, 2, 3, 3, 4] # pesos: foice 50%, clava 33%, rifle 17%
 	numero_sorteado = opcoes[randi() % opcoes.size()]
 	z_index = 8
 
@@ -108,14 +108,73 @@ func _executar_valsa_silenciosa() -> void:
 
 func _executar_clava_esmagadora() -> void:
 	var fx := HatsuAreaExplosionNode.new()
-	fx.setup(60.0, Color(1.0, 0.6, 0.1, 0.9))
+	fx.setup(70.0, Color(1.0, 0.6, 0.1, 0.9))
 	target_player.add_child(fx)
+
+	var area := Area2D.new()
+	area.collision_layer = 1 << 3
+	area.collision_mask = 1 << 4
+	var col := CollisionShape2D.new()
+	var shape := CircleShape2D.new()
+	shape.radius = 70.0
+	col.shape = shape
+	area.add_child(col)
+	target_player.add_child(area)
+	var dano_clava: int = int(PlayerData.attributes.get("forca", 20) * 1.8) + 45
+	area.area_entered.connect(func(alvo_area: Area2D):
+		var enemy: Node = alvo_area.get_parent()
+		if enemy != null and enemy != target_player:
+			var enemy_sys = enemy.get_node_or_null("EnemySystem")
+			if enemy_sys != null:
+				var dir: Vector2 = (enemy.global_position - target_player.global_position).normalized()
+				enemy_sys.take_damage(dano_clava, dir, 280.0, target_player)
+				if "stun_timer" in enemy_sys:
+					enemy_sys.stun_timer = maxf(float(enemy_sys.stun_timer), 1.2)
+	)
+	var timer := target_player.get_tree().create_timer(0.25)
+	await timer.timeout
+	if is_instance_valid(area):
+		area.queue_free()
 
 
 func _executar_tiro_rifle() -> void:
 	var fx := HatsuAreaExplosionNode.new()
 	fx.setup(40.0, Color(0.3, 0.9, 1.0, 0.9))
 	target_player.add_child(fx)
+
+	var dir: Vector2 = Vector2.RIGHT
+	var combat = target_player.get_node_or_null("CombatSystem")
+	if combat != null and "ultima_direcao" in combat and combat.ultima_direcao != Vector2.ZERO:
+		dir = combat.ultima_direcao
+	elif target_player.velocity != Vector2.ZERO:
+		dir = target_player.velocity.normalized()
+
+	var area := Area2D.new()
+	area.name = "CrazySlotsRifle"
+	area.collision_layer = 1 << 3
+	area.collision_mask = 1 << 4
+	var col := CollisionShape2D.new()
+	var shape := CircleShape2D.new()
+	shape.radius = 8.0
+	col.shape = shape
+	area.add_child(col)
+	var map_parent = target_player.get_parent() if target_player.get_parent() != null else target_player
+	map_parent.add_child(area)
+	area.global_position = target_player.global_position
+	var dano_rifle: int = int(PlayerData.attributes.get("forca", 20) * 1.4) + 55
+	area.area_entered.connect(func(alvo_area: Area2D):
+		var enemy: Node = alvo_area.get_parent()
+		if enemy != null and enemy != target_player:
+			var enemy_sys = enemy.get_node_or_null("EnemySystem")
+			if enemy_sys != null:
+				enemy_sys.take_damage(dano_rifle, dir, 160.0, target_player)
+	)
+	var tw := area.create_tween()
+	tw.tween_property(area, "global_position", area.global_position + dir * 220.0, 0.35)
+	tw.tween_callback(func():
+		if is_instance_valid(area):
+			area.queue_free()
+	)
 
 
 func _draw() -> void:

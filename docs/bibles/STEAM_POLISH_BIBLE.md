@@ -186,7 +186,7 @@ Suites: `scratch/test_steam_mid_late_density_suite.tscn` · `scratch/test_lan_za
 | Arena (+ Training Wing) | [x] | [x] | [x] | [x] | [x] |
 | Yorknew (crowd) | [x] | [x] | [x] | [x] | [x] |
 | Greed Island | [x] | [x] | [x] | [x] | [x] |
-| NGL → Assoc → CN → Whale | [x] | [x] | parcial | [x] | [x] |
+| NGL → Assoc → CN → Whale | [x] | [x] | [x] | [x] | [x] |
 
 ---
 

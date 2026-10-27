@@ -1,6 +1,7 @@
 class_name WorldLandmarkKit
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 ## Hunter Online — Phase 4 landmarks + ambient NPC/enemy (ART_PIPELINE_CANON).
 
 enum KitKind { ESTRADA, FLORESTA }
@@ -16,6 +17,9 @@ const BEAST_SHEET := "res://assets/sprites/characters/enemy_phase4_fera_padokia_
 
 static func attach(mapa: Node2D, kind: KitKind) -> WorldLandmarkKit:
 	if mapa == null:
+		return null
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		SimpleGrassTerrainPolicyScript.apply_to_map(mapa)
 		return null
 	var existing := mapa.get_node_or_null("WorldLandmarkKit") as WorldLandmarkKit
 	if existing != null:

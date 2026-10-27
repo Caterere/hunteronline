@@ -578,7 +578,7 @@ static func _find_enemy_target(tree: SceneTree, cur_scn: Node, player: Node2D, o
 
 
 static func _find_loot_target(tree: SceneTree, obj: QuestObjective) -> Dictionary:
-	var want := str(obj.item_id).to_lower()
+	var want := str(obj.item_id).strip_edges().to_lower()
 	var display := want.replace("_", " ").capitalize() if not want.is_empty() else "Item de Missão"
 	var best: Node2D = null
 	for l in tree.get_nodes_in_group("loot"):
@@ -591,6 +591,8 @@ static func _find_loot_target(tree: SceneTree, obj: QuestObjective) -> Dictionar
 			lid = str(l.get_meta("quest_item_id")).to_lower()
 		elif "item_id" in l:
 			lid = str(l.get("item_id")).to_lower()
+		elif "loot_item_id" in l:
+			lid = str(l.get("loot_item_id")).to_lower()
 		# Sem id no nó: aceita só se o objetivo não especifica item
 		if not want.is_empty() and not lid.is_empty():
 			if lid != want and want not in lid and lid not in want:
@@ -603,21 +605,37 @@ static func _find_loot_target(tree: SceneTree, obj: QuestObjective) -> Dictionar
 		best = l as Node2D
 		break
 	if best == null:
-		for p in tree.get_nodes_in_group("quest_pickup"):
-			if p is Node2D and is_instance_valid(p) and not p.is_queued_for_deletion():
-				var pid := str(p.get("item_id")).to_lower() if "item_id" in p else ""
-				if want.is_empty() or pid == want or want in pid or pid in want or want.replace("_", "") in str(p.name).to_lower():
-					best = p as Node2D
+		for pickup in tree.get_nodes_in_group("quest_pickup"):
+			if pickup is Node2D and is_instance_valid(pickup) and not pickup.is_queued_for_deletion():
+				var pid := str(pickup.get("item_id")).to_lower() if "item_id" in pickup else ""
+				if want.is_empty() or pid == want or want in pid or pid in want or want.replace("_", "") in str(pickup.name).to_lower():
+					best = pickup as Node2D
 					break
-	if best == null:
-		return {"found": false}
-	return {
-		"found": true,
-		"node": best,
-		"position": best.global_position,
-		"name": display,
-		"type": "loot",
-	}
+	if best != null:
+		return {
+			"found": true,
+			"node": best,
+			"position": best.global_position,
+			"name": display,
+			"type": "loot",
+		}
+	# Fallback: pista Gyo / NPC que entrega o item (ovo_aguia→Menchi, nitro_rice→aura)
+	if want == "ovo_aguia":
+		return _find_npc_target(tree, null, null, _fake_visit_obj(&"menchi", "Menchi"))
+	if want == "nitro_rice":
+		var clue_obj := QuestObjective.new()
+		clue_obj.type = QuestObjective.Type.INVESTIGATE
+		clue_obj.target_clue_id = &"cn_nitro_rice_aura"
+		return _find_clue_target(tree, null, clue_obj)
+	return {"found": false}
+
+
+static func _fake_visit_obj(npc_id: StringName, npc_name: String) -> QuestObjective:
+	var o := QuestObjective.new()
+	o.type = QuestObjective.Type.VISIT
+	o.target_npc_id = npc_id
+	o.target_npc_name = npc_name
+	return o
 
 
 static func _find_clue_target(tree: SceneTree, player: Node2D, obj: QuestObjective) -> Dictionary:
@@ -927,27 +945,40 @@ static func _portal_display_name(portal: Node, fallback: String) -> String:
 # ============================================================
 
 static func _score_npc_match(node_name: String, display_name: String, obj: QuestObjective) -> int:
-	var tid := str(obj.target_npc_id).strip_edges().to_lower()
+	var tid := str(obj.target_npc_id).strip_edges().to_lower().replace(" ", "_")
 	var tname := obj.target_npc_name.strip_edges().to_lower()
-	var n := node_name.strip_edges().to_lower()
+	var n := node_name.strip_edges().to_lower().replace(" ", "_")
 	var c := display_name.strip_edges().to_lower()
+	var c_key := c.replace(" ", "_")
 	if tid.is_empty() and tname.is_empty():
 		return -1
 
-	# Exact
-	if (not tid.is_empty() and (tid == n or tid == c)) or (not tname.is_empty() and (tname == n or tname == c)):
+	# Exact id / display
+	if (not tid.is_empty() and (tid == n or tid == c_key or tid == c)) \
+			or (not tname.is_empty() and (tname == n or tname == c)):
 		return 4
-	# Prefix / begins_with
-	if (not tid.is_empty() and tid.length() >= 3 and (n.begins_with(tid) or c.begins_with(tid) or tid.begins_with(n))) \
-			or (not tname.is_empty() and tname.length() >= 3 and (n.begins_with(tname) or c.begins_with(tname) or tname.begins_with(c))):
-		return 3
-	# Token forte (>= 4 chars)
-	var token := tname.split(" ")[0] if not tname.is_empty() else tid
-	if token.length() >= 4 and (token == n or token == c or n.begins_with(token) or c.begins_with(token)):
+
+	# Prefix seguro: o NOME do NPC começa com o id alvo (ex.: "wing_mestre" casa "wing").
+	# NÃO usar tid.begins_with(n) — "ging" não pode completar "ging_topo".
+	if not tid.is_empty() and tid.length() >= 3:
+		if n.begins_with(tid) or c_key.begins_with(tid):
+			return 3
+	if not tname.is_empty() and tname.length() >= 3:
+		var tname_key := tname.replace(" ", "_")
+		if n.begins_with(tname_key) or c.begins_with(tname) or c_key.begins_with(tname_key):
+			return 3
+
+	# Token fraco: só se o nome COMPLETO normalizado for o token (sem substring embutida).
+	# Evita "Assistente de Cheadle" completar objetivo "cheadle".
+	var token := tid if not tid.is_empty() else tname.split(" ")[0].to_lower()
+	token = token.strip_edges().to_lower().replace(" ", "_")
+	if token.length() >= 4 and (token == n or token == c_key or token == c):
 		return 2
-	# Contém token longo — evita "guia"/"npc" genéricos
-	if token.length() >= 4 and ((token in n) or (token in c) or (not tid.is_empty() and tid.length() >= 4 and (tid in n or tid in c))):
-		return 2
+	# Display canônico começa com o nome alvo ("Tonpa o Quebrador…")
+	if not tname.is_empty() and tname.length() >= 3 and c.begins_with(tname.split(" ")[0].to_lower()):
+		var first := tname.split(" ")[0].to_lower()
+		if first.length() >= 4 and first == tid:
+			return 2
 	return -1
 
 

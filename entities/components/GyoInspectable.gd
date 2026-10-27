@@ -161,6 +161,11 @@ func inspecionar(player: Node2D) -> Dictionary:
 	var quest_mgr = Engine.get_main_loop().root.get_node_or_null("/root/QuestSystem") if Engine.get_main_loop() else null
 	if quest_mgr != null and quest_mgr.has_method("register_investigation"):
 		quest_mgr.register_investigation(clue_id)
+	# Coletas canônicas atreladas a pistas Gyo (ex.: Nitro Rice no Continente Negro)
+	if quest_mgr != null and quest_mgr.has_method("register_item_collected"):
+		var cid := str(clue_id).to_lower()
+		if cid == "cn_nitro_rice_aura" or "nitro_rice" in cid:
+			quest_mgr.register_item_collected(&"nitro_rice")
 	
 	if EventBus != null:
 		EventBus.emit_toast("🔍 Vestígio Decifrado com Gyo: " + titulo_pista, Color(0.3, 0.9, 1.0, 1.0))

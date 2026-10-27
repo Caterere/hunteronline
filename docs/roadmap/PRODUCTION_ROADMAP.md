@@ -35,8 +35,8 @@ Histórico de sprints diários: [`_history/`](_history/)
 | Progressão | Identidade por cluster · training como respiro Arena · alinhar PowerScale docs | [x] cluster UI + Training Wing Vale/Arena · PowerScale vs Bracket documentado |
 | Quests/Story | Beats com fala/ORDEM · cutscenes 15–40s checkpoints · QuestHUD História% | [x] early slice |
 | Economia | 30–50 itens identidade · sinks Hatsu/blacksmith/gourmet | [x] ~53 IDs · Pedra/Gourmet · forge Hatsu 5k |
-| Mundo vivo | Schedules NPC · crowd Yorknew mínimo · 1 evento facção Estrada | [ ] |
-| Áudio/UI | Barks mentores · stingers reward · crossfade gates | [~] QuestHUD/GPS 1.35 + PD float; barks/stingers ainda abertos |
+| Mundo vivo | Schedules NPC · crowd Yorknew mínimo · 1 evento facção Estrada | [x] |
+| Áudio/UI | Barks mentores · stingers reward · crossfade gates | [x] |
 
 Detalhe: [`STEAM_POLISH_BIBLE.md` §6](../bibles/STEAM_POLISH_BIBLE.md).
 

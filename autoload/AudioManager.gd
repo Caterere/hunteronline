@@ -772,3 +772,45 @@ func tocar_murmur_dialogo(variante: int = -1) -> void:
 	if stream != null:
 		tocar_sfx(stream, 0.55)
 
+
+## Stinger curto de recompensa (baú / Hatsu moment / mastery) — Steam §6.8
+func tocar_stinger_reward(tipo: String = "reward") -> void:
+	match tipo:
+		"hatsu", "mastery":
+			tocar_sfx_tipo("quest_stinger", 1.05)
+		"chest", "bau", "loot":
+			tocar_sfx_tipo("item_pickup", 1.15)
+		"level", "level_up":
+			tocar_sfx_tipo("level_up", 1.10)
+		_:
+			tocar_sfx_tipo("quest_stinger", 0.95)
+
+
+## Bark curto de mentor (Wing / Elena / Biscuit) — murmur + identidade, sem sistema novo
+func tocar_bark_mentor(mentor_id: String = "wing") -> void:
+	tocar_murmur_dialogo()
+	var id_l := mentor_id.to_lower()
+	if id_l.contains("elena"):
+		tocar_sfx_tipo("ui_confirm", 0.55)
+	elif id_l.contains("biscuit") or id_l.contains("bisky"):
+		tocar_sfx_tipo("ui_click", 0.65)
+	else:
+		tocar_sfx_tipo("ui_confirm", 0.45)
+
+
+## Crossfade OST em story gate / checkpoint (usa canais BGM existentes)
+func crossfade_story_gate(arco: int = -1, fade_duration: float = 1.2) -> void:
+	if arco >= 1:
+		tocar_musica_arco(arco)
+		return
+	# Fallback: reforça a track da cena atual com fade
+	var tree := get_tree()
+	if tree != null and tree.current_scene != null:
+		var path := str(tree.current_scene.scene_file_path)
+		if SCENE_TRACKS.has(path):
+			tocar_musica(SCENE_TRACKS[path], fade_duration)
+		else:
+			tocar_musica_lobby()
+	else:
+		tocar_musica_lobby()
+
