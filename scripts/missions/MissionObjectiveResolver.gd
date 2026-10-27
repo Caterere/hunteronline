@@ -264,6 +264,9 @@ static func get_expected_map_path(quest: Quest = null) -> String:
 
 	if quest != null:
 		var q_name := quest.quest_name.to_lower()
+		# Etapas 14–15: Netero no deck do dirigível
+		if "dirigível" in q_name or "dirigivel" in q_name or "jogo da bola" in q_name:
+			return "res://world/maps/dirigivel_hunter.tscn"
 		# Infer arco from quest name when PlayerData lags
 		if "exame hunter" in q_name:
 			arco = 1

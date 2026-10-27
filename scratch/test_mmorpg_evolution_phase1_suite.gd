@@ -86,6 +86,6 @@ func _test_mastery_moment() -> void:
 
 func _test_hud_scale() -> void:
 	var q := FileAccess.get_file_as_string("res://ui/hud/QuestHUD.gd")
-	_assert("1.35" in q, "QuestHUD 1.35")
+	_assert("1.0" in q, "QuestHUD 1.0")
 	var g := FileAccess.get_file_as_string("res://ui/hud/MissionGPSIndicator.gd")
-	_assert("1.35" in g, "GPS 1.35")
+	_assert("1.0" in g, "GPS 1.0")

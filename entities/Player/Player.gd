@@ -60,17 +60,15 @@ func _ready() -> void:
 		nen_beast_system.setup(self)
 
 	# Configurar Câmera Suave e desacoplada
-	# Zoom 1.5 compensa viewport 960×540 (antes 640×360) para manter silhuetas legíveis.
+	# Zoom 2.25 em 960×540: silhuetas maiores (1.5 ainda lia “longe demais”).
 	_camera = get_node_or_null("Camera2D") as Camera2D
 	if _camera == null:
 		_camera = Camera2D.new()
 		_camera.name = "Camera2D"
-		_camera.zoom = Vector2(1.5, 1.5)
 		_camera.position_smoothing_enabled = true
 		_camera.position_smoothing_speed = 8.0
 		add_child(_camera)
-	elif _camera.zoom == Vector2.ONE:
-		_camera.zoom = Vector2(1.5, 1.5)
+	definir_zoom_camera(Vector2(2.25, 2.25))
 
 	if EventBus != null and not EventBus.camera_shake_requested.is_connected(_on_camera_shake_requested):
 		EventBus.camera_shake_requested.connect(_on_camera_shake_requested)
@@ -113,6 +111,20 @@ func _garantir_shu_weapon_aura() -> void:
 func _on_camera_shake_requested(intensity: float, _duration: float) -> void:
 	_trauma = clampf(_trauma + intensity, 0.0, 1.0)
 
+
+## Zoom tático / cinematic (BossIntroBanner e mapas). Aceita float ou Vector2.
+func definir_zoom_camera(zoom_val: Variant) -> void:
+	if _camera == null:
+		_camera = get_node_or_null("Camera2D") as Camera2D
+	if _camera == null:
+		return
+	var z := Vector2(2.25, 2.25)
+	if zoom_val is Vector2:
+		z = zoom_val as Vector2
+	elif typeof(zoom_val) == TYPE_FLOAT or typeof(zoom_val) == TYPE_INT:
+		var f := float(zoom_val)
+		z = Vector2(f, f)
+	_camera.zoom = z.clamp(Vector2(0.6, 0.6), Vector2(4.0, 4.0))
 
 
 func travar_controles(travar: bool = true) -> void:

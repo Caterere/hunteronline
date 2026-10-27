@@ -132,6 +132,9 @@ func _configurar_inimigos_zonas() -> void:
 					es.set("enemy_id", &"candidato_exame")
 				if "enemy_name" in es:
 					es.set("enemy_name", "Candidato Sabotador")
+				if "defesa_barra_max" in es:
+					es.defesa_barra_max = 140.0
+					es.defesa_barra_atual = 140.0
 				if not es.died.is_connected(QuestSystem.register_enemy_kill):
 					es.died.connect(QuestSystem.register_enemy_kill)
 				if QuestSystem != null:
@@ -156,6 +159,9 @@ func _configurar_inimigos_zonas() -> void:
 					es.set("enemy_id", &"criatura_pantanal")
 				if "enemy_name" in es:
 					es.set("enemy_name", "Macaco de Rosto Humano")
+				if "defesa_barra_max" in es:
+					es.defesa_barra_max = 160.0
+					es.defesa_barra_atual = 160.0
 				if not es.died.is_connected(QuestSystem.register_enemy_kill):
 					es.died.connect(QuestSystem.register_enemy_kill)
 				if QuestSystem != null:
@@ -179,6 +185,9 @@ func _configurar_inimigos_zonas() -> void:
 					es.set("enemy_id", &"great_stamp_pig")
 				if "enemy_name" in es:
 					es.set("enemy_name", "Grande Javali Selvagem")
+				if "defesa_barra_max" in es:
+					es.defesa_barra_max = 200.0
+					es.defesa_barra_atual = 200.0
 				if not es.died.is_connected(QuestSystem.register_enemy_kill):
 					es.died.connect(QuestSystem.register_enemy_kill)
 				var spr = node.get_node_or_null("Sprite2D")
@@ -223,6 +232,15 @@ func _garantir_spawn_points() -> void:
 		sp_kuk.is_default_spawn = false
 		sp_kuk.position = Vector2(5850, 16)
 		add_child(sp_kuk)
+
+	# Retorno do dirigível → topo Trick Tower / alçapão
+	if get_node_or_null("SpawnFromDirigivel") == null:
+		var sp_dir := SpawnPoint.new()
+		sp_dir.name = "SpawnFromDirigivel"
+		sp_dir.spawn_id = &"from_dirigivel"
+		sp_dir.is_default_spawn = false
+		sp_dir.position = Vector2(5520, -20)
+		add_child(sp_dir)
 
 
 func _configurar_portal_retorno_lobby() -> void:
