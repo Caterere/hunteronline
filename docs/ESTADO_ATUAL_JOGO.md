@@ -251,10 +251,11 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 ### P0 — Continuidade / Steam
 1. **Canon Steam** — bible + early checklist + mid/late checklist (`STEAM_MID_LATE_DENSITY_CHECKLIST.md`).
 2. **Smoke play humano early (G5)** — ainda P0 humano; mid/late densificado em código (sem gravação / sem sprites novos neste ciclo).
-3. **Corrigir docs desatualizados pontuais** (ex.: README viewport 640×360 vs 960×540).
+3. ~~Corrigir docs desatualizados pontuais~~ (README viewport 960×540).
 
 ### P1 — Qualidade de gameplay — densificar
 1. ~~Early densify Exame→Ruínas~~ + ~~mid/late Kukuroo→Whale~~ (baús, CompanionChatter, checkpoints, Hatsu moments, Training Wing, Economy 30–50).
+1b. ~~Refino bugs/balance (out/2026)~~ — bounty XP+match; early TTK retune; skill-tree identidade de cluster; Training Wing no Vale; docs Progressão/Economia `[x]`.
 2. Retune fino residual se playtest G5 apontar dead time.
 3. PixelLab sprites / silhuetas — diretor (fora deste ciclo).
 

@@ -1,7 +1,7 @@
 # Hunter Online
 
 RPG 2D top-down (Godot **4.6** Forward Plus) inspirado em Hunter x Hunter.
-Viewport interno: **640×360**. Cena inicial: `ui/CharacterSelection/CharacterSelectionUI.tscn`.
+Viewport interno: **960×540**. Cena inicial: `ui/CharacterSelection/CharacterSelectionUI.tscn`.
 
 ## Estrutura do repositório
 

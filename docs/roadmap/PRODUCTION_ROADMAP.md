@@ -32,9 +32,9 @@ Histórico de sprints diários: [`_history/`](_history/)
 | Combate | ≥4 `EnemyData`/bioma · elite puzzle Nen/mapa · Hatsu inimigo em elites | [x] early |
 | Nen mundo | 8–15 sensores/mapa mid · SFX discovery 100% · falha Zetsu/En legível | [x] early+En flee |
 | Hatsu | Momento Hatsu/arco · mastery UI a cada 10 · CDs MH-style | [x] early moments |
-| Progressão | Identidade por cluster · training como respiro Arena · alinhar PowerScale docs | [ ] |
+| Progressão | Identidade por cluster · training como respiro Arena · alinhar PowerScale docs | [x] cluster UI + Training Wing Vale/Arena · PowerScale vs Bracket documentado |
 | Quests/Story | Beats com fala/ORDEM · cutscenes 15–40s checkpoints · QuestHUD História% | [x] early slice |
-| Economia | 30–50 itens identidade · sinks Hatsu/blacksmith/gourmet | [ ] |
+| Economia | 30–50 itens identidade · sinks Hatsu/blacksmith/gourmet | [x] ~53 IDs · Pedra/Gourmet · forge Hatsu 5k |
 | Mundo vivo | Schedules NPC · crowd Yorknew mínimo · 1 evento facção Estrada | [ ] |
 | Áudio/UI | Barks mentores · stingers reward · crossfade gates | [ ] |
 

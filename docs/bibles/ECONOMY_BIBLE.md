@@ -42,6 +42,6 @@ O Jenny é a moeda universal do mundo de Hunter x Hunter. A economia do jogo é 
 
 Para garantir equilíbrio econômico a longo prazo:
 - **Taxas de Inscrição em Torneios:** Andares avançados da Arena Celestial e Leilão de Yorknew.
-- **Ressuprimento de Consumíveis:** Poções de restauração rápida de HP e Ervas medicinais.
+- **Ressuprimento de Consumíveis:** Pedra de Aura / pratos Gourmet (Steam polish — **sem poções clássicas de HP**).
 - **Aprimoramento de Catalisadores de Nen:** Forja de armas com Shu.
 - **Compra de Rumores:** Informações sobre localização de bestas raras e pistas de Gyo avançadas.
