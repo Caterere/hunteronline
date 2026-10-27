@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_skill_tree_identity_suite.gd" id="1_id"]
+
+[node name="TestSkillTreeIdentitySuite" type="Node"]
+script = ExtResource("1_id")

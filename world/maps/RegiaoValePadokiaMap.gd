@@ -36,9 +36,51 @@ func _ready() -> void:
 	_notificar_entrada_regiao()
 	_checar_cutscene_chegada()
 	_densificar_steam_early_vale()
+	_garantir_training_wing_respiro_vale()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.VALE)
+
+
+## Respiro Steam (Progressão §0.2) — mesmo padrão da Arena, no hub early do Vale.
+func _garantir_training_wing_respiro_vale() -> void:
+	if get_node_or_null("TrainingWingRespiro") != null:
+		return
+	var area := Area2D.new()
+	area.name = "TrainingWingRespiro"
+	# Perto do checkpoint Wing / Nen (360, 220)
+	area.position = Vector2(340, 200)
+	area.collision_layer = 0
+	area.collision_mask = 2
+	var col := CollisionShape2D.new()
+	var circ := CircleShape2D.new()
+	circ.radius = 28.0
+	col.shape = circ
+	area.add_child(col)
+	var lbl := Label.new()
+	lbl.text = "🥋 Training Wing\n[E] Respiro / Treino"
+	lbl.position = Vector2(-50, -36)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 5)
+	lbl.add_theme_color_override("font_color", Color(0.7, 0.95, 0.85))
+	area.add_child(lbl)
+	var inter := InteractionComponent.new()
+	inter.name = "InteractionComponent"
+	inter.interaction_text = "[E] Training Wing — respiro antes da Floresta/Ruínas"
+	inter.interaction_radius = 30.0
+	inter.interacted.connect(func(_p):
+		TrainingSystem.obter_ou_criar(get_tree())
+		if EventBus != null:
+			EventBus.emit_toast(
+				"🥋 Training Wing — fale com Wing ou entre no Dojo. Respire antes da Floresta.",
+				Color(0.55, 0.95, 0.8)
+			)
+		var hud = get_tree().get_first_node_in_group("player_hud")
+		if hud != null and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🥋 Respiro: treine Ten/Ren no Dojo antes de seguir.")
+	)
+	area.add_child(inter)
+	add_child(area)
 
 
 func _densificar_steam_early_vale() -> void:

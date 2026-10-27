@@ -21,71 +21,97 @@ extends RefCounted
 const REGIONS: Dictionary = {
 	&"nexus": {
 		"name": "Nexus Inicial",
+		"identity": "Aspirante",
 		"desc": "O despertar do potencial latente do Hunter.",
 		"color": Color(1.0, 0.9, 0.4),
 		"angle": 0.0
 	},
 	&"body": {
 		"name": "Fortaleza Corpórea",
+		"identity": "Baluarte",
 		"desc": "Condicionamento físico extremo, densidade muscular e armadura biológica.",
 		"color": Color(0.3, 0.7, 1.0),
 		"angle": -PI * 0.40 # ~-72°
 	},
 	&"warrior": {
 		"name": "Arte Marcial do Caçador",
+		"identity": "Lutador de Frente",
 		"desc": "Golpes impiedosos, cadência de ataques básicos e controle de postura.",
 		"color": Color(1.0, 0.35, 0.2),
 		"angle": -PI * 0.20 # ~-36°
 	},
 	&"nen": {
 		"name": "Fundamentos do Nen",
+		"identity": "Praticante Shingen-ryu",
 		"desc": "Maestria das técnicas de Shingen-ryu: Ten, Ren, Zetsu, Gyo, Ko, En, Ryu.",
 		"color": Color(0.3, 0.95, 0.6),
 		"angle": 0.0 # 0° Leste
 	},
 	&"hatsu": {
 		"name": "Canalização de Hatsu",
+		"identity": "Canalizador de Hatsu",
 		"desc": "Potência destrutiva, ressonância elemental, área e eficiência de habilidades.",
 		"color": Color(0.85, 0.4, 1.0),
 		"angle": PI * 0.20 # ~36°
 	},
 	&"speed": {
 		"name": "Mobilidade Fantasma",
+		"identity": "Assassino Veloz",
 		"desc": "Agilidade supersônica, passos evasivos e reposicionamento instantâneo.",
 		"color": Color(0.2, 0.85, 0.95),
 		"angle": PI * 0.40 # ~72°
 	},
 	&"critical": {
 		"name": "Instinto Predatório & Crítico",
+		"identity": "Predador Cirúrgico",
 		"desc": "Foco cirúrgico em pontos vitais, golpes fatais e multiplicadores extremos.",
 		"color": Color(1.0, 0.8, 0.1),
 		"angle": PI * 0.60 # ~108°
 	},
 	&"vitality": {
 		"name": "Sustentação Vital",
+		"identity": "Sobrevivente",
 		"desc": "Regeneração acelerada, drenagem de essência (Life Steal) e resistência.",
 		"color": Color(0.2, 0.9, 0.3),
 		"angle": PI * 0.80 # ~144°
 	},
 	&"aura": {
 		"name": "Reservatório Espiritual",
+		"identity": "Reservatório de Aura",
 		"desc": "Capacidade de aura expandida, taxa de fluxo de energia e resiliência espiritual.",
 		"color": Color(0.4, 0.6, 1.0),
 		"angle": PI # 180° Oeste
 	},
 	&"specialization": {
 		"name": "Divergência de Especialização",
+		"identity": "Especialista Dissidente",
 		"desc": "Keystones transformadores que quebram convenções em troca de poder sublime.",
 		"color": Color(0.95, 0.2, 0.5),
 		"angle": -PI * 0.80 # ~-144°
 	},
 	&"master": {
 		"name": "Círculo dos Mestres",
+		"identity": "Mestre Ascendente",
 		"desc": "O ápice do poder no Nível 1000+, conectando todas as filosofias de combate.",
 		"color": Color(1.0, 0.85, 0.3),
 		"angle": -PI * 0.60 # ~-108°
 	}
 }
+
+
+## Rótulo de fantasia de build para um cluster (region_id).
+static func obter_identidade_cluster(region_id: Variant) -> String:
+	var rid := StringName(str(region_id))
+	if REGIONS.has(rid):
+		return str(REGIONS[rid].get("identity", REGIONS[rid].get("name", "Hunter")))
+	return "Hunter"
+
+
+static func obter_nome_cluster(region_id: Variant) -> String:
+	var rid := StringName(str(region_id))
+	if REGIONS.has(rid):
+		return str(REGIONS[rid].get("name", rid))
+	return str(region_id)
 
 var nodes: Dictionary = {} # StringName -> SkillTreeNodeData
 var adjacency_forward: Dictionary = {} # StringName -> Array[StringName]

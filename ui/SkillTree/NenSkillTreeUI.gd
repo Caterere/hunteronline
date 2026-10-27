@@ -69,6 +69,8 @@ var vbox_insp_main: VBoxContainer = null
 var lbl_insp_name: Label
 var lbl_insp_type: Label
 var lbl_insp_rank: Label
+var lbl_insp_cluster: Label
+var lbl_insp_identity: Label
 var lbl_insp_desc: Label
 var lbl_insp_effects: Label
 var lbl_insp_prereqs: Label
@@ -480,6 +482,20 @@ func _construir_inspector() -> void:
 
 	var sep1 := HSeparator.new()
 	vbox.add_child(sep1)
+
+	lbl_insp_cluster = Label.new()
+	lbl_insp_cluster.text = "CLUSTER: —"
+	lbl_insp_cluster.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_insp_cluster.add_theme_font_size_override("font_size", 5)
+	lbl_insp_cluster.add_theme_color_override("font_color", Color(0.65, 0.85, 1.0))
+	vbox.add_child(lbl_insp_cluster)
+
+	lbl_insp_identity = Label.new()
+	lbl_insp_identity.text = "Build: escolha um cluster para formar identidade"
+	lbl_insp_identity.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	lbl_insp_identity.add_theme_font_size_override("font_size", 5)
+	lbl_insp_identity.add_theme_color_override("font_color", Color(1.0, 0.85, 0.45))
+	vbox.add_child(lbl_insp_identity)
 
 	lbl_insp_desc = Label.new()
 	lbl_insp_desc.text = "Clique em qualquer nó da constelação para visualizar sua descrição e efeitos."
@@ -1104,6 +1120,27 @@ func _atualizar_inspector() -> void:
 
 	lbl_insp_type.text = "TIPO: %s" % type_str
 	lbl_insp_rank.text = "Rank: %d / %d" % [rank, node.nivel_max]
+	if lbl_insp_cluster != null:
+		var cluster_nm := SkillTreeDatabase.obter_nome_cluster(node.region_id)
+		var ident := SkillTreeDatabase.obter_identidade_cluster(node.region_id)
+		lbl_insp_cluster.text = "CLUSTER: %s · identidade %s" % [cluster_nm, ident]
+		if database.REGIONS.has(node.region_id):
+			lbl_insp_cluster.add_theme_color_override(
+				"font_color",
+				database.REGIONS[node.region_id].get("color", HunterUIStyle.COLOR_TEXT_SECONDARY)
+			)
+	if lbl_insp_identity != null and skill_tree != null and skill_tree.has_method("obter_identidade_dominante"):
+		var dom: Dictionary = skill_tree.obter_identidade_dominante()
+		if bool(dom.get("committed", false)):
+			lbl_insp_identity.text = "Build: você está virando %s (%d pts)" % [
+				str(dom.get("identity", "Hunter")), int(dom.get("points", 0))
+			]
+		elif int(dom.get("points", 0)) > 0:
+			lbl_insp_identity.text = "Build emergente: %s (%d pts)" % [
+				str(dom.get("identity", "Aspirante")), int(dom.get("points", 0))
+			]
+		else:
+			lbl_insp_identity.text = "Build: escolha um cluster para formar identidade"
 	lbl_insp_desc.text = node.description
 
 	# Efeitos formatados
