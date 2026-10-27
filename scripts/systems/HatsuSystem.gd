@@ -5,6 +5,7 @@ const HatsuVisual = preload("res://scripts/visual/HatsuVisual.gd")
 const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit.gd")
 const CanonFidelityKit = preload("res://scripts/systems/hatsu/CanonFidelityKit.gd")
 const HitStopManager = preload("res://scripts/combat/HitStopManager.gd")
+const HatsuProceduralFxKit = preload("res://entities/effects/HatsuProceduralFxKit.gd")
 
 # ============================================================
 # HUNTER ONLINE - HATSU SYSTEM (MOTOR DE COMBATE E VOWS)
@@ -743,6 +744,11 @@ func usar_hatsu(slot_index: int) -> bool:
 			var raw_vp: VisualProfile = hatsu.obter_visual_profile()
 			var vp: VisualProfile = PlayerData.aura_visual_profile.blend_with_hatsu(raw_vp) if PlayerData.aura_visual_profile != null else raw_vp
 			HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
+			# Camada procedural (EstiloVisual + categoria) — código only, sem PNG
+			var cast_dir: Vector2 = Vector2.DOWN
+			if combat_system != null and combat_system.ultima_direcao != Vector2.ZERO:
+				cast_dir = combat_system.ultima_direcao
+			HatsuProceduralFxKit.play_for_hatsu(owner_body, owner_body.global_position, cast_dir, hatsu, 1.05)
 			var shake_amt: float = 0.42 if hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO else 0.32
 			HitStopManager.aplicar_screen_shake(shake_amt)
 			HitStopManager.aplicar_hitstop(HitStopManager.HitIntensity.HATSU, 0.12)
@@ -807,6 +813,15 @@ func _aplicar_feel_impacto_hatsu(enemy_sys: Node, dano: int, direcao: Vector2, f
 				var pull: Vector2 = (owner_body.global_position - body.global_position).normalized() * 40.0
 				if enemy_sys.has_method("_apply_knockback"):
 					enemy_sys._apply_knockback(pull, 80.0)
+	# Impacto visual procedural no alvo
+	var hit_pos: Vector2 = owner_body.global_position if owner_body != null else Vector2.ZERO
+	if enemy_sys.get_parent() != null and enemy_sys.get_parent() is Node2D:
+		hit_pos = (enemy_sys.get_parent() as Node2D).global_position
+	var hit_dir: Vector2 = direcao if direcao != Vector2.ZERO else Vector2.RIGHT
+	if hatsu != null:
+		HatsuProceduralFxKit.play_estilo(enemy_sys, hit_pos, hit_dir, int(hatsu.estilo_visual), hatsu.cor_aura, 0.85)
+	else:
+		HatsuProceduralFxKit.impact_ring(enemy_sys, hit_pos, Color(0.5, 0.85, 1.0), 26.0)
 	var intens = HitStopManager.HitIntensity.HATSU
 	if hatsu != null and hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO:
 		HitStopManager.aplicar_screen_shake(0.55)
@@ -1647,7 +1662,26 @@ func _calcular_dano_hatsu(hatsu: HatsuData, eficiencia: float, inimigo_alvo: Nod
 	if nen_beast_sys != null and nen_beast_sys.berserker_ativo:
 		dano *= 1.5
 
-	return max(int(round(dano)), 1)
+	# 5. Fraquezas / resistências / imunidades do alvo (EnemyNenKit + tags de categoria)
+	if inimigo_alvo != null:
+		var es = inimigo_alvo.get_node_or_null("EnemySystem") if inimigo_alvo is Node else null
+		var ed = es.enemy_data if es != null else null
+		if ed == null and inimigo_alvo is Node and "enemy_data" in inimigo_alvo:
+			ed = inimigo_alvo.enemy_data
+		var Kit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
+		if Kit != null and ed != null and Kit.has_method("apply_defense_tags"):
+			var tagged: Dictionary = Kit.apply_defense_tags(dano, ed, hatsu)
+			dano = float(tagged.get("dano", dano))
+			if bool(tagged.get("is_immune", false)):
+				if combat_system != null and combat_system.has_method("_mostrar_texto_flutuante"):
+					combat_system._mostrar_texto_flutuante("IMMUNE", Color(0.7, 0.7, 0.8))
+				return 0
+			elif bool(tagged.get("is_weakness", false)) and combat_system != null and combat_system.has_method("_mostrar_texto_flutuante"):
+				combat_system._mostrar_texto_flutuante("WEAK!", Color(1.0, 0.85, 0.2))
+			elif bool(tagged.get("is_resisted", false)) and combat_system != null and combat_system.has_method("_mostrar_texto_flutuante"):
+				combat_system._mostrar_texto_flutuante("RESIST", Color(0.5, 0.75, 1.0))
+
+	return max(int(round(dano)), 1) if dano > 0.0 else 0
 
 
 func _criar_golpe_remoto_emissao(hatsu: HatsuData, eficiencia: float) -> void:

@@ -190,10 +190,13 @@ func _inicializar_inimigos_canônicos() -> void:
 		"res://resource/status/enemies/bomber_greed.tres"
 	]
 	
+	var NenKit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
 	for path in enemy_paths:
 		if ResourceLoader.exists(path):
 			var res = load(path)
 			if res and "enemy_id" in res and res.enemy_id != &"":
+				if NenKit != null and res is EnemyData and NenKit.has_method("enrich"):
+					NenKit.enrich(res as EnemyData)
 				enemies_registry[res.enemy_id] = res
 				
 	# 3. Bestiário Canônico e RPG de Inimigos Base para Farming
@@ -640,6 +643,10 @@ func _inicializar_bestiario_rpg_base() -> void:
 				if bp_script and bp_script.has_method("criar_lider_quimera"):
 					mob.battle_personality = bp_script.criar_lider_quimera()
 
+			var NenKit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
+			if NenKit != null and NenKit.has_method("enrich"):
+				NenKit.enrich(mob)
+
 			enemies_registry[eid] = mob
 
 
@@ -673,17 +680,25 @@ func obter_equipamento(id: Variant) -> Variant:
 
 func get_enemy(id: Variant) -> Resource:
 	var sid := StringName(id)
+	var found: Resource = null
 	if enemies_registry.has(sid):
-		return enemies_registry[sid]
-	var lower_id := StringName(str(id).to_lower())
-	if enemies_registry.has(lower_id):
-		return enemies_registry[lower_id]
-	var target_str := str(id).to_lower()
-	for k in enemies_registry.keys():
-		var k_str := str(k).to_lower()
-		if k_str == target_str or k_str in target_str or target_str in k_str:
-			return enemies_registry[k]
-	return null
+		found = enemies_registry[sid]
+	else:
+		var lower_id := StringName(str(id).to_lower())
+		if enemies_registry.has(lower_id):
+			found = enemies_registry[lower_id]
+		else:
+			var target_str := str(id).to_lower()
+			for k in enemies_registry.keys():
+				var k_str := str(k).to_lower()
+				if k_str == target_str or k_str in target_str or target_str in k_str:
+					found = enemies_registry[k]
+					break
+	if found is EnemyData:
+		var NenKit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
+		if NenKit != null and NenKit.has_method("enrich"):
+			NenKit.enrich(found as EnemyData)
+	return found
 
 func obter_inimigo(id: Variant) -> Variant:
 	return get_enemy(id)

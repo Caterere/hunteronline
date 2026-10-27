@@ -38,9 +38,21 @@ static func registrar_descoberta(id_ponto: String, nome_ponto: String, tier: Dis
 	PlayerData.quest_states["total_descobertas"] = count
 
 	var xp_ganho = XP_POR_TIER.get(tier, 50)
+
+	# Ponte para o Códex (CollectionManager) — antes de signals para não perder discovery se UI falhar
+	if CollectionManager != null and CollectionManager.has_method("register_discovery"):
+		var cat := "regions"
+		if tier >= DiscoveryTier.SECRETA:
+			cat = "secrets"
+		CollectionManager.register_discovery(cat, id_ponto)
+
 	if EventBus != null:
 		EventBus.emit_toast("🗺️ NOVA DESCOBERTA: %s (+%d XP)" % [nome_ponto, xp_ganho], Color(0.3, 0.9, 1.0))
-		EventBus.xp_gained.emit(xp_ganho, "Descoberta: %s" % nome_ponto)
+	var xp_sys = Engine.get_main_loop().root.get_node_or_null("/root/XPSystem") if Engine.get_main_loop() else null
+	if xp_sys != null and xp_sys.has_method("adicionar_xp"):
+		xp_sys.adicionar_xp(xp_ganho, "Descoberta: %s" % nome_ponto)
+	elif EventBus != null and EventBus.has_signal("player_xp_gained"):
+		EventBus.player_xp_gained.emit(xp_ganho)
 
 	if AchievementSystem != null and AchievementSystem.has_method("registrar_progresso"):
 		AchievementSystem.registrar_progresso("explorador_padokia", 1)

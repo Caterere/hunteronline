@@ -221,6 +221,10 @@ func _ready() -> void:
 		enemy_data.defense = 5
 		enemy_data.xp_reward = 50
 
+	# Arquétipos HxH: resistências, Hatsu, velocidade, balanceamento
+	var NenKit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
+	if NenKit != null and NenKit.has_method("enrich"):
+		NenKit.enrich(enemy_data)
 
 	# -----------------------------------------------------
 	# CARREGAR DADOS DO ENEMY DATA
@@ -248,6 +252,9 @@ func _ready() -> void:
 	knockback_resistance = (
 		enemy_data.knockback_resistance
 	)
+
+	# Propaga velocidade / Hatsu CD do perfil para a AI irmã
+	call_deferred("_aplicar_perfil_nen_na_ai")
 
 	hit_invulnerability_time = (
 		enemy_data.hit_invulnerability_time
@@ -311,7 +318,6 @@ func _ready() -> void:
 
 	_anexar_nameplate()
 
-
 	# -----------------------------------------------------
 	# DEBUG
 	# -----------------------------------------------------
@@ -322,36 +328,34 @@ func _ready() -> void:
 	print("HP: ", health, "/", max_health)
 	print("DEFESA: ", defense)
 	print("FORÇA: ", strength)
-
-	print(
-		"XP NORMAL: ",
-		xp_reward
-	)
-
-	print(
-		"XP NEN: ",
-		nen_xp_reward
-	)
-
-	print(
-		"KNOCKBACK RESISTANCE: ",
-		knockback_resistance
-	)
-
-	print(
-		"INVULNERABILIDADE: ",
-		hit_invulnerability_time
-	)
-
+	print("ROLE: ", enemy_data.role, " | HATSU: ", enemy_data.hatsu_name)
+	print("XP NORMAL: ", xp_reward)
+	print("XP NEN: ", nen_xp_reward)
+	print("KNOCKBACK RESISTANCE: ", knockback_resistance)
+	print("INVULNERABILIDADE: ", hit_invulnerability_time)
 	print("=================================")
 
-
 	# CONECTAR AO QUESTSYSTEM
-	# Quando este inimigo morrer, notificará o QuestSystem
-	# -----
-
-	if not died.is_connected(QuestSystem.register_enemy_kill):
+	if QuestSystem != null and not died.is_connected(QuestSystem.register_enemy_kill):
 		died.connect(QuestSystem.register_enemy_kill)
+
+
+func _aplicar_perfil_nen_na_ai() -> void:
+	if enemy_body == null or enemy_data == null:
+		return
+	var ai = enemy_body.get_node_or_null("EnemyAI")
+	if ai == null:
+		return
+	var NenKit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
+	if NenKit == null:
+		return
+	var mult: float = float(NenKit.move_speed_mult(enemy_data))
+	if mult > 0.0 and "move_speed" in ai:
+		ai.move_speed = float(ai.move_speed) * mult
+	if enemy_data.hatsu_cooldown > 0.0 and "hatsu_cooldown" in ai:
+		ai.hatsu_cooldown = enemy_data.hatsu_cooldown
+	if "attack_pattern_id" in ai:
+		ai.attack_pattern_id = str(NenKit.attack_pattern(enemy_data))
 
 
 # =========================================================

@@ -193,21 +193,59 @@ func _mostrar_menu_pedras(item_id: String) -> void:
 func _preencher_crafting(container: Control) -> void:
 	for info in EquipmentCatalogScript.listar_crafts():
 		var btn := Button.new()
-		btn.text = "%s — %d Jenny" % [info["nome"], info["custo"]]
+		var mats: Array = info.get("materiais", [])
+		var mat_txt := _formatar_materiais(mats)
+		btn.text = "%s — %d Jenny%s" % [info["nome"], info["custo"], mat_txt]
 		btn.add_theme_font_size_override("font_size", 5)
 		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var craft_id: String = str(info["id"])
-		var custo: int = int(info["custo"])
 		btn.pressed.connect(func():
-			if Economy.remover_gold(custo):
-				PlayerData.adicionar_item(StringName(craft_id), 1)
+			var res: Dictionary = EquipmentCatalogScript.tentar_craft(craft_id)
+			if bool(res.get("ok", false)):
 				if EventBus != null:
 					EventBus.emit_toast("Forjou: %s (equipe em I)" % EquipmentCatalogScript.obter_nome(craft_id), Color(0.55, 0.95, 0.45))
-				_atualizar_ui()
+				if SaveManager != null:
+					SaveManager.salvar_jogo()
+			elif EventBus != null:
+				var reason := str(res.get("reason", "falhou"))
+				if reason == "sem_material":
+					EventBus.emit_toast("Falta material: %s x%d" % [str(res.get("material", "?")), int(res.get("need", 1))], Color(1.0, 0.45, 0.35))
+				elif reason == "sem_jenny":
+					EventBus.emit_toast("Jenny insuficiente (%d)" % int(res.get("need", 0)), Color(1.0, 0.45, 0.35))
+				else:
+					EventBus.emit_toast("Forja: %s" % reason, Color(1.0, 0.45, 0.35))
+			_atualizar_ui()
 		)
 		container.add_child(btn)
 
-	# Ofertas básicas sempre disponíveis (não só craft flag)
+	var sep := Label.new()
+	sep.text = "— Conversão de Aura —"
+	sep.add_theme_font_size_override("font_size", 5)
+	sep.add_theme_color_override("font_color", Color(0.7, 0.85, 1.0))
+	container.add_child(sep)
+
+	for conv in EquipmentCatalogScript.listar_conversoes_aura():
+		var btn_c := Button.new()
+		var from_id := str(conv.get("from", "pedra_aura"))
+		var to_id := str(conv.get("to", ""))
+		var qtd_from := int(conv.get("qtd_from", 3))
+		btn_c.text = "%dx %s → %s" % [qtd_from, from_id, str(conv.get("nome", to_id))]
+		btn_c.add_theme_font_size_override("font_size", 5)
+		btn_c.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn_c.pressed.connect(func():
+			var res2: Dictionary = EquipmentCatalogScript.converter_aura_para_pedra(to_id)
+			if bool(res2.get("ok", false)):
+				if EventBus != null:
+					EventBus.emit_toast("Convertido: %s" % str(conv.get("nome", to_id)), Color(0.55, 0.9, 1.0))
+				if SaveManager != null:
+					SaveManager.salvar_jogo()
+			elif EventBus != null:
+				EventBus.emit_toast("Falta %s x%d" % [str(res2.get("material", from_id)), int(res2.get("need", qtd_from))], Color(1.0, 0.45, 0.35))
+			_atualizar_ui()
+		)
+		container.add_child(btn_c)
+
+	# Ofertas básicas sempre disponíveis (não só craft flag) — Jenny only
 	for extra_id in ["adaga_zaban", "colete_cacador", "escudo_leve", "anel_aura"]:
 		var def: Dictionary = EquipmentCatalogScript.obter(extra_id)
 		if def.is_empty():
@@ -226,3 +264,12 @@ func _preencher_crafting(container: Control) -> void:
 				_atualizar_ui()
 		)
 		container.add_child(btn2)
+
+
+func _formatar_materiais(mats: Array) -> String:
+	if mats.is_empty():
+		return ""
+	var partes: PackedStringArray = []
+	for m in mats:
+		partes.append("%s×%d" % [str(m.get("id", "?")), int(m.get("qtd", 1))])
+	return " + " + ", ".join(partes)

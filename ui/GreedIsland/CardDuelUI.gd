@@ -14,6 +14,7 @@ var lbl_hp: Label
 var lbl_log: Label
 var hand_box: VBoxContainer
 var difficulty: String = "antokiba"
+var _reward_granted: bool = false
 
 
 func _ready() -> void:
@@ -26,6 +27,7 @@ func _ready() -> void:
 
 func abrir(diff: String = "antokiba") -> void:
 	difficulty = diff
+	_reward_granted = false
 	visible = true
 	get_tree().paused = true
 	var res: Dictionary = duel.start_from_inventory(difficulty)
@@ -130,7 +132,17 @@ func _refresh() -> void:
 	]
 	var w := str(snap.get("winner", ""))
 	if w == "player":
-		lbl_log.text = "VITÓRIA! %s" % str(snap.get("log", ""))
+		var reward_txt := ""
+		if not _reward_granted:
+			_reward_granted = true
+			var reward: Dictionary = CatalogScript.duel_victory_reward(150)
+			var cid := str(reward.get("card_id", ""))
+			var card_meta: Dictionary = CatalogScript.by_id(cid)
+			var cname := str(card_meta.get("nome", cid))
+			reward_txt = " | +%d Jenny + carta %s" % [int(reward.get("jenny", 0)), cname]
+			if EventBus != null:
+				EventBus.emit_toast("🃏 Vitória GI: %s (+%d Jenny)" % [cname, int(reward.get("jenny", 0))], Color(0.45, 1.0, 0.7))
+		lbl_log.text = "VITÓRIA! %s%s" % [str(snap.get("log", "")), reward_txt]
 	elif w == "enemy":
 		lbl_log.text = "DERROTA. %s" % str(snap.get("log", ""))
 	elif w == "draw":
