@@ -13,6 +13,7 @@ extends "res://world/generator/RegionWorldGenerator.gd"
 
 const PadokiaQuestCatalogScript = preload("res://resource/quest/PadokiaQuestCatalog.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
+const ProgressionSystemsPrimerScript = preload("res://scripts/story/ProgressionSystemsPrimer.gd")
 
 var _zonas_notificadas: Dictionary = {
 	"vila": false,
@@ -72,17 +73,39 @@ func _garantir_training_wing_respiro_vale() -> void:
 	inter.interaction_radius = 30.0
 	inter.interacted.connect(func(_p):
 		TrainingSystem.obter_ou_criar(get_tree())
-		if EventBus != null:
-			EventBus.emit_toast(
-				"🥋 Training Wing — fale com Wing ou entre no Dojo. Respire antes da Floresta.",
-				Color(0.55, 0.95, 0.8)
-			)
-		var hud = get_tree().get_first_node_in_group("player_hud")
-		if hud != null and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🥋 Respiro: treine Ten/Ren no Dojo antes de seguir.")
+		_abrir_guia_progressao_vale()
 	)
 	area.add_child(inter)
 	add_child(area)
+
+
+## Abre o mesmo guia didático do Wing (nível / Nen / Tree / Hatsu) no Vale.
+func _abrir_guia_progressao_vale() -> void:
+	var wing = find_child("Mestre_Wing", true, false)
+	if wing == null:
+		wing = find_child("Wing", true, false)
+	if wing != null and wing.has_method("_abrir_menu_treino"):
+		if EventBus != null:
+			EventBus.emit_toast("🥋 Wing — use o Guia no menu do Dojo.", Color(0.55, 0.95, 0.8))
+		wing.call("_abrir_menu_treino")
+		return
+	ProgressionSystemsPrimerScript.abrir_menu_guia(
+		self,
+		func(falas: Array):
+			var visual = get_tree().get_first_node_in_group("visual_dialogue_ui")
+			if visual == null:
+				return
+			var arr: Array[Dictionary] = []
+			for f in falas:
+				if f is Dictionary:
+					arr.append(f)
+			visual.exibir_sequencia_falas(arr),
+		Callable(),
+		"🥋 TRAINING WING — GUIA",
+		"Nível · Nen · Nen Tree · Hatsu (falas do Mestre Wing)"
+	)
+	if EventBus != null:
+		EventBus.emit_toast("🥋 Guia de progressão — escolha um tópico.", Color(0.55, 0.95, 0.8))
 
 
 func _densificar_steam_early_vale() -> void:
