@@ -152,21 +152,21 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				14:
 					q.quest_name = "Exame Hunter 14/24: Viagem Noturna no Dirigível"
-					q.description = "Descanse no dirigível oficial da Associação Hunter e converse com o Presidente Isaac Netero."
+					q.description = "ORDEM: Fale com Netero no fim do Exame — ele te teleporta ao dirigível da Associação."
 					q.reward_xp = 1500
 					q.reward_gold = 6000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				15:
 					q.quest_name = "Exame Hunter 15/24: O Jogo da Bola de Netero"
-					q.description = "Tente tirar a bola das mãos do Presidente Netero em um teste amigável de velocidade e reflexos."
+					q.description = "ORDEM: No deck do dirigível, fale de novo com Netero (jogo da bola). Depois portal LESTE → Trick Tower."
 					q.reward_xp = 1600
 					q.reward_gold = 6500
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				16:
 					q.quest_name = "Exame Hunter 16/24: O Topo da Trick Tower"
-					q.description = "Aterrisse no topo da Torre dos Truques (3ª Fase) e encontre o alçapão secreto de descida."
+					q.description = "ORDEM: No topo da torre, use [G] Gyo no alçapão secreto e desça."
 					q.reward_xp = 1700
 					q.reward_gold = 7000
 					q.objectives = [_criar_obj_investigate(&"alcapao_trick_tower")]

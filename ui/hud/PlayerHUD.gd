@@ -20,8 +20,8 @@ const AchievementsUI = preload("res://ui/Achievements/AchievementsUI.gd")
 const NenQuickActionBarScript = preload("res://ui/hud/NenQuickActionBar.gd")
 const ConditionTrackerUIScript = preload("res://ui/hud/ConditionTrackerUI.gd")
 
-# Escala visual do HUD (viewport 960×540). 1.35 ≈ 80% maior que o 0.75 anterior.
-const HUD_SCALE: float = 1.35
+# Escala visual do HUD (viewport 960×540). 1.0 = chrome compacto sem cobrir o playfield.
+const HUD_SCALE: float = 1.0
 
 # Referências
 var xp_system: XPSystem = null

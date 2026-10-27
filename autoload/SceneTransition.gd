@@ -33,6 +33,10 @@ const MAP_TITLES: Dictionary = {
 		"titulo": "287º Exame Hunter",
 		"subtitulo": "Arco 1 — Túnel Subterrâneo & Pantanal Numere"
 	},
+	"res://world/maps/dirigivel_hunter.tscn": {
+		"titulo": "Dirigível Hunter",
+		"subtitulo": "Viagem Noturna — Jogo da Bola de Netero"
+	},
 	"res://world/maps/montanha_kukuroo.tscn": {
 		"titulo": "Montanha Kukuroo",
 		"subtitulo": "Arco 2 — Propriedade da Família Zoldyck"

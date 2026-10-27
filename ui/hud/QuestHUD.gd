@@ -56,8 +56,8 @@ func _construir_ui() -> void:
 	offset_left = -144.0
 	offset_top = 6.0
 	offset_right = -6.0
-	# Alinhado a PlayerHUD.HUD_SCALE (1.35) — legibilidade 960×540
-	scale = Vector2(1.35, 1.35)
+	# Alinhado a PlayerHUD.HUD_SCALE (1.0) — chrome compacto em 960×540
+	scale = Vector2(1.0, 1.0)
 
 	add_theme_stylebox_override("panel", HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 3))
 
