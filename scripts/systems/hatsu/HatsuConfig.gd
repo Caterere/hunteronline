@@ -32,6 +32,13 @@ const HATSU_SWITCH_COOLDOWN: float = 600.0
 # Calibrado com a economia após Greed Island (recompensas médias de 5.000 a 50.000 Jenny).
 const HATSU_CREATION_JENNY_COST: int = 5000
 
+# --- 3b. GATES DE COMPLEXIDADE (Creator anti-OP early) ---
+# Nível mínimo do personagem para forjar cada faixa de raridade.
+const CREATOR_RANK_LEVEL_FRACO: int = 1
+const CREATOR_RANK_LEVEL_MEDIANO: int = 15
+const CREATOR_RANK_LEVEL_FORTE: int = 35
+const CREATOR_RANK_LEVEL_LENDARIO: int = 55
+
 # --- 4. MASTERY (POTENCIAL & ESCALA) ---
 # Nível inicial de maestria para qualquer Hatsu recém-forjado.
 const INITIAL_MASTERY: float = 0.0
@@ -97,3 +104,28 @@ static func calcular_penalidade_anti_farm(player_level: int, target_level: int) 
 	
 	var fator: float = 1.0 - (float(defasagem) / float(delta_tolerancia))
 	return clamp(fator, 0.0, 1.0)
+
+
+# --- 7. CONSTELAÇÃO DO HATSU (árvore de efeitos / deepen / bond) ---
+# Conversão dura: créditos → pontos. Maximizar exige votos pesados + deepen.
+const TREE_CREDITS_PER_POINT: float = 14.0
+const TREE_BUDGET_MIN: int = 2
+const TREE_BUDGET_MAX: int = 16 ## impossível encher todos os raios
+
+# Anéis: 0 hub · 1 início · 2 meio · 3 keystone / ápice
+const TREE_RING_LEVEL := [0, 1, 15, 35]
+const TREE_RING_MASTERY := [0, 0, 20, 40]
+# Keystone (anel 3) exige nível E mastery — apego + crescimento do caçador
+const TREE_KEYSTONE_REQUIRES_BOTH: bool = true
+
+# Aprofundar (re-forja de votos → novos pontos na mesma árvore)
+const DEEPEN_JENNY_COST: int = 3500
+const DEEPEN_COOLDOWN_SEC: float = 900.0 ## 15 min
+const DEEPEN_MIN_MASTERY: float = 10.0 ## 1º deepen
+const DEEPEN_MASTERY_PER_STEP: float = 12.0 ## mastery mínima sobe a cada deepen
+const DEEPEN_MIN_CREDIT_GAIN: float = 18.0 ## precisa ganhar créditos novos de verdade
+const DEEPEN_POINT_EFFICIENCY: float = 0.72 ## cada deepen rende menos pts do que a forja inicial
+
+# Bond (história com o Hatsu) — só flavor + gates suaves de UI
+const BOND_USES_PER_CHAPTER: int = 25
+const BOND_MAX_CHAPTER: int = 5

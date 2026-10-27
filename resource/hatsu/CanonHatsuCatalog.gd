@@ -13,6 +13,12 @@ extends Resource
 #   Transformam o ataque básico para causar 100 de Dano com Attack Speed ultrassônico,
 #   consumindo 20 de Aura por golpe (permitindo ~5 golpes no Lv.1 e até 25-30 golpes no Lv.100).
 #
+# Balance pass (fidelidade anime × fluidez MMO):
+# - Controle canônico (Chain Jail, Bungee, Dowsing) prioriza utility/Zetsu sobre burst.
+# - Cura Holy Chain ≈ 45% HP base. Doctor Blythe exige imóvel (cirurgia).
+# - Skill Hunter: 4 condições + janela de 1h (mangá vol.11).
+# - Decisões abertas (modos Godspeed, Chain Jail só Spiders, etc.): ver relatório canvas.
+#
 # ============================================================
 
 static func obter_hatsus_canonicos() -> Array[Dictionary]:
@@ -173,15 +179,16 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"condicoes": [HatsuData.Condicao.AUTO_DANO],
 			"poder_base": 80.0,
 			"custo_aura": 40.0,
-			"cooldown": 20.0,
-			"duracao": 10.0,
+			"cooldown": 45.0,
+			"duracao": 90.0,
 			"activation_type": HatsuData.ActivationType.TRANSFORMATION,
 			"duration_type": HatsuData.DurationType.TIMED,
 			"channel": HatsuData.HatsuChannel.TRANSFORMATION,
 			"exclusive_group": "transformation_mode",
 			"concurrent_allowed": false,
-			"aura_drain_per_sec": 4.0,
-			"descricao": "Especialização (Olhos Escarlates). Concede 100% de Eficiência Absoluta em todas as categorias de Nen."
+			"aura_drain_per_sec": 3.0,
+			"tags": ["emperor_time", "lifespan", "scarlet_eyes"],
+			"descricao": "Especialização (Olhos Escarlates). 100% eficiência em todas as categorias por 90s. Consome Esperança de Vida (stat) — sabor canônico sem hardcore permanente."
 		},
 		{
 			"id": "kurapika_holy_chain",
@@ -192,7 +199,7 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"forma": HatsuData.Forma.PESSOAL,
 			"condicoes": [],
 			"poder_base": 60.0,
-			"cura_base": 70.0,
+			"cura_base": 45.0,
 			"custo_aura": 35.0,
 			"cooldown": 12.0,
 			"activation_type": HatsuData.ActivationType.INSTANT,
@@ -200,7 +207,7 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"channel": HatsuData.HatsuChannel.DEFENSIVE,
 			"exclusive_group": "",
 			"concurrent_allowed": true,
-			"descricao": "Conjuração + Intensificação. Envolve o corpo em aura curativa, restaurando 45% do HP Máximo."
+			"descricao": "Conjuração + Intensificação. Cruz no polegar — regeneração rápida (~45% HP base calibrado)."
 		},
 		{
 			"id": "kurapika_chain_jail",
@@ -210,7 +217,7 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
 			"forma": HatsuData.Forma.TOQUE,
 			"condicoes": [HatsuData.Condicao.ALVO_ELITE_BOSS],
-			"poder_base": 110.0,
+			"poder_base": 45.0,
 			"custo_aura": 40.0,
 			"cooldown": 14.0,
 			"alcance": 60.0,
@@ -219,7 +226,8 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"channel": HatsuData.HatsuChannel.SPECIAL,
 			"exclusive_group": "",
 			"concurrent_allowed": true,
-			"descricao": "Conjuração. Envolve o inimigo em correntes inquebráveis, causando 110 de Dano e impondo Zetsu forçado por 3s."
+			"tags": ["chain_jail", "zetsu_force", "control"],
+			"descricao": "Conjuração. Prisão de correntes: dano baixo (45) + Zetsu forçado 3s. No anime é letal só vs Trupe — no jogo elite/boss até decisão D1."
 		},
 		{
 			"id": "kurapika_judgement_chain",
@@ -228,36 +236,38 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"categoria": HatsuData.Categoria.CONJURACAO,
 			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
 			"forma": HatsuData.Forma.TOQUE,
-			"condicoes": [],
-			"poder_base": 135.0,
+			"condicoes": [HatsuData.Condicao.VOTO_ABSOLUTO_CHAIN],
+			"poder_base": 95.0,
 			"custo_aura": 42.0,
-			"cooldown": 15.0,
+			"cooldown": 18.0,
 			"alcance": 45.0,
 			"activation_type": HatsuData.ActivationType.INSTANT,
 			"duration_type": HatsuData.DurationType.INSTANT,
 			"channel": HatsuData.HatsuChannel.OFFENSIVE,
 			"exclusive_group": "",
 			"concurrent_allowed": true,
-			"descricao": "Conjuração + Emissão. Estaca de corrente no coração do oponente, causando 135 de Dano mortal."
+			"tags": ["judgement", "vow", "heart_stake", "requires_chain_jail"],
+			"descricao": "Conjuração + Emissão. Combo canônico: só explode após Chain Jail marcar o alvo. Sem marca = dano residual fraco."
 		},
 		{
 			"id": "kurapika_dowsing_chain",
 			"nome": "Dowsing Chain (Corrente de Rastreamento - Anelar)",
 			"usuario": "Kurapika",
 			"categoria": HatsuData.Categoria.CONJURACAO,
-			"objetivo": HatsuData.ObjetivoPrincipal.DANO,
+			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
 			"forma": HatsuData.Forma.PROJETIL,
 			"condicoes": [],
-			"poder_base": 60.0,
-			"custo_aura": 20.0,
+			"poder_base": 20.0,
+			"custo_aura": 18.0,
 			"cooldown": 5.0,
-			"alcance": 160.0,
+			"alcance": 200.0,
 			"activation_type": HatsuData.ActivationType.INSTANT,
 			"duration_type": HatsuData.DurationType.INSTANT,
-			"channel": HatsuData.HatsuChannel.OFFENSIVE,
+			"channel": HatsuData.HatsuChannel.UTILITY,
 			"exclusive_group": "",
 			"concurrent_allowed": true,
-			"descricao": "Conjuração. Disparo rápido com precisão absoluta de 60 de Dano."
+			"tags": ["detect", "dowsing", "search"],
+			"descricao": "Conjuração. Ferramenta de rastreio/apontamento (anime). Dano leve (20) — utilidade primeiro."
 		},
 
 		# --- HISOKA MOROW ---
@@ -269,7 +279,7 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"objetivo": HatsuData.ObjetivoPrincipal.CONTROLE,
 			"forma": HatsuData.Forma.PROJETIL,
 			"condicoes": [],
-			"poder_base": 70.0,
+			"poder_base": 45.0,
 			"custo_aura": 25.0,
 			"cooldown": 7.0,
 			"alcance": 165.0,
@@ -278,7 +288,28 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"channel": HatsuData.HatsuChannel.UTILITY,
 			"exclusive_group": "",
 			"concurrent_allowed": true,
-			"descricao": "Transformação. Dispara um chiclete elétrico de aura de 70 de Dano que puxa o inimigo para perto."
+			"tags": ["bungee", "elastic", "pull", "sticky"],
+			"descricao": "Transformação. Propriedades de borracha E goma: puxa/gruda (dano 45 secundário). Texture Surprise é Hatsu à parte."
+		},
+		{
+			"id": "hisoka_texture_surprise",
+			"nome": "Texture Surprise (Textura Surpresa)",
+			"usuario": "Hisoka Morow",
+			"categoria": HatsuData.Categoria.CONJURACAO,
+			"objetivo": HatsuData.ObjetivoPrincipal.SUPORTE,
+			"forma": HatsuData.Forma.PESSOAL,
+			"condicoes": [],
+			"poder_base": 10.0,
+			"custo_aura": 15.0,
+			"cooldown": 10.0,
+			"duracao": 30.0,
+			"activation_type": HatsuData.ActivationType.INSTANT,
+			"duration_type": HatsuData.DurationType.TIMED,
+			"channel": HatsuData.HatsuChannel.UTILITY,
+			"exclusive_group": "",
+			"concurrent_allowed": true,
+			"tags": ["texture", "disguise", "illusion", "utility"],
+			"descricao": "Conjuração. Camada de aura que imita texturas (tatuagem, papel, pele). Zero combate direto — engano/quest/PvP social."
 		},
 
 		# --- FEITAN PORTOR ---
@@ -342,11 +373,11 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"concurrent_allowed": true,
 			"arquetipo": HatsuData.Arquetipo.LIVRO_COLECAO,
 			"is_storage_hatsu": true,
-			"steal_conditions": ["TOUCH_REQUIRED", "OBSERVE_GYO", "TARGET_EXPLAINS"],
+			"steal_conditions": ["OBSERVE_GYO", "TARGET_EXPLAINS", "TOUCH_REQUIRED", "WITHIN_ONE_HOUR", "FOUR_STRICT_CONDITIONS"],
 			"storage_capacity": 8,
 			"storage_duration_type": "CHARGES",
 			"tags": ["skill_hunter", "steal", "library"],
-			"descricao": "Especialização. Livro de Nen que potencializa, armazena e sincroniza múltiplos Hatsus roubados."
+			"descricao": "Especialização. Bandit's Secret: ver Hatsu, perguntar e obter resposta, palma no livro, tudo em ≤1h. Uso exige livro aberto na página."
 		},
 		{
 			"id": "chrollo_indoor_fish",
@@ -421,7 +452,7 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"categoria": HatsuData.Categoria.CONJURACAO,
 			"objetivo": HatsuData.ObjetivoPrincipal.CURA,
 			"forma": HatsuData.Forma.PESSOAL,
-			"condicoes": [],
+			"condicoes": [HatsuData.Condicao.IMOVEL_DURANTE_USO],
 			"poder_base": 55.0,
 			"cura_base": 120.0,
 			"custo_aura": 45.0,
@@ -431,8 +462,8 @@ static func obter_hatsus_canonicos() -> Array[Dictionary]:
 			"channel": HatsuData.HatsuChannel.UTILITY,
 			"exclusive_group": "",
 			"concurrent_allowed": true,
-			"tags": ["heal_mass", "doctor", "medic"],
-			"descricao": "Conjuração. Cirurgia de Nen massiva — cura médico-nível (alto custo/CD)."
+			"tags": ["heal_mass", "doctor", "medic", "rooted"],
+			"descricao": "Conjuração. Cirurgia de Nen massiva — usuário fica imóvel junto à boneca (anime). Alto custo/CD."
 		},
 
 		# --- ZENO ZOLDYCK ---

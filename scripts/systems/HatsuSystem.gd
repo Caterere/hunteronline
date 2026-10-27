@@ -3,6 +3,7 @@ extends Node
 
 const HatsuVisual = preload("res://scripts/visual/HatsuVisual.gd")
 const HatsuSignatureKit = preload("res://scripts/systems/hatsu/HatsuSignatureKit.gd")
+const CanonFidelityKit = preload("res://scripts/systems/hatsu/CanonFidelityKit.gd")
 const HitStopManager = preload("res://scripts/combat/HitStopManager.gd")
 
 # ============================================================
@@ -81,6 +82,17 @@ var combo_timer: float = 0.0
 # Snapshots Vitais para Rollback Temporal (Especialização)
 var vital_snapshots: Array[Dictionary] = [] # [{"time": float, "hp": int, "aura": float}]
 var snapshot_timer: float = 0.0
+
+# D7-C: hold-to-charge (Jajanken Pedra)
+var _charge_slot: int = -1
+var _charge_time: float = 0.0
+var _pending_charge_mult: float = 1.0
+
+# D4-B: alvos marcados por Chain Jail (instance_id → expiry unix)
+var chain_jail_marks: Dictionary = {}
+
+# D6: âncoras Bungee Gum ativas
+var _bungee_anchors: Array[Node2D] = []
 
 
 func _ready() -> void:
@@ -450,14 +462,88 @@ func _processar_input() -> void:
 	if owner_body == null:
 		return
 
-	if Input.is_action_just_pressed("hatsu_slot_1"):
-		usar_hatsu(0)
-	elif Input.is_action_just_pressed("hatsu_slot_2"):
-		usar_hatsu(1)
-	elif Input.is_action_just_pressed("hatsu_slot_3"):
-		usar_hatsu(2)
-	elif Input.is_action_just_pressed("hatsu_slot_4"):
-		usar_hatsu(3)
+	# D7-C: atualiza carga hold-to-charge
+	if _charge_slot >= 0:
+		_charge_time += get_process_delta_time()
+		imobilizado_timer = maxf(imobilizado_timer, 0.12)
+		if owner_body.velocity.length() > 28.0:
+			_cancelar_carga("Carga cancelada (moveu)")
+			return
+		var action_hold := _action_for_slot(_charge_slot)
+		if action_hold != "" and Input.is_action_just_released(action_hold):
+			_liberar_carga()
+			return
+		if action_hold != "" and not Input.is_action_pressed(action_hold):
+			_liberar_carga()
+			return
+
+	for i in range(4):
+		var action := _action_for_slot(i)
+		if action.is_empty():
+			continue
+		var h: HatsuData = PlayerData.obter_hatsu_slot(i)
+		if CanonFidelityKit.is_charged_hatsu(h):
+			if Input.is_action_just_pressed(action) and _charge_slot < 0:
+				_iniciar_carga(i)
+		elif Input.is_action_just_pressed(action):
+			usar_hatsu(i)
+
+
+func _action_for_slot(slot_index: int) -> String:
+	match slot_index:
+		0: return "hatsu_slot_1"
+		1: return "hatsu_slot_2"
+		2: return "hatsu_slot_3"
+		3: return "hatsu_slot_4"
+		_: return ""
+
+
+func _iniciar_carga(slot_index: int) -> void:
+	if slot_states[slot_index] == SlotState.ACTIVATING or slot_states[slot_index] == SlotState.COOLDOWN:
+		return
+	var hatsu: HatsuData = PlayerData.obter_hatsu_slot(slot_index)
+	if hatsu == null:
+		return
+	var leg := CanonFidelityKit.can_player_use_legendary(hatsu)
+	if not leg.get("allowed", true):
+		hatsu_falhou.emit(slot_index, str(leg.get("reason", "")))
+		if combat_system != null:
+			combat_system._mostrar_texto_flutuante(str(leg.get("reason", "")), Color(1.0, 0.4, 0.4))
+		return
+	_charge_slot = slot_index
+	_charge_time = 0.0
+	_definir_estado_slot(slot_index, SlotState.ACTIVATING)
+	imobilizado_timer = 0.2
+	if combat_system != null:
+		combat_system._mostrar_texto_flutuante("✊ Segure… Jajanken!", Color(1.0, 0.85, 0.3))
+	if owner_body != null:
+		HatsuSignatureKit.telegraph_cast(owner_body, hatsu, CanonFidelityKit.CHARGE_MAX_SEC)
+
+
+func _cancelar_carga(motivo: String) -> void:
+	var s := _charge_slot
+	_charge_slot = -1
+	_charge_time = 0.0
+	_pending_charge_mult = 1.0
+	if s >= 0:
+		_definir_estado_slot(s, SlotState.READY)
+	if combat_system != null and not motivo.is_empty():
+		combat_system._mostrar_texto_flutuante(motivo, Color(0.9, 0.7, 0.4))
+
+
+func _liberar_carga() -> void:
+	var s := _charge_slot
+	var t := _charge_time
+	_charge_slot = -1
+	_charge_time = 0.0
+	if s < 0:
+		return
+	_pending_charge_mult = CanonFidelityKit.charge_power_mult(t)
+	_definir_estado_slot(s, SlotState.READY)
+	if combat_system != null:
+		combat_system._mostrar_texto_flutuante("✊ Pedra! (%.0f%%)" % (_pending_charge_mult * 100.0), Color(1.0, 0.55, 0.15))
+	usar_hatsu(s)
+	_pending_charge_mult = 1.0
 
 
 # ============================================================
@@ -473,14 +559,28 @@ func usar_hatsu(slot_index: int) -> bool:
 		hatsu_falhou.emit(slot_index, "Slot %d bloqueado" % slot_id)
 		return false
 
-	# Se já está canalizando, ignore novo input
-	if slot_states[slot_index] == SlotState.ACTIVATING:
+	# Se já está canalizando, ignore novo input (exceto liberação de carga)
+	if slot_states[slot_index] == SlotState.ACTIVATING and _charge_slot != slot_index:
 		return false
 
 	var hatsu: HatsuData = PlayerData.obter_hatsu_slot(slot_index)
 	if hatsu == null:
 		hatsu_falhou.emit(slot_index, "Nenhum Hatsu equipado")
 		return false
+
+	# D8-B: Hatsus lendários exigem saga + vow (Biscuit/GI)
+	var leg_gate: Dictionary = CanonFidelityKit.can_player_use_legendary(hatsu)
+	if not leg_gate.get("allowed", true):
+		hatsu_falhou.emit(slot_index, str(leg_gate.get("reason", "Bloqueado")))
+		if combat_system != null:
+			combat_system._mostrar_texto_flutuante(str(leg_gate.get("reason", "")), Color(1.0, 0.45, 0.35))
+		return false
+
+	# D7-C: Pedra hold — se apertou sem carregar, inicia carga em vez de cast instantâneo
+	if CanonFidelityKit.is_charged_hatsu(hatsu) and is_equal_approx(_pending_charge_mult, 1.0) and _charge_slot < 0:
+		if Input.is_action_just_pressed(_action_for_slot(slot_index)):
+			_iniciar_carga(slot_index)
+			return true
 
 	# Se a habilidade já estiver ativa e for sustentada, desativar ao pressionar novamente (Toggle Off)
 	if slot_states[slot_index] == SlotState.ACTIVE:
@@ -579,22 +679,25 @@ func usar_hatsu(slot_index: int) -> bool:
 		cd *= 0.75
 
 	# --- Canalização / telegraph (feel) ---
+	# Hold-to-charge (Pedra) já canalizou: cast curto. Senão telegraph padrão.
 	_definir_estado_slot(slot_index, SlotState.ACTIVATING)
-	var cast_t: float = clampf(hatsu.obter_tempo_conjuracao_final(), 0.18, 1.05)
-	match hatsu.categoria:
-		HatsuData.Categoria.INTENSIFICACAO:
-			cast_t *= 0.85
-		HatsuData.Categoria.EMISSAO:
-			cast_t *= 1.10
-		HatsuData.Categoria.CONJURACAO:
-			cast_t *= 1.05
-		_:
-			pass
-	if owner_body != null:
-		HatsuSignatureKit.telegraph_cast(owner_body, hatsu, cast_t)
-	if combat_system != null:
-		var cor_carga: Color = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
-		combat_system._mostrar_texto_flutuante("⚡ Canalizando %s…" % hatsu.nome, cor_carga)
+	var from_hold_charge: bool = not is_equal_approx(_pending_charge_mult, 1.0)
+	var cast_t: float = 0.08 if from_hold_charge else clampf(hatsu.obter_tempo_conjuracao_final(), 0.18, 1.05)
+	if not from_hold_charge:
+		match hatsu.categoria:
+			HatsuData.Categoria.INTENSIFICACAO:
+				cast_t *= 0.85
+			HatsuData.Categoria.EMISSAO:
+				cast_t *= 1.10
+			HatsuData.Categoria.CONJURACAO:
+				cast_t *= 1.05
+			_:
+				pass
+		if owner_body != null:
+			HatsuSignatureKit.telegraph_cast(owner_body, hatsu, cast_t)
+		if combat_system != null:
+			var cor_carga: Color = NenAffinityData.obter_cor_afinidade(hatsu.categoria)
+			combat_system._mostrar_texto_flutuante("⚡ Canalizando %s…" % hatsu.nome, cor_carga)
 	if owner_body != null and is_instance_valid(owner_body) and owner_body.get_tree() != null:
 		await owner_body.get_tree().create_timer(cast_t).timeout
 	if owner_body == null or not is_instance_valid(owner_body):
@@ -693,6 +796,17 @@ func _aplicar_feel_impacto_hatsu(enemy_sys: Node, dano: int, direcao: Vector2, f
 		return
 	if enemy_sys.has_method("take_damage"):
 		enemy_sys.take_damage(dano, direcao, forca, owner_body)
+	if hatsu != null and hatsu.stun_duracao > 0.0 and "stun_timer" in enemy_sys:
+		enemy_sys.stun_timer = maxf(float(enemy_sys.stun_timer), float(hatsu.stun_duracao))
+	# control_pull da árvore: puxa levemente o inimigo
+	if hatsu != null and hatsu.parametros_conceito is Dictionary:
+		var et = hatsu.parametros_conceito.get("effect_tree", {})
+		if typeof(et) == TYPE_DICTIONARY and bool(et.get("control_pull", false)) and owner_body != null:
+			if enemy_sys.get_parent() != null and enemy_sys.get_parent() is Node2D:
+				var body: Node2D = enemy_sys.get_parent()
+				var pull: Vector2 = (owner_body.global_position - body.global_position).normalized() * 40.0
+				if enemy_sys.has_method("_apply_knockback"):
+					enemy_sys._apply_knockback(pull, 80.0)
 	var intens = HitStopManager.HitIntensity.HATSU
 	if hatsu != null and hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO:
 		HitStopManager.aplicar_screen_shake(0.55)
@@ -1426,6 +1540,7 @@ func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 
 		HatsuData.Categoria.TRANSFORMACAO:
 			if hatsu.nome.contains("Godspeed") or hatsu.nome.contains("Kanmuru"):
+				# D2-A: modo unificado (Whirlwind+SoL fundidos em um timer fluido)
 				godspeed_timer = hatsu.duracao
 				PlayerData.quest_states["godspeed_ativo"] = true
 				if owner_body != null:
@@ -1439,7 +1554,9 @@ func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 				_criar_explosao_area(hatsu, eficiencia)
 			elif hatsu.forma == HatsuData.Forma.TOQUE or hatsu.nome.contains("Tesoura"):
 				_criar_golpe_direto(hatsu, eficiencia)
-			elif hatsu.forma == HatsuData.Forma.PROJETIL or hatsu.nome.contains("Narukami") or hatsu.nome.contains("Bungee"):
+			elif CanonFidelityKit.is_bungee(hatsu):
+				_criar_bungee_gum(hatsu, eficiencia)
+			elif hatsu.forma == HatsuData.Forma.PROJETIL or hatsu.nome.contains("Narukami"):
 				_criar_projetil(hatsu, eficiencia)
 			else:
 				_criar_explosao_area(hatsu, eficiencia)
@@ -1458,6 +1575,8 @@ func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 					var fx := CrazySlotsWheelEffect.new()
 					fx.setup(owner_body)
 					owner_body.add_child(fx)
+			elif CanonFidelityKit.is_texture_surprise(hatsu):
+				_executar_texture_surprise(hatsu)
 			elif hatsu.nome.contains("Guanyin") or hatsu.nome.contains("Bodhisattva"):
 				PlayerData.quest_states["guanyin_bodhisattva_ativo"] = true
 				if owner_body != null:
@@ -1469,7 +1588,8 @@ func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 					)
 			elif hatsu.nome.contains("Holy Chain"):
 				_executar_cura(hatsu, eficiencia)
-			elif hatsu.forma == HatsuData.Forma.TOQUE or hatsu.nome.contains("Chain Jail"):
+			elif CanonFidelityKit.is_judgement(hatsu) or CanonFidelityKit.is_chain_jail(hatsu) \
+				or hatsu.forma == HatsuData.Forma.TOQUE or hatsu.nome.contains("Chain Jail"):
 				_criar_golpe_direto(hatsu, eficiencia)
 			else:
 				_criar_explosao_area(hatsu, eficiencia)
@@ -1478,13 +1598,8 @@ func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 			_criar_projetil(hatsu, eficiencia)
 
 		HatsuData.Categoria.ESPECIALIZACAO:
-			if hatsu.nome.contains("Emperor Time"):
-				PlayerData.quest_states["emperor_time_ativo"] = true
-				if combat_system != null:
-					combat_system._mostrar_texto_flutuante("👁️ EMPEROR TIME 100%!", Color(1.0, 0.1, 0.3))
-				owner_body.get_tree().create_timer(hatsu.duracao).timeout.connect(func():
-					PlayerData.quest_states["emperor_time_ativo"] = false
-				)
+			if CanonFidelityKit.is_emperor_time(hatsu) or hatsu.nome.contains("Emperor Time"):
+				_ativar_emperor_time(hatsu)
 			elif hatsu.forma == HatsuData.Forma.PROJETIL:
 				_criar_projetil(hatsu, eficiencia)
 			else:
@@ -1504,8 +1619,8 @@ func _calcular_dano_hatsu(hatsu: HatsuData, eficiencia: float, inimigo_alvo: Nod
 	var nivel_nen: int = int(PlayerData.attributes.get("nivel_nen", 0))
 	var aura_max: float = float(PlayerData.attributes.get("aura_max", 100.0))
 
-	# 1. Multiplicador de Afinidade Natal (Hexágono) + Força Física
-	var dano: float = (poder_base * eficiencia) + forca
+	# 1. Multiplicador de Afinidade Natal (Hexágono) + Força Física + carga Pedra
+	var dano: float = (poder_base * eficiencia * _pending_charge_mult) + forca
 
 	# 2. Escalonamento com o Domínio de Nen e Quantidade de Aura
 	var bonus_nen: float = 1.0 + (float(nivel_nen) * 0.015) + (max(0.0, aura_max - 100.0) / 400.0)
@@ -1569,10 +1684,41 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	elif owner_body.velocity != Vector2.ZERO:
 		direcao = owner_body.velocity.normalized()
 
+	var combat: Dictionary = {}
+	if hatsu.parametros_conceito is Dictionary:
+		var raw_et = hatsu.parametros_conceito.get("effect_tree", {})
+		if typeof(raw_et) == TYPE_DICTIONARY:
+			combat = raw_et
+	var shots: int = clampi(int(combat.get("multishot", 1)), 1, 5)
+	var vel_bonus: float = float(combat.get("proj_speed", 0.0))
+	var kb_bonus: float = float(combat.get("knockback", 0.0))
+	var velocidade: float = 240.0 + vel_bonus
+	var alcance_max: float = hatsu.alcance
+	var kb_base: float = 120.0 + kb_bonus
+
 	# Resolver perfil visual com herança opcional da aura do personagem
 	var raw_vp: VisualProfile = hatsu.obter_visual_profile()
 	var vp: VisualProfile = PlayerData.aura_visual_profile.blend_with_hatsu(raw_vp) if PlayerData.aura_visual_profile != null else raw_vp
 
+	HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
+
+	for si in range(shots):
+		var spread: float = 0.0
+		if shots > 1:
+			spread = deg_to_rad((-12.0 + 24.0 * float(si) / float(shots - 1)))
+		var dir_shot: Vector2 = direcao.rotated(spread)
+		_spawn_um_projetil(hatsu, eficiencia, dir_shot, vp, velocidade, alcance_max, kb_base)
+
+
+func _spawn_um_projetil(
+	hatsu: HatsuData,
+	eficiencia: float,
+	direcao: Vector2,
+	vp: VisualProfile,
+	velocidade: float,
+	alcance_max: float,
+	kb_force: float
+) -> void:
 	var area := Area2D.new()
 	area.name = "HatsuProjetil"
 	area.collision_layer = 1 << 3
@@ -1584,7 +1730,6 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	col.shape = shape
 	area.add_child(col)
 
-	# Renderizador Visual Modular
 	var visual := HatsuVisual.new()
 	visual.setup(vp)
 	area.add_child(visual)
@@ -1592,26 +1737,20 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	owner_body.get_parent().add_child(area)
 	area.global_position = owner_body.global_position
 
-	# Efeito de Cast ao Disparar
-	HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
-
-	var velocidade: float = 240.0
-	var alcance_max: float = hatsu.alcance
-
 	area.area_entered.connect(func(alvo_area: Area2D):
 		var enemy: Node = alvo_area.get_parent()
 		if enemy != null and enemy != owner_body:
 			var enemy_sys = enemy.get_node_or_null("EnemySystem")
 			if enemy_sys != null:
 				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
-				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, 120.0, hatsu)
+				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, kb_force, hatsu)
 				if is_instance_valid(area):
 					HatsuVisual.spawn_impact_effect(area.global_position, vp, owner_body.get_parent())
 					area.queue_free()
 	)
 
 	var tween := area.create_tween()
-	tween.tween_property(area, "global_position", area.global_position + (direcao * alcance_max), alcance_max / velocidade)
+	tween.tween_property(area, "global_position", area.global_position + (direcao * alcance_max), alcance_max / maxf(velocidade, 40.0))
 	tween.tween_callback(func():
 		if is_instance_valid(area):
 			HatsuVisual.spawn_impact_effect(area.global_position, vp, owner_body.get_parent())
@@ -1697,15 +1836,226 @@ func _criar_golpe_direto(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 		if enemy != null and enemy != owner_body:
 			var enemy_sys = enemy.get_node_or_null("EnemySystem")
 			if enemy_sys != null:
-				var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
+				var dmg_mult: float = 1.0
+				# D4-B: Judgement só explode após Chain Jail
+				if CanonFidelityKit.is_judgement(hatsu):
+					if _has_chain_jail_mark(enemy):
+						dmg_mult = 1.35
+						_clear_chain_jail_mark(enemy)
+						if combat_system != null:
+							combat_system._mostrar_texto_flutuante("⛓️ JUDGEMENT!", Color(0.95, 0.15, 0.25))
+					else:
+						dmg_mult = CanonFidelityKit.JUDGEMENT_UNMARKED_MULT
+						if combat_system != null:
+							combat_system._mostrar_texto_flutuante("⛓️ Sem Chain Jail — contrato fraco", Color(0.8, 0.55, 0.4))
+				var dano_hatsu: int = int(float(_calcular_dano_hatsu(hatsu, eficiencia, enemy)) * dmg_mult)
 				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, 200.0, hatsu)
 				HatsuVisual.spawn_impact_effect(enemy.global_position, vp, owner_body.get_parent())
+				# D1-B: Chain Jail marca + Zetsu forçado no alvo
+				if CanonFidelityKit.is_chain_jail(hatsu):
+					_marcar_chain_jail(enemy)
+					if enemy_sys.has_method("aplicar_zetsu_forcado"):
+						enemy_sys.aplicar_zetsu_forcado(3.0)
+					elif "stun_timer" in enemy_sys:
+						enemy_sys.stun_timer = maxf(float(enemy_sys.stun_timer), 3.0)
+					if combat_system != null:
+						combat_system._mostrar_texto_flutuante("⛓️ CHAIN JAIL — Zetsu!", Color(0.7, 0.2, 0.95))
 	)
 
 	var timer := owner_body.get_tree().create_timer(0.15)
 	await timer.timeout
 	if is_instance_valid(area):
 		area.queue_free()
+
+
+func _marcar_chain_jail(enemy: Node) -> void:
+	if enemy == null or not is_instance_valid(enemy):
+		return
+	var now: float = Time.get_unix_time_from_system()
+	chain_jail_marks[enemy.get_instance_id()] = now + CanonFidelityKit.CHAIN_JAIL_MARK_SEC
+
+
+func _has_chain_jail_mark(enemy: Node) -> bool:
+	if enemy == null or not is_instance_valid(enemy):
+		return false
+	var id: int = enemy.get_instance_id()
+	if not chain_jail_marks.has(id):
+		return false
+	var exp_t: float = float(chain_jail_marks[id])
+	if Time.get_unix_time_from_system() > exp_t:
+		chain_jail_marks.erase(id)
+		return false
+	return true
+
+
+func _clear_chain_jail_mark(enemy: Node) -> void:
+	if enemy == null:
+		return
+	chain_jail_marks.erase(enemy.get_instance_id())
+
+
+func _ativar_emperor_time(hatsu: HatsuData) -> void:
+	# D3-C: duração longa + consome Esperança de Vida
+	CanonFidelityKit.ensure_esperanca_vida()
+	if not CanonFidelityKit.gastar_esperanca_vida(CanonFidelityKit.EMPEROR_ESPERANCA_COST):
+		if combat_system != null:
+			combat_system._mostrar_texto_flutuante("👁️ Esperança de Vida esgotada!", Color(1.0, 0.3, 0.3))
+		return
+	var dur: float = maxf(hatsu.duracao, CanonFidelityKit.EMPEROR_DURATION_SEC)
+	PlayerData.quest_states["emperor_time_ativo"] = true
+	if combat_system != null:
+		var rem: float = float(PlayerData.attributes.get("esperanca_vida", 0.0))
+		combat_system._mostrar_texto_flutuante("👁️ EMPEROR TIME 100%% (%.0fs) | Esperança %.0f" % [dur, rem], Color(1.0, 0.1, 0.3))
+	if owner_body != null and owner_body.get_tree() != null:
+		owner_body.get_tree().create_timer(dur).timeout.connect(func():
+			PlayerData.quest_states["emperor_time_ativo"] = false
+		)
+
+
+func _executar_texture_surprise(hatsu: HatsuData) -> void:
+	# D6-C: cosmético / quest — sem combate
+	if owner_body == null:
+		return
+	PlayerData.quest_states["texture_surprise_ativo"] = true
+	var spr: Sprite2D = owner_body.get_node_or_null("Sprite2D") as Sprite2D
+	var old_mod := Color.WHITE
+	if spr != null:
+		old_mod = spr.modulate
+		spr.modulate = Color(0.92, 0.88, 0.75, 0.92)
+	if combat_system != null:
+		combat_system._mostrar_texto_flutuante("🎭 Texture Surprise", Color(0.95, 0.8, 0.55))
+	var dur: float = maxf(8.0, hatsu.duracao)
+	if owner_body.get_tree() != null:
+		owner_body.get_tree().create_timer(dur).timeout.connect(func():
+			PlayerData.quest_states["texture_surprise_ativo"] = false
+			if spr != null and is_instance_valid(spr):
+				spr.modulate = old_mod
+		)
+
+
+func _criar_bungee_gum(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
+	# D6-A: projétil + tether elástico multi-âncora (borracha e goma)
+	if owner_body == null:
+		return
+	var direcao: Vector2 = Vector2.DOWN
+	if combat_system != null and combat_system.ultima_direcao != Vector2.ZERO:
+		direcao = combat_system.ultima_direcao
+	elif owner_body.velocity != Vector2.ZERO:
+		direcao = owner_body.velocity.normalized()
+
+	var raw_vp: VisualProfile = hatsu.obter_visual_profile()
+	var vp: VisualProfile = PlayerData.aura_visual_profile.blend_with_hatsu(raw_vp) if PlayerData.aura_visual_profile != null else raw_vp
+	vp.primary_color = Color(1.0, 0.35, 0.75)
+
+	var map_parent: Node = owner_body.get_parent() if owner_body.get_parent() != null else owner_body
+	var area := Area2D.new()
+	area.name = "BungeeGumProjetil"
+	area.collision_layer = 1 << 3
+	area.collision_mask = 1 << 4
+	var col := CollisionShape2D.new()
+	var shape := CircleShape2D.new()
+	shape.radius = 7.0
+	col.shape = shape
+	area.add_child(col)
+	var visual := HatsuVisual.new()
+	visual.setup(vp)
+	area.add_child(visual)
+	map_parent.add_child(area)
+	area.global_position = owner_body.global_position
+
+	var velocidade: float = 260.0
+	var alcance_max: float = hatsu.alcance
+	var hit_done := {"v": false}
+
+	area.area_entered.connect(func(alvo_area: Area2D):
+		if hit_done["v"]:
+			return
+		var enemy: Node = alvo_area.get_parent()
+		if enemy == null or enemy == owner_body:
+			return
+		var enemy_sys = enemy.get_node_or_null("EnemySystem")
+		if enemy_sys == null:
+			return
+		hit_done["v"] = true
+		var dano_hatsu: int = _calcular_dano_hatsu(hatsu, eficiencia, enemy)
+		_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, 80.0, hatsu)
+		_spawn_bungee_tether(enemy as Node2D)
+		# Âncora no chão sob o caster (multi-âncora)
+		_spawn_bungee_ground_anchor(owner_body.global_position - direcao * 12.0)
+		if is_instance_valid(area):
+			HatsuVisual.spawn_impact_effect(area.global_position, vp, map_parent)
+			area.queue_free()
+	)
+
+	var tween := area.create_tween()
+	tween.tween_property(area, "global_position", area.global_position + (direcao * alcance_max), alcance_max / velocidade)
+	tween.tween_callback(func():
+		if is_instance_valid(area):
+			# Sem alvo: ancora no ponto final (gruda no cenário)
+			_spawn_bungee_ground_anchor(area.global_position)
+			HatsuVisual.spawn_impact_effect(area.global_position, vp, map_parent)
+			area.queue_free()
+	)
+
+
+func _spawn_bungee_tether(target: Node2D) -> void:
+	if owner_body == null or target == null or not is_instance_valid(target):
+		return
+	var map_parent: Node = owner_body.get_parent() if owner_body.get_parent() != null else owner_body
+	var tether := Line2D.new()
+	tether.name = "BungeeGumTether"
+	tether.width = 3.0
+	tether.default_color = Color(1.0, 0.35, 0.75, 0.85)
+	tether.z_index = 8
+	tether.points = PackedVector2Array([owner_body.global_position, target.global_position])
+	map_parent.add_child(tether)
+	_bungee_anchors.append(tether)
+	var pull_dir: Vector2 = (owner_body.global_position - target.global_position).normalized()
+	if target is CharacterBody2D:
+		(target as CharacterBody2D).velocity += pull_dir * 220.0
+	var tw := tether.create_tween()
+	tw.tween_method(func(_s: float):
+		if is_instance_valid(tether) and is_instance_valid(owner_body) and is_instance_valid(target):
+			tether.points = PackedVector2Array([owner_body.global_position, target.global_position])
+			if target is CharacterBody2D:
+				var d2: Vector2 = (owner_body.global_position - target.global_position)
+				if d2.length() > 24.0:
+					(target as CharacterBody2D).global_position += d2.normalized() * 4.5
+	, 0.0, 1.0, 0.85)
+	tw.tween_callback(func():
+		if is_instance_valid(tether):
+			_bungee_anchors.erase(tether)
+			tether.queue_free()
+	)
+
+
+func _spawn_bungee_ground_anchor(pos: Vector2) -> void:
+	if owner_body == null:
+		return
+	var map_parent: Node = owner_body.get_parent() if owner_body.get_parent() != null else owner_body
+	var marker := Node2D.new()
+	marker.name = "BungeeGroundAnchor"
+	marker.global_position = pos
+	map_parent.add_child(marker)
+	var tether := Line2D.new()
+	tether.width = 2.0
+	tether.default_color = Color(1.0, 0.35, 0.75, 0.55)
+	tether.z_index = 7
+	tether.points = PackedVector2Array([owner_body.global_position, pos])
+	map_parent.add_child(tether)
+	_bungee_anchors.append(tether)
+	var tw := tether.create_tween()
+	tw.tween_method(func(_s: float):
+		if is_instance_valid(tether) and is_instance_valid(owner_body):
+			tether.points = PackedVector2Array([owner_body.global_position, pos])
+	, 0.0, 1.0, 1.1)
+	tw.tween_callback(func():
+		if is_instance_valid(tether):
+			_bungee_anchors.erase(tether)
+			tether.queue_free()
+		if is_instance_valid(marker):
+			marker.queue_free()
+	)
 
 
 # ============================================================

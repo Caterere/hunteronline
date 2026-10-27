@@ -34,6 +34,7 @@ signal hatsu_slot_desbloqueado(slot_id: int)
 signal hatsu_slots_atualizados
 signal hatsu_criado(hatsu: HatsuData)
 signal hatsu_mastery_alterada(hatsu_id: String, nova_mastery: float, novo_xp: float, is_mastered: bool)
+signal hatsu_aprofundado(hatsu_id: String, pontos_ganhos: int, deepen_count: int)
 signal hatsu_trocado_slot(slot_id: int, hatsu_id: String)
 signal hatsu_removido_archive(hatsu_id: String)
 
@@ -58,6 +59,7 @@ var active_slots_map: Dictionary = {
 
 # --- TIMESTAMPS PERSISTENTES (UNIX EPOCH) ---
 var last_creation_timestamp: int = 0
+var last_deepen_timestamps: Dictionary = {} ## hatsu_id -> unix
 var slot_switch_timestamps: Dictionary = {
 	1: 0,
 	2: 0,
@@ -264,6 +266,16 @@ func unlock_slot(slot_id: int) -> bool:
 	if not check["can_unlock"]:
 		push_warning("[HatsuProgressionManager] Bloqueio anti-bypass: Não é possível desbloquear slot %d. Motivo: %s" % [slot_id, check["reason"]])
 		return false
+
+	return force_unlock_slot(slot_id)
+
+
+## Desbloqueia sem revalidar story/nível — uso interno após Biscuit / desbloquear_hatsu_creator.
+func force_unlock_slot(slot_id: int) -> bool:
+	if not slots_catalog.has(slot_id):
+		return false
+	if is_slot_unlocked(slot_id):
+		return true
 
 	unlocked_slots[slot_id] = true
 
@@ -663,6 +675,9 @@ func conceder_mastery_xp(hatsu_id: String, dano_causado: int, inimigo_context: D
 	res["gained_xp"] = total_xp
 	res["anti_farm_factor"] = anti_farm_factor
 
+	# Bond: cada uso relevante conta na história com o Hatsu
+	_registrar_bond_uso(h, inimigo_context)
+
 	hatsu_mastery_alterada.emit(hatsu_id, h.mastery, h.mastery_xp, h.is_mastered())
 
 	# Steam §6.3: feedback perceptível a cada +10 mastery (não spam por nível)
@@ -673,6 +688,165 @@ func conceder_mastery_xp(hatsu_id: String, dano_causado: int, inimigo_context: D
 			_exibir_notificacao_mastery(h, res.get("mastered", false), mastery_antes)
 
 	return res
+
+
+func _registrar_bond_uso(h: HatsuData, ctx: Dictionary = {}) -> void:
+	if h == null:
+		return
+	if not h.parametros_conceito is Dictionary:
+		h.parametros_conceito = {}
+	var bag: Dictionary = h.parametros_conceito.get("effect_tree", {})
+	if typeof(bag) != TYPE_DICTIONARY:
+		bag = {}
+	bag["bond_uses"] = int(bag.get("bond_uses", 0)) + 1
+	var uses: int = int(bag["bond_uses"])
+	var Tree = preload("res://scripts/systems/hatsu/HatsuEffectTree.gd")
+	var chapter: int = Tree.obter_bond_chapter(uses)
+	var prev_chapter: int = int(bag.get("bond_chapter", 1))
+	bag["bond_chapter"] = chapter
+	if chapter > prev_chapter:
+		var chron: Array = bag.get("chronicle", [])
+		if typeof(chron) != TYPE_ARRAY:
+			chron = []
+		chron.append({
+			"t": int(Time.get_unix_time_from_system()),
+			"kind": "bond",
+			"text": "Capítulo %d — %s (%d usos)" % [chapter, Tree.bond_titulo(chapter), uses]
+		})
+		bag["chronicle"] = chron
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast(
+				"📖 %s e você: %s" % [h.nome, Tree.bond_titulo(chapter)],
+				Color(0.85, 0.7, 1.0)
+			)
+	if bool(ctx.get("is_boss", false)):
+		var chron2: Array = bag.get("chronicle", [])
+		if typeof(chron2) != TYPE_ARRAY:
+			chron2 = []
+		chron2.append({
+			"t": int(Time.get_unix_time_from_system()),
+			"kind": "boss",
+			"text": "Sobreviveu/enfrentou um chefe com esta técnica."
+		})
+		bag["chronicle"] = chron2
+	h.parametros_conceito["effect_tree"] = bag
+
+
+func can_deepen_hatsu(hatsu_id: String) -> Dictionary:
+	var h := obter_hatsu_archive_por_id(hatsu_id)
+	if h == null:
+		return {"can_deepen": false, "reason": "NOT_FOUND", "message": "Hatsu não encontrado no Archive."}
+	if h.is_draft:
+		return {"can_deepen": false, "reason": "DRAFT", "message": "Finalize a forja antes de aprofundar."}
+	var bag: Dictionary = {}
+	if h.parametros_conceito is Dictionary:
+		var raw = h.parametros_conceito.get("effect_tree", {})
+		if typeof(raw) == TYPE_DICTIONARY:
+			bag = raw
+	var deepen_n: int = int(bag.get("deepen_count", 0))
+	var need_m: float = HatsuConfig.DEEPEN_MIN_MASTERY + float(deepen_n) * HatsuConfig.DEEPEN_MASTERY_PER_STEP
+	if h.mastery + 0.001 < need_m:
+		return {
+			"can_deepen": false,
+			"reason": "MASTERY",
+			"message": "Apegue-se mais: Mastery %.0f necessária (tem %.0f). Use a técnica." % [need_m, h.mastery],
+			"need_mastery": need_m
+		}
+	var last_ts: int = int(last_deepen_timestamps.get(hatsu_id, 0))
+	var now: int = int(Time.get_unix_time_from_system())
+	var elapsed: float = float(now - last_ts)
+	if last_ts > 0 and elapsed < HatsuConfig.DEEPEN_COOLDOWN_SEC:
+		var rem: int = int(ceil(HatsuConfig.DEEPEN_COOLDOWN_SEC - elapsed))
+		return {
+			"can_deepen": false,
+			"reason": "COOLDOWN",
+			"message": "A técnica ainda ecoa o último voto (%ds)." % rem,
+			"remaining_seconds": rem
+		}
+	var cost: int = HatsuConfig.DEEPEN_JENNY_COST
+	var gold: int = 0
+	if Economy != null and Economy.has_method("obter_gold"):
+		gold = int(Economy.obter_gold())
+	elif PlayerData != null:
+		gold = int(PlayerData.attributes.get("gold", 0))
+	if gold < cost:
+		return {
+			"can_deepen": false,
+			"reason": "INSUFFICIENT_JENNY",
+			"message": "Aprofundar custa %d Jenny (tem %d)." % [cost, gold],
+			"cost_jenny": cost
+		}
+	return {
+		"can_deepen": true,
+		"reason": "OK",
+		"message": "Pode aprofundar o pacto — novos votos geram poucos pontos preciosos.",
+		"cost_jenny": cost,
+		"deepen_count": deepen_n,
+		"need_mastery": need_m
+	}
+
+
+func cobrar_deepen_jenny(hatsu_id: String) -> Dictionary:
+	var check := can_deepen_hatsu(hatsu_id)
+	if not check.get("can_deepen", false):
+		return check
+	var cost: int = HatsuConfig.DEEPEN_JENNY_COST
+	if Economy != null:
+		if not Economy.remover_gold(cost):
+			return {"success": false, "reason": "INSUFFICIENT_JENNY", "message": "Falha ao cobrar Jenny."}
+	elif PlayerData != null:
+		var saldo = int(PlayerData.attributes.get("gold", 0))
+		if saldo < cost:
+			return {"success": false, "reason": "INSUFFICIENT_JENNY", "message": "Jenny insuficiente."}
+		PlayerData.attributes["gold"] = saldo - cost
+	last_deepen_timestamps[hatsu_id] = int(Time.get_unix_time_from_system())
+	return {"success": true, "reason": "OK", "cost_jenny": cost}
+
+
+func finalizar_aprofundamento(hatsu: HatsuData, creditos_antes: float, tree: RefCounted) -> Dictionary:
+	## Confirma votos + árvore já expandida na UI (não re-expande budget).
+	if hatsu == null or tree == null:
+		return {"success": false, "reason": "NULL"}
+	var TreeScript = preload("res://scripts/systems/hatsu/HatsuEffectTree.gd")
+	var credits_depois: float = hatsu.calcular_limitation_credits()
+	var bag: Dictionary = {}
+	if hatsu.parametros_conceito is Dictionary:
+		var raw = hatsu.parametros_conceito.get("effect_tree", {})
+		if typeof(raw) == TYPE_DICTIONARY:
+			bag = raw.duplicate(true)
+	var deepen_n: int = int(bag.get("deepen_count", 0))
+	var pts: int = TreeScript.calcular_pontos_deepen(creditos_antes, credits_depois, deepen_n)
+	if pts <= 0:
+		return {
+			"success": false,
+			"reason": "WEAK_VOW",
+			"message": "O novo voto é fraco demais (precisa +%.0f créditos)." % HatsuConfig.DEEPEN_MIN_CREDIT_GAIN
+		}
+	if tree.has_method("aplicar_em_hatsu"):
+		tree.aplicar_em_hatsu(hatsu)
+	bag = hatsu.parametros_conceito.get("effect_tree", {}) if hatsu.parametros_conceito is Dictionary else {}
+	if typeof(bag) != TYPE_DICTIONARY:
+		bag = {}
+	bag["deepen_count"] = deepen_n + 1
+	var chron: Array = bag.get("chronicle", [])
+	if typeof(chron) != TYPE_ARRAY:
+		chron = []
+	chron.append({
+		"t": int(Time.get_unix_time_from_system()),
+		"kind": "deepen",
+		"text": "Aprofundou o pacto (+%d pts na constelação). Capítulo de voto #%d." % [pts, deepen_n + 1]
+	})
+	bag["chronicle"] = chron
+	hatsu.parametros_conceito["effect_tree"] = bag
+	last_deepen_timestamps[hatsu.hatsu_id] = int(Time.get_unix_time_from_system())
+	_sync_player_data_archive()
+	if SaveManager != null:
+		SaveManager.salvar_jogo()
+	hatsu_aprofundado.emit(hatsu.hatsu_id, pts, deepen_n + 1)
+	var msg := "🌌 '%s' aprofundada: +%d pts na constelação (voto #%d)." % [hatsu.nome, pts, deepen_n + 1]
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast(msg, Color(0.7, 0.55, 1.0))
+	return {"success": true, "points": pts, "deepen_count": deepen_n + 1, "message": msg}
 
 
 func _exibir_notificacao_mastery(h: HatsuData, mastered: bool, mastery_antes: int = -1) -> void:
@@ -843,6 +1017,7 @@ func serializar() -> Dictionary:
 		"unlocked_slots": unlocked_slots.duplicate(),
 		"active_slots_map": active_slots_map.duplicate(),
 		"last_creation_timestamp": last_creation_timestamp,
+		"last_deepen_timestamps": last_deepen_timestamps.duplicate(),
 		"slot_switch_timestamps": slot_switch_timestamps.duplicate(),
 		"archive": arch_ser
 	}
@@ -858,6 +1033,10 @@ func deserializar(data: Dictionary) -> void:
 
 	# 2. Carregar Timestamps
 	last_creation_timestamp = int(data.get("last_creation_timestamp", 0))
+	last_deepen_timestamps.clear()
+	if data.has("last_deepen_timestamps") and data["last_deepen_timestamps"] is Dictionary:
+		for k in data["last_deepen_timestamps"].keys():
+			last_deepen_timestamps[str(k)] = int(data["last_deepen_timestamps"][k])
 	if data.has("slot_switch_timestamps") and data["slot_switch_timestamps"] is Dictionary:
 		for k in data["slot_switch_timestamps"].keys():
 			slot_switch_timestamps[int(k)] = int(data["slot_switch_timestamps"][k])
