@@ -106,7 +106,8 @@ func _ready() -> void:
 	assert(hud.player_card_panel != null, "Player Card Panel deve existir")
 	assert(hud.bar_hp != null, "Barra de HP deve existir")
 	assert(hud.bar_aura != null, "Barra de Aura deve existir")
-	assert(hud.bar_xp != null, "Barra de XP deve existir")
+	assert(hud.bar_xp == null, "Barra XP ornamentada do card removida")
+	assert(hud.bar_xp_footer != null, "Barra de XP inferior deve existir")
 	assert(hud.slot_panels.size() == 4, "Deve conter 4 slots de Hatsu")
 	
 	# Testar Boss Bar

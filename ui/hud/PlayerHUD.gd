@@ -5,7 +5,7 @@ extends CanvasLayer
 # ============================================================
 #
 # Interface de usuário principal durante o gameplay:
-# - Card do Jogador Topo-Esquerdo com Números Precisos de HP, Aura e XP.
+# - Card do Jogador Topo-Esquerdo com HP e Aura; XP só na faixa inferior.
 # - Indicador Dinâmico de Nível, Nível de Nen, Dinheiro (Jenny) e Técnica de Nen Ativa.
 # - Barra de Vida de Chefe Superior (Boss Bar) com contagem numérica e porcentagem.
 # - Hotbar Inferior Estilo Minecraft com 4 Slots de Hatsu (Teclas 1, 2, 3, 4).
@@ -278,14 +278,9 @@ func _criar_card_jogador_top_left() -> void:
 	bar_aura = aura_box.bar
 	lbl_aura_num = aura_box.label
 
-	var xp_box := _criar_barra_framed(
-		"XP",
-		HunterUIStyle.COLOR_XP_BAR,
-		"0/100"
-	)
-	root.add_child(xp_box.container)
-	bar_xp = xp_box.bar
-	lbl_xp_num = xp_box.label
+	# XP ornamentada do card removida — progresso só na XpFooterBar inferior
+	bar_xp = null
+	lbl_xp_num = null
 
 	# Status Nen / Besta — sem painel "INATIVO [N]" no HUD principal
 	lbl_nen_status = null
@@ -296,17 +291,18 @@ func _criar_card_jogador_top_left() -> void:
 	root.add_child(hbox_conditions)
 
 
-## Faixa inferior larga: nível + XP atual/necessário + % até o próximo nível.
+## Faixa inferior: nível + XP atual/necessário + % até o próximo nível.
+## ~10% mais curta e ~15% mais baixa que a versão inicial (320×22 / fill 300×10).
 func _criar_barra_xp_inferior() -> void:
 	var wrap := PanelContainer.new()
 	wrap.name = "XpFooterBar"
 	wrap.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	wrap.offset_left = -160.0
-	wrap.offset_right = 160.0
-	wrap.offset_top = -52.0
-	wrap.offset_bottom = -30.0
+	wrap.offset_left = -144.0
+	wrap.offset_right = 144.0
+	wrap.offset_top = -46.0
+	wrap.offset_bottom = -28.0
 	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	wrap.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 3))
+	wrap.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 2))
 	add_child(wrap)
 
 	var vbox := VBoxContainer.new()
@@ -317,13 +313,13 @@ func _criar_barra_xp_inferior() -> void:
 	lbl_xp_footer.name = "XpFooterLabel"
 	lbl_xp_footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_xp_footer.text = "Nv.1  ·  XP 0/550  ·  0%"
-	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_xp_footer, 7, Color(0.85, 1.0, 0.75))
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_xp_footer, 6, Color(0.85, 1.0, 0.75))
 	lbl_xp_footer.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	lbl_xp_footer.add_theme_constant_override("outline_size", 2)
 	vbox.add_child(lbl_xp_footer)
 
 	bar_xp_footer = ProgressBar.new()
-	bar_xp_footer.custom_minimum_size = Vector2(300, 10)
+	bar_xp_footer.custom_minimum_size = Vector2(270, 8)
 	bar_xp_footer.show_percentage = false
 	bar_xp_footer.min_value = 0
 	bar_xp_footer.max_value = 100
@@ -1003,7 +999,8 @@ func _atualizar_aura() -> void:
 
 
 func _atualizar_xp() -> void:
-	if bar_xp == null or lbl_xp_num == null: return
+	if bar_xp_footer == null and lbl_xp_footer == null and bar_xp == null:
+		return
 	var nivel: int = int(PlayerData.attributes.get("nivel", 1))
 	if player != null and is_instance_valid(player) and player.has_method("obter_nivel"):
 		nivel = player.obter_nivel()
@@ -1019,15 +1016,19 @@ func _atualizar_xp() -> void:
 
 	var pct: float = 100.0
 	if nivel >= ProgressionConfig.MAX_LEVEL:
-		bar_xp.max_value = xp_nec
-		bar_xp.value = xp_nec
-		lbl_xp_num.text = "MAX"
 		pct = 100.0
+		if bar_xp != null:
+			bar_xp.max_value = xp_nec
+			bar_xp.value = xp_nec
+		if lbl_xp_num != null:
+			lbl_xp_num.text = "MAX"
 	else:
-		bar_xp.max_value = xp_nec
-		bar_xp.value = clamp(xp_atual, 0, xp_nec)
 		pct = clampf(100.0 * float(xp_atual) / float(maxi(1, xp_nec)), 0.0, 100.0)
-		lbl_xp_num.text = "%s/%s" % [_formatar_numero(xp_atual), _formatar_numero(xp_nec)]
+		if bar_xp != null:
+			bar_xp.max_value = xp_nec
+			bar_xp.value = clamp(xp_atual, 0, xp_nec)
+		if lbl_xp_num != null:
+			lbl_xp_num.text = "%s/%s" % [_formatar_numero(xp_atual), _formatar_numero(xp_nec)]
 
 	if bar_xp_footer != null:
 		bar_xp_footer.max_value = maxi(1, xp_nec)
@@ -1046,9 +1047,9 @@ func _atualizar_xp() -> void:
 			]
 
 	var legacy_xp = get_node_or_null("MarginContainer/VBoxContainer/XPBar") as ProgressBar
-	if legacy_xp != null:
-		legacy_xp.max_value = bar_xp.max_value
-		legacy_xp.value = bar_xp.value
+	if legacy_xp != null and bar_xp_footer != null:
+		legacy_xp.max_value = bar_xp_footer.max_value
+		legacy_xp.value = bar_xp_footer.value
 
 
 func _atualizar_nen_e_besta() -> void:
