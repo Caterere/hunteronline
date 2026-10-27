@@ -932,10 +932,17 @@ func adicionar_item(
 	if quantidade <= 0:
 		return
 
+	# Não sobrescrever slots de metadado no inventário
+	if inventory.has(item_id):
+		var existing = inventory[item_id]
+		if typeof(existing) != TYPE_INT and typeof(existing) != TYPE_FLOAT:
+			push_warning("[PlayerData] adicionar_item ignorado — chave meta: %s" % str(item_id))
+			return
+
 	if not inventory.has(item_id):
 		inventory[item_id] = 0
 
-	inventory[item_id] += quantidade
+	inventory[item_id] = int(inventory[item_id]) + quantidade
 
 	if EventBus != null:
 		EventBus.item_obtained.emit(String(item_id), quantidade)
@@ -966,13 +973,19 @@ func remover_item(
 	if not inventory.has(item_id):
 		return false
 
-	if inventory[item_id] < quantidade:
+	var raw = inventory[item_id]
+	if typeof(raw) != TYPE_INT and typeof(raw) != TYPE_FLOAT:
 		return false
 
-	inventory[item_id] -= quantidade
+	var atual: int = int(raw)
+	if atual < quantidade:
+		return false
 
-	if inventory[item_id] <= 0:
+	atual -= quantidade
+	if atual <= 0:
 		inventory.erase(item_id)
+	else:
+		inventory[item_id] = atual
 
 	print(
 		"Item removido: ",
@@ -993,7 +1006,11 @@ func obter_item_quantidade(item_id: StringName) -> int:
 	if not inventory.has(item_id):
 		return 0
 
-	return inventory[item_id]
+	var raw = inventory[item_id]
+	# Chaves de metadado (ex.: equipamentos_upgrade) convivem no mesmo Dictionary
+	if typeof(raw) != TYPE_INT and typeof(raw) != TYPE_FLOAT:
+		return 0
+	return int(raw)
 
 
 # ============================================================

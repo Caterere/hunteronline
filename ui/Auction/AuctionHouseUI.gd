@@ -226,7 +226,10 @@ func _refresh_sell() -> void:
 	if PlayerData == null:
 		return
 	for item_id in PlayerData.inventory.keys():
-		var qty := int(PlayerData.inventory[item_id])
+		var raw = PlayerData.inventory[item_id]
+		if typeof(raw) != TYPE_INT and typeof(raw) != TYPE_FLOAT:
+			continue
+		var qty: int = int(raw)
 		if qty <= 0:
 			continue
 		var id_str := str(item_id)
