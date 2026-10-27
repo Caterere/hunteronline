@@ -1,6 +1,7 @@
 class_name FlorestaVestigiosMap
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
 # ============================================================
@@ -34,13 +35,16 @@ func _ready() -> void:
 	_instanciar_feras_selvagens()
 	_densificar_steam_early_floresta()
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.FLORESTA)
-	WorldDensityKit.attach(self, WorldDensityKit.KitKind.FLORESTA)
-	WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
-	WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.FLORESTA)
-	WorldFxKit.attach(self, WorldFxKit.KitKind.FLORESTA)
-	WorldPolishKit.attach(self, WorldPolishKit.KitKind.FLORESTA)
-	if has_method("_espalhar_detalhes_clareira"):
-		_espalhar_detalhes_clareira()
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+	else:
+		WorldDensityKit.attach(self, WorldDensityKit.KitKind.FLORESTA)
+		WorldPropsKit.attach(self, WorldPropsKit.KitKind.FLORESTA)
+		WorldLandmarkKit.attach(self, WorldLandmarkKit.KitKind.FLORESTA)
+		WorldFxKit.attach(self, WorldFxKit.KitKind.FLORESTA)
+		WorldPolishKit.attach(self, WorldPolishKit.KitKind.FLORESTA)
+		if has_method("_espalhar_detalhes_clareira"):
+			_espalhar_detalhes_clareira()
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)

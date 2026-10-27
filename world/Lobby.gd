@@ -1,6 +1,7 @@
 class_name Lobby
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 # ============================================================
 # HUNTER ONLINE - CIDADE CENTRAL / HUNTER PLAZA (LOBBY HUB)
 # ============================================================
@@ -65,8 +66,12 @@ func _ready() -> void:
 	_criar_chao_grama()
 	_aplicar_grama_mais_verde()
 	_suavizar_fachadas_castelo()
-	_densificar_lobby_pixel_art()
-	_melhorar_estradas_lobby()
+	# Modo interim: grama limpa sem casinhas/tendas/barracas que destoam
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+	else:
+		_densificar_lobby_pixel_art()
+		_melhorar_estradas_lobby()
 	_popular_praca_central()
 	_popular_distrito_mestres()
 	_popular_distrito_comercial()
@@ -862,9 +867,13 @@ func _aplicar_grama_mais_verde() -> void:
 
 
 func _suavizar_fachadas_castelo() -> void:
-	# Remove fachadas castelo/torre/mosteiro (sources 10/11/14) — só decorações PixelLab
+	# Remove fachadas castelo/torre/mosteiro — no modo grama, limpa a camada inteira
 	var estruturas := get_node_or_null("Estruturas_TileMapLayer") as TileMapLayer
 	if estruturas == null:
+		return
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		estruturas.clear()
+		estruturas.visible = false
 		return
 	var remover := {10: true, 11: true, 14: true}
 	for cell in estruturas.get_used_cells():

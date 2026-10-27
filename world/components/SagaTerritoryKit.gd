@@ -1,6 +1,7 @@
 class_name SagaTerritoryKit
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 # ============================================================
 # HUNTER ONLINE — Territórios por saga com packs comprados
 # Usa world_tileset.tres + TX Stone / wood / carpet / terreno_*
@@ -78,6 +79,9 @@ func _bootstrap_territory() -> void:
 
 
 static func palette_for_saga(saga: int) -> Dictionary:
+	# Modo interim: todos os hubs usam grama verde simples (sem packs de pedra/madeira).
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		return _grass_only_palette(saga)
 	match clampi(saga, 1, 9):
 		1:
 			return _pal(
@@ -226,6 +230,22 @@ static func _pal(
 	}
 
 
+static func _grass_only_palette(saga: int) -> Dictionary:
+	var nomes := {
+		1: "287º Exame Hunter", 2: "Montanha Kukuroo", 3: "Arena Celestial",
+		4: "Yorknew City", 5: "Greed Island", 6: "NGL / Formigas Quimera",
+		7: "Associação Hunter", 8: "Continente Negro", 9: "Black Whale Tier 1",
+	}
+	var grass := {"src": SRC_GRASS, "atlas": Vector2i(0, 0)}
+	return _pal(
+		str(nomes.get(clampi(saga, 1, 9), "Saga")),
+		"Campo aberto · grama",
+		Color(0.85, 1.05, 0.88), Color(0.55, 0.95, 0.45, 0.35), "leaves",
+		Color(0.22, 0.55, 0.28), Color(0.35, 0.70, 0.40),
+		grass, grass, [grass, grass, grass, grass]
+	)
+
+
 static func _build_pack_tileset() -> TileSet:
 	var ts: TileSet = null
 	if ResourceLoader.exists(WORLD_TILESET):
@@ -328,23 +348,32 @@ func _paint_territory() -> void:
 		for ty in range(-3, 4):
 			layer.set_cell(Vector2i(tx, ty), int(path_t["src"]), path_t["atlas"])
 
-	var band_starts: Array[int] = [x0, 60, 130, 200, 270]
-	if saga_id == 1:
-		band_starts = [x0, 80, 160, 280, 360]
-	var bands: Array = pal["bands"]
-	for bi in range(mini(4, bands.size())):
-		var xa: int = band_starts[bi]
-		var xb: int = band_starts[bi + 1] if bi + 1 < band_starts.size() else x1
-		var band_t: Dictionary = _resolve_tile(_tileset, bands[bi])
-		for tx in range(xa, xb):
-			for ty in range(y0, y1):
-				if abs(ty) <= 3:
-					continue
-				if ((tx * 13 + ty * 7 + bi) % 10) < 7:
-					layer.set_cell(Vector2i(tx, ty), int(band_t["src"]), band_t["atlas"])
+	# Faixas multi-material desligadas no modo grama simples
+	if not SimpleGrassTerrainPolicyScript.ENABLED:
+		var band_starts: Array[int] = [x0, 60, 130, 200, 270]
+		if saga_id == 1:
+			band_starts = [x0, 80, 160, 280, 360]
+		var bands: Array = pal["bands"]
+		for bi in range(mini(4, bands.size())):
+			var xa: int = band_starts[bi]
+			var xb: int = band_starts[bi + 1] if bi + 1 < band_starts.size() else x1
+			var band_t: Dictionary = _resolve_tile(_tileset, bands[bi])
+			for tx in range(xa, xb):
+				for ty in range(y0, y1):
+					if abs(ty) <= 3:
+						continue
+					if ((tx * 13 + ty * 7 + bi) % 10) < 7:
+						layer.set_cell(Vector2i(tx, ty), int(band_t["src"]), band_t["atlas"])
 
 	if chao != null:
-		chao.modulate = Color(1, 1, 1, 1).lerp(pal["tint"], 0.2)
+		if SimpleGrassTerrainPolicyScript.ENABLED:
+			chao.modulate = SimpleGrassTerrainPolicyScript.grass_modulate()
+		else:
+			chao.modulate = Color(1, 1, 1, 1).lerp(pal["tint"], 0.2)
+
+	var mapa_root := get_parent() as Node2D
+	if mapa_root != null:
+		SimpleGrassTerrainPolicyScript.apply_to_map(mapa_root)
 
 
 func _spawn_biome_banner() -> void:

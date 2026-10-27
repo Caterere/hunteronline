@@ -1,5 +1,6 @@
 class_name YorknewCityMap
 extends Node2D
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 const StoryGate = preload("res://world/components/StoryGate.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
@@ -391,6 +392,10 @@ func _popular_walkers_yorknew() -> void:
 
 
 func _plantar_props_yorknew() -> void:
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+		return
+
 	if get_node_or_null("PropsEstruturaYorknew") != null:
 		return
 	var root := Node2D.new()
