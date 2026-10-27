@@ -12,10 +12,16 @@ extends Node
 # - Soft-cap saga → late ~350; endgame residual até 1000
 # - Stats de referência em TIER_DATA batem a curva de ProgressionConfig
 #
+# PACING vs PODER (não confundir):
+# - ProgressionConfig.Bracket EARLY/MID/LATE = faixas de SESSÃO (1–60 / 61–130 / 131–350)
+# - PowerScale.Tier abaixo = faixas de PODER / DPS de referência
+#   (HUMANO cobre Exame→early Kukuroo até ~80; overlap intencional com MID pacing)
+# Produto Steam early usa Bracket.EARLY (1–60) + TTK mob 4–8s.
+#
 # ============================================================
 
 enum Tier {
-	HUMANO = 0,             # lv 1–80 (Exame → early Kukuroo)
+	HUMANO = 0,             # poder lv 1–80 (Exame → early Kukuroo) — ≠ Bracket.EARLY 1–60
 	HUNTER_INICIANTE = 1,   # lv 81–200 (Arena → Yorknew early)
 	HUNTER_EXPERIENTE = 2,  # lv 201–400 (GI → Formigas early)
 	USUARIO_NEN = 3,        # lv 401–600 (Formigas → Eleição)

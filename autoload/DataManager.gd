@@ -206,11 +206,13 @@ func _inicializar_bestiario_rpg_base() -> void:
 		return
 
 	var base_mobs: Array = [
+		# Early TTK alvo Steam 4–8s @ DPS ~20 (HUMANO). Squishies abaixo de ~80
+		# morriam em <4s — subidos para a faixa baixa do bracket.
 		{
 			"id": &"slime",
 			"nome": "Slime da Floresta",
 			"level": 1,
-			"hp": 60,
+			"hp": 90,
 			"def": 2,
 			"str": 8,
 			"xp": 35,
@@ -221,7 +223,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"id": &"slime_venenoso",
 			"nome": "Slime Venenoso",
 			"level": 3,
-			"hp": 85,
+			"hp": 110,
 			"def": 3,
 			"str": 11,
 			"xp": 55,
@@ -232,7 +234,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"id": &"rato_gigante",
 			"nome": "Rato Gigante de Esgoto",
 			"level": 1,
-			"hp": 50,
+			"hp": 75,
 			"def": 1,
 			"str": 7,
 			"xp": 30,
@@ -243,7 +245,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"id": &"lobo_selvagem",
 			"nome": "Lobo Feroz das Planícies",
 			"level": 2,
-			"hp": 75,
+			"hp": 100,
 			"def": 3,
 			"str": 12,
 			"xp": 50,
@@ -484,7 +486,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"id": &"guardiao_elite",
 			"nome": "Guardião de Elite da Ravina",
 			"level": 7,
-			"hp": 240,
+			"hp": 320,
 			"def": 12,
 			"str": 24,
 			"xp": 200,
@@ -499,7 +501,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"id": &"alfa_ninho_elite",
 			"nome": "Alfa do Ninho (Elite Nen)",
 			"level": 6,
-			"hp": 210,
+			"hp": 280,
 			"def": 9,
 			"str": 22,
 			"xp": 180,
@@ -527,11 +529,13 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"drops": [{"item_id": "olho_quimera", "chance": 0.9, "quantidade": 1}, {"item_id": "pele_rara", "chance": 0.5, "quantidade": 1}]
 		},
 		{
+			# Boss de rota early: pacing Steam 60–90s (3 fases). HP sobe para
+			# não cair em ~30s com DPS efetivo ~25–35 no fim da Floresta.
 			"id": &"guardiao_ancestral",
 			"nome": "Guardião Ancestral de Zaban",
 			"level": 10,
-			"hp": 600,
-			"def": 15,
+			"hp": 1100,
+			"def": 16,
 			"str": 32,
 			"xp": 800,
 			"role": "boss",

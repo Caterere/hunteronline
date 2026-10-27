@@ -29,7 +29,8 @@ const HATSU_SWITCH_COOLDOWN: float = 600.0
 
 # --- 3. ECONOMIA / MONEY SINK ---
 # Custo em Jenny para forjar um novo Hatsu.
-# Calibrado com a economia após Greed Island (recompensas médias de 5.000 a 50.000 Jenny).
+# Soft-cap Jenny early (~0.45× em lv≤15) + drops ~12–36×lv → ~150–250 kills
+# para o 1º forge. Mantém sink sem floodar o early; mid/late cobre fácil.
 const HATSU_CREATION_JENNY_COST: int = 5000
 
 # --- 4. MASTERY (POTENCIAL & ESCALA) ---
