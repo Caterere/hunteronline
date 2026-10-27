@@ -172,8 +172,73 @@ func investir_ponto(node_id: Variant) -> bool:
 
 	skill_investida.emit(s_id, novo_nivel)
 	pontos_alterados.emit(PlayerData.nen_skill_points)
+	_emitir_feedback_identidade_cluster(def)
 
 	return true
+
+
+## Conta ranks investidos por região da constelação (exclui nexus).
+func obter_pontos_por_cluster() -> Dictionary:
+	var counts: Dictionary = {}
+	for nid in node_levels.keys():
+		var rank: int = int(node_levels[nid])
+		if rank <= 0:
+			continue
+		var def: SkillTreeNodeData = node_definitions.get(StringName(str(nid)), node_definitions.get(str(nid)))
+		if def == null:
+			continue
+		var rid := String(def.region_id)
+		if rid.is_empty() or rid == "nexus":
+			continue
+		counts[rid] = int(counts.get(rid, 0)) + rank
+	return counts
+
+
+## Cluster dominante + margem vs 2º — usado para toast/UI de identidade de build.
+func obter_identidade_dominante() -> Dictionary:
+	var counts := obter_pontos_por_cluster()
+	var best_id := ""
+	var best_n := 0
+	var second_n := 0
+	for rid in counts.keys():
+		var n: int = int(counts[rid])
+		if n > best_n:
+			second_n = best_n
+			best_n = n
+			best_id = str(rid)
+		elif n > second_n:
+			second_n = n
+	var db = SkillTreeDatabase.get_instance()
+	var identity := "Aspirante"
+	var cluster_name := ""
+	if not best_id.is_empty() and db != null:
+		identity = SkillTreeDatabase.obter_identidade_cluster(best_id)
+		cluster_name = SkillTreeDatabase.obter_nome_cluster(best_id)
+	return {
+		"region_id": best_id,
+		"points": best_n,
+		"margin": best_n - second_n,
+		"identity": identity,
+		"cluster_name": cluster_name,
+		"committed": best_n >= 3 and (best_n - second_n) >= 2
+	}
+
+
+func _emitir_feedback_identidade_cluster(def: SkillTreeNodeData) -> void:
+	if EventBus == null or def == null:
+		return
+	var cluster_name := SkillTreeDatabase.obter_nome_cluster(def.region_id)
+	var identity := SkillTreeDatabase.obter_identidade_cluster(def.region_id)
+	EventBus.emit_toast(
+		"✦ %s — caminho %s" % [def.nome, cluster_name],
+		Color(0.75, 0.9, 1.0)
+	)
+	var dom := obter_identidade_dominante()
+	if bool(dom.get("committed", false)):
+		EventBus.emit_toast(
+			"🧬 Identidade de build: você está virando %s" % str(dom.get("identity", identity)),
+			Color(1.0, 0.85, 0.45)
+		)
 
 
 # ==============================================================================

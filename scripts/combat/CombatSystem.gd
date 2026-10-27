@@ -1057,9 +1057,19 @@ func _executar_perfect_dodge(_atacante: Node) -> void:
 	if EventBus != null:
 		EventBus.emit_hitstop(0.18)
 		EventBus.emit_toast("⚡ PERFECT DODGE", Color(0.35, 1.0, 0.55))
+		if owner_body != null:
+			EventBus.emit_directional_shake(0.35, 0.22, -ultima_direcao)
 
 	if AudioManager != null:
 		AudioManager.tocar_perfect_dodge()
+
+	# Juice visual: aura burst + poeira (Maple/RO legibilidade de esquiva perfeita)
+	if owner_body != null:
+		var pd_pos: Vector2 = owner_body.global_position
+		CombatImpactEffect.spawn_aura_burst(owner_body, pd_pos, Color(0.35, 1.0, 0.65, 0.95))
+		CombatImpactEffect.spawn_dust_kickup(owner_body, pd_pos, -ultima_direcao * 80.0)
+		if DamageNumberSystem != null and DamageNumberSystem.has_method("spawn_perfect_dodge"):
+			DamageNumberSystem.spawn_perfect_dodge(owner_body)
 
 	# Recuperar 30% da Aura Máxima (bate com a dica Perfect Dodge do Guia)
 	var aura_max_ref: float = float(PlayerData.attributes.get("aura_max", 100.0))
@@ -1074,7 +1084,7 @@ func _executar_perfect_dodge(_atacante: Node) -> void:
 		PlayerData.attributes["aura"] = min(a_max, a_cur + float(aura_recup))
 
 	_mostrar_texto_flutuante(
-		"⚡ PERFECT DODGE! +%d AURA · COUNTER %.1fs" % [aura_recup, CONTRA_ATAQUE_JANELA],
+		"⚡ PD +%d AURA · COUNTER %.1fs" % [aura_recup, CONTRA_ATAQUE_JANELA],
 		Color(0.2, 1.0, 0.5)
 	)
 

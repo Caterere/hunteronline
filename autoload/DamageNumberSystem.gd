@@ -65,6 +65,9 @@ func _on_jenny_changed(_new_amount: int, delta: int) -> void:
 func _on_combat_hit_landed(_atacante: Node, defensor: Node, dano: int, is_crit: bool) -> void:
 	if defensor == null or not is_instance_valid(defensor):
 		return
+	# EnemySystem é SSOT do float pós-defesa — evita double number (pré + pós).
+	if defensor is Node and defensor.get_node_or_null("EnemySystem") != null:
+		return
 	spawn_dano(defensor, dano, is_crit)
 
 
@@ -116,6 +119,12 @@ func spawn_dano(alvo_ou_pos: Variant, dano: int, is_crit: bool = false, is_weakn
 func spawn_esquiva(alvo_ou_pos: Variant) -> void:
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	spawn_texto(pos, "🍃 DODGE", HunterUIStyle.COLOR_DODGE_CYAN, 1.1)
+
+
+## Spawna indicação de Perfect Dodge (janela de counter)
+func spawn_perfect_dodge(alvo_ou_pos: Variant) -> void:
+	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
+	spawn_texto(pos, "⚡ PERFECT DODGE", Color(0.35, 1.0, 0.55), 1.25, 0.95)
 
 
 ## Spawna indicação de bloqueio

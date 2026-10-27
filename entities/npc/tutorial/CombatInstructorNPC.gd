@@ -41,11 +41,11 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 	})
 	falas.append({
 		"falante": "Lição 3: Táticas de Nen em Batalha",
-		"texto": "🥋 No menu [N], você alterna suas 9 técnicas de Nen:\n• TEN: Aumenta a defesa e bloqueia danos pesados.\n• REN: Expande o alcance dos seus golpes.\n• GYO: Revela pontos fracos e golpes invisíveis.\n• ZETSU: Apaga sua aura para causar DANO CRÍTICO x3 pelas costas!\n• KO: Concentra 100% da aura para QUEBRAR A GUARDA de inimigos com Ken!"
+		"texto": "🥋 Ten/Ren/Shu/Ko/Ryu são PASSIVAS da Constelação [TAB → Nen Tree]. Ativas no campo: [G] Gyo (fraquezas/pistas), [Z] Zetsu (emboscada x3), [X] En (radar). Fale com Wing para o guia completo."
 	})
 	falas.append({
 		"falante": "Lição 4: Hatsu e Supremos",
-		"texto": "✨ Use as teclas [1], [2], [3] e [4] para disparar seus Hatsus equipados. Hatsu consome Aura rapidamente, então use o Perfect Dodge para recarregar sua energia!"
+		"texto": "✨ [1][2][3][4] disparam Hatsus equipados. Consomem Aura — Perfect Dodge ajuda a recuperar. Criação avançada: Biscuit. Fundamentos: Wing (Guia Nível·Nen·Tree·Hatsu)."
 	})
 
 	if not tutorial_concluido:

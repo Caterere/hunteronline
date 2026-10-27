@@ -43,14 +43,15 @@ func _ready() -> void:
 		
 	_garantir_spawn_points()
 	_gerar_mapa_dungeon()
-	# Visual interim: grama por cima; mantém geração (colisões / layout do raid)
-	if SimpleGrassTerrainPolicyScript.ENABLED:
-		SimpleGrassTerrainPolicyScript.apply_to_map(self)
-		if paredes_layer != null:
-			paredes_layer.modulate = Color(0.75, 0.95, 0.70, 0.85)
-		if decor_layer != null:
-			decor_layer.clear()
-			decor_layer.visible = false
+	# Playtest opt-in; senão política de grama interim (colisões / layout do raid)
+	if not PlaytestVisualMode.apply_grass_floor(self, Vector2(640, 480), Color(0.55, 0.58, 0.52)):
+		if SimpleGrassTerrainPolicyScript.ENABLED:
+			SimpleGrassTerrainPolicyScript.apply_to_map(self)
+			if paredes_layer != null:
+				paredes_layer.modulate = Color(0.75, 0.95, 0.70, 0.85)
+			if decor_layer != null:
+				decor_layer.clear()
+				decor_layer.visible = false
 	_instanciar_boss_e_sentinelas()
 	_posicionar_player()
 	_configurar_audio_e_hud()
@@ -659,19 +660,38 @@ func _spawn_raid_loot_ground(result: Dictionary) -> void:
 
 
 func _spawna_bau_dourado(pos: Vector2) -> void:
+	if get_node_or_null("BauDouradoRecompensa") != null:
+		return
+	# Sprite chest_02 + InteractionComponent via kit; loot especial em _abrir_bau
 	var bau := Area2D.new()
 	bau.name = "BauDouradoRecompensa"
 	bau.position = pos
-	
+	bau.collision_layer = 0
+	bau.collision_mask = 0
+
 	var col := CollisionShape2D.new()
 	var box := RectangleShape2D.new()
 	box.size = Vector2(32, 32)
 	col.shape = box
 	bau.add_child(col)
-	
-	var inter = load("res://entities/components/InteractionComponent.gd").new()
+
+	var spr := Sprite2D.new()
+	spr.name = "Sprite2D"
+	MidLateDensityKitScript._aplicar_sprite_bau(spr, true)
+	bau.add_child(spr)
+
+	var lbl := Label.new()
+	lbl.text = "📦 Baú Dourado Ancestral"
+	lbl.position = Vector2(-60, -40)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl, 6, Color(1.0, 0.85, 0.35))
+	bau.add_child(lbl)
+
+	var inter = InteractionComponent.new()
+	inter.name = "InteractionComponent"
 	inter.interaction_text = "Abrir Baú Dourado Ancestral [E]"
-	inter.interacted.connect(func():
+	inter.interaction_radius = 32.0
+	inter.interacted.connect(func(_p):
 		_abrir_bau(bau)
 	)
 	bau.add_child(inter)

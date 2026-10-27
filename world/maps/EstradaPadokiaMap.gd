@@ -36,10 +36,12 @@ var _escolta_falhou: bool = false
 
 func _ready() -> void:
 	_garantir_spawn_points()
-	if SimpleGrassTerrainPolicyScript.ENABLED:
-		SimpleGrassTerrainPolicyScript.apply_to_map(self)
-	else:
-		_pintar_piso_estrada()
+	var playtest_grass := PlaytestVisualMode.apply_grass_floor(self, Vector2(800, 900), Color(0.72, 0.92, 0.62))
+	if not playtest_grass:
+		if SimpleGrassTerrainPolicyScript.ENABLED:
+			SimpleGrassTerrainPolicyScript.apply_to_map(self)
+		else:
+			_pintar_piso_estrada()
 	_configurar_limites_camera()
 	_configurar_audio_e_hud()
 	_posicionar_player()
@@ -54,9 +56,7 @@ func _ready() -> void:
 	if not tree_exiting.is_connected(_on_estrada_tree_exiting):
 		tree_exiting.connect(_on_estrada_tree_exiting)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.ESTRADA)
-	if SimpleGrassTerrainPolicyScript.ENABLED:
-		SimpleGrassTerrainPolicyScript.apply_to_map(self)
-	else:
+	if not playtest_grass and not SimpleGrassTerrainPolicyScript.ENABLED:
 		CalibrationArtKit.attach_to_estrada(self)
 		WorldDensityKit.attach(self, WorldDensityKit.KitKind.ESTRADA)
 		WorldPropsKit.attach(self, WorldPropsKit.KitKind.ESTRADA)

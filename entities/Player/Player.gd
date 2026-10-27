@@ -49,11 +49,7 @@ func _ready() -> void:
 	collision_layer = 2 # Layer 2 (Player)
 	collision_mask = 1 | 8  # Layer 1 (Cenário / Paredes) + Layer 4/Bit 3 (NPCs sólidos na base)
 
-	if _animation_tree != null:
-		_animation_tree.active = true
-		_state_machine = _animation_tree["parameters/playback"]
-		if _state_machine != null:
-			_state_machine.travel("idle")
+	_garantir_animation_tree()
 
 	combat_system.setup(self)
 
@@ -448,7 +444,8 @@ func _executar_golpe_normal() -> void:
 		direcao_ataque = velocity.normalized()
 		_direcao_olhar = direcao_ataque
 
-	_animation_tree["parameters/attack/blend_position"] = direcao_ataque
+	if _animation_tree != null:
+		_animation_tree["parameters/attack/blend_position"] = direcao_ataque
 
 	# 1. Iniciar avanço físico de ataque (Attack Lunge)
 	if attack_lunge_enabled:
@@ -464,7 +461,8 @@ func _executar_golpe_normal() -> void:
 
 	# 3. Disparar lógica de combate
 	combat_system.tentar_atacar(direcao_ataque)
-	_state_machine.travel("attack")
+	if _state_machine != null:
+		_state_machine.travel("attack")
 
 	# 4. Micro-shake de feedback de impacto
 	if EventBus != null:
@@ -492,7 +490,8 @@ func _executar_golpe_pesado() -> void:
 		direcao_ataque = velocity.normalized()
 		_direcao_olhar = direcao_ataque
 
-	_animation_tree["parameters/attack/blend_position"] = direcao_ataque
+	if _animation_tree != null:
+		_animation_tree["parameters/attack/blend_position"] = direcao_ataque
 
 	# Avanço físico potente — sem onda/bola de ar (só animação de golpe carregado)
 	if attack_lunge_enabled:
@@ -506,7 +505,8 @@ func _executar_golpe_pesado() -> void:
 	_spawn_afterimage(Color(1.0, 0.92, 0.65, 0.4))
 
 	combat_system.tentar_ataque_pesado(direcao_ataque)
-	_state_machine.travel("attack")
+	if _state_machine != null:
+		_state_machine.travel("attack")
 
 	if EventBus != null:
 		EventBus.camera_shake_requested.emit(0.45, 0.22)
@@ -607,19 +607,64 @@ func _atualizar_attack_cooldown() -> void:
 	combat_system.ataque_cooldown = cooldown
 
 
-func _animate() -> void:
+## Ativa AnimationTree e garante transições idle↔walk↔attack↔death.
+## Sem `active` + edges no StateMachine, travel() falha e o sprite fica congelado.
+func _garantir_animation_tree() -> void:
+	if _animation_tree == null:
+		_animation_tree = get_node_or_null("AnimationTree") as AnimationTree
+	if _animation_tree == null:
+		push_warning("[Player] AnimationTree ausente — sprite sem animação.")
+		_state_machine = null
+		return
 
+	_animation_tree.active = true
+	var root: AnimationNode = _animation_tree.tree_root
+	if root is AnimationNodeStateMachine:
+		_garantir_transicoes_state_machine(root as AnimationNodeStateMachine)
+
+	_state_machine = _animation_tree.get("parameters/playback")
+	if _state_machine != null and _state_machine.has_method("start"):
+		_state_machine.start("idle", true)
+	elif _state_machine != null:
+		_state_machine.travel("idle")
+
+
+func _garantir_transicoes_state_machine(sm: AnimationNodeStateMachine) -> void:
+	var pairs: Array = [
+		["Start", "idle"],
+		["idle", "walk"], ["walk", "idle"],
+		["idle", "attack"], ["walk", "attack"],
+		["attack", "idle"], ["attack", "walk"],
+		["idle", "death"], ["walk", "death"], ["attack", "death"],
+	]
+	for p in pairs:
+		var from_id: StringName = StringName(p[0])
+		var to_id: StringName = StringName(p[1])
+		if _anim_tem_transicao(sm, from_id, to_id):
+			continue
+		var t := AnimationNodeStateMachineTransition.new()
+		t.xfade_time = 0.05
+		sm.add_transition(from_id, to_id, t)
+
+
+func _anim_tem_transicao(sm: AnimationNodeStateMachine, from_id: StringName, to_id: StringName) -> bool:
+	if sm.has_method("has_transition"):
+		return bool(sm.has_transition(from_id, to_id))
+	var n: int = sm.get_transition_count()
+	for i in range(n):
+		if sm.get_transition_from(i) == from_id and sm.get_transition_to(i) == to_id:
+			return true
+	return false
+
+
+func _animate() -> void:
 	if _is_attacking or _esta_desmaiado:
 		return
-
-
-	if velocity.length() > 2:
-
-		_state_machine.travel("walk")
-
+	if _state_machine == null:
 		return
-
-
+	if velocity.length() > 2:
+		_state_machine.travel("walk")
+		return
 	_state_machine.travel("idle")
 
 

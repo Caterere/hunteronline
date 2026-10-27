@@ -368,13 +368,20 @@ static func _resolve_lobby(cur_scn: Node, player: Node2D, result: Dictionary) ->
 		else:
 			result["hud_objective"] = "✅ Hub pronto\n👉 Continue a história pelo Portão Sul"
 
-	var portao = cur_scn.get_node_or_null("PortaoMundoExterior")
+	# Saga hubs (Exame, Kukuroo, …) → Guia da História. NÃO Portão Sul/Estrada
+	# (isso gerava loop Lobby↔Estrada: exame fora do REGION_LINKS).
+	var usa_guia_historia := expected.is_empty() or _is_saga_hub_map(expected)
+	var portao: Node = null
+	if usa_guia_historia:
+		portao = cur_scn.get_node_or_null("StoryGatewayNPC")
+	if portao == null and not usa_guia_historia:
+		portao = cur_scn.get_node_or_null("PortaoMundoExterior")
 	if portao == null:
 		portao = _find_travel_portal(cur_scn, expected, false)
 	if portao == null:
-		var guia = cur_scn.get_node_or_null("StoryGatewayNPC")
-		if guia != null and guia is Node2D:
-			portao = guia
+		portao = cur_scn.get_node_or_null("StoryGatewayNPC")
+	if portao == null:
+		portao = cur_scn.get_node_or_null("PortaoMundoExterior")
 	if portao != null and portao is Node2D:
 		var pname := "Portão Sul (Mundo Exterior)"
 		if portao is MapTransitionArea:
@@ -389,8 +396,12 @@ static func _resolve_lobby(cur_scn: Node, player: Node2D, result: Dictionary) ->
 			"type": "portal" if portao is MapTransitionArea else "npc",
 		})
 
-	result["hud_action"] = "⛩️ Saia pelo Portão Sul para cumprir o objetivo da missão"
-	result["gps_label"] = "👉 Passo 3/%d: Vá ao [%s]" % [total_passos, result.get("name", "Portão Sul")]
+	if usa_guia_historia and result.get("name", "").begins_with("Guia"):
+		result["hud_action"] = "🚩 Fale com o Guia da História para ir à missão atual"
+		result["gps_label"] = "👉 Passo 3/%d: [%s] — despacho da missão" % [total_passos, result.get("name", "Guia da História")]
+	else:
+		result["hud_action"] = "⛩️ Saia pelo Portão Sul para cumprir o objetivo da missão"
+		result["gps_label"] = "👉 Passo 3/%d: Vá ao [%s]" % [total_passos, result.get("name", "Portão Sul")]
 	result["gps_color"] = Color(1.0, 0.85, 0.3, 1.0)
 	_fill_distance_suffix(result, player)
 	return result
@@ -568,21 +579,38 @@ static func _find_enemy_target(tree: SceneTree, cur_scn: Node, player: Node2D, o
 
 static func _find_loot_target(tree: SceneTree, obj: QuestObjective) -> Dictionary:
 	var want := str(obj.item_id).strip_edges().to_lower()
-	var display := want.replace("_", " ").capitalize()
+	var display := want.replace("_", " ").capitalize() if not want.is_empty() else "Item de Missão"
 	var best: Node2D = null
 	for l in tree.get_nodes_in_group("loot"):
 		if not (l is Node2D) or not is_instance_valid(l) or l.is_queued_for_deletion():
 			continue
 		var lid := ""
-		if "item_id" in l:
-			lid = str(l.item_id).to_lower()
+		if l.has_meta("item_id"):
+			lid = str(l.get_meta("item_id")).to_lower()
+		elif l.has_meta("quest_item_id"):
+			lid = str(l.get_meta("quest_item_id")).to_lower()
+		elif "item_id" in l:
+			lid = str(l.get("item_id")).to_lower()
 		elif "loot_item_id" in l:
-			lid = str(l.loot_item_id).to_lower()
-		else:
-			lid = str(l.name).to_lower()
-		if want.is_empty() or lid == want or want in lid or lid in want:
-			best = l
-			break
+			lid = str(l.get("loot_item_id")).to_lower()
+		# Sem id no nó: aceita só se o objetivo não especifica item
+		if not want.is_empty() and not lid.is_empty():
+			if lid != want and want not in lid and lid not in want:
+				continue
+		elif not want.is_empty() and lid.is_empty():
+			# Nome do nó como fallback (OvoAguiaNinho)
+			var nlow := str(l.name).to_lower()
+			if want.replace("_", "") not in nlow.replace("_", "") and "ovo" not in nlow and want not in nlow:
+				continue
+		best = l as Node2D
+		break
+	if best == null:
+		for pickup in tree.get_nodes_in_group("quest_pickup"):
+			if pickup is Node2D and is_instance_valid(pickup) and not pickup.is_queued_for_deletion():
+				var pid := str(pickup.get("item_id")).to_lower() if "item_id" in pickup else ""
+				if want.is_empty() or pid == want or want in pid or pid in want or want.replace("_", "") in str(pickup.name).to_lower():
+					best = pickup as Node2D
+					break
 	if best != null:
 		return {
 			"found": true,
@@ -710,6 +738,18 @@ const REGION_LINKS: Dictionary = {
 }
 
 
+## Hubs de arco (exame, kukuroo, …) ficam fora da malha Padokia — acesso via Guia.
+static func _is_saga_hub_map(path: String) -> bool:
+	if path.is_empty():
+		return false
+	var leaf := path.get_file().to_lower()
+	for v in ARCO_MAPAS.values():
+		var vleaf := str(v).get_file().to_lower()
+		if vleaf == leaf or vleaf.replace(".tscn", "") in path.to_lower():
+			return true
+	return false
+
+
 static func _is_padokia_quest(quest: Quest) -> bool:
 	if quest == null:
 		return false
@@ -765,6 +805,8 @@ static func _prefer_quest_on_current_map(focus: Quest, cena_lower: String) -> Qu
 		return focus
 	if QuestSystem.active_quests == null:
 		return focus
+	# Fora do hub da saga (Padokia / exploração): missão LOCAL vence arco distante
+	# — evita GPS Lobby↔Estrada / Estrada↔Floresta quando a história não é o foco aqui.
 	for q in QuestSystem.active_quests:
 		if q == null or ("is_secret" in q and q.is_secret):
 			continue
@@ -790,7 +832,11 @@ static func _next_hop_scene_file(cur_scn: Node, expected_map: String) -> String:
 	var dest := _scene_file_of(expected_map)
 	if current == dest:
 		return ""
+	# Hubs de saga (exame_maratona, kukuroo, …) não estão na malha Padokia.
+	# Caminho canônico: voltar ao Lobby → Guia da História (sem ping-pong).
 	var goal := dest if REGION_LINKS.has(dest) else "lobby.tscn"
+	if _is_saga_hub_map(expected_map):
+		goal = "lobby.tscn"
 	var allow_dungeon := goal == "dungeon_ruinas_zaban.tscn"
 	var hop := _bfs_first_hop(current, goal, allow_dungeon)
 	if hop.is_empty() and not allow_dungeon:

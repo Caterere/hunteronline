@@ -709,7 +709,11 @@ func _atualizar_conteudo_inventario() -> void:
 
 	var primeiro := true
 	for item_id in PlayerData.inventory.keys():
-		var qtd = int(PlayerData.inventory[item_id])
+		# Metadados no mesmo Dictionary (equipamentos_upgrade, nen_stones) não são stacks
+		var raw = PlayerData.inventory[item_id]
+		if typeof(raw) != TYPE_INT and typeof(raw) != TYPE_FLOAT:
+			continue
+		var qtd: int = int(raw)
 		if qtd <= 0:
 			continue
 		var sid := str(item_id)

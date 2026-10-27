@@ -689,7 +689,9 @@ func take_damage(
 	# -----------------------------------------------------
 
 	_show_damage_number(
-		final_damage
+		final_damage,
+		"fisico",
+		em_defesa_quebrada or em_stagger
 	)
 
 
@@ -945,6 +947,11 @@ func die() -> void:
 	# -----------------------------------------------------
 
 	died.emit(enemy_id)
+	# EventBus: BountySystem / WorldState / Telemetry escutam este sinal.
+	# Sem este emit, contratos de bounty nunca completavam em kills normais.
+	if EventBus != null and EventBus.has_signal("enemy_defeated"):
+		var eid_str: String = str(enemy_id) if enemy_id != &"" else str(enemy_name)
+		EventBus.enemy_defeated.emit(eid_str, xp_reward, nen_xp_reward)
 	PlayerData.registrar_estatistica("inimigos_derrotados", 1)
 
 
@@ -1225,6 +1232,12 @@ func _show_damage_number(
 ) -> void:
 
 	if enemy_body == null or not is_instance_valid(enemy_body):
+		return
+
+	# SSOT visual: DamageNumberSystem (HxH tipografia). Legacy .tscn só como fallback.
+	if DamageNumberSystem != null and DamageNumberSystem.has_method("spawn_dano"):
+		var is_hatsu: bool = tipo == "hatsu" or tipo == "nen"
+		DamageNumberSystem.spawn_dano(enemy_body, damage, is_crit, false, false, "", is_hatsu)
 		return
 
 	var scn = damage_number_scene

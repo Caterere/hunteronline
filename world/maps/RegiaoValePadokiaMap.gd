@@ -14,6 +14,7 @@ const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGra
 
 const PadokiaQuestCatalogScript = preload("res://resource/quest/PadokiaQuestCatalog.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
+const ProgressionSystemsPrimerScript = preload("res://scripts/story/ProgressionSystemsPrimer.gd")
 
 var _zonas_notificadas: Dictionary = {
 	"vila": false,
@@ -30,6 +31,8 @@ var canvas_modulate: CanvasModulate = null
 
 func _ready() -> void:
 	super._ready()
+	# Overlay de grama playtest por cima do gerador (sem remover colisão/POIs)
+	PlaytestVisualMode.apply_grass_floor(self, Vector2(512 * 16, 512 * 16), Color(0.68, 0.90, 0.58))
 	_garantir_dialogue_ui()
 	_configurar_audio_ambiente()
 	_configurar_iluminacao_e_clima()
@@ -37,11 +40,75 @@ func _ready() -> void:
 	_notificar_entrada_regiao()
 	_checar_cutscene_chegada()
 	_densificar_steam_early_vale()
+	_garantir_training_wing_respiro_vale()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.VALE)
 	if SimpleGrassTerrainPolicyScript.ENABLED:
 		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+
+
+## Respiro Steam (Progressão §0.2) — mesmo padrão da Arena, no hub early do Vale.
+func _garantir_training_wing_respiro_vale() -> void:
+	if get_node_or_null("TrainingWingRespiro") != null:
+		return
+	var area := Area2D.new()
+	area.name = "TrainingWingRespiro"
+	# Perto do checkpoint Wing / Nen (360, 220)
+	area.position = Vector2(340, 200)
+	area.collision_layer = 0
+	area.collision_mask = 2
+	var col := CollisionShape2D.new()
+	var circ := CircleShape2D.new()
+	circ.radius = 28.0
+	col.shape = circ
+	area.add_child(col)
+	var lbl := Label.new()
+	lbl.text = "🥋 Training Wing\n[E] Respiro / Treino"
+	lbl.position = Vector2(-50, -36)
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", 5)
+	lbl.add_theme_color_override("font_color", Color(0.7, 0.95, 0.85))
+	area.add_child(lbl)
+	var inter := InteractionComponent.new()
+	inter.name = "InteractionComponent"
+	inter.interaction_text = "[E] Training Wing — respiro antes da Floresta/Ruínas"
+	inter.interaction_radius = 30.0
+	inter.interacted.connect(func(_p):
+		TrainingSystem.obter_ou_criar(get_tree())
+		_abrir_guia_progressao_vale()
+	)
+	area.add_child(inter)
+	add_child(area)
+
+
+## Abre o mesmo guia didático do Wing (nível / Nen / Tree / Hatsu) no Vale.
+func _abrir_guia_progressao_vale() -> void:
+	var wing = find_child("Mestre_Wing", true, false)
+	if wing == null:
+		wing = find_child("Wing", true, false)
+	if wing != null and wing.has_method("_abrir_menu_treino"):
+		if EventBus != null:
+			EventBus.emit_toast("🥋 Wing — use o Guia no menu do Dojo.", Color(0.55, 0.95, 0.8))
+		wing.call("_abrir_menu_treino")
+		return
+	ProgressionSystemsPrimerScript.abrir_menu_guia(
+		self,
+		func(falas: Array):
+			var visual = get_tree().get_first_node_in_group("visual_dialogue_ui")
+			if visual == null:
+				return
+			var arr: Array[Dictionary] = []
+			for f in falas:
+				if f is Dictionary:
+					arr.append(f)
+			visual.exibir_sequencia_falas(arr),
+		Callable(),
+		"🥋 TRAINING WING — GUIA",
+		"Nível · Nen · Nen Tree · Hatsu (falas do Mestre Wing)"
+	)
+	if EventBus != null:
+		EventBus.emit_toast("🥋 Guia de progressão — escolha um tópico.", Color(0.55, 0.95, 0.8))
 
 
 func _densificar_steam_early_vale() -> void:

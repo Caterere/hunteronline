@@ -105,6 +105,12 @@ const ITEM_CATALOGO := {
 		"preco": 90,
 		"descricao": "Alimento suculento apreciado por Hunters Gourmet como Menchi e Buhara."
 	},
+	"ovo_aguia": {
+		"nome": "Ovo de Águia-Aranha",
+		"categoria": "Missão",
+		"preco": 0,
+		"descricao": "Ovo raro da Floresta Biska. Exame Hunter 13/24 — entregue o veredito gourmet de Menchi."
+	},
 	"nucleo_golem": {
 		"nome": "Núcleo Energético de Golem",
 		"categoria": "Material",

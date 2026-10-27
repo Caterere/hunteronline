@@ -198,8 +198,12 @@ func _preencher_venda(container: Control) -> void:
 		return
 		
 	for item_id in PlayerData.inventory.keys():
-		var qtd = PlayerData.inventory[item_id]
-		if qtd <= 0: continue
+		var raw = PlayerData.inventory[item_id]
+		if typeof(raw) != TYPE_INT and typeof(raw) != TYPE_FLOAT:
+			continue
+		var qtd: int = int(raw)
+		if qtd <= 0:
+			continue
 		var preco_venda = 50 # Base
 		var btn := Button.new()
 		btn.text = "Vender %s x%d (+%d Jenny)" % [str(item_id).capitalize(), qtd, preco_venda]

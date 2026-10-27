@@ -1,8 +1,8 @@
 # Hunter Online — Estado Atual do Jogo (Handoff para Agente)
 
-> **Data do snapshot:** 2026-09-18 (auditoria progressão arcos 1–9)  
-> **Branch de trabalho:** `cursor/arcs-progression-audit-dab2`  
-> **Branch base histórico:** `main` @ `548a152` (PR #52 Yorknew bugfix)  
+> **Data do snapshot:** 2026-10-27 (evolução MMORPG Phase 1 + refino Steam)  
+> **Branch de trabalho:** `cursor/refine-bugs-balance-8573`  
+> **Branch base histórico:** `main`  
 > **Objetivo deste doc:** handoff completo para outro agent continuar o trabalho sem redescobrir o projeto.  
 > **Regra de ouro:** código e cenas vencem docs desatualizados. Em conflito design vs código → preferir código e reportar.
 
@@ -40,30 +40,18 @@
 - [x] **Validação ritmo Yorknew→Whale** (battery suites + `test_session_abcd_final_smoke_suite` 31/31)
 - [x] **Co-op polish leve** (raid solo polish já shipado; suite assertions verdes — exit 134 = leak conhecido)
 
-### Progresso desta sessão
-- [x] Merge PR #48
-- [x] Tutorial Nen + Wing + quest Padokia clara + vila viva
-- [x] ContentDirector spawns reais + toasts Exame
-- [x] Feel Hatsu (canalização + impacto) + gate Biscuit
-- [x] **Move speed ↓** player (~112) + enemies (~58) + dodge; CD inimigo ↑ — espaço pra Hatsu / menos rush
-- [x] **QuestMarkerBillboard** (? / !) em NPCs com objetivo/oferta/entrega
-- [x] Mentores mais diretos (Elena/Wing) + quest Padokia “um de cada vez”
-- [x] Telegraph Hatsu diferenciado por afinidade (ordem pedida)
-- [x] **Densidade Kukuroo** — walkers + props + falas diretas + toasts de zona com próximo passo
-- [x] **Densidade Arena** — espectadores/staff + props + placas com próximo passo
-- [x] **Raid solo polish** — telegraph AoE ~1.2s, enrage warning 60s, wipe solo → checkpoint, adds reduzidos
-- [x] **Nen no mundo (Trilha B)** — Floresta/Ruínas densificados; quests “Trilha de Aura” + “Selos do Guardião”; Ko registra INVESTIGATE; factory com props reais
-- [x] **Yorknew imersão** — walkers/props/placas intermediárias; Gyo/Zetsu canônicos (`antiguidade_mercado`, `cofre_vazio_leilao`, `requiem_chrollo`, `apagao_yorknew`); falas diretas; canon etapas early com ORDEM
-- [x] **Greed Island imersão** — densificação completa + clues (`livro_greed`, `desfiladeiro_biscuit`, `explosao_bomber`, `armadilha_cova_gon`, `quiz_100_cartas`); mentores ORDEM; suite `test_greed_island_immersion_suite`
-- [x] **Greed Island mid/late** — Hisoka/Killua spawn; ORDEM etapas 9–36; toasts Aliança/Ginásio/Bomber; Gyo porto/ginásio/carta002/sopro; demônios/golems missão; walkers mid/late
-- [x] **NGL imersão early** — densificação Fronteira→Tumba; clues (`fabrica_d2_gyro`, `nascimento_rei_meruem`, `fronteira_goruto`, `portas_knov`, `chuva_dragoes_zeno`); ORDEM 1–26; suite `test_ngl_formigas_immersion_suite`
-- [x] **NGL mid/late** — toast Escadaria; Gyo Guanyin/Rosa/Youpi; Youpi/Pouf garantidos; ORDEM 27–48; walkers escadaria/tumba
-- [x] **Associação / Alluka** — densificação Auditório→Tribuna; `cela_alluka`; Alluka NPC; mission mordomos/agulhas; ORDEM 1–20; suite `test_associacao_alluka_immersion_suite`
-- [x] **Continente Negro** — densificação Acampamento→Topo; clues canon; Cheadle/GingTopo; ORDEM 1–22; suite `test_continente_negro_immersion_suite`
-- [x] **Black Whale / Sucessão** — densificação Convés1→Máfia→Aposentos→Profundos; clues (`primeiro_assassinato_kakin`, `seita_heilly`, `besta_tserriednich`, `aposentos_tserriednich`); Hisoka/Cheadle; Chrollo persuasion; ORDEM 1–26; suite `test_black_whale_immersion_suite`
-- [x] **Fechamento A–D** — Yorknew ORDEM 34/34 + clues mid/late; smoke `test_session_abcd_final_smoke_suite` (arcos 4–9); battery imersão 0 fails; merge PR #51
-- [x] **Bugfix pós-merge** — Yorknew: Killua/Silva faltavam (etapas 16–17); fillers mafioso/clone; `chrollo_boss` id; suite progression match
-- [x] **Auditoria arcos 1–9** — suites `test_arcs_1_3_and_edge_audit_suite` (16/16) + `test_arcs_5_9_progression_audit_suite` (88/88); plantio IDs canônicos Exame/Kukuroo/Arena + Netero no Exame
+### Progresso desta sessão (out/2026 — evolução MMORPG Phase 1)
+- [x] Refino Steam: bounty XP+match; early TTK; skill-tree cluster identity; Training Wing Vale; primer Wing (nível/Nen/Tree/Hatsu)
+- [x] PlaytestVisualMode: grama opcional; **ENABLED_DEFAULT=false** → mapas ricos (Wang+kits) no default
+- [x] Perfect Dodge juice: aura burst + dust + `spawn_perfect_dodge` + shake
+- [x] Hatsu moments: mastery **real** via `HatsuData` (remove fake `attributes["hatsu_mastery"]`)
+- [x] Baús: sprites `chest_01`/`chest_02` (Floresta + kit mid/late + baú dourado Ruínas)
+- [x] DamageNumberSystem SSOT inimigos (EnemySystem); evita double float no `combat_hit_landed`
+- [x] QuestHUD + MissionGPS scale **1.35** (legibilidade com PlayerHUD)
+- [x] Suite: `scratch/test_mmorpg_evolution_phase1_suite.tscn`
+
+### Progresso histórico (set/2026 — imersão arcos)
+- [x] Densidade Exame→Whale + Nen no mundo + raid solo polish + LAN proof suite (ver checklists Steam)
 
 ---
 
@@ -251,12 +239,15 @@ Priorize nesta ordem. A diretriz do projeto é **não diluir COMBATE+NEN+HATSU**
 ### P0 — Continuidade / Steam
 1. **Canon Steam** — bible + early checklist + mid/late checklist (`STEAM_MID_LATE_DENSITY_CHECKLIST.md`).
 2. **Smoke play humano early (G5)** — ainda P0 humano; mid/late densificado em código (sem gravação / sem sprites novos neste ciclo).
-3. **Corrigir docs desatualizados pontuais** (ex.: README viewport 640×360 vs 960×540).
+3. ~~Corrigir docs desatualizados pontuais~~ (README viewport 960×540).
 
 ### P1 — Qualidade de gameplay — densificar
 1. ~~Early densify Exame→Ruínas~~ + ~~mid/late Kukuroo→Whale~~ (baús, CompanionChatter, checkpoints, Hatsu moments, Training Wing, Economy 30–50).
+1b. ~~Refino bugs/balance (out/2026)~~ — bounty XP+match; early TTK retune; skill-tree identidade de cluster; Training Wing no Vale; docs Progressão/Economia `[x]`.
+1c. ~~Evolução MMORPG Phase 1 (out/2026)~~ — arte rica default; PD/DNS juice; mastery real; chests; HUD 1.35.
 2. Retune fino residual se playtest G5 apontar dead time.
-3. PixelLab sprites / silhuetas — diretor (fora deste ciclo).
+3. PixelLab sprites / silhuetas regionais + variedade inimigos mid — diretor / próximo ciclo visual.
+4. Mundo vivo (schedules NPC Yorknew) + Áudio/UI stingers — ainda `[ ]` no roadmap.
 
 ### P2 — Conteúdo de sagas (profundidade, não sistemas novos)
 1. Validar play humano Kukuroo/Arena/Yorknew densificados (G5 mid).

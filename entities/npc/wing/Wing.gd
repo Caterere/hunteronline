@@ -7,8 +7,11 @@ extends NPC
 # Mestre de Nen na Arena Celestial.
 # Realiza o secreto Teste da Água (Water Divination Test),
 # ensina Ten/Ren e oferece sessões do TrainingSystem.
+# Guia SSOT: ProgressionSystemsPrimer (nível / Nen / Tree / Hatsu).
 #
 # ============================================================
+
+const ProgressionSystemsPrimerScript = preload("res://scripts/story/ProgressionSystemsPrimer.gd")
 
 @export var quest: Quest
 
@@ -152,7 +155,8 @@ func _abrir_menu_treino() -> void:
 	sep.modulate = HunterUIStyle.COLOR_BORDER_SUBTLE
 	vbox.add_child(sep)
 
-	_criar_botao("💬 Conselhos de Nen", vbox, _on_opcao_conversar)
+	_criar_botao("📖 Guia: Nível · Nen · Tree · Hatsu", vbox, _on_opcao_guia_progressao)
+	_criar_botao("💬 Conselhos rápidos de Nen", vbox, _on_opcao_conversar)
 
 	var treinos: Array[String] = []
 	if ts != null:
@@ -192,11 +196,28 @@ func _fechar_menu() -> void:
 		get_tree().paused = false
 
 
+func _on_opcao_guia_progressao() -> void:
+	_fechar_menu()
+	ProgressionSystemsPrimerScript.abrir_menu_guia(
+		self,
+		func(falas: Array):
+			var arr: Array[Dictionary] = []
+			for f in falas:
+				if f is Dictionary:
+					arr.append(f)
+			_exibir_falas(arr),
+		Callable(),
+		"🥋 MESTRE WING — GUIA",
+		"Pergunte tudo: nível, Nen, Constelação e Hatsu"
+	)
+
+
 func _on_opcao_conversar() -> void:
 	_fechar_menu()
 	_exibir_falas([
 		{"falante": "Mestre Wing", "texto": "Ativas: [Z] Zetsu, [G] Gyo, [X] En. Ten/Ren/Shu/Ko/Ryu são passivas na Constelação [TAB → Nen Tree]."},
 		{"falante": "Mestre Wing", "texto": "Equipe uma arma em [I] para o Shu revestir a lâmina. Treine comigo para ganhos permanentes."},
+		{"falante": "Mestre Wing", "texto": "Quer o guia completo? Abra o menu de novo e escolha “Guia: Nível · Nen · Tree · Hatsu”."},
 	])
 
 

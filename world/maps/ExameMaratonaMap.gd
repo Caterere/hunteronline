@@ -2,6 +2,7 @@ class_name ExameMaratonaMap
 extends Node2D
 const StoryGate = preload("res://world/components/StoryGate.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
+const QuestWorldPickupScript = preload("res://world/components/exploration/QuestWorldPickup.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DO 287º EXAME HUNTER (MARATONA & PANTANAL)
@@ -26,6 +27,7 @@ var _marcos_notificados: Dictionary = {
 
 
 func _ready() -> void:
+	PlaytestVisualMode.apply_grass_floor(self, Vector2(6000, 4000), Color(0.75, 0.92, 0.60))
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.EXAME)
 	SagaHubConsolidator.densify_hub(self, SagaHubConsolidator.config_for_saga(1))
 	SagaDistrictKit.densify_saga(self, 1)
@@ -37,6 +39,7 @@ func _ready() -> void:
 	_configurar_inimigos_zonas()
 	_alinhar_atores_ao_corredor()
 	_garantir_netero_exame()
+	_garantir_ovo_aguia_ninho()
 	_configurar_portal_conclusao()
 	_configurar_portal_retorno_lobby()
 	_garantir_quest_ativa()
@@ -302,6 +305,27 @@ func _garantir_netero_exame() -> void:
 		netero.npc_name = "Presidente Isaac Netero"
 
 
+## Etapa 13/24: ovo de águia-aranha — pickup real no ninho (Floresta Biska / LESTE de Menchi).
+func _garantir_ovo_aguia_ninho() -> void:
+	if PlayerData != null and PlayerData.obter_item_quantidade(&"ovo_aguia") > 0:
+		return
+	# Já coletado nesta sessão / nó ainda presente
+	if get_node_or_null("OvoAguiaNinho") != null:
+		return
+	# Corredor walkable Y≈-20; zona gourmet ~4200–5000 (após Menchi / javalis)
+	# Instancia direta (static em script Area2D não expõe via preload GDScript)
+	var ovo = QuestWorldPickupScript.new()
+	ovo.name = "OvoAguiaNinho"
+	ovo.position = Vector2(4850, -20)
+	ovo.item_id = &"ovo_aguia"
+	ovo.quantidade = 1
+	ovo.titulo = "Ovo de Águia-Aranha"
+	ovo.dica = "[E] Coletar Ovo de Águia-Aranha"
+	add_child(ovo)
+	if ovo.has_method("_aplicar_visual"):
+		ovo._aplicar_visual(Color(0.98, 0.88, 0.55, 1.0))
+
+
 func _popular_sensores_nen_exame() -> void:
 	# Pista sempre legível no início — reforça que Gyo existe antes do despertar formal.
 	var marca = NenSensorFactory.criar_gyo(
@@ -355,7 +379,7 @@ func _alinhar_atores_ao_corredor() -> void:
 	const Y_PATH := -20.0
 	var atores: Array[String] = [
 		"Tonpa", "Nicol", "Bodoro", "Hanzo", "Gon", "Killua", "Kurapika", "Leorio",
-		"Gittarackur", "Satotz", "Pokkle", "Ponzu", "Hisoka", "Menchi", "Buhara", "Netero",
+		"Gittarackur", "Satotz", "Pokkle", "Ponzu", "Hisoka", 		"Menchi", "Buhara", "Netero", "OvoAguiaNinho",
 		"InimigoMaratona1", "InimigoMaratona2", "InimigoMaratona3",
 		"MonstroPantanal1", "MonstroPantanal2", "MonstroPantanal3", "MonstroPantanal4",
 		"JavaliGreatStamp1", "JavaliGreatStamp2",

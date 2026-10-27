@@ -46,7 +46,8 @@ func _criar_overlay_tela() -> void:
 	panel.name = "GPSBottomPanel"
 	panel.position = Vector2(160 - 85, 160)
 	panel.custom_minimum_size = Vector2(170, 15)
-	panel.scale = Vector2(0.75, 0.75)
+	# Alinhado a PlayerHUD / QuestHUD (viewport 960×540)
+	panel.scale = Vector2(1.35, 1.35)
 
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(0.04, 0.06, 0.10, 0.85)

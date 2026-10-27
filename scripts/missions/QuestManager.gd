@@ -16,6 +16,17 @@ var total_reconciliations_triggered: int = 0
 var total_mission_enemies_respawned: int = 0
 
 
+func _ready() -> void:
+	# Coleta via inventário (LootDrop / pickup) também avança objetivos COLLECT
+	if EventBus != null and EventBus.has_signal("item_obtained"):
+		if not EventBus.item_obtained.is_connected(_on_item_obtained_quest):
+			EventBus.item_obtained.connect(_on_item_obtained_quest)
+
+
+func _on_item_obtained_quest(item_id: String, quantity: int) -> void:
+	register_item_collected(StringName(item_id), maxi(1, quantity))
+
+
 # =========================================================
 # INICIAR QUEST
 # =========================================================

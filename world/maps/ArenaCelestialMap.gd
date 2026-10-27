@@ -3,6 +3,7 @@ extends Node2D
 const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 const StoryGate = preload("res://world/components/StoryGate.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
+const ProgressionSystemsPrimerScript = preload("res://scripts/story/ProgressionSystemsPrimer.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DA ARENA CELESTIAL (ARCO 3 - 26 ETAPAS)
@@ -489,11 +490,29 @@ func _garantir_training_wing_respiro() -> void:
 			am.tocar_bark_mentor("wing")
 		if am != null and am.has_method("tocar_stinger_reward"):
 			am.tocar_stinger_reward("level")
+		var wing = get_node_or_null("Wing")
+		if wing != null and wing.has_method("_abrir_menu_treino"):
+			if EventBus != null:
+				EventBus.emit_toast("🥋 Wing — Guia de progressão no menu do Dojo.", Color(0.55, 0.95, 0.8))
+			wing.call("_abrir_menu_treino")
+			return
 		if EventBus != null:
 			EventBus.emit_toast("🥋 Training Wing — fale com Wing/Zushi ao lado. Respire antes do próximo andar.", Color(0.55, 0.95, 0.8))
 		var hud = get_tree().get_first_node_in_group("player_hud")
 		if hud != null and hud.has_method("exibir_notificacao"):
 			hud.exibir_notificacao("🥋 Respiro: treine com Wing antes do próximo rank.")
+		ProgressionSystemsPrimerScript.abrir_menu_guia(
+			self,
+			func(falas: Array):
+				var visual = get_tree().get_first_node_in_group("visual_dialogue_ui")
+				if visual == null:
+					return
+				var arr: Array[Dictionary] = []
+				for f in falas:
+					if f is Dictionary:
+						arr.append(f)
+				visual.exibir_sequencia_falas(arr)
+		)
 	)
 	area.add_child(inter)
 	add_child(area)

@@ -66,7 +66,7 @@ func _test_toast_queue_api() -> void:
 	assert_test("_toast_queue" in src, "PlayerHUD tem fila _toast_queue")
 	assert_test("_tentar_mostrar_proximo_toast" in src, "PlayerHUD serializa toasts")
 	assert_test("TOAST_DEDUPE_MS" in src, "PlayerHUD dedupe toasts")
-	assert_test("HUD_SCALE" in src and "0.75" in src, "PlayerHUD HUD_SCALE 0.75")
+	assert_test("HUD_SCALE" in src and "1.35" in src, "PlayerHUD HUD_SCALE 1.35")
 
 	var hud = load("res://ui/hud/PlayerHUD.gd").new()
 	add_child(hud)
@@ -81,11 +81,11 @@ func _test_toast_queue_api() -> void:
 func _test_hud_scale_const() -> void:
 	print("-- HUD scale --")
 	var qsrc := FileAccess.get_file_as_string("res://ui/hud/QuestHUD.gd")
-	assert_test("scale = Vector2(0.75, 0.75)" in qsrc, "QuestHUD scale 0.75")
+	assert_test("scale = Vector2(1.35, 1.35)" in qsrc, "QuestHUD scale 1.35 (PlayerHUD)")
 	var nsrc := FileAccess.get_file_as_string("res://ui/hud/NenQuickActionBar.gd")
 	assert_test("scale = Vector2(0.75, 0.75)" in nsrc, "NenQuickActionBar scale 0.75")
 	var gsrc := FileAccess.get_file_as_string("res://ui/hud/MissionGPSIndicator.gd")
-	assert_test("scale = Vector2(0.75, 0.75)" in gsrc, "MissionGPS GPS panel scale 0.75")
+	assert_test("scale = Vector2(1.35, 1.35)" in gsrc, "MissionGPS GPS panel scale 1.35")
 
 
 func _test_gps_no_story_gate_while_pending() -> void:

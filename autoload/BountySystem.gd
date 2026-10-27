@@ -32,13 +32,18 @@ func _ready() -> void:
 
 
 func _inicializar_contratos_iniciais() -> void:
+	## Cada contrato tem `enemy_id` (e opcionalmente `enemy_ids`) alinhado ao
+	## catálogo DataManager / spawns de mapa. Match por substring de nome era frágil.
 	active_bounty_contracts = {
 		"bounty_ladrao_padokia": {
 			"id": "bounty_ladrao_padokia",
 			"nome_alvo": "Goran, o Mão-Leve",
+			"enemy_id": "ladrao_estrada",
+			"enemy_ids": ["ladrao_estrada", "bandido_renegado"],
 			"regiao": "vale_padokia",
 			"nivel_alvo": 3,
 			"recompensa_jenny": 1500,
+			"recompensa_xp": 300,
 			"descricao": "Procurado por furtar mercadorias dos depósitos da vila.",
 			"concluido": false,
 			"aceito": false
@@ -46,9 +51,12 @@ func _inicializar_contratos_iniciais() -> void:
 		"bounty_desertor_mafia": {
 			"id": "bounty_desertor_mafia",
 			"nome_alvo": "Vito 'Cicatriz' Morlani",
+			"enemy_id": "mafioso_yorknew",
+			"enemy_ids": ["mafioso_yorknew"],
 			"regiao": "ruinas_zaban",
 			"nivel_alvo": 5,
 			"recompensa_jenny": 5000,
+			"recompensa_xp": 1000,
 			"descricao": "Ex-capo da Máfia de Yorknew em fuga com documentos sigilosos.",
 			"concluido": false,
 			"aceito": false
@@ -56,9 +64,12 @@ func _inicializar_contratos_iniciais() -> void:
 		"bounty_alfa_lobos": {
 			"id": "bounty_alfa_lobos",
 			"nome_alvo": "Lobo Alfa das Planícies",
+			"enemy_id": "lobo_padokia",
+			"enemy_ids": ["lobo_padokia", "lobo_selvagem", "lobo_sombras"],
 			"regiao": "vale_padokia",
 			"nivel_alvo": 4,
 			"recompensa_jenny": 2200,
+			"recompensa_xp": 440,
 			"descricao": "Líder da matilha selvagem que ameaça os comboios de suprimentos.",
 			"concluido": false,
 			"aceito": false
@@ -66,9 +77,12 @@ func _inicializar_contratos_iniciais() -> void:
 		"bounty_bandidos_zaban": {
 			"id": "bounty_bandidos_zaban",
 			"nome_alvo": "Bando de Salteadores de Zaban",
+			"enemy_id": "bandido_renegado",
+			"enemy_ids": ["bandido_renegado", "ladrao_estrada", "candidato_exame"],
 			"regiao": "lobby",
 			"nivel_alvo": 2,
 			"recompensa_jenny": 1200,
+			"recompensa_xp": 240,
 			"descricao": "Grupo de criminosos assaltando novos candidatos a Hunter na periferia.",
 			"concluido": false,
 			"aceito": false
@@ -76,9 +90,12 @@ func _inicializar_contratos_iniciais() -> void:
 		"bounty_cacador_renegado_zaban": {
 			"id": "bounty_cacador_renegado_zaban",
 			"nome_alvo": "Karkov, o Caçador Desonrado",
+			"enemy_id": "arqueiro_renegado",
+			"enemy_ids": ["arqueiro_renegado"],
 			"regiao": "ruinas_zaban",
 			"nivel_alvo": 120,
 			"recompensa_jenny": 150000,
+			"recompensa_xp": 4000,
 			"descricao": "Ex-examinador que traiu a Associação vendendo credenciais a contrabandistas. Caça aberta S-rank.",
 			"concluido": false,
 			"aceito": false,
@@ -87,9 +104,12 @@ func _inicializar_contratos_iniciais() -> void:
 		"bounty_exilado_greed": {
 			"id": "bounty_exilado_greed",
 			"nome_alvo": "Magnus, o Colecionador Impiedoso",
+			"enemy_id": "bomber_greed",
+			"enemy_ids": ["bomber_greed", "monstro_greed"],
 			"regiao": "greed_island",
 			"nivel_alvo": 420,
 			"recompensa_jenny": 1800000,
+			"recompensa_xp": 12000,
 			"descricao": "PK lendário que extorquia jogadores novatos e roubou cartas raras de feitiço.",
 			"concluido": false,
 			"aceito": false
@@ -97,9 +117,12 @@ func _inicializar_contratos_iniciais() -> void:
 		"bounty_esquadrao_rebelde_chimera": {
 			"id": "bounty_esquadrao_rebelde_chimera",
 			"nome_alvo": "General Formiga Renegado 'Drakon'",
+			"enemy_id": "lider_matilha_quimera",
+			"enemy_ids": ["lider_matilha_quimera", "formiga_lider"],
 			"regiao": "ngl_formigas",
 			"nivel_alvo": 680,
 			"recompensa_jenny": 15000000,
+			"recompensa_xp": 25000,
 			"descricao": "Líder de esquadrão mutante que se recusou a obedecer a Rainha e montou fortaleza própria. Caça aberta S-rank.",
 			"concluido": false,
 			"aceito": false,
@@ -108,9 +131,12 @@ func _inicializar_contratos_iniciais() -> void:
 		"bounty_assassino_heilly": {
 			"id": "bounty_assassino_heilly",
 			"nome_alvo": "Capitão Assassino da Família Heil-Ly",
+			"enemy_id": "guarda_black_whale",
+			"enemy_ids": ["guarda_black_whale", "nen_beast_principe"],
 			"regiao": "black_whale_1",
 			"nivel_alvo": 850,
 			"recompensa_jenny": 45000000,
+			"recompensa_xp": 40000,
 			"descricao": "Braço-direito de Morena Prudo infectando guardas militares nos conveses profundos.",
 			"concluido": false,
 			"aceito": false
@@ -118,9 +144,12 @@ func _inicializar_contratos_iniciais() -> void:
 		"bounty_calamidade_parasita": {
 			"id": "bounty_calamidade_parasita",
 			"nome_alvo": "Avatar da Besta Parasita de Brion",
+			"enemy_id": "criatura_pantanal",
+			"enemy_ids": ["criatura_pantanal"],
 			"regiao": "continente_negro",
 			"nivel_alvo": 960,
 			"recompensa_jenny": 150000000,
+			"recompensa_xp": 80000,
 			"descricao": "Entidade simbiótica ancestral das ruínas esquecidas. Nível de ameaça de Calamidade Máxima!",
 			"concluido": false,
 			"aceito": false
@@ -174,23 +203,69 @@ func concluir_contrato(contrato_id: String, skip_economy: bool = false) -> void:
 		return
 	c["concluido"] = true
 	var premio = int(c["recompensa_jenny"])
+	var xp_premio: int = int(c.get("recompensa_xp", maxi(1, premio / 5)))
 	if not skip_economy:
 		if Economy != null:
 			Economy.adicionar_gold(premio)
-		if EventBus != null and EventBus.has_signal("player_stat_changed"):
-			EventBus.player_stat_changed.emit("xp", premio / 5)
+		_entregar_xp_bounty(xp_premio)
 		if EventBus != null and EventBus.has_signal("toast_requested"):
-			EventBus.emit_toast("💰 Recompensa Coletada: +%d Jenny (%s)!" % [premio, c["nome_alvo"]], Color(1.0, 0.85, 0.2))
+			EventBus.emit_toast(
+				"💰 Recompensa Coletada: +%d Jenny / +%d XP (%s)!" % [premio, xp_premio, c["nome_alvo"]],
+				Color(1.0, 0.85, 0.2)
+			)
 	if ReputationSystem != null:
 		ReputationSystem.alterar_reputacao(ReputationSystem.Faccao.ASSOCIACAO_HUNTER, +80, "Contrato de Bounty Cumprido")
 	contrato_bounty_concluido.emit(contrato_id, premio)
 
 
+## Entrega XP via XPSystem (SSOT). O antigo emit player_stat_changed("xp") não tinha listeners.
+func _entregar_xp_bounty(valor: int) -> void:
+	if valor <= 0:
+		return
+	var tree := get_tree()
+	if tree == null:
+		return
+	var xp_sys: Node = tree.get_first_node_in_group("xp_system")
+	if xp_sys == null:
+		var players: Array = tree.get_nodes_in_group("player")
+		if not players.is_empty() and players[0] != null:
+			xp_sys = players[0].get_node_or_null("XPSystem")
+	if xp_sys != null and xp_sys.has_method("adicionar_xp"):
+		xp_sys.adicionar_xp(valor, "Contrato Bounty")
+
+
+## Match canônico: enemy_id / enemy_ids / id do contrato / nome_alvo exato (compat suites).
+func _contrato_corresponde_ao_inimigo(c: Dictionary, enemy_id: String) -> bool:
+	var eid := enemy_id.strip_edges().to_lower()
+	if eid.is_empty():
+		return false
+	if str(c.get("id", "")).to_lower() == eid:
+		return true
+	var primary := str(c.get("enemy_id", "")).strip_edges().to_lower()
+	if not primary.is_empty() and primary == eid:
+		return true
+	var alts: Variant = c.get("enemy_ids", [])
+	if alts is Array:
+		for alt in alts:
+			if str(alt).strip_edges().to_lower() == eid:
+				return true
+	# Compat: suites antigas passam o nome de exibição como "enemy_id"
+	if eid == str(c.get("nome_alvo", "")).strip_edges().to_lower():
+		return true
+	return false
+
+
 func _on_enemy_defeated(enemy_id: String, _xp: int, _nen_xp: int) -> void:
 	for c_id in active_bounty_contracts.keys():
-		var c = active_bounty_contracts[c_id]
-		if enemy_id.to_lower() in c["nome_alvo"].to_lower() or c["id"] == enemy_id:
+		var c: Dictionary = active_bounty_contracts[c_id]
+		if bool(c.get("concluido", false)):
+			continue
+		# Contratos de cartaz exigem aceite; open hunt marca aceito ao iniciar a caça
+		if not bool(c.get("aceito", false)):
+			continue
+		if _contrato_corresponde_ao_inimigo(c, enemy_id):
 			concluir_contrato(c_id)
+			return
 
 
 func _on_time_hour_ticked(_hour: int, _minute: int) -> void:
