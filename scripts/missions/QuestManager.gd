@@ -488,6 +488,8 @@ func complete_quest(quest: Quest) -> void:
 
 	if BountySystem != null and quest.custom_data.get("association_contract", false):
 		BountySystem.notificar_quest_associacao_concluida(quest)
+		if SeasonPassSystem != null and SeasonPassSystem.has_method("notify_contract_complete"):
+			SeasonPassSystem.notify_contract_complete()
 
 	active_quests.erase(quest)
 

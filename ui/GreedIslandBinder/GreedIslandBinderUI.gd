@@ -180,5 +180,13 @@ func _atualizar_ui() -> void:
 	if lbl_progresso != null:
 		lbl_progresso.text = "Progresso da Coleção: %d / %d Cartas Desbloqueadas" % [obtidas_count, cartas_catalogo.size()]
 
+	# Aplica StatModifier real (source gi_binder) — alinhado ao texto do bônus
+	var Cat = load("res://resource/greed_island/GreedIslandCardCatalog.gd")
+	if Cat != null and Cat.has_method("apply_binder_bonus"):
+		Cat.apply_binder_bonus()
+
 	if lbl_bonus != null:
-		lbl_bonus.text = "Bônus de Colecionador Ativo: +%d%% em Todos os Atributos" % (obtidas_count * 3)
+		if obtidas_count > 0:
+			lbl_bonus.text = "Bônus de Colecionador Ativo: +%d%% em Todos os Atributos" % (obtidas_count * 3)
+		else:
+			lbl_bonus.text = "Bônus Ativos: Nenhum"

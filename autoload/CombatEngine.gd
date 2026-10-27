@@ -130,10 +130,16 @@ func calcular_dano_detalhado(
 			def_weakness = defensor.enemy_data.weakness_tags
 			def_resistance = defensor.enemy_data.resistance_tags
 			def_immunity = defensor.enemy_data.immunity_tags
-		elif "weakness_tags" in defensor:
-			def_weakness = defensor.weakness_tags
-			def_resistance = defensor.resistance_tags
-			def_immunity = defensor.immunity_tags
+		else:
+			var es_node = defensor.get_node_or_null("EnemySystem") if defensor.has_method("get_node_or_null") else null
+			if es_node != null and es_node.enemy_data != null:
+				def_weakness = es_node.enemy_data.weakness_tags
+				def_resistance = es_node.enemy_data.resistance_tags
+				def_immunity = es_node.enemy_data.immunity_tags
+			elif "weakness_tags" in defensor:
+				def_weakness = defensor.weakness_tags
+				def_resistance = defensor.resistance_tags
+				def_immunity = defensor.immunity_tags
 
 	# 4. Processar Fraquezas, Resistências e Imunidades via GameplayTags
 	var is_weakness := false
@@ -372,10 +378,16 @@ func calcular_dano_jogador(
 			def_weakness = inimigo_alvo.enemy_data.weakness_tags
 			def_resistance = inimigo_alvo.enemy_data.resistance_tags
 			def_immunity = inimigo_alvo.enemy_data.immunity_tags
-		elif "weakness_tags" in inimigo_alvo:
-			def_weakness = inimigo_alvo.weakness_tags
-			def_resistance = inimigo_alvo.resistance_tags
-			def_immunity = inimigo_alvo.immunity_tags
+		else:
+			var es2 = inimigo_alvo.get_node_or_null("EnemySystem") if inimigo_alvo.has_method("get_node_or_null") else null
+			if es2 != null and es2.enemy_data != null:
+				def_weakness = es2.enemy_data.weakness_tags
+				def_resistance = es2.enemy_data.resistance_tags
+				def_immunity = es2.enemy_data.immunity_tags
+			elif "weakness_tags" in inimigo_alvo:
+				def_weakness = inimigo_alvo.weakness_tags
+				def_resistance = inimigo_alvo.resistance_tags
+				def_immunity = inimigo_alvo.immunity_tags
 
 		if GameplayTags.has_any(def_immunity, tags_efetivas):
 			dano_final = 0.0
