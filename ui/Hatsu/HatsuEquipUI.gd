@@ -424,6 +424,36 @@ func _atualizar_inspetor() -> void:
 		btn_s.pressed.connect(func(): _equipar_hatsu_no_slot(target_sid, target_hid))
 		hb_eq.add_child(btn_s)
 
+	# Bond / deepen
+	var bag: Dictionary = {}
+	if h.parametros_conceito is Dictionary:
+		var raw = h.parametros_conceito.get("effect_tree", {})
+		if typeof(raw) == TYPE_DICTIONARY:
+			bag = raw
+	var uses: int = int(bag.get("bond_uses", 0))
+	var TreeScript = preload("res://scripts/systems/hatsu/HatsuEffectTree.gd")
+	var ch: int = TreeScript.obter_bond_chapter(uses)
+	var lbl_bond := Label.new()
+	lbl_bond.text = "Vínculo: %s (%d usos) · Deepen #%d" % [
+		TreeScript.bond_titulo(ch), uses, int(bag.get("deepen_count", 0))
+	]
+	lbl_bond.add_theme_font_size_override("font_size", 3)
+	lbl_bond.add_theme_color_override("font_color", Color(0.85, 0.7, 1.0))
+	lbl_bond.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(lbl_bond)
+
+	var btn_deep := Button.new()
+	btn_deep.text = "🌌 Aprofundar voto"
+	btn_deep.add_theme_font_size_override("font_size", 4)
+	var deep_check: Dictionary = {"can_deepen": false, "message": "Indisponível"}
+	if HatsuProgressionManager != null:
+		deep_check = HatsuProgressionManager.can_deepen_hatsu(h.hatsu_id)
+	btn_deep.disabled = not deep_check.get("can_deepen", false)
+	btn_deep.tooltip_text = str(deep_check.get("message", ""))
+	var hid_deep := h.hatsu_id
+	btn_deep.pressed.connect(func(): _abrir_aprofundar_hatsu(hid_deep))
+	vb.add_child(btn_deep)
+
 
 func _equipar_hatsu_no_slot(slot_id: int, hid: String) -> void:
 	if HatsuProgressionManager != null:
@@ -459,6 +489,26 @@ func _formatar_tempo(segundos: int) -> String:
 	var m: int = segundos / 60
 	var s: int = segundos % 60
 	return "%02d:%02d" % [m, s]
+
+
+func _abrir_aprofundar_hatsu(hid: String) -> void:
+	if HatsuProgressionManager == null:
+		return
+	var h: HatsuData = HatsuProgressionManager.obter_hatsu_archive_por_id(hid)
+	if h == null:
+		return
+	var check: Dictionary = HatsuProgressionManager.can_deepen_hatsu(hid)
+	if not check.get("can_deepen", false):
+		if EventBus != null and EventBus.has_signal("toast_enviado"):
+			EventBus.emit_toast(str(check.get("message", "Não pode aprofundar.")), Color(1.0, 0.4, 0.4))
+		return
+	fechar()
+	var creation_ui := get_tree().root.get_node_or_null("HatsuCreationUI") as HatsuCreationUI
+	if creation_ui == null:
+		creation_ui = HatsuCreationUI.new()
+		creation_ui.name = "HatsuCreationUI"
+		get_tree().root.add_child(creation_ui)
+	creation_ui.abrir_aprofundar(h)
 
 
 func _abrir_criador_hatsu() -> void:

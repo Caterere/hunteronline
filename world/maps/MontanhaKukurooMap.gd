@@ -1,5 +1,6 @@
 class_name MontanhaKukurooMap
 extends Node2D
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 const StoryGate = preload("res://world/components/StoryGate.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
 
@@ -348,6 +349,10 @@ func _densificar_alameda_kukuroo() -> void:
 
 ## Marcos de pedra + lanternas extras ao longo do path (leitura espacial).
 func _plantar_props_estrutura_kukuroo() -> void:
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
+		return
+
 	if get_node_or_null("PropsEstruturaKukuroo") != null:
 		return
 	var root := Node2D.new()

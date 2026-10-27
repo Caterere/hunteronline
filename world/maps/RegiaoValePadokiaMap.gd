@@ -1,6 +1,7 @@
 class_name RegiaoValePadokiaMap
 extends "res://world/generator/RegionWorldGenerator.gd"
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 # ============================================================
 # HUNTER ONLINE - REGIÃO PILOTO: VALE DE PADOKIA (512x512 TILES)
 # ============================================================
@@ -39,6 +40,8 @@ func _ready() -> void:
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.VALE)
+	if SimpleGrassTerrainPolicyScript.ENABLED:
+		SimpleGrassTerrainPolicyScript.apply_to_map(self)
 
 
 func _densificar_steam_early_vale() -> void:

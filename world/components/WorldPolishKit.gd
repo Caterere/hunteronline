@@ -1,6 +1,7 @@
 class_name WorldPolishKit
 extends Node2D
 
+const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 ## Hunter Online — Phase 6 map polish + environmental storytelling + secrets.
 
 enum KitKind { ESTRADA, FLORESTA }
@@ -23,6 +24,9 @@ const POLISH_FENCE := "res://assets/sprites/objects/phase6_polish_fence_ruin.png
 
 static func attach(mapa: Node2D, kind: KitKind) -> WorldPolishKit:
 	if mapa == null:
+		return null
+	if not SimpleGrassTerrainPolicyScript.plant_structure_props():
+		SimpleGrassTerrainPolicyScript.apply_to_map(mapa)
 		return null
 	var existing := mapa.get_node_or_null("WorldPolishKit") as WorldPolishKit
 	if existing != null:

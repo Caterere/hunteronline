@@ -141,6 +141,61 @@ func register_npc_visit(npc_id: StringName) -> void:
 		if progress >= objective.required_amount:
 			sincronizar_inimigos_do_mapa()
 
+	# Entrega (turn-in): objetivos já feitos + falar com o NPC de entrega
+	_try_turn_in(npc_id)
+
+
+## Completa quests com auto_complete=false quando o jogador fala com o NPC de entrega.
+func _try_turn_in(npc_id: StringName) -> void:
+	var id_str := str(npc_id).strip_edges().to_lower().replace(" ", "_")
+	if id_str.is_empty():
+		return
+	# Cópia: complete_quest remove da lista active_quests
+	var snapshot: Array = active_quests.duplicate()
+	for quest in snapshot:
+		if quest == null:
+			continue
+		if quest.turn_in_npc_key.is_empty():
+			continue
+		if not is_all_objectives_done(quest):
+			continue
+		var turn := str(quest.turn_in_npc_key).strip_edges().to_lower().replace(" ", "_")
+		if not _npc_key_matches_turn_in(id_str, turn):
+			continue
+		print("[QuestManager] Turn-in: %s → %s" % [id_str, quest.quest_name])
+		complete_quest(quest)
+
+
+func _npc_key_matches_turn_in(npc_key: String, turn_key: String) -> bool:
+	if npc_key.is_empty() or turn_key.is_empty():
+		return false
+	if npc_key == turn_key:
+		return true
+	# Aliases comuns (Wing / Mestre Wing, Elena / recepcionista…)
+	var aliases_a: Array[String] = [npc_key]
+	var aliases_b: Array[String] = [turn_key]
+	for k in [npc_key, turn_key]:
+		if k.begins_with("mestre_"):
+			aliases_a.append(k.trim_prefix("mestre_"))
+			aliases_b.append(k.trim_prefix("mestre_"))
+		if "wing" in k:
+			aliases_a.append("wing")
+			aliases_b.append("wing")
+		if "vendedor" in k or "mercador" in k:
+			aliases_a.append("vendedor")
+			aliases_b.append("vendedor")
+		if "ferreiro" in k:
+			aliases_a.append("ferreiro")
+			aliases_b.append("ferreiro")
+		if "elena" in k or "recepcionista" in k:
+			aliases_a.append("elena")
+			aliases_b.append("recepcionista_elena")
+	for a in aliases_a:
+		for b in aliases_b:
+			if a == b:
+				return true
+	return false
+
 
 # =========================================================
 # DERROTAR INIMIGO
@@ -449,30 +504,51 @@ func complete_quest(quest: Quest) -> void:
 	if AudioManager != null and AudioManager.has_method("tocar_sfx_tipo"):
 		AudioManager.tocar_sfx_tipo("quest_complete", 1.0)
 
-	# Avançar para a próxima missão sequencial do arco
-	if StoryManager != null:
-		StoryManager.avancar_capitulo()
-		var prox_quest := CanonQuestCatalog.obter_quest_da_etapa(StoryManager.current_saga, StoryManager.current_chapter)
-		if prox_quest != null:
-			start_quest(prox_quest)
-	elif PlayerData != null:
-		var total_etapas := CanonQuestCatalog.obter_total_quests_do_arco(PlayerData.arco_atual)
-		if PlayerData.etapa_quest_arco < total_etapas:
-			PlayerData.etapa_quest_arco += 1
-			print("[QuestManager] Iniciando Próxima Missão do Arco: ", PlayerData.etapa_quest_arco, "/", total_etapas)
-			var prox_quest := CanonQuestCatalog.obter_quest_da_etapa(PlayerData.arco_atual, PlayerData.etapa_quest_arco)
+	# Só avança saga/capítulo em quests canônicas (Padokia/side não empurram o arco)
+	if _is_canon_saga_quest(quest):
+		if StoryManager != null:
+			# Evita avançar o arco errado se StoryManager ficou dessincronizado do save
+			if StoryManager.has_method("_sincronizar_com_player_data"):
+				StoryManager._sincronizar_com_player_data()
+			StoryManager.avancar_capitulo()
+			var prox_quest := CanonQuestCatalog.obter_quest_da_etapa(StoryManager.current_saga, StoryManager.current_chapter)
 			if prox_quest != null:
 				start_quest(prox_quest)
-		else:
-			print("[QuestManager] Todas as ", total_etapas, " etapas do Arco ", PlayerData.arco_atual, " foram Concluídas com Sucesso!")
-			if PlayerData.arco_atual == 5:
-				PlayerData.desbloquear_hatsu_creator()
-			var hud = get_tree().get_first_node_in_group("player_hud")
-			if hud != null and hud.has_method("exibir_notificacao"):
-				hud.exibir_notificacao("🏆 Saga Concluída! Dirija-se ao Portal de Transição para o próximo Arco.")
+		elif PlayerData != null:
+			var total_etapas := CanonQuestCatalog.obter_total_quests_do_arco(PlayerData.arco_atual)
+			if PlayerData.etapa_quest_arco < total_etapas:
+				PlayerData.etapa_quest_arco += 1
+				print("[QuestManager] Iniciando Próxima Missão do Arco: ", PlayerData.etapa_quest_arco, "/", total_etapas)
+				var prox_quest := CanonQuestCatalog.obter_quest_da_etapa(PlayerData.arco_atual, PlayerData.etapa_quest_arco)
+				if prox_quest != null:
+					start_quest(prox_quest)
+			else:
+				print("[QuestManager] Todas as ", total_etapas, " etapas do Arco ", PlayerData.arco_atual, " foram Concluídas com Sucesso!")
+				if PlayerData.arco_atual == 5:
+					PlayerData.desbloquear_hatsu_creator()
+				var hud = get_tree().get_first_node_in_group("player_hud")
+				if hud != null and hud.has_method("exibir_notificacao"):
+					hud.exibir_notificacao("🏆 Saga Concluída! Dirija-se ao Portal de Transição para o próximo Arco.")
 
 	if SaveManager != null:
 		SaveManager.salvar_jogo()
+
+
+func _is_canon_saga_quest(quest: Quest) -> bool:
+	if quest == null:
+		return false
+	var path := str(quest.resource_path)
+	if path.begins_with("res://data/quests/arco") and "_etapa" in path:
+		return true
+	# Fallback por nome canônico
+	var n := quest.quest_name.to_lower()
+	for prefix in ["exame hunter", "montanha kukuroo", "arena celestial", "yorknew", "greed island", "ngl", "formigas", "associação", "associacao", "continente negro", "black whale", "eleição", "eleicao", "sucess"]:
+		if n.begins_with(prefix) or prefix in n:
+			# Evita falsos positivos de side quests Padokia
+			if "padokia" in n or "despertar da aura" in n or "ervas medicinais" in n:
+				return false
+			return true
+	return false
 
 
 func fail_quest(quest: Quest) -> void:
