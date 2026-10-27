@@ -225,10 +225,18 @@ func obter_hatsu_real() -> HatsuData:
 		h.cor_aura = Color(0.9, 0.2, 0.2)
 		h.sub_effects = [HatsuComponentLibrary.EffectType.KNOCKBACK]
 	else:
+		# Arquétipos HxH do EnemyNenKit (elites, fauna Nen, constructos…)
+		var Kit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
+		if Kit != null and Kit.has_method("build_named_hatsu"):
+			var named: HatsuData = Kit.build_named_hatsu(self)
+			if named != null:
+				modular_hatsu = named
+				return modular_hatsu
 		var h_nome_final: String = hatsu_name if not hatsu_name.is_empty() else "Golpe de Nen Remoto"
 		h.nome = h_nome_final
-		h.categoria = HatsuData.Categoria.EMISSAO if nen_type == 1 else HatsuData.Categoria.INTENSIFICACAO
-		h.forma = HatsuData.Forma.PROJETIL if nen_type == 1 else HatsuData.Forma.TOQUE
+		# nen_type 2 == Emissão (HatsuData.Categoria.EMISSAO)
+		h.categoria = HatsuData.Categoria.EMISSAO if nen_type == 2 else HatsuData.Categoria.INTENSIFICACAO
+		h.forma = HatsuData.Forma.PROJETIL if nen_type == 2 else HatsuData.Forma.TOQUE
 		h.objetivo = HatsuData.ObjetivoPrincipal.DANO
 		h.custom_damage = float(max(15, strength * 2))
 		h.custom_cooldown = max(2.0, hatsu_cooldown)
