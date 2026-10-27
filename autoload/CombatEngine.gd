@@ -8,6 +8,11 @@ extends Node
 # INPUT -> TARGET -> ATTACK -> NEN MODS -> HATSU MODS -> DAMAGE ->
 # DEFENSE SUBTRACTION -> TEN/KEN/RYU MITIGATION -> CRIT/STAGGER -> OUTPUT
 #
+# DUAS ENTRADAS (intencional — não unificar sem retune TTK):
+# - calcular_dano / calcular_dano_detalhado → genérico (inimigo→player, NPC, dicts)
+# - calcular_dano_jogador → SSOT do ataque do jogador (Gyo×1.35, Zetsu ambush×3,
+#   Especialização×1.5, skill-tree, crit/life-steal). CombatSystem do player usa este.
+#
 # ============================================================
 
 signal hit_processado(atacante: Node, defensor: Node, dano_final: int, is_crit: bool)
@@ -270,6 +275,8 @@ func atualizar_contexto_skill_tree(contexto: Dictionary) -> Dictionary:
 	return resultado
 
 
+## SSOT de dano ofensivo do jogador. Preferir este path a calcular_dano() quando
+## o atacante é o player (Nen ativos + skill tree + crit). Ver cabeçalho do arquivo.
 func calcular_dano_jogador(
 	player_node: Node2D,
 	nen_system: Node = null,

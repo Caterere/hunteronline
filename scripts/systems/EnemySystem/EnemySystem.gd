@@ -945,6 +945,11 @@ func die() -> void:
 	# -----------------------------------------------------
 
 	died.emit(enemy_id)
+	# EventBus: BountySystem / WorldState / Telemetry escutam este sinal.
+	# Sem este emit, contratos de bounty nunca completavam em kills normais.
+	if EventBus != null and EventBus.has_signal("enemy_defeated"):
+		var eid_str: String = str(enemy_id) if enemy_id != &"" else str(enemy_name)
+		EventBus.enemy_defeated.emit(eid_str, xp_reward, nen_xp_reward)
 	PlayerData.registrar_estatistica("inimigos_derrotados", 1)
 
 
