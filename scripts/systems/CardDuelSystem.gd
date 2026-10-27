@@ -61,8 +61,8 @@ func start_duel(player_cards: Array, enemy_cards: Array, foe_name: String = "Due
 func start_from_inventory(difficulty: String = "antokiba") -> Dictionary:
 	var owned: Array = Catalog.owned_duel_cards()
 	if owned.is_empty():
-		# Starter pack mínimo para first duel (não grava inventário — só sessão)
-		owned = Catalog.duel_catalog().slice(10, 18)
+		# Grind honesto: exige pelo menos 1 carta real no binder (sem starter session-only)
+		return {"ok": false, "error": "sem_cartas", "message": "Obtenha cartas de Greed Island antes de duelar."}
 	var foe := Catalog.npc_deck(difficulty)
 	var name := "Razor" if difficulty == "razor" else "Duelista de Antokiba"
 	return start_duel(owned, foe, name)

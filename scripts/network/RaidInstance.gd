@@ -110,6 +110,8 @@ func register_wipe() -> void:
 func complete_raid() -> Dictionary:
 	marcar_boss_derrotado()
 	raid_cleared.emit(loot_seed)
+	if SeasonPassSystem != null and SeasonPassSystem.has_method("notify_raid_clear"):
+		SeasonPassSystem.notify_raid_clear()
 	var loot: Array = []
 	for peer_id in party_members:
 		loot.append(gerar_loot_sala_tesouro(peer_id))

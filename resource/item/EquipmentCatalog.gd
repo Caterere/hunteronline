@@ -63,6 +63,7 @@ const ITEMS: Dictionary = {
 		"bonus": {"forca": 8.0, "dano_arma": 0.20},
 		"preco": 500,
 		"craft": true,
+		"materiais": [{"id": "pedra_aura", "qtd": 2}],
 	},
 	"escudo_leve": {
 		"nome": "Escudo Leve",
@@ -80,6 +81,7 @@ const ITEMS: Dictionary = {
 		"bonus": {"defesa": 10.0, "vida_max": 40.0},
 		"preco": 800,
 		"craft": true,
+		"materiais": [{"id": "pedra_aura", "qtd": 3}, {"id": "cristal_aura", "qtd": 1}],
 	},
 	"amuleto_forca": {
 		"nome": "Amuleto de Força",
@@ -162,13 +164,86 @@ static func listar_crafts() -> Array[Dictionary]:
 	for id in ITEMS.keys():
 		var d: Dictionary = ITEMS[id]
 		if bool(d.get("craft", false)):
+			var mats: Array = []
+			for m in d.get("materiais", []):
+				if m is Dictionary:
+					mats.append((m as Dictionary).duplicate(true))
 			out.append({
 				"id": str(id),
 				"nome": str(d.get("nome", id)),
 				"custo": int(d.get("preco", 100)),
 				"descricao": str(d.get("descricao", "")),
+				"materiais": mats,
 			})
 	return out
+
+
+## Converte pedras de aura do mundo em pedras de socket (B14).
+const AURA_TO_STONE_COST := 3
+const AURA_CONVERSIONS := [
+	{"from": "pedra_aura", "to": "pedra_intensificacao", "nome": "Pedra de Intensificação"},
+	{"from": "pedra_aura", "to": "pedra_tenacidade", "nome": "Pedra de Tenacidade"},
+	{"from": "pedra_aura", "to": "pedra_agilidade", "nome": "Pedra de Agilidade"},
+	{"from": "pedra_aura", "to": "pedra_reserva", "nome": "Pedra de Reserva"},
+	{"from": "cristal_aura", "to": "pedra_precisao", "nome": "Pedra de Precisão", "qtd_from": 1},
+]
+
+
+static func listar_conversoes_aura() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for row in AURA_CONVERSIONS:
+		var r: Dictionary = (row as Dictionary).duplicate(true)
+		r["qtd_from"] = int(r.get("qtd_from", AURA_TO_STONE_COST))
+		out.append(r)
+	return out
+
+
+static func tentar_craft(craft_id: String) -> Dictionary:
+	var def: Dictionary = obter(craft_id)
+	if def.is_empty() or not bool(def.get("craft", false)):
+		return {"ok": false, "reason": "craft_invalido"}
+	var custo := int(def.get("preco", 100))
+	var mats: Array = def.get("materiais", [])
+	for m in mats:
+		var mid := str(m.get("id", ""))
+		var qtd := int(m.get("qtd", 1))
+		if PlayerData == null or not PlayerData.tem_item(StringName(mid), qtd):
+			return {"ok": false, "reason": "sem_material", "material": mid, "need": qtd}
+	var tem_jenny := false
+	if Economy != null and Economy.has_method("tem_gold"):
+		tem_jenny = Economy.tem_gold(custo)
+	elif PlayerData != null:
+		tem_jenny = int(PlayerData.attributes.get("gold", 0)) >= custo
+	if not tem_jenny:
+		return {"ok": false, "reason": "sem_jenny", "need": custo}
+	for m in mats:
+		PlayerData.remover_item(StringName(str(m.get("id", ""))), int(m.get("qtd", 1)))
+	if Economy != null:
+		if not Economy.remover_gold(custo):
+			for m in mats:
+				PlayerData.adicionar_item(StringName(str(m.get("id", ""))), int(m.get("qtd", 1)))
+			return {"ok": false, "reason": "sem_jenny", "need": custo}
+	else:
+		PlayerData.attributes["gold"] = int(PlayerData.attributes.get("gold", 0)) - custo
+	PlayerData.adicionar_item(StringName(craft_id), 1)
+	return {"ok": true, "id": craft_id}
+
+
+static func converter_aura_para_pedra(to_stone_id: String) -> Dictionary:
+	var row: Dictionary = {}
+	for r in listar_conversoes_aura():
+		if str(r.get("to", "")) == to_stone_id:
+			row = r
+			break
+	if row.is_empty():
+		return {"ok": false, "reason": "conversao_invalida"}
+	var from_id := str(row.get("from", "pedra_aura"))
+	var qtd := int(row.get("qtd_from", AURA_TO_STONE_COST))
+	if PlayerData == null or not PlayerData.tem_item(StringName(from_id), qtd):
+		return {"ok": false, "reason": "sem_material", "material": from_id, "need": qtd}
+	PlayerData.remover_item(StringName(from_id), qtd)
+	PlayerData.adicionar_item(StringName(to_stone_id), 1)
+	return {"ok": true, "id": to_stone_id, "consumed": from_id, "qtd": qtd}
 
 
 static func ids() -> Array:

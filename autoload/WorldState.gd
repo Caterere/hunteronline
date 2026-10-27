@@ -335,8 +335,22 @@ func registrar_treinamento_mestre(mestre_id: String, tecnica_nen: String) -> voi
 func registrar_vitoria_boss(boss_id: String, boss_nome: String) -> void:
 	var marco = "derrotou_%s" % boss_id.to_lower()
 	registrar_marco_historico(marco, {"boss_id": boss_id, "boss_nome": boss_nome})
+	if _parece_chefe_para_codex(boss_id) and CollectionManager != null and CollectionManager.has_method("register_discovery"):
+		CollectionManager.register_discovery("bosses", boss_id.to_lower())
 	if EventBus != null:
 		EventBus.emit_toast("🏆 Fama Pública: Derrota de %s reconhecida pelo mundo!" % boss_nome, Color(1.0, 0.85, 0.2))
+
+
+func _parece_chefe_para_codex(boss_id: String) -> bool:
+	var e := boss_id.to_lower()
+	if e.begins_with("boss_"):
+		return true
+	if "guardiao" in e or "guardian" in e:
+		return true
+	return e in [
+		"hisoka", "razor", "genthru", "pitou", "youpi", "pouf", "meruem",
+		"netero", "chrollo", "uvogin", "phantom", "antokiba_boss"
+	]
 
 
 func obter_dialogo_contextual_npc(npc_id: String) -> String:

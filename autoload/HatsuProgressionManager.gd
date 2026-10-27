@@ -466,7 +466,10 @@ func criar_e_registrar_hatsu(hatsu: HatsuData) -> Dictionary:
 	if SaveManager != null:
 		SaveManager.salvar_jogo()
 
-	# 8. Emitir Eventos e Notificação
+	# 8. Códex + eventos
+	if CollectionManager != null and CollectionManager.has_method("register_discovery"):
+		CollectionManager.register_discovery("hatsu", str(hatsu.hatsu_id))
+
 	hatsu_criado.emit(hatsu)
 	hatsu_slots_atualizados.emit()
 
