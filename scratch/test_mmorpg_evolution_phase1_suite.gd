@@ -64,8 +64,10 @@ func _test_chest_sprites() -> void:
 func _test_mastery_moment() -> void:
 	var kit := FileAccess.get_file_as_string("res://world/components/exploration/MidLateDensityKit.gd")
 	_assert('attributes["hatsu_mastery"]' not in kit, "sem atributo fantasma hatsu_mastery")
+	_assert('PlayerData.attributes["hatsu_mastery"]' not in kit, "sem escrita no contador fantasma")
 	_assert("_conceder_mastery_real_momento" in kit, "mastery real no momento Hatsu")
 
+	# Bypass forge lock (Greed/Biscuit) — injeta Hatsu direto no archive local
 	PlayerData.hatsu_criados.clear()
 	PlayerData.hatsu_slots = [-1, -1, -1, -1]
 	var h := HatsuData.new()
@@ -73,8 +75,8 @@ func _test_mastery_moment() -> void:
 	h.nome = "Eco Teste"
 	h.mastery = 0.0
 	h.mastery_xp = 0.0
-	PlayerData.adicionar_hatsu(h)
-	PlayerData.equipar_hatsu(0, 0)
+	PlayerData.hatsu_criados.append(h)
+	PlayerData.hatsu_slots[0] = 0
 
 	var msg: String = MidLateDensityKit._conceder_mastery_real_momento()
 	_assert(not msg.is_empty(), "mensagem mastery não vazia")

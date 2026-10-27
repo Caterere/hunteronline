@@ -66,7 +66,7 @@ func _test_toast_queue_api() -> void:
 	assert_test("_toast_queue" in src, "PlayerHUD tem fila _toast_queue")
 	assert_test("_tentar_mostrar_proximo_toast" in src, "PlayerHUD serializa toasts")
 	assert_test("TOAST_DEDUPE_MS" in src, "PlayerHUD dedupe toasts")
-	assert_test("HUD_SCALE" in src and "0.75" in src, "PlayerHUD HUD_SCALE 0.75")
+	assert_test("HUD_SCALE" in src and "1.35" in src, "PlayerHUD HUD_SCALE 1.35")
 
 	var hud = load("res://ui/hud/PlayerHUD.gd").new()
 	add_child(hud)

@@ -98,6 +98,12 @@ static func _abrir_bau(bau_node: Node, titulo: String, loot: Array) -> void:
 			PlayerData.adicionar_item(id, qtd)
 			partes.append("%dx %s" % [qtd, str(id)])
 	var resumo := ", ".join(partes) if not partes.is_empty() else "nada"
+	# Juice de reward (Maple/RO chest pop) — sem esconder o loot no toast
+	if bau_node is Node2D:
+		var pos: Vector2 = (bau_node as Node2D).global_position
+		CombatImpactEffect.spawn_aura_burst(bau_node, pos, Color(1.0, 0.85, 0.35, 0.95))
+		if DamageNumberSystem != null:
+			DamageNumberSystem.spawn_texto(pos, "✨ LOOT", Color(1.0, 0.88, 0.4), 1.15, 0.85)
 	if EventBus != null:
 		EventBus.emit_toast("✨ %s: %s" % [titulo, resumo], Color(0.35, 1.0, 0.55))
 	var tree := bau_node.get_tree()
@@ -174,7 +180,7 @@ static func _ativar_hatsu_moment(area: Node, titulo: String, descricao: String, 
 			])
 
 
-## Concede mastery real via HatsuData (não o atributo fantasma attributes["hatsu_mastery"]).
+## Concede mastery real via HatsuData (não o contador fantasma em attributes).
 static func _conceder_mastery_real_momento() -> String:
 	var h: HatsuData = _obter_hatsu_para_momento()
 	if h == null:
@@ -189,6 +195,11 @@ static func _conceder_mastery_real_momento() -> String:
 		HatsuProgressionManager.hatsu_mastery_alterada.emit(
 			h.hatsu_id, h.mastery, h.mastery_xp, h.is_mastered()
 		)
+		# Reusa notificação Steam §6.3 (marco +10 / mastered)
+		if HatsuProgressionManager.has_method("_exibir_notificacao_mastery"):
+			HatsuProgressionManager.call(
+				"_exibir_notificacao_mastery", h, bool(res.get("mastered", false)), antes
+			)
 	var ganho: int = int(h.mastery) - antes
 	if bool(res.get("mastered", false)):
 		return "%s MASTERED" % h.nome
