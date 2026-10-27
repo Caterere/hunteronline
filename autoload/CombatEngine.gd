@@ -36,13 +36,13 @@ func calcular_dano_detalhado(
 	attack_tags: Array = []
 ) -> Dictionary:
 	var forca: float = 10.0
-	# Flat baixo: early escala pela força (stats), não por +10 escondido.
-	var dano_base: float = 4.0
+	# Flat mínimo: early escala pela força (stats), não por flat escondido.
+	var dano_base: float = 2.0
 
 	# 1. Obter Atributos do Atacante
 	if atacante is Dictionary:
 		forca = float(atacante.get("forca", 10.0))
-		dano_base = float(atacante.get("dano_base", 4.0))
+		dano_base = float(atacante.get("dano_base", 2.0))
 		if atacante.get("ren_ativo", false):
 			forca *= float(atacante.get("ren_mult", 1.5))
 		if is_ko or atacante.get("ko_ativo", false):
@@ -296,8 +296,8 @@ func calcular_dano_jogador(
 	atualizar_contexto_skill_tree(ctx)
 
 	var forca: float = float(PlayerData.attributes.get("forca", 10))
-	# Lv1: 4+5=9 (antes 10+5=15) — TTK early ~4–8s com mobs buffados
-	var dano_base: float = 4.0
+	# Lv1: 2+4=6 — TTK early ~6–12s com mobs buffados (sem one-hit)
+	var dano_base: float = 2.0
 
 	if PlayerData.quest_states.get("guanyin_bodhisattva_ativo", false):
 		dano_base = 100.0

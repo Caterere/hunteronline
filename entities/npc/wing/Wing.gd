@@ -41,6 +41,13 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		_exibir_falas(falas_wing)
 		return
 
+	elif not PlayerData.despertou_nen and arco_atual < 3:
+		# Canon HxH: Nen só após o Exame, com Wing na Arena Celestial — não no Lobby.
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Ainda não. Conclua o 287º Exame Hunter primeiro."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Nen se ensina na Arena Celestial — depois da licença. Vá falar com Elena / Guia da História."})
+		_exibir_falas(falas_wing)
+		return
+
 	elif not PlayerData.despertou_nen or (arco_atual == 3 and etapa_atual == 11):
 		# Revela a afinidade a partir da seed do questionário (90% candidata / 10% Specialist).
 		PlayerData.revelar_afinidade_nen()

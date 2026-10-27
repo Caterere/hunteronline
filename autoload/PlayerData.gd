@@ -33,7 +33,7 @@ var attributes: Dictionary = {
 	"vida": 50,
 	"vida_max": 50,
 
-	"forca": 5,
+	"forca": 4,
 
 	"defesa": 5,
 
@@ -432,11 +432,11 @@ func reset() -> void:
 	attributes = {
 		"vida": 50,
 		"vida_max": 50,
-		"forca": 5,
+		"forca": 4,
 		"defesa": 5,
 		"velocidade": 5,
 		"aura": 50.0,
-		"aura_max": 50.0,
+		"aura_max": 40.0,
 		"nivel_nen": 1,
 		"xp_nen": 0,
 		"nivel": 1,

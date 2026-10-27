@@ -60,7 +60,7 @@ func _ready() -> void:
 		nen_beast_system.setup(self)
 
 	# Configurar Câmera Suave e desacoplada
-	# Zoom 2.25 em 960×540: silhuetas maiores (1.5 ainda lia “longe demais”).
+	# Zoom 1.75 em 960×540 — meio-termo entre “longe” (1.5) e “colado” (2.25).
 	_camera = get_node_or_null("Camera2D") as Camera2D
 	if _camera == null:
 		_camera = Camera2D.new()
@@ -68,7 +68,7 @@ func _ready() -> void:
 		_camera.position_smoothing_enabled = true
 		_camera.position_smoothing_speed = 8.0
 		add_child(_camera)
-	definir_zoom_camera(Vector2(2.25, 2.25))
+	definir_zoom_camera(Vector2(1.75, 1.75))
 
 	if EventBus != null and not EventBus.camera_shake_requested.is_connected(_on_camera_shake_requested):
 		EventBus.camera_shake_requested.connect(_on_camera_shake_requested)
@@ -118,7 +118,7 @@ func definir_zoom_camera(zoom_val: Variant) -> void:
 		_camera = get_node_or_null("Camera2D") as Camera2D
 	if _camera == null:
 		return
-	var z := Vector2(2.25, 2.25)
+	var z := Vector2(1.75, 1.75)
 	if zoom_val is Vector2:
 		z = zoom_val as Vector2
 	elif typeof(zoom_val) == TYPE_FLOAT or typeof(zoom_val) == TYPE_INT:

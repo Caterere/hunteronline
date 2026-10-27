@@ -78,6 +78,9 @@ func _process(_delta: float) -> void:
 		_checar_presenca_aura()
 
 func _checar_presenca_aura() -> void:
+	# Sem Nen despertado = sem aura detectável (Exame pré-Wing) — passa limpo
+	if PlayerData != null and not PlayerData.despertou_nen:
+		return
 	# Evitar cast tipado (pode falhar com scripts instanciados via load().new() nos testes)
 	var nen_sys = jogador_dentro.get_node_or_null("NenSystem")
 	var em_zetsu := false

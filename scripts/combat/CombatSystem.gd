@@ -35,7 +35,7 @@ signal player_morreu()
 
 @export_category("Attack")
 
-@export var ataque_dano_base: int = 4
+@export var ataque_dano_base: int = 2
 @export var ataque_alcance: float = 35.0
 @export var ataque_cooldown: float = 0.35
 

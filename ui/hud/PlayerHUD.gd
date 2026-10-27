@@ -49,6 +49,8 @@ var lbl_aura_num: Label
 
 var bar_xp: ProgressBar
 var lbl_xp_num: Label
+var bar_xp_footer: ProgressBar = null
+var lbl_xp_footer: Label = null
 
 var lbl_nen_status: Label
 var lbl_beast_status: Label
@@ -91,6 +93,7 @@ func _ready() -> void:
 	add_to_group("player_hud")
 
 	_criar_card_jogador_top_left()
+	_criar_barra_xp_inferior()
 	_criar_boss_bar()
 	_criar_target_hud()
 	_criar_condition_tracker()
@@ -276,7 +279,7 @@ func _criar_card_jogador_top_left() -> void:
 	lbl_aura_num = aura_box.label
 
 	var xp_box := _criar_barra_framed(
-		"✦",
+		"XP",
 		HunterUIStyle.COLOR_XP_BAR,
 		"0/100"
 	)
@@ -291,6 +294,50 @@ func _criar_card_jogador_top_left() -> void:
 	hbox_conditions = HBoxContainer.new()
 	hbox_conditions.add_theme_constant_override("separation", 2)
 	root.add_child(hbox_conditions)
+
+
+## Faixa inferior larga: nível + XP atual/necessário + % até o próximo nível.
+func _criar_barra_xp_inferior() -> void:
+	var wrap := PanelContainer.new()
+	wrap.name = "XpFooterBar"
+	wrap.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	wrap.offset_left = -160.0
+	wrap.offset_right = 160.0
+	wrap.offset_top = -52.0
+	wrap.offset_bottom = -30.0
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 3))
+	add_child(wrap)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 1)
+	wrap.add_child(vbox)
+
+	lbl_xp_footer = Label.new()
+	lbl_xp_footer.name = "XpFooterLabel"
+	lbl_xp_footer.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl_xp_footer.text = "Nv.1  ·  XP 0/550  ·  0%"
+	HunterUIStyle.aplicar_fonte_pixel_bold(lbl_xp_footer, 7, Color(0.85, 1.0, 0.75))
+	lbl_xp_footer.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	lbl_xp_footer.add_theme_constant_override("outline_size", 2)
+	vbox.add_child(lbl_xp_footer)
+
+	bar_xp_footer = ProgressBar.new()
+	bar_xp_footer.custom_minimum_size = Vector2(300, 10)
+	bar_xp_footer.show_percentage = false
+	bar_xp_footer.min_value = 0
+	bar_xp_footer.max_value = 100
+	bar_xp_footer.value = 0
+	bar_xp_footer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var st_bg := StyleBoxFlat.new()
+	st_bg.bg_color = Color(0.08, 0.1, 0.08, 0.9)
+	st_bg.set_corner_radius_all(2)
+	bar_xp_footer.add_theme_stylebox_override("background", st_bg)
+	var st_fill := StyleBoxFlat.new()
+	st_fill.bg_color = HunterUIStyle.COLOR_XP_BAR
+	st_fill.set_corner_radius_all(2)
+	bar_xp_footer.add_theme_stylebox_override("fill", st_fill)
+	vbox.add_child(bar_xp_footer)
 
 
 func _criar_barra_framed(titulo: String, cor_fill: Color, texto_inicial: String) -> Dictionary:
@@ -937,11 +984,17 @@ func _atualizar_hp() -> void:
 
 func _atualizar_aura() -> void:
 	if bar_aura == null or lbl_aura_num == null: return
-	var aura: int = int(PlayerData.attributes.get("aura", 0))
-	var aura_max: int = int(PlayerData.attributes.get("aura_max", 100))
-	bar_aura.max_value = max(1, aura_max)
-	bar_aura.value = clamp(aura, 0, aura_max)
-	lbl_aura_num.text = "%s/%s" % [_formatar_numero(aura), _formatar_numero(aura_max)]
+	# Antes do Wing: sem pool de Nen — não mostrar milhares fantasma
+	if PlayerData != null and not PlayerData.despertou_nen and int(PlayerData.attributes.get("nivel_nen", 0)) <= 0:
+		bar_aura.max_value = 1
+		bar_aura.value = 0
+		lbl_aura_num.text = "—/—"
+	else:
+		var aura: int = int(PlayerData.attributes.get("aura", 0))
+		var aura_max: int = int(PlayerData.attributes.get("aura_max", 100))
+		bar_aura.max_value = max(1, aura_max)
+		bar_aura.value = clamp(aura, 0, aura_max)
+		lbl_aura_num.text = "%s/%s" % [_formatar_numero(aura), _formatar_numero(aura_max)]
 
 	var legacy_aura = get_node_or_null("MarginContainer/VBoxContainer/AuraBar") as ProgressBar
 	if legacy_aura != null:
@@ -964,14 +1017,33 @@ func _atualizar_xp() -> void:
 		xp_atual = int(PlayerData.attributes.get("xp", 0))
 		xp_nec = max(1, ProgressionConfig.calcular_xp_necessario(nivel))
 
+	var pct: float = 100.0
 	if nivel >= ProgressionConfig.MAX_LEVEL:
 		bar_xp.max_value = xp_nec
 		bar_xp.value = xp_nec
 		lbl_xp_num.text = "MAX"
+		pct = 100.0
 	else:
 		bar_xp.max_value = xp_nec
 		bar_xp.value = clamp(xp_atual, 0, xp_nec)
+		pct = clampf(100.0 * float(xp_atual) / float(maxi(1, xp_nec)), 0.0, 100.0)
 		lbl_xp_num.text = "%s/%s" % [_formatar_numero(xp_atual), _formatar_numero(xp_nec)]
+
+	if bar_xp_footer != null:
+		bar_xp_footer.max_value = maxi(1, xp_nec)
+		bar_xp_footer.value = xp_nec if nivel >= ProgressionConfig.MAX_LEVEL else clamp(xp_atual, 0, xp_nec)
+	if lbl_xp_footer != null:
+		if nivel >= ProgressionConfig.MAX_LEVEL:
+			lbl_xp_footer.text = "Nv.%d  ·  XP MAX" % nivel
+		else:
+			var falta: int = maxi(0, xp_nec - xp_atual)
+			lbl_xp_footer.text = "Nv.%d  ·  XP %s/%s  ·  %d%%  ·  falta %s" % [
+				nivel,
+				_formatar_numero(xp_atual),
+				_formatar_numero(xp_nec),
+				int(pct),
+				_formatar_numero(falta),
+			]
 
 	var legacy_xp = get_node_or_null("MarginContainer/VBoxContainer/XPBar") as ProgressBar
 	if legacy_xp != null:

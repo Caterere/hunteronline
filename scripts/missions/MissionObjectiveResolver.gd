@@ -309,11 +309,13 @@ static func enemy_matches_objective(enemy_id: String, enemy_name: String, node_n
 static func _resolve_lobby(cur_scn: Node, player: Node2D, result: Dictionary) -> Dictionary:
 	result["is_lobby"] = true
 	result["hud_title"] = "Guia da Cidade dos Caçadores"
-	var total_passos := 3
+	# Canon: Exame primeiro. Nen/Wing só na Arena (arco 3) — não bloqueia saída do Lobby.
+	var total_passos := 2
+	var arco_atual: int = int(PlayerData.arco_atual) if PlayerData != null else 1
 
 	if PlayerData == null or not PlayerData.tutorial_concluido:
 		result["lobby_step"] = 0
-		result["hud_objective"] = "👉 Passo 1/%d: Fale com a Recepcionista Elena\n⬜ Passo 2/%d: Desperte Nen com Mestre Wing\n⬜ Passo 3/%d: Saia pelo Portão Sul para a missão" % [total_passos, total_passos, total_passos]
+		result["hud_objective"] = "👉 Passo 1/%d: Fale com a Recepcionista Elena\n⬜ Passo 2/%d: Vá ao Exame (Guia / Portão)" % [total_passos, total_passos]
 		var elena = cur_scn.get_node_or_null("RecepcionistaElena")
 		if elena != null and elena is Node2D:
 			_apply_target(result, {
@@ -329,9 +331,10 @@ static func _resolve_lobby(cur_scn: Node, player: Node2D, result: Dictionary) ->
 		_fill_distance_suffix(result, player)
 		return result
 
-	if not PlayerData.despertou_nen:
+	# Arco 3+: se ainda não despertou Nen, GPS aponta Wing (Arena / Lobby norte)
+	if arco_atual >= 3 and not PlayerData.despertou_nen:
 		result["lobby_step"] = 1
-		result["hud_objective"] = "✅ Passo 1/%d: Treinamento com Elena\n👉 Passo 2/%d: Fale com Mestre Wing (Norte)\n⬜ Passo 3/%d: Saia pelo Portão Sul para a missão" % [total_passos, total_passos, total_passos]
+		result["hud_objective"] = "✅ Hub\n👉 Desperte Nen com Mestre Wing (Norte)\n⬜ Depois continue a missão"
 		var wing = cur_scn.get_node_or_null("Wing")
 		if wing == null:
 			wing = _find_node_by_name_tokens(cur_scn, ["wing", "mestre wing"])
@@ -343,14 +346,14 @@ static func _resolve_lobby(cur_scn: Node, player: Node2D, result: Dictionary) ->
 				"name": "Mestre Wing",
 				"type": "npc",
 			})
-		result["hud_action"] = "🥋 Vá ao Distrito dos Mestres e fale com Wing [E]"
-		result["gps_label"] = "👉 Passo 2/%d: Fale com Mestre Wing (Norte)" % total_passos
+		result["hud_action"] = "🥋 Fale com Wing para despertar Nen [E]"
+		result["gps_label"] = "👉 Desperte Nen com Mestre Wing"
 		result["gps_color"] = Color(0.35, 1.0, 0.55, 1.0)
 		_fill_distance_suffix(result, player)
 		return result
 
-	# Passo 3: se já há missão canônica, aponta saída para o mapa dela
-	result["lobby_step"] = 2
+	# Passo 2: missão canônica → Guia / Portão
+	result["lobby_step"] = 1
 	var focus := get_focus_quest()
 	if focus == null and QuestSystem != null:
 		QuestSystem.garantir_quest_do_arco(PlayerData.arco_atual)
@@ -367,9 +370,9 @@ static func _resolve_lobby(cur_scn: Node, player: Node2D, result: Dictionary) ->
 			result["objective"] = o
 			result["objective_index"] = pidx
 			result["total_objectives"] = focus.objectives.size()
-			result["hud_objective"] = "✅ Hub pronto\n👉 Missão: %s\n👉 Objetivo: %s\n👉 Vá ao Portão Sul / Mundo Exterior" % [focus.quest_name, o.describe()]
+			result["hud_objective"] = "✅ Hub pronto\n👉 Missão: %s\n👉 Objetivo: %s\n👉 Vá ao Guia / Portão" % [focus.quest_name, o.describe()]
 		else:
-			result["hud_objective"] = "✅ Hub pronto\n👉 Continue a história pelo Portão Sul"
+			result["hud_objective"] = "✅ Hub pronto\n👉 Continue a história pelo Guia / Portão"
 
 	# Saga hubs (Exame, Kukuroo, …) → Guia da História. NÃO Portão Sul/Estrada
 	# (isso gerava loop Lobby↔Estrada: exame fora do REGION_LINKS).
@@ -401,10 +404,10 @@ static func _resolve_lobby(cur_scn: Node, player: Node2D, result: Dictionary) ->
 
 	if usa_guia_historia and result.get("name", "").begins_with("Guia"):
 		result["hud_action"] = "🚩 Fale com o Guia da História para ir à missão atual"
-		result["gps_label"] = "👉 Passo 3/%d: [%s] — despacho da missão" % [total_passos, result.get("name", "Guia da História")]
+		result["gps_label"] = "👉 Passo %d/%d: [%s] — despacho da missão" % [total_passos, total_passos, result.get("name", "Guia da História")]
 	else:
 		result["hud_action"] = "⛩️ Saia pelo Portão Sul para cumprir o objetivo da missão"
-		result["gps_label"] = "👉 Passo 3/%d: Vá ao [%s]" % [total_passos, result.get("name", "Portão Sul")]
+		result["gps_label"] = "👉 Passo %d/%d: Vá ao [%s]" % [total_passos, total_passos, result.get("name", "Portão Sul")]
 	result["gps_color"] = Color(1.0, 0.85, 0.3, 1.0)
 	_fill_distance_suffix(result, player)
 	return result

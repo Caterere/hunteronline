@@ -289,19 +289,15 @@ func _densificar_zonas_exame() -> void:
 
 
 func _densificar_steam_early_exame() -> void:
+	# Sem HatsuMoment / pedra_aura no Exame — Nen/Hatsu são pós-Wing (Arena).
 	MidLateDensityKitScript.densify_profile(self, {
 		"saga_id": 0,
 		"companion": false,
 		"baus": [
 			{"name": "BauExameCorredor", "pos": Vector2(900, -30), "titulo": "Baú do Corredor",
-				"loot": [{"id": &"pedra_aura", "qtd": 1}]},
+				"loot": [{"id": &"erva_nen", "qtd": 2}]},
 		],
-		"hatsu_moments": [
-			{"name": "HatsuMomentExame", "pos": Vector2(2100, -20),
-				"titulo": "Respiração da Maratona",
-				"descricao": "O ritmo da corrida ensina o Hatsu a esperar a janela certa — não spam.",
-				"flag": "hatsu_moment_exame"},
-		],
+		"hatsu_moments": [],
 		"checkpoints": [
 			{"name": "CkptExameLargada", "pos": Vector2(480, -10), "id": "exame_largada", "titulo": "Largada"},
 		],
@@ -356,19 +352,26 @@ func _popular_sensores_nen_exame() -> void:
 		marca.requer_gyo = false
 		marca.nivel_gyo_minimo = 0
 
-	# Clues/zonas canônicas ORDEM (arcos 1) — sempre plantadas para GPS/auditoria.
-	NenSensorFactory.criar_gyo(
+	# Clues de missão do Exame: SEM exigir Gyo (Nen só após Wing / Arena).
+	# Texto canônico menciona aura, mas o objetivo é jogável sem despertar.
+	var alcapao = NenSensorFactory.criar_gyo(
 		self, "GyoAlcapaoTrickTower", Vector2(5550, -20),
 		&"alcapao_trick_tower", "Alçapão da Trick Tower",
-		"Fenda no piso do topo da torre. Gyo revela o mecanismo de descida dos prisioneiros.",
+		"Fenda no piso do topo da torre. Desça pelos prisioneiros — depois Wing ensinará Gyo de verdade.",
 		"Materialização", 1, Color(0.75, 0.55, 0.35, 0.9)
 	)
-	NenSensorFactory.criar_gyo(
+	if alcapao != null:
+		alcapao.requer_gyo = false
+		alcapao.nivel_gyo_minimo = 0
+	var vela = NenSensorFactory.criar_gyo(
 		self, "GyoVelaSedokan", Vector2(5680, -10),
 		&"vela_sedokan", "Vela de Sedokan",
-		"Resíduo de aura ígnea na disputa das velas. Blefe e calor — inspecione com Gyo.",
+		"Disputa das velas — blefe e calor. Inspecione a marca (Gyo virá com Wing).",
 		"Emissão", 1, Color(1.0, 0.45, 0.2, 0.9)
 	)
+	if vela != null:
+		vela.requer_gyo = false
+		vela.nivel_gyo_minimo = 0
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuZonaHisokaZevil", Vector2(5900, -20),
 		&"zona_hisoka_zevil", "Zona de Caça de Hisoka (Zevil)",
