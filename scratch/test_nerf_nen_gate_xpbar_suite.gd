@@ -69,4 +69,7 @@ func _exam_order_notes() -> void:
 	var i_dir := cat.find("Viagem Noturna no Dirigível")
 	var i_trick := cat.find("Trick Tower")
 	var i_zevil := cat.find("Ilha Zevil")
-	_assert(i_tunel < i_pant < i_gourmet < i_dir < i_trick < i_zevil, "ordem fases Exame alinhada ao manga")
+	_assert(
+		i_tunel >= 0 and i_pant > i_tunel and i_gourmet > i_pant and i_dir > i_gourmet and i_trick > i_dir and i_zevil > i_trick,
+		"ordem fases Exame alinhada ao manga"
+	)
