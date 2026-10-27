@@ -42,11 +42,21 @@ func _ready() -> void:
 		"always": ["BauNGLFronteira", "CompanionChatter"],
 		"nen_on": ["GyoFabricaD2", "HatsuMomentNGL", "CkptNGLPalacio"],
 	})
+	await _test_map_density("Associacao", "res://world/maps/AssociacaoHunterMap.gd", {
+		"always": ["BauAssocAuditorio", "CompanionChatter", "CkptAssocEleicao"],
+		"nen_on": ["HatsuMomentAssoc"],
+	})
+	await _test_map_density("Continente", "res://world/maps/ContinenteNegroMap.gd", {
+		"always": ["BauCNAcampamento", "CompanionChatter", "CkptCNAcampamento"],
+		"nen_on": ["HatsuMomentCN"],
+	})
 	await _test_map_density("BlackWhale", "res://world/maps/BlackWhale1Map.gd", {
 		"always": ["BauBWConves", "CompanionChatter", "ZetsuCorredorConves3"],
 		"nen_on": ["GyoPrimeiroAssassinato", "KoPortaCegada", "HatsuMomentBW", "GyoConves1"],
 	})
 	_test_tower_training_button()
+	_test_polish_sinks_and_audio_apis()
+	_test_checkpoint_assoc_cn()
 	print("\n================================================================================")
 	print("🏆 RESULTADO: %d / %d" % [_passed, _total])
 	if not _failures.is_empty():
@@ -136,3 +146,40 @@ func _test_tower_training_button() -> void:
 	_ok("_on_training_wing_pressed" in src, "botão Training Wing na tower UI")
 	var arena := FileAccess.get_file_as_string("res://world/maps/ArenaCelestialMap.gd")
 	_ok("TrainingWingRespiro" in arena, "nó TrainingWingRespiro no mapa")
+
+
+func _test_polish_sinks_and_audio_apis() -> void:
+	print("\n[Polish] sinks + áudio APIs...")
+	_ok(Economy.has_method("aplicar_multa"), "Economy.aplicar_multa sink")
+	_ok(Economy.has_method("custo_sink_hatsu") and Economy.custo_sink_hatsu() == 5000, "sink Hatsu 5k")
+	_ok(Economy.custo_sink_blacksmith_base() >= 100, "sink blacksmith base")
+	_ok(Economy.custo_sink_gourmet_min() >= 30, "sink gourmet min")
+	var HatsuConfigScript = load("res://scripts/systems/hatsu/HatsuConfig.gd")
+	_ok(HatsuConfigScript != null and HatsuConfigScript.HATSU_CREATION_JENNY_COST == 5000, "HatsuConfig 5k alinhado")
+	var am_src := FileAccess.get_file_as_string("res://autoload/AudioManager.gd")
+	_ok("func tocar_stinger_reward" in am_src, "AudioManager.tocar_stinger_reward")
+	_ok("func tocar_bark_mentor" in am_src, "AudioManager.tocar_bark_mentor")
+	_ok("func crossfade_story_gate" in am_src, "AudioManager.crossfade_story_gate")
+	var st_src := FileAccess.get_file_as_string("res://scripts/systems/skill_tree/SkillTreeDatabase.gd")
+	_ok("cluster_identity" in st_src, "SkillTree cluster_identity tags")
+
+
+func _test_checkpoint_assoc_cn() -> void:
+	print("\n[Ckpt] Associação + Continente...")
+	var p_a = CheckpointCutsceneLibraryScript.obter_passos(&"associacao_eleicao")
+	_ok(p_a.size() >= 5, "associacao_eleicao passos")
+	var has_bgm := false
+	for step in p_a:
+		if str(step.get("type", "")) == "41" or int(step.get("type", -1)) == 41:
+			has_bgm = true
+		# StepType.AUDIO_BGM enum value — also accept string key via bgm field presence
+		if step.has("bgm"):
+			has_bgm = true
+	_ok(has_bgm, "associacao_eleicao tem AUDIO_BGM crossfade")
+	var p_c = CheckpointCutsceneLibraryScript.obter_passos(&"continente_acampamento")
+	_ok(p_c.size() >= 5, "continente_acampamento passos")
+	var has_bgm_c := false
+	for step in p_c:
+		if step.has("bgm"):
+			has_bgm_c = true
+	_ok(has_bgm_c, "continente_acampamento tem AUDIO_BGM crossfade")

@@ -1278,11 +1278,12 @@ func _set_animation_direction(direction: Vector2) -> void:
 	if sprite != null and sprite.hframes == 8:
 		var angle_deg: float = rad_to_deg(direction.angle())
 		var dir_frame: int = posmod(int(round((90.0 - angle_deg) / 45.0)), 8)
+		var max_frame: int = maxi(0, sprite.hframes * maxi(1, sprite.vframes) - 1)
 		if sprite.vframes == 8:
 			var walk_f: int = int(Time.get_ticks_msec() / 90) % 8
-			sprite.frame = dir_frame * 8 + walk_f
+			sprite.frame = clampi(dir_frame * 8 + walk_f, 0, max_frame)
 		else:
-			sprite.frame = dir_frame
+			sprite.frame = clampi(dir_frame, 0, max_frame)
 		sprite.flip_h = false
 		return
 

@@ -17,7 +17,8 @@
 - [ ] **G5** Playtest humano Exame→Ruínas gravado — **ainda P0 humano**
   - Agent 2026-10-05: lobby live HUD História%/Atividades OK; suite rota 34/34;
     Estrada/Floresta/Ruínas carregados visualmente. Transição portal via automação flaky
-    (chat/pause roubam input). **Luiz ainda precisa gravar o G5 perceptivo.**
+    (chat/pause roubam input) — **mitigado**: chat `MOUSE_FILTER_IGNORE` fechado +
+    LineEdit `FOCUS_NONE`. **Luiz ainda precisa gravar o G5 perceptivo.**
 
 ---
 

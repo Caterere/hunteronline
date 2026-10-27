@@ -74,6 +74,9 @@ static func _abrir_bau(bau_node: Node, titulo: String, loot: Array) -> void:
 			PlayerData.adicionar_item(id, qtd)
 			partes.append("%dx %s" % [qtd, str(id)])
 	var resumo := ", ".join(partes) if not partes.is_empty() else "nada"
+	var am = Engine.get_main_loop().root.get_node_or_null("/root/AudioManager") if Engine.get_main_loop() else null
+	if am != null and am.has_method("tocar_stinger_reward"):
+		am.tocar_stinger_reward("chest")
 	if EventBus != null:
 		EventBus.emit_toast("✨ %s: %s" % [titulo, resumo], Color(0.35, 1.0, 0.55))
 	var tree := bau_node.get_tree()
@@ -136,6 +139,9 @@ static func _ativar_hatsu_moment(area: Node, titulo: String, descricao: String, 
 		StoryManager.set_story_flag(flag, true)
 	if PlayerData != null:
 		PlayerData.attributes["hatsu_mastery"] = int(PlayerData.attributes.get("hatsu_mastery", 0)) + 10
+	var am = Engine.get_main_loop().root.get_node_or_null("/root/AudioManager") if Engine.get_main_loop() else null
+	if am != null and am.has_method("tocar_stinger_reward"):
+		am.tocar_stinger_reward("hatsu")
 	if EventBus != null:
 		EventBus.emit_toast("⚡ Momento Hatsu: %s — +10 mastery" % titulo, Color(0.85, 0.55, 1.0))
 	var tree := area.get_tree() if area != null else null

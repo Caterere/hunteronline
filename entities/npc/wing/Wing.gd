@@ -22,6 +22,9 @@ func _ready() -> void:
 
 func _on_interacted(_player: CharacterBody2D) -> void:
 	print("[Wing] Interagindo com Mestre Wing...")
+	var am = get_node_or_null("/root/AudioManager")
+	if am != null and am.has_method("tocar_bark_mentor"):
+		am.tocar_bark_mentor("wing")
 	if QuestSystem != null and QuestSystem.has_method("register_npc_visit"):
 		QuestSystem.register_npc_visit(&"wing")
 

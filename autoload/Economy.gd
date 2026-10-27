@@ -413,6 +413,33 @@ func remover_gold(quantidade: int) -> bool:
 	return true
 
 
+## Multa / sink social (facção, wipe leve, pedágio) — Steam §6.6
+func aplicar_multa(quantidade: int, motivo: String = "") -> bool:
+	var q: int = maxi(0, quantidade)
+	if q <= 0:
+		return false
+	var ok := remover_gold(q)
+	if ok and EventBus != null:
+		var msg := "💸 Multa: -%d Jenny" % q
+		if not motivo.is_empty():
+			msg += " (%s)" % motivo
+		EventBus.emit_toast(msg, Color(1.0, 0.55, 0.35))
+	return ok
+
+
+## Custos canônicos de sink (para UI/suites — não reinventar knobs)
+func custo_sink_hatsu() -> int:
+	return 5000
+
+
+func custo_sink_blacksmith_base() -> int:
+	return 100
+
+
+func custo_sink_gourmet_min() -> int:
+	return 30
+
+
 func gastar_gold(quantidade: int) -> bool:
 	return remover_gold(quantidade)
 

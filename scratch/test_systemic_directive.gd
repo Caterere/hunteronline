@@ -218,13 +218,13 @@ func _testar_pilar_3_npc_dialogos_contextuais() -> void:
 	var fala_ferido = npc.obter_fala_contextual(player_scn)
 	assert_true("ferido" in fala_ferido.to_lower() or "sangrando" in fala_ferido.to_lower(), "NPC reage contextualmente quando o jogador está gravemente ferido")
 
-	# 3. Reação a Ren
+	# 3. Reação a Gyo (ativas: Zetsu/Gyo/En — Ren é passiva na Skill Tree)
 	PlayerData.attributes["vida"] = 100
-	var ren_ok = nen_sys.ativar_tecnica(NenSystem.Tecnica.REN)
-	assert_true(ren_ok, "Ren ativado com sucesso para teste de diálogo")
-	var fala_ren = npc.obter_fala_contextual(player_scn)
-	assert_true("pressão" in fala_ren.to_lower() or "aura" in fala_ren.to_lower(), "NPC reconhece e comenta sobre a pressão de Ren ativa no jogador")
-	nen_sys.desativar_tecnica(NenSystem.Tecnica.REN)
+	var gyo_ok = nen_sys.ativar_tecnica(NenSystem.Tecnica.GYO)
+	assert_true(gyo_ok, "Gyo ativado com sucesso para teste de diálogo")
+	var fala_gyo = npc.obter_fala_contextual(player_scn)
+	assert_true("gyo" in fala_gyo.to_lower() or "olhos" in fala_gyo.to_lower() or "focado" in fala_gyo.to_lower(), "NPC reconhece Gyo ativo no jogador")
+	nen_sys.desativar_tecnica(NenSystem.Tecnica.GYO)
 
 	# 4. Reação a Zetsu
 	var zetsu_ok = nen_sys.ativar_tecnica(NenSystem.Tecnica.ZETSU)
@@ -240,28 +240,30 @@ func _testar_pilar_3_npc_dialogos_contextuais() -> void:
 func _testar_pilar_4_powerscale_e_balanceamento() -> void:
 	print("\n--- [PILAR 4: POWER SCALE & BALANCEAMENTO DE NÚMEROS] ---")
 
-	# 1. Tiers por Nível
+	# 1. Tiers por Nível (cap 1000 — alinhado a ProgressionConfig)
 	assert_true(PowerScale.obter_tier_por_nivel(5) == PowerScale.Tier.HUMANO, "Nível 5 mapeado para Tier.HUMANO")
-	assert_true(PowerScale.obter_tier_por_nivel(50) == PowerScale.Tier.USUARIO_NEN, "Nível 50 mapeado para Tier.USUARIO_NEN")
-	assert_true(PowerScale.obter_tier_por_nivel(99) == PowerScale.Tier.ENDGAME, "Nível 99 mapeado para Tier.ENDGAME")
+	assert_true(PowerScale.obter_tier_por_nivel(50) == PowerScale.Tier.HUMANO, "Nível 50 mapeado para Tier.HUMANO (≤80)")
+	assert_true(PowerScale.obter_tier_por_nivel(150) == PowerScale.Tier.HUNTER_INICIANTE, "Nível 150 mapeado para Tier.HUNTER_INICIANTE")
+	assert_true(PowerScale.obter_tier_por_nivel(450) == PowerScale.Tier.USUARIO_NEN, "Nível 450 mapeado para Tier.USUARIO_NEN")
+	assert_true(PowerScale.obter_tier_por_nivel(950) == PowerScale.Tier.ENDGAME, "Nível 950 mapeado para Tier.ENDGAME")
 
-	# 2. Curva de Defesa Adaptativa (K_tier)
-	var fat_def_inicio = PowerScale.calcular_fator_defensivo(5.0, PowerScale.Tier.HUMANO)
-	assert_true(is_equal_approx(fat_def_inicio, 0.50), "Defesa 5 no Tier 0 (K=5) resulta em 50% de redução")
+	# 2. Curva de Defesa Adaptativa (K_tier = defesa_ref)
+	var fat_def_inicio = PowerScale.calcular_fator_defensivo(10.0, PowerScale.Tier.HUMANO)
+	assert_true(is_equal_approx(fat_def_inicio, 0.50), "Defesa 10 no Tier HUMANO (K=10) resulta em 50% de redução")
 
-	var fat_def_endgame = PowerScale.calcular_fator_defensivo(1500000.0, PowerScale.Tier.ENDGAME)
-	assert_true(is_equal_approx(fat_def_endgame, 0.50), "Defesa 1.5M no Tier 6 (K=1.5M) resulta em 50% de redução sem quebrar fórmulas")
+	var fat_def_endgame = PowerScale.calcular_fator_defensivo(5000.0, PowerScale.Tier.ENDGAME)
+	assert_true(is_equal_approx(fat_def_endgame, 0.50), "Defesa 5k no Tier ENDGAME (K=5k) resulta em 50% de redução sem quebrar fórmulas")
 
 	# 3. Escalonamento Dinâmico de Hatsu
 	var dano_hatsu_inicio = PowerScale.calcular_dano_hatsu(10.0, 100.0, 1.4, 0.4, 0.6)
 	assert_true(dano_hatsu_inicio > 0.0, "Dano de Hatsu inicial calculado dinamicamente: %.1f" % dano_hatsu_inicio)
 
-	var dano_hatsu_endgame = PowerScale.calcular_dano_hatsu(2500000.0, 500000000.0, 1.4, 0.4, 0.6)
-	assert_true(dano_hatsu_endgame > 100000000.0, "Dano de Hatsu endgame atinge escala colossal de dezenas de milhões: %.1f" % dano_hatsu_endgame)
+	var dano_hatsu_endgame = PowerScale.calcular_dano_hatsu(5000.0, 1500000.0, 1.4, 0.4, 0.6)
+	assert_true(dano_hatsu_endgame > 100000.0, "Dano de Hatsu endgame atinge escala alta: %.1f" % dano_hatsu_endgame)
 
-	# 4. Cálculo de TTK
+	# 4. Cálculo de TTK (dps_esperado USUARIO_NEN = 1800 → 10s = 18000 HP)
 	var hp_inimigo_10s = PowerScale.calcular_hp_por_ttk(PowerScale.Tier.USUARIO_NEN, 10.0)
-	assert_true(hp_inimigo_10s == 35000, "HP para TTK de 10s no Tier 3 calculado exatamente como 35.000 HP")
+	assert_true(hp_inimigo_10s == 18000, "HP para TTK de 10s no Tier USUARIO_NEN = 18.000 HP")
 
 	# 5. Formatação de Números
 	assert_true(PowerScale.formatar_numero(50000000.0) == "50.0M", "Formatação de 50.000.000 exibe '50.0M'")
