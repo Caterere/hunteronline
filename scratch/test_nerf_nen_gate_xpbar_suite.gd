@@ -58,7 +58,10 @@ func _xp_bar() -> void:
 	_assert("_criar_barra_xp_inferior" in hud, "barra XP inferior")
 	_assert("XpFooterBar" in hud, "XpFooterBar nome")
 	_assert("falta" in hud, "label mostra XP que falta")
-	_assert('"XP"' in hud, "ícone XP no card")
+	_assert("Vector2(270, 8)" in hud, "footer XP ~10% mais curta / ~15% mais baixa")
+	_assert("offset_left = -144.0" in hud, "footer comprimento -10%")
+	_assert("var xp_box := _criar_barra_framed" not in hud, "sem XP framed no card")
+	_assert("XP ornamentada do card removida" in hud, "XP só no footer")
 
 func _exam_order_notes() -> void:
 	# Ordem manga: túnel→pantanal→gourmet→dirigível→trick→zevil — já no catálogo
