@@ -42,20 +42,20 @@ func _test_hud_scale() -> void:
 func _test_zoom() -> void:
 	var src := FileAccess.get_file_as_string("res://entities/Player/Player.gd")
 	_assert("definir_zoom_camera" in src, "Player.definir_zoom_camera")
-	_assert("2.25" in src, "zoom default 2.25")
+	_assert("1.75" in src, "zoom default 1.75")
 	var tscn := FileAccess.get_file_as_string("res://entities/Player/Player.tscn")
-	_assert("Vector2(2.25, 2.25)" in tscn, "Player.tscn Camera2D zoom 2.25")
+	_assert("Vector2(1.75, 1.75)" in tscn, "Player.tscn Camera2D zoom 1.75")
 
 
 func _test_balance() -> void:
 	# Flat damage baixo + força — early não melt
 	var ce := FileAccess.get_file_as_string("res://autoload/CombatEngine.gd")
-	_assert("var dano_base: float = 4.0" in ce, "CombatEngine dano_base 4")
+	_assert("var dano_base: float = 2.0" in ce, "CombatEngine dano_base 2")
 	var cs := FileAccess.get_file_as_string("res://scripts/combat/CombatSystem.gd")
-	_assert("ataque_dano_base: int = 4" in cs, "CombatSystem ataque_dano_base 4")
+	_assert("ataque_dano_base: int = 2" in cs, "CombatSystem ataque_dano_base 2")
 	# Lv1: flat 4 + forca 5 → ~9 vs defesa 0 (antes flat 10 meltava)
-	var dmg := CombatEngine.calcular_dano({"forca": 5.0, "dano_base": 4.0}, {"defesa": 0.0})
-	_assert(dmg >= 7 and dmg <= 12, "dano early flat+forca na faixa ~9 (got %d)" % dmg)
+	var dmg := CombatEngine.calcular_dano({"forca": 4.0, "dano_base": 2.0}, {"defesa": 0.0})
+	_assert(dmg >= 4 and dmg <= 9, "dano early flat+forca na faixa ~6 (got %d)" % dmg)
 	var dmg_old_style := 10 + 5
 	_assert(dmg < dmg_old_style, "novo escalonamento < antigo flat10+forca5")
 	var forca := float(PlayerData.attributes.get("forca", 5))

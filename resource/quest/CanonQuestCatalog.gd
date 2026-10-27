@@ -82,7 +82,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				4:
 					q.quest_name = "Exame Hunter 4/24: Os Sabotadores de Novatos"
-					q.description = "ORDEM: Derrote 2 sabotadores (GPS). Espaço de combate. [G] na marca no chão se precisar."
+					q.description = "ORDEM: Derrote 2 sabotadores (GPS). Espaço de combate. Marca no chão ajuda a leitura."
 					q.reward_xp = 550
 					q.reward_gold = 1500
 					q.objectives = [_criar_obj_kill(&"candidato_exame", 2)]
@@ -103,7 +103,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				7:
 					q.quest_name = "Exame Hunter 7/24: O Macaco Farsante"
-					q.description = "ORDEM: [G]/[Investigar] a farsa do macaco ferido. Sem acreditar no blefe."
+					q.description = "ORDEM: Investigue a farsa do macaco ferido. Sem acreditar no blefe."
 					q.reward_xp = 750
 					q.reward_gold = 2200
 					q.objectives = [_criar_obj_investigate(&"farsa_macaco")]
@@ -138,7 +138,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				12:
 					q.quest_name = "Exame Hunter 12/24: A Caçada ao Great Stamp Pig"
-					q.description = "ORDEM: Rastreie e derrote o Great Stamp Pig (GPS). Espaço pra Hatsu."
+					q.description = "ORDEM: Rastreie e derrote o Great Stamp Pig (GPS). Combate lento — sem rush."
 					q.reward_xp = 1300
 					q.reward_gold = 5000
 					q.objectives = [_criar_obj_kill(&"great_stamp_pig", 1)]
@@ -166,7 +166,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				16:
 					q.quest_name = "Exame Hunter 16/24: O Topo da Trick Tower"
-					q.description = "ORDEM: No topo da torre, use [G] Gyo no alçapão secreto e desça."
+					q.description = "ORDEM: No topo da torre, encontre o alçapão secreto e desça. (Gyo vem depois, com Wing.)"
 					q.reward_xp = 1700
 					q.reward_gold = 7000
 					q.objectives = [_criar_obj_investigate(&"alcapao_trick_tower")]
@@ -1889,7 +1889,7 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 static func escalar_xp_narrativo(arco: int, xp_bruto: int) -> int:
 	var fator: float = 1.0
 	match arco:
-		1: fator = 0.70   # Exam — leve freio
+		1: fator = 0.35   # Exam — freio forte (evita lv15+ no arco 1)
 		2: fator = 0.45   # Kukuroo
 		3: fator = 0.28   # Arena Celestial
 		4: fator = 0.16   # Yorknew

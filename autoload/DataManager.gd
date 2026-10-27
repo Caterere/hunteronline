@@ -218,7 +218,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"hp": 130,
 			"def": 4,
 			"str": 10,
-			"xp": 35,
+			"xp": 18,
 			"role": "bruiser",
 			"drops": [{"item_id": "gosma_slime", "chance": 0.85, "quantidade": 1}]
 		},
@@ -240,7 +240,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"hp": 110,
 			"def": 3,
 			"str": 9,
-			"xp": 30,
+			"xp": 15,
 			"role": "fast",
 			"drops": [{"item_id": "gosma_slime", "chance": 0.5, "quantidade": 1}]
 		},
@@ -251,7 +251,7 @@ func _inicializar_bestiario_rpg_base() -> void:
 			"hp": 145,
 			"def": 5,
 			"str": 15,
-			"xp": 50,
+			"xp": 25,
 			"role": "fast",
 			"drops": [{"item_id": "couro_lobo", "chance": 0.8, "quantidade": 1}, {"item_id": "carne_javali", "chance": 0.3, "quantidade": 1}]
 		},

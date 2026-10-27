@@ -32,19 +32,20 @@ const BASE_LEVEL: int = 1
 # para o early-game não ficar trivial demais.
 const BASE_STATS: Dictionary = {
 	"vida_max": 50.0,
-	"forca": 5.0,
+	"forca": 4.0,
 	"defesa": 5.0,
 	"velocidade": 5.0,
-	"aura_max": 50.0
+	"aura_max": 40.0
 }
 
 # Metas no Nível 1000 (Ápice Absoluto / Endgame Supremo)
+# aura_max target ↓: curva antiga explodia cedo (lv9 ≈ 17k). Agora cresce no late.
 const TARGET_STATS_LEVEL_1000: Dictionary = {
-	"vida_max": 50000.0,
-	"forca": 5000.0,
-	"defesa": 5000.0,
-	"velocidade": 160.0,
-	"aura_max": 1500000.0
+	"vida_max": 45000.0,
+	"forca": 4200.0,
+	"defesa": 4500.0,
+	"velocidade": 150.0,
+	"aura_max": 800000.0
 }
 
 # ------------------------------------------------------------
@@ -75,20 +76,20 @@ const SECONDARY_STAT_DEFAULTS: Dictionary = {
 # Expoentes de Curva de Crescimento (Power-Law)
 # p < 1.0 garante crescimento sublinear controlado sem explosão
 const STAT_EXPONENTS: Dictionary = {
-	"vida_max": 0.90,
-	"forca": 0.95,
-	"defesa": 0.95,
-	"velocidade": 0.65,
-	"aura_max": 0.92
+	"vida_max": 0.95,
+	"forca": 1.05,
+	"defesa": 1.00,
+	"velocidade": 0.70,
+	# Expoente alto = aura quase flat no early (lv9 ≈ 80–150 pós-Wing), explode no late
+	"aura_max": 2.05
 }
 
 # ------------------------------------------------------------
 # 3. CURVA DE XP
 # ------------------------------------------------------------
-# Curva mais exigente no early-game: a história principal guia o nível;
-# missões paralelas / conteúdo futuro empurram até o teto 1000.
-const XP_BASE: int = 400
-const XP_GROWTH: float = 1.65
+# Early mais exigente: Exame inteiro ~lv 6–10, não lv 15–25.
+const XP_BASE: int = 550
+const XP_GROWTH: float = 1.82
 
 # ------------------------------------------------------------
 # 4. MARCOS DE NÍVEL (MILESTONES CANÔNICOS)
@@ -111,15 +112,15 @@ enum Bracket {
 # XP acima do soft-max da saga atual é fortemente amortecido.
 # ------------------------------------------------------------
 const SAGA_LEVEL_RANGES: Dictionary = {
-	1: Vector2i(1, 25),      # 287º Exame Hunter
-	2: Vector2i(20, 40),     # Montanha Kukuroo
-	3: Vector2i(35, 60),     # Arena Celestial (+ descoberta Nen)
-	4: Vector2i(55, 85),     # Yorknew City & Trupe Fantasma
-	5: Vector2i(75, 130),    # Greed Island (+ Hatsu / princípios)
-	6: Vector2i(120, 230),   # Formigas Chimera
-	7: Vector2i(200, 280),   # Eleição Hunter & Alluka
-	8: Vector2i(250, 320),   # Continente Negro Expedição
-	9: Vector2i(300, 350)    # Guerra de Sucessão Kakin (teto história atual)
+	1: Vector2i(1, 10),      # 287º Exame Hunter (soft-cap cedo)
+	2: Vector2i(8, 18),      # Montanha Kukuroo
+	3: Vector2i(15, 35),     # Arena Celestial (+ descoberta Nen)
+	4: Vector2i(30, 55),     # Yorknew City & Trupe Fantasma
+	5: Vector2i(50, 90),     # Greed Island (+ Hatsu / princípios)
+	6: Vector2i(80, 160),    # Formigas Chimera
+	7: Vector2i(140, 220),   # Eleição Hunter & Alluka
+	8: Vector2i(200, 280),   # Continente Negro Expedição
+	9: Vector2i(250, 350)    # Guerra de Sucessão Kakin (teto história atual)
 }
 
 

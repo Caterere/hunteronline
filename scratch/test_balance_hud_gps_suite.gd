@@ -36,12 +36,12 @@ func _ready() -> void:
 func _test_base_stats_halved() -> void:
 	print("-- BASE_STATS --")
 	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["vida_max"]), 50.0), "vida_max base = 50")
-	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["forca"]), 5.0), "forca base = 5")
+	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["forca"]), 4.0), "forca base = 4")
 	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["defesa"]), 5.0), "defesa base = 5")
 	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["velocidade"]), 5.0), "velocidade base = 5")
 	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["aura_max"]), 50.0), "aura_max base = 50")
 	assert_test(is_equal_approx(ProgressionConfig.calcular_stat_base("vida_max", 1), 50.0), "calcular_stat_base lvl1 vida=50")
-	assert_test(is_equal_approx(ProgressionConfig.calcular_stat_base("forca", 1), 5.0), "calcular_stat_base lvl1 forca=5")
+	assert_test(is_equal_approx(ProgressionConfig.calcular_stat_base("forca", 1), 4.0), "calcular_stat_base lvl1 forca=4")
 	assert_test(is_equal_approx(ProgressionConfig.calcular_stat_base("vida_max", 1000), 50000.0), "lvl1000 vida ainda 50000")
 
 
@@ -56,7 +56,7 @@ func _test_playerdata_reset_mirrors_base() -> void:
 	PlayerData.attributes["nivel"] = 1
 	PlayerData.recalcular_todos_atributos()
 	assert_test(int(PlayerData.attributes["vida_max"]) == 50, "PlayerData vida_max lvl1 = 50")
-	assert_test(int(PlayerData.attributes["forca"]) == 5, "PlayerData forca lvl1 = 5")
+	assert_test(int(PlayerData.attributes["forca"]) == 4, "PlayerData forca lvl1 = 4")
 	await get_tree().process_frame
 
 
