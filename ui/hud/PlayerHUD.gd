@@ -299,8 +299,9 @@ func _criar_barra_xp_inferior() -> void:
 	wrap.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	wrap.offset_left = -144.0
 	wrap.offset_right = 144.0
-	wrap.offset_top = -46.0
-	wrap.offset_bottom = -28.0
+	# Acima do hotbar de Hatsus (slots em ~-34…-6) — gap ~16px
+	wrap.offset_top = -68.0
+	wrap.offset_bottom = -50.0
 	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wrap.add_theme_stylebox_override("panel", HunterUIStyle.criar_style_glass_panel(HunterUIStyle.COLOR_GLASS_BORDER, 2))
 	add_child(wrap)

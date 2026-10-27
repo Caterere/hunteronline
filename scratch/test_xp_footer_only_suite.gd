@@ -9,7 +9,7 @@ func _ready() -> void:
 	_assert("var xp_box := _criar_barra_framed" not in src, "card sem barra XP ornamentada")
 	_assert("XpFooterBar" in src, "footer presente")
 	_assert("offset_left = -144.0" in src and "offset_right = 144.0" in src, "comprimento -10% (±144)")
-	_assert("offset_top = -46.0" in src and "offset_bottom = -28.0" in src, "altura wrap -15%")
+	_assert("offset_top = -68.0" in src and "offset_bottom = -50.0" in src, "footer acima do hotbar Hatsu")
 	_assert("Vector2(270, 8)" in src, "fill 270×8 (-10% / -15%)")
 
 	var hud_scene: PackedScene = load("res://ui/hud/HUD.tscn")
@@ -27,6 +27,7 @@ func _ready() -> void:
 			var h: float = footer.offset_bottom - footer.offset_top
 			_assert(is_equal_approx(w, 288.0), "footer width 288 (got %.0f)" % w)
 			_assert(is_equal_approx(h, 18.0), "footer height 18 (got %.0f)" % h)
+			_assert(footer.offset_bottom <= -48.0, "footer acima dos slots Hatsu (bottom %.0f)" % footer.offset_bottom)
 		hud.queue_free()
 
 	print("Resultado: %d/%d | falhas %d" % [_ok, _ok + _fail, _fail])
