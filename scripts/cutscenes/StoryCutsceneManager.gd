@@ -28,7 +28,7 @@ static func executar_maratona_hunter(tree: SceneTree, gon: NPC, killua: NPC, leo
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
 		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.35},
-		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "departure"},
+		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "hashire"},
 		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss (Nº 405)", "text": "Oi! Eu sou o Gon da Ilha da Baleia! Estou fazendo o Exame Hunter para descobrir por que meu pai, o Ging, escolheu ser Hunter acima de tudo!"},
 		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Killua Zoldyck (Nº 99)", "text": "Ei, skate não é trapaça! O examinador só mandou segui-lo. Eu sou o Killua... Fugir da minha família de assassinos parecia divertido, mas até agora tá bem fácil."},
 		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Leorio Paradinight (Nº 403)", "text": "Ufa... argh... calem a boca, seus moleques cheios de energia! Eu sou o Leorio! Se eu virar Hunter, vou ter dinheiro pra pagar a faculdade de medicina e tratar os doentes de graça!"},

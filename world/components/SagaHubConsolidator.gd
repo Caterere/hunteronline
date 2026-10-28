@@ -18,6 +18,23 @@ static func densify_hub(mapa: Node2D, config: Dictionary) -> void:
 	_ensure_bosses(mapa, config.get("bosses", []))
 	if bool(config.get("sync_quests", true)) and QuestSystem != null and QuestSystem.has_method("sincronizar_inimigos_do_mapa"):
 		QuestSystem.sincronizar_inimigos_do_mapa(mapa)
+	_ensure_saga_ost(mapa, config)
+
+
+static func _ensure_saga_ost(mapa: Node2D, config: Dictionary) -> void:
+	if AudioManager == null:
+		return
+	var saga_id: int = int(config.get("saga_id", 0))
+	if saga_id >= 1 and AudioManager.has_method("tocar_musica_arco"):
+		AudioManager.tocar_musica_arco(saga_id)
+		return
+	var path := str(mapa.scene_file_path)
+	if path.is_empty() and mapa.get_tree() != null and mapa.get_tree().current_scene != null:
+		path = str(mapa.get_tree().current_scene.scene_file_path)
+	if AudioManager.has_method("garantir_musica_cena"):
+		AudioManager.garantir_musica_cena(path)
+	elif AudioManager.has_method("tocar_musica_por_cena"):
+		AudioManager.tocar_musica_por_cena(path)
 
 
 static func densify_zone(mapa: Node2D, zone_title: String, ambient: Array, bosses: Array = []) -> void:
@@ -131,6 +148,12 @@ static func _ensure_bosses(mapa: Node2D, bosses: Array) -> void:
 
 
 static func config_for_saga(saga_id: int) -> Dictionary:
+	var cfg: Dictionary = _config_for_saga_body(saga_id)
+	cfg["saga_id"] = saga_id
+	return cfg
+
+
+static func _config_for_saga_body(saga_id: int) -> Dictionary:
 	match saga_id:
 		1:
 			return {

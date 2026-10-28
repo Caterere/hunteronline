@@ -153,6 +153,19 @@ const TRACKS: Dictionary = {
 	}
 }
 
+## Aliases legados / IDs usados em cutscenes e mapas Padokia que não existem em TRACKS.
+const TRACK_ALIASES: Dictionary = {
+	"departure": "hashire",
+	"hunting_for_your_dream": "no_no_haru",
+	"world_adventure": "the_world_of_adventurers",
+	"world_adventurers": "the_world_of_adventurers",
+	"dungeon_theme": "dirge_from_dark_side",
+	"dungeon_ruins": "dirge_from_dark_side",
+	"training_theme": "auras",
+	"town_peace": "kujirato_yori",
+	"forest_theme": "no_no_haru",
+}
+
 # Músicas calmas e nostálgicas do início do anime para o Lobby e Hub Central
 const LOBBY_TRACKS: Array[String] = [
 	"the_world_of_adventurers",
@@ -188,7 +201,13 @@ const SCENE_TRACKS: Dictionary = {
 	"res://world/maps/ngl_formigas.tscn": "kingdom_of_predators",
 	"res://world/maps/associacao_hunter.tscn": "scariness",
 	"res://world/maps/continente_negro.tscn": "concentration",
-	"res://world/maps/black_whale_1.tscn": "the_last_mission"
+	"res://world/maps/black_whale_1.tscn": "the_last_mission",
+	# Mapas satélite / Padokia / dirigível
+	"res://world/maps/dirigivel_hunter.tscn": "the_world_of_adventurers",
+	"res://world/maps/estrada_padokia.tscn": "the_world_of_adventurers",
+	"res://world/maps/floresta_vestigios.tscn": "no_no_haru",
+	"res://world/maps/regiao_vale_padokia.tscn": "no_no_haru",
+	"res://world/maps/dungeon_ruinas_zaban.tscn": "dirge_from_dark_side",
 }
 
 ## Ambient procedural por bioma (sob a OST, volume baixo).
@@ -272,6 +291,9 @@ const PARALLEL_QUEST_TRACKS: Dictionary = {
 }
 
 
+const AUDIO_SETTINGS_PATH := "user://audio_settings.cfg"
+
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	
@@ -295,6 +317,8 @@ func _ready() -> void:
 	ambient_player.bus = "Master"
 	ambient_player.volume_db = -80.0
 	add_child(ambient_player)
+
+	carregar_preferencias_audio()
 
 	# Conectar ao EventBus para disparar SFX automaticamente
 	_conectar_eventos_audio()
@@ -384,8 +408,8 @@ func _ao_mudar_cena_detectada(scene_path: String) -> void:
 		tocar_musica_missao_paralela(pq_id)
 	elif scene_path == "res://world/lobby.tscn":
 		tocar_musica_lobby()
-	elif SCENE_TRACKS.has(scene_path):
-		tocar_musica(SCENE_TRACKS[scene_path])
+	else:
+		garantir_musica_cena(scene_path)
 	tocar_ambient_por_cena(scene_path)
 
 
@@ -393,19 +417,39 @@ func _ao_mudar_cena_detectada(scene_path: String) -> void:
 # API PÚBLICA DE REPRODUÇÃO MUSICAL
 # ============================================================
 
+func _resolver_track_id(id_ou_path: String) -> String:
+	var key := id_ou_path
+	# Resolve aliases até achar uma chave canônica (máx. 4 hops)
+	for _i in range(4):
+		if TRACKS.has(key):
+			return key
+		if TRACK_ALIASES.has(key):
+			key = str(TRACK_ALIASES[key])
+			continue
+		break
+	return key
+
+
 func tocar_musica(id_ou_path: String, fade_duration: float = 1.0) -> void:
+	if id_ou_path.is_empty():
+		return
 	var path: String = id_ou_path
-	var track_key: String = id_ou_path
+	var track_key: String = _resolver_track_id(id_ou_path)
 	
-	if TRACKS.has(id_ou_path):
-		path = TRACKS[id_ou_path]["path"]
-		track_key = id_ou_path
+	if TRACKS.has(track_key):
+		path = TRACKS[track_key]["path"]
 	else:
 		# Procurar por path reverso
+		var found := false
 		for k in TRACKS.keys():
 			if TRACKS[k]["path"] == id_ou_path:
 				track_key = k
+				path = TRACKS[k]["path"]
+				found = true
 				break
+		if not found and not id_ou_path.begins_with("res://"):
+			push_warning("[AudioManager] ID de faixa desconhecido: '%s'" % id_ou_path)
+			return
 
 	# Se a música já está tocando no canal ativo, não reinicia
 	var active_player: AudioStreamPlayer = player_a if active_player_is_a else player_b
@@ -427,11 +471,69 @@ func tocar_musica(id_ou_path: String, fade_duration: float = 1.0) -> void:
 	_executar_crossfade(stream, fade_duration)
 
 
+## Alias legado usado por mapas Padokia / RegionConfig (`tocar_bgm`).
+func tocar_bgm(id_ou_path: String, fade_duration: float = 1.0) -> void:
+	tocar_musica(id_ou_path, fade_duration)
+
+
+## Garante OST correta do mapa (saga hubs / load direto / checkpoint).
+func garantir_musica_cena(scene_path: String) -> void:
+	if scene_path.is_empty():
+		return
+	var expected_id := ""
+	if SCENE_TRACKS.has(scene_path):
+		expected_id = str(SCENE_TRACKS[scene_path])
+	elif scene_path == "res://world/lobby.tscn":
+		# Lobby usa playlist — só força se estiver em silêncio
+		var active_lobby: AudioStreamPlayer = player_a if active_player_is_a else player_b
+		if not active_lobby.playing:
+			tocar_musica_lobby()
+		return
+	else:
+		expected_id = _inferir_track_por_path(scene_path)
+	if expected_id.is_empty():
+		return
+	var active_player: AudioStreamPlayer = player_a if active_player_is_a else player_b
+	if current_track_id == expected_id and active_player.playing:
+		return
+	tocar_musica(expected_id, 0.85)
+
+
+func _inferir_track_por_path(scene_path: String) -> String:
+	var p := scene_path.to_lower()
+	if "exame" in p or "maratona" in p:
+		return "hashire"
+	if "kukuroo" in p:
+		return "ginpatsu_no_shonen"
+	if "arena" in p or "celestial" in p:
+		return "legend_of_the_martial_artist"
+	if "yorknew" in p:
+		return "requiem_aranea"
+	if "greed" in p:
+		return "try_your_luck"
+	if "ngl" in p or "formiga" in p:
+		return "kingdom_of_predators"
+	if "associacao" in p:
+		return "scariness"
+	if "continente" in p:
+		return "concentration"
+	if "whale" in p or "baleia" in p:
+		return "the_last_mission"
+	if "ruina" in p or "dungeon" in p or "zaban" in p:
+		return "dirge_from_dark_side"
+	if "padokia" in p or "floresta" in p or "vestigio" in p:
+		return "no_no_haru"
+	if "dirigivel" in p:
+		return "the_world_of_adventurers"
+	return ""
+
+
 func _carregar_stream(path: String) -> AudioStream:
 	# 1. Tentar carregar via ResourceLoader (se o editor já gerou .import)
 	if ResourceLoader.exists(path):
 		var res = ResourceLoader.load(path)
 		if res is AudioStream:
+			_aplicar_loop(res)
 			return res
 
 	# 2. Carregamento direto de arquivo MP3 via FileAccess e AudioStreamMP3 (robusto e universal)
@@ -444,6 +546,16 @@ func _carregar_stream(path: String) -> AudioStream:
 			return mp3_stream
 
 	return null
+
+
+func _aplicar_loop(stream: AudioStream) -> void:
+	# Imports do projeto vêm com loop=false — força loop para OST contínua.
+	if stream is AudioStreamMP3:
+		(stream as AudioStreamMP3).loop = true
+	elif stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+	elif stream is AudioStreamWAV:
+		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
 
 
 func tocar_musica_lobby() -> void:
@@ -464,10 +576,10 @@ func tocar_musica_missao_paralela(pq_id: int) -> void:
 
 
 func tocar_musica_por_cena(scene_path: String) -> void:
-	if SCENE_TRACKS.has(scene_path):
-		tocar_musica(SCENE_TRACKS[scene_path], 1.0)
-	elif scene_path == "res://world/lobby.tscn":
+	if scene_path == "res://world/lobby.tscn":
 		tocar_musica_lobby()
+	else:
+		garantir_musica_cena(scene_path)
 	tocar_ambient_por_cena(scene_path)
 
 
@@ -553,16 +665,58 @@ func _on_musica_finalizada() -> void:
 # CONTROLE DE VOLUME
 # ============================================================
 
-func definir_volume_musica(volume: float) -> void:
+func definir_volume_musica(volume: float, persistir: bool = true) -> void:
 	music_volume_linear = clamp(volume, 0.0, 1.0)
 	var active_player: AudioStreamPlayer = player_a if active_player_is_a else player_b
-	if active_player.playing:
+	if active_player != null and active_player.playing:
 		active_player.volume_db = linear_to_db(clamp(music_volume_linear * master_volume_linear, 0.0001, 1.0))
+	if persistir:
+		salvar_preferencias_audio()
 
 
-func definir_volume_master(volume: float) -> void:
+func definir_volume_sfx(volume: float, persistir: bool = true) -> void:
+	sfx_volume_linear = clamp(volume, 0.0, 1.0)
+	if persistir:
+		salvar_preferencias_audio()
+
+
+func definir_volume_master(volume: float, persistir: bool = true) -> void:
 	master_volume_linear = clamp(volume, 0.0, 1.0)
-	definir_volume_musica(music_volume_linear)
+	definir_volume_musica(music_volume_linear, false)
+	definir_volume_ambient(ambient_volume_linear, false)
+	if persistir:
+		salvar_preferencias_audio()
+
+
+func obter_volumes() -> Dictionary:
+	return {
+		"master": master_volume_linear,
+		"music": music_volume_linear,
+		"sfx": sfx_volume_linear,
+		"ambient": ambient_volume_linear,
+	}
+
+
+func carregar_preferencias_audio() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(AUDIO_SETTINGS_PATH) != OK:
+		return
+	master_volume_linear = clamp(float(cfg.get_value("audio", "master", master_volume_linear)), 0.0, 1.0)
+	music_volume_linear = clamp(float(cfg.get_value("audio", "music", music_volume_linear)), 0.0, 1.0)
+	sfx_volume_linear = clamp(float(cfg.get_value("audio", "sfx", sfx_volume_linear)), 0.0, 1.0)
+	ambient_volume_linear = clamp(float(cfg.get_value("audio", "ambient", ambient_volume_linear)), 0.0, 1.0)
+	definir_volume_musica(music_volume_linear, false)
+	definir_volume_ambient(ambient_volume_linear, false)
+
+
+func salvar_preferencias_audio() -> void:
+	var cfg := ConfigFile.new()
+	cfg.load(AUDIO_SETTINGS_PATH) # ignore fail — cria novo
+	cfg.set_value("audio", "master", master_volume_linear)
+	cfg.set_value("audio", "music", music_volume_linear)
+	cfg.set_value("audio", "sfx", sfx_volume_linear)
+	cfg.set_value("audio", "ambient", ambient_volume_linear)
+	cfg.save(AUDIO_SETTINGS_PATH)
 
 
 # ============================================================
@@ -748,10 +902,12 @@ func parar_ambient(fade_duration: float = 0.8) -> void:
 	)
 
 
-func definir_volume_ambient(volume: float) -> void:
+func definir_volume_ambient(volume: float, persistir: bool = true) -> void:
 	ambient_volume_linear = clamp(volume, 0.0, 1.0)
 	if ambient_player != null and ambient_player.playing:
 		ambient_player.volume_db = linear_to_db(clamp(ambient_volume_linear * master_volume_linear, 0.0001, 1.0))
+	if persistir:
+		salvar_preferencias_audio()
 
 
 func tocar_mob_voz(acao: String, enemy_id: String, world_pos: Vector2 = Vector2.ZERO, posicional: bool = false) -> void:
