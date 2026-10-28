@@ -178,6 +178,9 @@ func iniciar_evento_viagem(ponto_origem: String, ponto_destino: String, evento_i
 
 
 func _aplicar_consequencia_viagem(evento_id: String, escolha: String) -> void:
+	if PlayerData == null:
+		push_warning("[StoryPacingManager] PlayerData nulo — consequência de viagem ignorada (%s)." % evento_id)
+		return
 	match evento_id:
 		"estrada_comerciante":
 			match escolha:
