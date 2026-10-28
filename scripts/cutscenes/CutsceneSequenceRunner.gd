@@ -148,7 +148,8 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 				actor = _player_cache
 			var target_pos: Vector2 = step.get("target", Vector2.ZERO)
 			# speed <= 0 gerava divisão por zero / await infinito (softlock com LOCK_INPUT).
-			var spd: float = maxf(1.0, float(step.get("speed", 100.0)))
+			var spd_raw: float = float(step.get("speed", 100.0))
+			var spd: float = spd_raw if spd_raw > 0.0 else 100.0
 			var wait_finish: bool = bool(step.get("wait", true))
 
 			if actor != null and is_instance_valid(actor):
