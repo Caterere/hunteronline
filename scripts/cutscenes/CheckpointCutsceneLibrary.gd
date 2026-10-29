@@ -42,6 +42,20 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 				"Um objetivo de cada vez. Evite emboscadas no corredor.",
 				"exame_largada_seen"
 			)
+		"exame_trick_tower":
+			return _pack(
+				"Satotz (eco)",
+				"Trick Tower: observação, voto e blefe. Nem tudo se resolve no soco.",
+				"Inspecione o alçapão. Depois, convença a maioria.",
+				"exame_trick_tower_seen"
+			)
+		"exame_zevil":
+			return _pack(
+				"Satotz (eco)",
+				"Zevil: placa, caça e silêncio. Hisoka lê quem grita aura.",
+				"Inspecione a placa. Zetsu na zona marcada.",
+				"exame_zevil_seen"
+			)
 		"vale_wing_nen":
 			return _pack(
 				"Mestre Wing",

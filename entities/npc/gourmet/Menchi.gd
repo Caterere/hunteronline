@@ -26,6 +26,14 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 	if QuestSystem != null and QuestSystem.has_method("register_item_collected"):
 		QuestSystem.register_item_collected(&"ovo_aguia")
 
+	# Piloto Exame: cutscene gourmet na abertura da prova (etapa 11+)
+	var arco: int = int(PlayerData.arco_atual) if PlayerData != null else 0
+	var etapa: int = int(PlayerData.etapa_quest_arco) if PlayerData != null else 0
+	if arco == 1 and etapa >= 11 and etapa <= 13:
+		if StoryManager == null or not bool(StoryManager.get_story_flag("cutscene_gourmet_menchi", false)):
+			StoryCutsceneManager.executar_gourmet_menchi_buhara(get_tree())
+			return
+
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
 	if visual_dialogue != null:
 		var nivel_nen = PlayerData.attributes.get("nivel_nen", 0) if PlayerData else 0

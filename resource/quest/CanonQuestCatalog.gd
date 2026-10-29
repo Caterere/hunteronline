@@ -1,6 +1,8 @@
 class_name CanonQuestCatalog
 extends Resource
 
+const StoryChapterContractScript = preload("res://resource/quest/StoryChapterContract.gd")
+
 # ============================================================
 # HUNTER ONLINE - CANON QUEST CATALOG (MODO HISTÓRIA COMPLETO - 254 ETAPAS)
 # ============================================================
@@ -61,171 +63,180 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Exame Hunter 1/24: Apresentação em Zaban"
-					q.description = "ORDEM: Fale com Tonpa no túnel. Um objetivo. Depois o GPS marca a maratona LESTE."
+					q.description = "No túnel de Zaban, o veterano Tonpa oferece 'ajuda'. Decina se aceita a bebida, recusa ou confronta o blefe. GPS marca a maratona a LESTE."
 					q.reward_xp = 350
 					q.reward_gold = 800
-					q.objectives = [_criar_obj_visit(&"tonpa", "Tonpa o Quebrador de Novatos")]
+					q.objectives = [_criar_obj_persuasion(&"tonpa", "Tonpa o Quebrador de Novatos")]
 
 				2:
 					q.quest_name = "Exame Hunter 2/24: A Maratona dos 80km"
-					q.description = "ORDEM: Fale com Nicol → Hanzo → Bodoro no corredor. Sem rush. GPS marca cada um."
+					q.description = "Leia o ritmo dos outros candidatos. Fale com Nicol, Hanzo e Bodoro no corredor — cada um revela uma forma diferente de sobreviver à corrida."
 					q.reward_xp = 400
 					q.reward_gold = 1000
 					q.objectives = [_criar_obj_visit(&"nicol", "Nicol (Nº 187)"), _criar_obj_visit(&"hanzo", "Hanzo (Nº 294)"), _criar_obj_visit(&"bodoro", "Bodoro (Nº 191)")]
 
 				3:
 					q.quest_name = "Exame Hunter 3/24: O Ritmo dos Quatro Companheiros"
-					q.description = "ORDEM: Fale com Gon → Killua → Gittarackur. Mantenha o ritmo LESTE."
+					q.description = "Alinhe-se a Gon, Killua e Gittarackur. Observe quem acelera, quem poupa fôlego e quem esconde intenções."
 					q.reward_xp = 450
 					q.reward_gold = 1200
 					q.objectives = [_criar_obj_visit(&"gon", "Gon Freecss"), _criar_obj_visit(&"killua", "Killua Zoldyck"), _criar_obj_visit(&"gittarackur", "Gittarackur (Nº 301)")]
 
 				4:
 					q.quest_name = "Exame Hunter 4/24: Os Sabotadores de Novatos"
-					q.description = "ORDEM: Derrote 2 sabotadores (GPS). Espaço de combate. Marca no chão ajuda a leitura."
+					q.description = "Dois candidatos tentam eliminar novatos no corredor. Defenda-se e avance — a Associação não intervém em brigas internas."
 					q.reward_xp = 550
 					q.reward_gold = 1500
 					q.objectives = [_criar_obj_kill(&"candidato_exame", 2)]
 
 				5:
 					q.quest_name = "Exame Hunter 5/24: A Saída do Túnel de Zaban"
-					q.description = "ORDEM: Alcance Satotz nas escadas do túnel (GPS LESTE). Um marco."
+					q.description = "Satotz espera nas escadas. Confirme o fim da maratona e prepare-se para o nevoeiro do Pantanal Numere."
 					q.reward_xp = 600
 					q.reward_gold = 1800
 					q.objectives = [_criar_obj_visit(&"satotz", "Examinador Satotz")]
 
 				6:
 					q.quest_name = "Exame Hunter 6/24: O Nevoeiro do Pantanal Numere"
-					q.description = "ORDEM: Fale com Pokkle → Ponzu no Ninho dos Trapaceiros. Sem misturar."
+					q.description = "Pokkle e Ponzu conhecem o pantanal. Ouça avisos sobre ilusões, feras e candidatos que usam o nevoeiro como arma."
 					q.reward_xp = 700
 					q.reward_gold = 2000
 					q.objectives = [_criar_obj_visit(&"pokkle", "Pokkle (Nº 53)"), _criar_obj_visit(&"ponzu", "Ponzu (Nº 246)")]
 
 				7:
 					q.quest_name = "Exame Hunter 7/24: O Macaco Farsante"
-					q.description = "ORDEM: Investigue a farsa do macaco ferido. Sem acreditar no blefe."
+					q.description = "Algo 'ferido' pede ajuda na névoa. Investigue a cena antes de se aproximar — observação vale mais que força aqui."
 					q.reward_xp = 750
 					q.reward_gold = 2200
 					q.objectives = [_criar_obj_investigate(&"farsa_macaco")]
 
 				8:
 					q.quest_name = "Exame Hunter 8/24: Feras Carnívoras do Nevoeiro"
-					q.description = "ORDEM: Derrote 3 criaturas do pantanal (GPS). Telegraph legível. Sem rush."
+					q.description = "Três criaturas do pantanal bloqueiam a rota. Leia o telegraph e elimine-as sem se separar do grupo."
 					q.reward_xp = 800
 					q.reward_gold = 2500
 					q.objectives = [_criar_obj_kill(&"criatura_pantanal", 3)]
 
 				9:
 					q.quest_name = "Exame Hunter 9/24: O Julgamento Sinistro de Hisoka"
-					q.description = "ORDEM: Fale com Hisoka na névoa. Observe — não provoque. Depois GPS."
+					q.description = "Hisoka avalia candidatos no nevoeiro. Fale com ele — observar e não provocar é parte do teste."
 					q.reward_xp = 900
 					q.reward_gold = 3000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
 
 				10:
 					q.quest_name = "Exame Hunter 10/24: A Provação de Coragem"
-					q.description = "ORDEM: Sobreviva — derrote 2 criaturas sob a pressão de Hisoka (GPS)."
+					q.description = "Sob o olhar de Hisoka, duas feras atacam. Sobreviver aqui prova mais do que vencer um duelo limpo."
 					q.reward_xp = 1000
 					q.reward_gold = 3500
 					q.objectives = [_criar_obj_kill(&"criatura_pantanal", 2)]
 
 				11:
 					q.quest_name = "Exame Hunter 11/24: Acampamento da Floresta Biska"
-					q.description = "ORDEM: Fale com Buhara → Menchi no portão da Floresta Biska."
+					q.description = "Buhara e Menchi anunciam a prova gourmet. Ouça as regras: coragem, respeito ao ingrediente e precisão."
 					q.reward_xp = 1100
 					q.reward_gold = 4000
 					q.objectives = [_criar_obj_visit(&"buhara", "Examinador Buhara"), _criar_obj_visit(&"menchi", "Examinadora Menchi")]
 
 				12:
 					q.quest_name = "Exame Hunter 12/24: A Caçada ao Great Stamp Pig"
-					q.description = "ORDEM: Rastreie e derrote o Great Stamp Pig (GPS). Combate lento — sem rush."
+					q.description = "O Great Stamp é lento e pesado. Rastreie, abra espaço e derrote o javali — combate de leitura, não de rush."
 					q.reward_xp = 1300
 					q.reward_gold = 5000
 					q.objectives = [_criar_obj_kill(&"great_stamp_pig", 1)]
 
 				13:
 					q.quest_name = "Exame Hunter 13/24: O Veredito Gourmet na Ravina"
-					q.description = "ORDEM: Colete 1 ovo de águia-aranha (GPS). Depois Menchi libera o próximo marco."
+					q.description = "Colete o ovo de águia-aranha no ninho marcado. Menchi só libera o próximo marco a quem completa a coleta."
 					q.reward_xp = 1400
 					q.reward_gold = 5500
 					q.objectives = [_criar_obj_collect(&"ovo_aguia", 1)]
 
 				14:
 					q.quest_name = "Exame Hunter 14/24: Viagem Noturna no Dirigível"
-					q.description = "ORDEM: Fale com Netero no fim do Exame — ele te teleporta ao dirigível da Associação."
+					q.description = "Netero aparece no fim da fase. Fale com ele para embarcar no dirigível da Associação."
 					q.reward_xp = 1500
 					q.reward_gold = 6000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				15:
 					q.quest_name = "Exame Hunter 15/24: O Jogo da Bola de Netero"
-					q.description = "ORDEM: No deck do dirigível, fale de novo com Netero (jogo da bola). Depois portal LESTE → Trick Tower."
+					q.description = "No deck, Netero testa reflexo e intenção com o jogo da bola. Depois, o portal LESTE leva à Trick Tower."
 					q.reward_xp = 1600
 					q.reward_gold = 6500
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				16:
 					q.quest_name = "Exame Hunter 16/24: O Topo da Trick Tower"
-					q.description = "ORDEM: No topo da torre, encontre o alçapão secreto e desça. (Gyo vem depois, com Wing.)"
+					q.description = "No topo da torre, localize o alçapão secreto e desça. A observação conta mais que a pressa."
 					q.reward_xp = 1700
 					q.reward_gold = 7000
 					q.objectives = [_criar_obj_investigate(&"alcapao_trick_tower")]
 
 				17:
 					q.quest_name = "Exame Hunter 17/24: A Votação Majoritária"
-					q.description = "Enfrente os prisioneiros condenados da torre no ringue de votação majoritária com Gon e Leorio."
+					q.description = "Na prisão da torre, convença Tonpa a votar com o grupo — julgamento e persuasão, não só força bruta."
 					q.reward_xp = 1800
 					q.reward_gold = 7500
-					q.objectives = [_criar_obj_visit(&"tonpa", "Tonpa (Companheiro de Voto)")]
+					q.objectives = [_criar_obj_persuasion(&"tonpa", "Tonpa (Companheiro de Voto)")]
 
 				18:
 					q.quest_name = "Exame Hunter 18/24: O Blefe da Vela de Sedokan"
-					q.description = "Vença a disputa psicológica de queima de velas contra o prisioneiro pirômano Sedokan."
+					q.description = "Inspecione a disputa das velas. O blefe de Sedokan só cai quando a marca certa é lida."
 					q.reward_xp = 1900
 					q.reward_gold = 8000
 					q.objectives = [_criar_obj_investigate(&"vela_sedokan")]
 
 				19:
 					q.quest_name = "Exame Hunter 19/24: O Terror de Johness o Estripador"
-					q.description = "Testemunhe Killua arrancando o coração do assassino Johness em um piscar de olhos e avance pela base da torre."
+					q.description = "A tensão explode na base da torre. Derrote dois candidatos hostis e avance — o grupo não pode parar aqui."
 					q.reward_xp = 2000
 					q.reward_gold = 9000
 					q.objectives = [_criar_obj_kill(&"candidato_exame", 2)]
 
 				20:
 					q.quest_name = "Exame Hunter 20/24: Embarque para a Ilha Zevil"
-					q.description = "Sorteie a placa alvo da 4ª Fase no navio cargueiro e prepare a caçada nas florestas da Ilha Zevil."
+					q.description = "Confirme com Satotz o embarque e inspecione a placa-alvo sorteada. Sem a placa, a caçada em Zevil não começa."
 					q.reward_xp = 2100
 					q.reward_gold = 9500
-					q.objectives = [_criar_obj_visit(&"satotz", "Examinador Satotz")]
+					q.objectives = [
+						_criar_obj_visit(&"satotz", "Examinador Satotz"),
+						_criar_obj_investigate(&"placa_zevil"),
+					]
 
 				21:
 					q.quest_name = "Exame Hunter 21/24: A Caçada de Placas na Floresta"
-					q.description = "Rastreie e obtenha as placas de identificação necessárias derrotando competidores veteranos na ilha."
+					q.description = "Três veteranos guardam placas na floresta. Derrote-os e reúna o suficiente para a classificação."
 					q.reward_xp = 2200
 					q.reward_gold = 10000
 					q.objectives = [_criar_obj_kill(&"candidato_exame", 3)]
 
 				22:
 					q.quest_name = "Exame Hunter 22/24: O Bote Perfeito em Hisoka"
-					q.description = "Aproveite o momento exato em que Hisoka ataca outro candidato para roubar a Placa nº 44 com a vara de pesca!"
+					q.description = "Passe pela zona de caça de Hisoka em Zetsu. Força atrai o olhar dele — silêncio completa o objetivo."
 					q.reward_xp = 2300
 					q.reward_gold = 11000
 					q.objectives = [_criar_obj_stealth(&"zona_hisoka_zevil")]
 
 				23:
 					q.quest_name = "Exame Hunter 23/24: A Caverna Venenosa de Ponzu"
-					q.description = "Infiltre-se na caverna cheia de cobras venenosas para resgatar Leorio e Ponzu usando sonífero de gás."
+					q.description = "Infiltre a caverna em silêncio e encontre Ponzu. Combate aberto atrai as cobras — stealth primeiro, contato depois."
 					q.reward_xp = 2400
 					q.reward_gold = 11500
-					q.objectives = [_criar_obj_visit(&"ponzu", "Ponzu")]
+					q.objectives = [
+						_criar_obj_stealth(&"caverna_ponzu"),
+						_criar_obj_visit(&"ponzu", "Ponzu"),
+					]
 
 				24:
 					q.quest_name = "Exame Hunter 24/24: A Prova Final & Rumo a Kukuroo"
-					q.description = "Conclua o torneio final do Exame Hunter, receba a Licença Hunter oficial e parta para resgatar Killua na Montanha Kukuroo!"
+					q.description = "Derrote o último desafiante no ringue e reporte a Satotz. A Licença abre o caminho para Kukuroo — e para Killua."
 					q.reward_xp = 3000
 					q.reward_gold = 15000
-					q.objectives = [_criar_obj_visit(&"satotz", "Examinador Satotz")]
+					q.objectives = [
+						_criar_obj_kill(&"candidato_exame", 1),
+						_criar_obj_visit(&"satotz", "Examinador Satotz"),
+					]
 
 		# =====================================================
 		# ARCO 2: MONTANHA KUKUROO (18 CAPÍTULOS DE HISTÓRIA)
@@ -1882,6 +1893,8 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 	# Valores brutos históricos eram de outra curva; o fator evita saltos de dezenas de níveis.
 	q.reward_xp = escalar_xp_narrativo(arco, q.reward_xp)
 	q.reward_gold = escalar_jenny_narrativo(arco, q.reward_gold)
+	# Fase 0 — contrato de capítulo (ato / papel / verbo). Não afeta save keys.
+	StoryChapterContractScript.aplicar(q, arco, etapa)
 	return q
 
 

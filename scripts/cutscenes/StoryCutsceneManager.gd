@@ -121,9 +121,9 @@ static func executar_gourmet_menchi_buhara(tree: SceneTree) -> void:
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
 		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.15, 1.15), "duration": 0.3},
 		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "the_world_of_adventurers"},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Buhara", "text": "Bons candidatos! O meu menu para a 2ª Fase é carne assada de Great Stamp Pig!"},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinadora Menchi", "text": "Cozinhar é arte — e risco. Carne mal preparada ou covardia: todos reprovados!"},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss", "text": "Eu e o Killua vamos caçar os javalis gigantes na floresta! Vamos nessa!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Buhara", "text": "Boa. Vocês chegaram. Minha prova é simples: carne de Great Stamp, fresca. Sem covardia."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinadora Menchi", "text": "E a minha não perdoa pressa. Respeito ao ingrediente. Precisão. Quem treme na floresta… reprova."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss", "text": "Então caçamos juntos. Killua, você lê o rastro — eu abro caminho!"},
 		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_gourmet_menchi", "value": true},
 		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
@@ -133,12 +133,90 @@ static func executar_gourmet_menchi_buhara(tree: SceneTree) -> void:
 		em_cutscene = false
 		var hud = tree.get_first_node_in_group("player_hud")
 		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("🐗 Cace o Grande Javali Selvagem (Great Stamp) na Floresta Biska!")
-		# Recompensa de marco: chance de adaga se ainda não tem
+			hud.exibir_notificacao("Cace o Great Stamp na Floresta Biska")
 		if PlayerData != null and not PlayerData.tem_item(&"adaga_zaban"):
 			PlayerData.adicionar_item(&"adaga_zaban", 1)
 			if EventBus != null:
-				EventBus.emit_toast("🔪 Menchi deixou uma Adaga de Zaban na mesa!", Color(1.0, 0.85, 0.35))
+				EventBus.emit_toast("Menchi deixou uma Adaga de Zaban na mesa", Color(1.0, 0.85, 0.35))
+	)
+
+
+# ------------------------------------------------------------
+# ARCO 1 PILOTO: VOTAÇÃO MAJORITÁRIA (TRICK TOWER)
+# ------------------------------------------------------------
+static func executar_votacao_trick_tower(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_votacao_trick", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.18, 1.18), "duration": 0.3},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Tonpa", "text": "Votação majoritária. Cinco votos. Os prisioneiros não brincam — e eu também não voto por sentimentalismo."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Leorio Paradinight", "text": "Então convença ele. A gente precisa da maioria — não de herói solo."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "votacao_trick_tower",
+			"speaker": "Votação",
+			"text": "Como você aborda Tonpa?",
+			"options": [
+				{"id": "argumento_grupo", "text": "Apelar ao grupo: juntos saímos vivos"},
+				{"id": "ameaca_leve", "text": "Pressão fria: voto contra e fica pra trás"},
+				{"id": "barganha", "text": "Barganha: ajuda agora, dívida depois"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Tonpa", "text": "…Tsk. Voto com vocês. Não porque confio — porque perder sozinho dói mais."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_votacao_trick", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	CutsceneSequenceRunner.executar(tree, passos, "Votacao_TrickTower", func():
+		em_cutscene = false
+		if QuestSystem != null and QuestSystem.has_method("register_persuasion"):
+			QuestSystem.register_persuasion(&"tonpa")
+		if EventBus != null:
+			EventBus.emit_toast("Maioria conquistada — avance a torre", Color(0.75, 0.9, 1.0))
+	)
+
+
+# ------------------------------------------------------------
+# ARCO 1 PILOTO: EMBARQUE ILHA ZEVIL
+# ------------------------------------------------------------
+static func executar_zevil_embarque(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_zevil_embarque", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "Quarta fase: Ilha Zevil. Cada um recebe um alvo. Roubar a placa — sem anunciar a caçada ao mundo inteiro."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "Inspecione sua placa antes de desembarcar. Quem corre cego vira presa de quem observa."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "zevil_estilo_caca",
+			"speaker": "Estilo de caça",
+			"text": "Como pretende jogar em Zevil?",
+			"options": [
+				{"id": "furtivo", "text": "Furtivo — observar antes de agir"},
+				{"id": "direto", "text": "Direto — pressionar o alvo cedo"},
+				{"id": "suporte", "text": "Suporte — proteger aliados e placas"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_zevil_embarque", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	CutsceneSequenceRunner.executar(tree, passos, "Zevil_Embarque", func():
+		em_cutscene = false
+		if EventBus != null:
+			EventBus.emit_toast("Inspecione a placa-alvo (GPS) antes da caçada", Color(0.85, 0.75, 1.0))
 	)
 
 
