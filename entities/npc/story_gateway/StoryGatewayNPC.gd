@@ -26,6 +26,11 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 func _despachar_para_missao_atual() -> void:
 	if StoryManager == null:
 		return
+	# Evita reentrância durante cutscene / diálogo já aberto (double teleport).
+	if StoryCutsceneManager.em_cutscene:
+		if EventBus != null and EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("Aguarde a cena terminar...", Color(1.0, 0.85, 0.4))
+		return
 
 	var cp: Dictionary = {}
 	if StoryManager.has_method("obter_checkpoint_ativo"):
@@ -43,9 +48,13 @@ func _despachar_para_missao_atual() -> void:
 			{"falante": "Guia da História", "texto": "🚩 Destino: %s" % nome_cp},
 			{"falante": "Guia da História", "texto": "Confirmando despacho..."}
 		])
-		visual_dialogue.dialogo_concluido.connect(func():
-			StoryManager.continuar_do_checkpoint(get_tree())
-		, CONNECT_ONE_SHOT)
+		var ao_ir := func():
+			if StoryManager != null:
+				StoryManager.continuar_do_checkpoint(get_tree())
+		if visual_dialogue.has_method("when_done"):
+			visual_dialogue.when_done(ao_ir)
+		else:
+			visual_dialogue.dialogo_concluido.connect(ao_ir, CONNECT_ONE_SHOT)
 	else:
 		if EventBus != null and EventBus.has_method("emit_toast"):
 			EventBus.emit_toast("🚩 Indo para: %s" % nome_cp, Color(0.2, 0.9, 1.0))
