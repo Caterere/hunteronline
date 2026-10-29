@@ -3,6 +3,7 @@ extends Node2D
 const SimpleGrassTerrainPolicyScript = preload("res://world/components/SimpleGrassTerrainPolicy.gd")
 const StoryGate = preload("res://world/components/StoryGate.gd")
 const MidLateDensityKitScript = preload("res://world/components/exploration/MidLateDensityKit.gd")
+const StoryCutsceneManagerScript = preload("res://scripts/cutscenes/StoryCutsceneManager.gd")
 
 # ============================================================
 # HUNTER ONLINE - MAPA DAS FORMIGAS CHIMERA (ARCO 6 - 48 ETAPAS)
@@ -42,6 +43,16 @@ func _ready() -> void:
 	_garantir_quest_ativa()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
+
+
+func _on_morel_hora_zero(_player: CharacterBody2D = null) -> void:
+	if PlayerData == null:
+		return
+	if int(PlayerData.arco_atual) != 6:
+		return
+	if int(PlayerData.etapa_quest_arco) != 25:
+		return
+	StoryCutsceneManagerScript.executar_ngl_hora_zero(get_tree())
 
 
 func _process(_delta: float) -> void:
@@ -170,6 +181,13 @@ func _popular_npcs_arco6() -> void:
 			morel_n.npc_name = "Morel Mackernasey"
 		if "fala_padrao" in morel_n:
 			morel_n.fala_padrao = "ORDEM: Early — resolução → Knuckle/Shoot. Mid — Deep Purple isola Pouf. Late — evacuação (etapa 48)."
+		# Hora Zero: dispara cutscene piloto na etapa 25 (invasão).
+		if morel_n.has_node("InteractionComponent"):
+			var ic = morel_n.get_node_or_null("InteractionComponent")
+			if ic != null and ic.has_signal("interacted") and not ic.interacted.is_connected(_on_morel_hora_zero):
+				ic.interacted.connect(_on_morel_hora_zero)
+		elif morel_n.has_signal("interacted") and not morel_n.interacted.is_connected(_on_morel_hora_zero):
+			morel_n.interacted.connect(_on_morel_hora_zero)
 
 	# 5. Knuckle Bine
 	if get_node_or_null("Knuckle") == null:

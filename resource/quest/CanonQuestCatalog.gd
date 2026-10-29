@@ -1,6 +1,8 @@
 class_name CanonQuestCatalog
 extends Resource
 
+const StoryChapterContractScript = preload("res://resource/quest/StoryChapterContract.gd")
+
 # ============================================================
 # HUNTER ONLINE - CANON QUEST CATALOG (MODO HISTÓRIA COMPLETO - 254 ETAPAS)
 # ============================================================
@@ -61,171 +63,180 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 			match etapa:
 				1:
 					q.quest_name = "Exame Hunter 1/24: Apresentação em Zaban"
-					q.description = "ORDEM: Fale com Tonpa no túnel. Um objetivo. Depois o GPS marca a maratona LESTE."
+					q.description = "No túnel de Zaban, o veterano Tonpa oferece 'ajuda'. Decina se aceita a bebida, recusa ou confronta o blefe. GPS marca a maratona a LESTE."
 					q.reward_xp = 350
 					q.reward_gold = 800
-					q.objectives = [_criar_obj_visit(&"tonpa", "Tonpa o Quebrador de Novatos")]
+					q.objectives = [_criar_obj_persuasion(&"tonpa", "Tonpa o Quebrador de Novatos")]
 
 				2:
 					q.quest_name = "Exame Hunter 2/24: A Maratona dos 80km"
-					q.description = "ORDEM: Fale com Nicol → Hanzo → Bodoro no corredor. Sem rush. GPS marca cada um."
+					q.description = "Leia o ritmo dos outros candidatos. Fale com Nicol, Hanzo e Bodoro no corredor — cada um revela uma forma diferente de sobreviver à corrida."
 					q.reward_xp = 400
 					q.reward_gold = 1000
 					q.objectives = [_criar_obj_visit(&"nicol", "Nicol (Nº 187)"), _criar_obj_visit(&"hanzo", "Hanzo (Nº 294)"), _criar_obj_visit(&"bodoro", "Bodoro (Nº 191)")]
 
 				3:
 					q.quest_name = "Exame Hunter 3/24: O Ritmo dos Quatro Companheiros"
-					q.description = "ORDEM: Fale com Gon → Killua → Gittarackur. Mantenha o ritmo LESTE."
+					q.description = "Alinhe-se a Gon, Killua e Gittarackur. Observe quem acelera, quem poupa fôlego e quem esconde intenções."
 					q.reward_xp = 450
 					q.reward_gold = 1200
 					q.objectives = [_criar_obj_visit(&"gon", "Gon Freecss"), _criar_obj_visit(&"killua", "Killua Zoldyck"), _criar_obj_visit(&"gittarackur", "Gittarackur (Nº 301)")]
 
 				4:
 					q.quest_name = "Exame Hunter 4/24: Os Sabotadores de Novatos"
-					q.description = "ORDEM: Derrote 2 sabotadores (GPS). Espaço de combate. Marca no chão ajuda a leitura."
+					q.description = "Dois candidatos tentam eliminar novatos no corredor. Defenda-se e avance — a Associação não intervém em brigas internas."
 					q.reward_xp = 550
 					q.reward_gold = 1500
 					q.objectives = [_criar_obj_kill(&"candidato_exame", 2)]
 
 				5:
 					q.quest_name = "Exame Hunter 5/24: A Saída do Túnel de Zaban"
-					q.description = "ORDEM: Alcance Satotz nas escadas do túnel (GPS LESTE). Um marco."
+					q.description = "Satotz espera nas escadas. Confirme o fim da maratona e prepare-se para o nevoeiro do Pantanal Numere."
 					q.reward_xp = 600
 					q.reward_gold = 1800
 					q.objectives = [_criar_obj_visit(&"satotz", "Examinador Satotz")]
 
 				6:
 					q.quest_name = "Exame Hunter 6/24: O Nevoeiro do Pantanal Numere"
-					q.description = "ORDEM: Fale com Pokkle → Ponzu no Ninho dos Trapaceiros. Sem misturar."
+					q.description = "Pokkle e Ponzu conhecem o pantanal. Ouça avisos sobre ilusões, feras e candidatos que usam o nevoeiro como arma."
 					q.reward_xp = 700
 					q.reward_gold = 2000
 					q.objectives = [_criar_obj_visit(&"pokkle", "Pokkle (Nº 53)"), _criar_obj_visit(&"ponzu", "Ponzu (Nº 246)")]
 
 				7:
 					q.quest_name = "Exame Hunter 7/24: O Macaco Farsante"
-					q.description = "ORDEM: Investigue a farsa do macaco ferido. Sem acreditar no blefe."
+					q.description = "Algo 'ferido' pede ajuda na névoa. Investigue a cena antes de se aproximar — observação vale mais que força aqui."
 					q.reward_xp = 750
 					q.reward_gold = 2200
 					q.objectives = [_criar_obj_investigate(&"farsa_macaco")]
 
 				8:
 					q.quest_name = "Exame Hunter 8/24: Feras Carnívoras do Nevoeiro"
-					q.description = "ORDEM: Derrote 3 criaturas do pantanal (GPS). Telegraph legível. Sem rush."
+					q.description = "Três criaturas do pantanal bloqueiam a rota. Leia o telegraph e elimine-as sem se separar do grupo."
 					q.reward_xp = 800
 					q.reward_gold = 2500
 					q.objectives = [_criar_obj_kill(&"criatura_pantanal", 3)]
 
 				9:
 					q.quest_name = "Exame Hunter 9/24: O Julgamento Sinistro de Hisoka"
-					q.description = "ORDEM: Fale com Hisoka na névoa. Observe — não provoque. Depois GPS."
+					q.description = "Hisoka avalia candidatos no nevoeiro. Fale com ele — observar e não provocar é parte do teste."
 					q.reward_xp = 900
 					q.reward_gold = 3000
 					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
 
 				10:
 					q.quest_name = "Exame Hunter 10/24: A Provação de Coragem"
-					q.description = "ORDEM: Sobreviva — derrote 2 criaturas sob a pressão de Hisoka (GPS)."
+					q.description = "Sob o olhar de Hisoka, duas feras atacam. Sobreviver aqui prova mais do que vencer um duelo limpo."
 					q.reward_xp = 1000
 					q.reward_gold = 3500
 					q.objectives = [_criar_obj_kill(&"criatura_pantanal", 2)]
 
 				11:
 					q.quest_name = "Exame Hunter 11/24: Acampamento da Floresta Biska"
-					q.description = "ORDEM: Fale com Buhara → Menchi no portão da Floresta Biska."
+					q.description = "Buhara e Menchi anunciam a prova gourmet. Ouça as regras: coragem, respeito ao ingrediente e precisão."
 					q.reward_xp = 1100
 					q.reward_gold = 4000
 					q.objectives = [_criar_obj_visit(&"buhara", "Examinador Buhara"), _criar_obj_visit(&"menchi", "Examinadora Menchi")]
 
 				12:
 					q.quest_name = "Exame Hunter 12/24: A Caçada ao Great Stamp Pig"
-					q.description = "ORDEM: Rastreie e derrote o Great Stamp Pig (GPS). Combate lento — sem rush."
+					q.description = "O Great Stamp é lento e pesado. Rastreie, abra espaço e derrote o javali — combate de leitura, não de rush."
 					q.reward_xp = 1300
 					q.reward_gold = 5000
 					q.objectives = [_criar_obj_kill(&"great_stamp_pig", 1)]
 
 				13:
 					q.quest_name = "Exame Hunter 13/24: O Veredito Gourmet na Ravina"
-					q.description = "ORDEM: Colete 1 ovo de águia-aranha (GPS). Depois Menchi libera o próximo marco."
+					q.description = "Colete o ovo de águia-aranha no ninho marcado. Menchi só libera o próximo marco a quem completa a coleta."
 					q.reward_xp = 1400
 					q.reward_gold = 5500
 					q.objectives = [_criar_obj_collect(&"ovo_aguia", 1)]
 
 				14:
 					q.quest_name = "Exame Hunter 14/24: Viagem Noturna no Dirigível"
-					q.description = "ORDEM: Fale com Netero no fim do Exame — ele te teleporta ao dirigível da Associação."
+					q.description = "Netero aparece no fim da fase. Fale com ele para embarcar no dirigível da Associação."
 					q.reward_xp = 1500
 					q.reward_gold = 6000
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				15:
 					q.quest_name = "Exame Hunter 15/24: O Jogo da Bola de Netero"
-					q.description = "ORDEM: No deck do dirigível, fale de novo com Netero (jogo da bola). Depois portal LESTE → Trick Tower."
+					q.description = "No deck, Netero testa reflexo e intenção com o jogo da bola. Depois, o portal LESTE leva à Trick Tower."
 					q.reward_xp = 1600
 					q.reward_gold = 6500
 					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
 
 				16:
 					q.quest_name = "Exame Hunter 16/24: O Topo da Trick Tower"
-					q.description = "ORDEM: No topo da torre, encontre o alçapão secreto e desça. (Gyo vem depois, com Wing.)"
+					q.description = "No topo da torre, localize o alçapão secreto e desça. A observação conta mais que a pressa."
 					q.reward_xp = 1700
 					q.reward_gold = 7000
 					q.objectives = [_criar_obj_investigate(&"alcapao_trick_tower")]
 
 				17:
 					q.quest_name = "Exame Hunter 17/24: A Votação Majoritária"
-					q.description = "Enfrente os prisioneiros condenados da torre no ringue de votação majoritária com Gon e Leorio."
+					q.description = "Na prisão da torre, convença Tonpa a votar com o grupo — julgamento e persuasão, não só força bruta."
 					q.reward_xp = 1800
 					q.reward_gold = 7500
-					q.objectives = [_criar_obj_visit(&"tonpa", "Tonpa (Companheiro de Voto)")]
+					q.objectives = [_criar_obj_persuasion(&"tonpa", "Tonpa (Companheiro de Voto)")]
 
 				18:
 					q.quest_name = "Exame Hunter 18/24: O Blefe da Vela de Sedokan"
-					q.description = "Vença a disputa psicológica de queima de velas contra o prisioneiro pirômano Sedokan."
+					q.description = "Inspecione a disputa das velas. O blefe de Sedokan só cai quando a marca certa é lida."
 					q.reward_xp = 1900
 					q.reward_gold = 8000
 					q.objectives = [_criar_obj_investigate(&"vela_sedokan")]
 
 				19:
 					q.quest_name = "Exame Hunter 19/24: O Terror de Johness o Estripador"
-					q.description = "Testemunhe Killua arrancando o coração do assassino Johness em um piscar de olhos e avance pela base da torre."
+					q.description = "A tensão explode na base da torre. Derrote dois candidatos hostis e avance — o grupo não pode parar aqui."
 					q.reward_xp = 2000
 					q.reward_gold = 9000
 					q.objectives = [_criar_obj_kill(&"candidato_exame", 2)]
 
 				20:
 					q.quest_name = "Exame Hunter 20/24: Embarque para a Ilha Zevil"
-					q.description = "Sorteie a placa alvo da 4ª Fase no navio cargueiro e prepare a caçada nas florestas da Ilha Zevil."
+					q.description = "Confirme com Satotz o embarque e inspecione a placa-alvo sorteada. Sem a placa, a caçada em Zevil não começa."
 					q.reward_xp = 2100
 					q.reward_gold = 9500
-					q.objectives = [_criar_obj_visit(&"satotz", "Examinador Satotz")]
+					q.objectives = [
+						_criar_obj_visit(&"satotz", "Examinador Satotz"),
+						_criar_obj_investigate(&"placa_zevil"),
+					]
 
 				21:
 					q.quest_name = "Exame Hunter 21/24: A Caçada de Placas na Floresta"
-					q.description = "Rastreie e obtenha as placas de identificação necessárias derrotando competidores veteranos na ilha."
+					q.description = "Três veteranos guardam placas na floresta. Derrote-os e reúna o suficiente para a classificação."
 					q.reward_xp = 2200
 					q.reward_gold = 10000
 					q.objectives = [_criar_obj_kill(&"candidato_exame", 3)]
 
 				22:
 					q.quest_name = "Exame Hunter 22/24: O Bote Perfeito em Hisoka"
-					q.description = "Aproveite o momento exato em que Hisoka ataca outro candidato para roubar a Placa nº 44 com a vara de pesca!"
+					q.description = "Passe pela zona de caça de Hisoka em Zetsu. Força atrai o olhar dele — silêncio completa o objetivo."
 					q.reward_xp = 2300
 					q.reward_gold = 11000
 					q.objectives = [_criar_obj_stealth(&"zona_hisoka_zevil")]
 
 				23:
 					q.quest_name = "Exame Hunter 23/24: A Caverna Venenosa de Ponzu"
-					q.description = "Infiltre-se na caverna cheia de cobras venenosas para resgatar Leorio e Ponzu usando sonífero de gás."
+					q.description = "Infiltre a caverna em silêncio e encontre Ponzu. Combate aberto atrai as cobras — stealth primeiro, contato depois."
 					q.reward_xp = 2400
 					q.reward_gold = 11500
-					q.objectives = [_criar_obj_visit(&"ponzu", "Ponzu")]
+					q.objectives = [
+						_criar_obj_stealth(&"caverna_ponzu"),
+						_criar_obj_visit(&"ponzu", "Ponzu"),
+					]
 
 				24:
 					q.quest_name = "Exame Hunter 24/24: A Prova Final & Rumo a Kukuroo"
-					q.description = "Conclua o torneio final do Exame Hunter, receba a Licença Hunter oficial e parta para resgatar Killua na Montanha Kukuroo!"
+					q.description = "Derrote o último desafiante no ringue e reporte a Satotz. A Licença abre o caminho para Kukuroo — e para Killua."
 					q.reward_xp = 3000
 					q.reward_gold = 15000
-					q.objectives = [_criar_obj_visit(&"satotz", "Examinador Satotz")]
+					q.objectives = [
+						_criar_obj_kill(&"candidato_exame", 1),
+						_criar_obj_visit(&"satotz", "Examinador Satotz"),
+					]
 
 		# =====================================================
 		# ARCO 2: MONTANHA KUKUROO (18 CAPÍTULOS DE HISTÓRIA)
@@ -262,10 +273,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				5:
 					q.quest_name = "Montanha Kukuroo 5/18: O Portão da Testagem (4 Toneladas)"
-					q.description = "Reúna toda a sua força muscular e empurre a primeira folha de ferro do Portão da Testagem (Testing Gate)!"
+					q.description = "[G] Leia o resíduo de aura no Portão da Testagem antes de empurrar as 4 toneladas."
 					q.reward_xp = 3200
 					q.reward_gold = 26000
-					q.objectives = [_criar_obj_visit(&"portao_testagem", "Portão da Testagem (Testing Gate)")]
+					q.objectives = [_criar_obj_investigate(&"kukuroo_portao_aura")]
 
 				6:
 					q.quest_name = "Montanha Kukuroo 6/18: A Alameda dos Cães de Caça"
@@ -332,17 +343,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				15:
 					q.quest_name = "Montanha Kukuroo 15/18: As Escadarias do Castelo Central"
-					q.description = "Suba as imensas escadarias de pedra da mansão principal rumo à câmara do chefe da família."
+					q.description = "[Z] Cruze o corredor do trono em silêncio até Silva. Aura acesa desperta mordomos."
 					q.reward_xp = 5200
 					q.reward_gold = 50000
-					q.objectives = [_criar_obj_visit(&"silva", "Silva Zoldyck")]
+					q.objectives = [_criar_obj_stealth(&"kukuroo_corredor_trono")]
 
 				16:
 					q.quest_name = "Montanha Kukuroo 16/18: A Sala do Trono dos Assassinos"
-					q.description = "Audiência solene com Silva Zoldyck na imensa câmara de pedra dos assassinos profissionais."
+					q.description = "[G] Leia a pressão do trono de Silva — intenção assassina pura antes do pacto."
 					q.reward_xp = 5400
 					q.reward_gold = 55000
-					q.objectives = [_criar_obj_visit(&"silva", "Silva Zoldyck")]
+					q.objectives = [_criar_obj_investigate(&"kukuroo_trono_silva")]
 
 				17:
 					q.quest_name = "Montanha Kukuroo 17/18: O Pacto de Sangue de Silva"
@@ -407,10 +418,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				7:
 					q.quest_name = "Arena Celestial 7/26: A Parede de Intenção Assassina"
-					q.description = "Sinta a barreira colossal de Hatsu assassino emitida por Hisoka que impede a passagem dos desprotegidos."
+					q.description = "Cruze o corredor médio sob a pressão de intenção assassina. Sem Nen ainda — o corpo treme, mas atravessar é a prova."
 					q.reward_xp = 6500
 					q.reward_gold = 70000
-					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
+					q.objectives = [_criar_obj_stealth(&"arena_corredor_medio")]
 
 				8:
 					q.quest_name = "Arena Celestial 8/26: O Encontro com Zushi"
@@ -435,31 +446,31 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				11:
 					q.quest_name = "Arena Celestial 11/26: O Despertar do Ten (Envolver)"
-					q.description = "Abra os nós de aura do corpo com o fluxo suave de Wing e aprenda a manter o manto protetor de Ten."
+					q.description = "Com Wing, abra os nós de aura e receba o manto de Ten. Sem despertar, o 200º andar continua fechado."
 					q.reward_xp = 8000
 					q.reward_gold = 90000
 					q.objectives = [_criar_obj_visit(&"wing", "Mestre Wing")]
 
 				12:
 					q.quest_name = "Arena Celestial 12/26: O Treinamento do Ren (Expandir)"
-					q.description = "Expanda exponencialmente o volume de aura liberado para fortalecer ataques e pressão física."
+					q.description = "No dojo Shingen-ryu, inspecione o resíduo de treino e pratique expandir aura sob orientação de Wing."
 					q.reward_xp = 8400
 					q.reward_gold = 95000
-					q.objectives = [_criar_obj_visit(&"wing", "Mestre Wing")]
+					q.objectives = [_criar_obj_investigate(&"arena_dojo_wing")]
 
 				13:
 					q.quest_name = "Arena Celestial 13/26: O Silenciamento com Zetsu"
-					q.description = "Feche todos os nós de aura simultaneamente para regenerar vida e ocultar sua presença térmica."
+					q.description = "Atravesse o corredor de treino em Zetsu. Aura acesa falha a prova — silêncio é o critério."
 					q.reward_xp = 8800
 					q.reward_gold = 100000
-					q.objectives = [_criar_obj_visit(&"wing", "Mestre Wing")]
+					q.objectives = [_criar_obj_stealth(&"treino_zetsu_arena")]
 
 				14:
 					q.quest_name = "Arena Celestial 14/26: A Concentração com Gyo nos Olhos"
-					q.description = "Concentre aura nos olhos para enxergar objetos, armadilhas e projeções invisíveis de Nen."
+					q.description = "Use Gyo para ler a pista do corredor 190. Sem concentração nos olhos, a marca permanece invisível."
 					q.reward_xp = 9200
 					q.reward_gold = 105000
-					q.objectives = [_criar_obj_visit(&"wing", "Mestre Wing")]
+					q.objectives = [_criar_obj_investigate(&"arena_pista_gyo")]
 
 				15:
 					q.quest_name = "Arena Celestial 15/26: Ultrapassando a Linha de Hisoka"
@@ -512,24 +523,24 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				22:
 					q.quest_name = "Arena Celestial 22/26: A Queda do Clone de Nen"
-					q.description = "Use Gyo para focar na poeira nos pés de Kastro e derrote o clone de Nen em definitivo!"
+					q.description = "Inspecione a poeira nos pés de Kastro com Gyo — a pista revela o clone falso antes do golpe final."
 					q.reward_xp = 13000
 					q.reward_gold = 180000
-					q.objectives = [_criar_obj_visit(&"wing", "Mestre Wing")]
+					q.objectives = [_criar_obj_investigate(&"poeira_kastro")]
 
 				23:
 					q.quest_name = "Arena Celestial 23/26: A Preparação para o Clímax"
-					q.description = "Revise todas as estratégias de combate e controle de aura com Zushi e Killua antes de enfrentar Hisoka."
+					q.description = "Aqueça no ringue contra um lutador do 200º antes do duelo com Hisoka. Zushi observa a postura."
 					q.reward_xp = 13500
 					q.reward_gold = 190000
-					q.objectives = [_criar_obj_visit(&"zushi", "Zushi")]
+					q.objectives = [_criar_obj_kill(&"lutador_arena", 1)]
 
 				24:
 					q.quest_name = "Arena Celestial 24/26: O Duelo Prometido com Hisoka"
-					q.description = "Entre no ringue principal do 200º andar diante de milhares de espectadores contra Hisoka Morow!"
+					q.description = "Confrontar Hisoka no balcão: aceite as regras do duelo sem provocar cedo demais."
 					q.reward_xp = 14500
 					q.reward_gold = 220000
-					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
+					q.objectives = [_criar_obj_persuasion(&"hisoka", "Hisoka Morow")]
 
 				25:
 					q.quest_name = "Arena Celestial 25/26: A Devolução da Placa nº 44"
@@ -720,17 +731,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				25:
 					q.quest_name = "Yorknew City 25/34: O Encontro no Aeroporto de Lingon"
-					q.description = "ORDEM: Fale com Kurapika na pista Lingon. Troca final — sem rush."
+					q.description = "ORDEM: [Z] Cruze as docas do leilão em silêncio até a pista Lingon. Aura acesa atrai a Trupe."
 					q.reward_xp = 45000
 					q.reward_gold = 800000
-					q.objectives = [_criar_obj_visit(&"kurapika", "Kurapika")]
+					q.objectives = [_criar_obj_stealth(&"yorknew_docas_leilao")]
 
 				26:
 					q.quest_name = "Yorknew City 26/34: A Corrente do Julgamento no Líder"
-					q.description = "ORDEM: Fale com Chrollo — Judgement Chain. Depois Pakunoda / silêncio."
+					q.description = "ORDEM: Negocie com Chrollo — Judgement Chain. Persuasão, não golpe aberto."
 					q.reward_xp = 47000
 					q.reward_gold = 840000
-					q.objectives = [_criar_obj_visit(&"chrollo", "Chrollo Lucilfer")]
+					q.objectives = [_criar_obj_persuasion(&"chrollo", "Chrollo Lucilfer")]
 
 				27:
 					q.quest_name = "Yorknew City 27/34: O Julgamento de Pakunoda"
@@ -741,10 +752,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				28:
 					q.quest_name = "Yorknew City 28/34: A Troca Completa de Reféns"
-					q.description = "ORDEM: Fale com Gon — troca concluída. Depois [G] memórias de Pakunoda."
+					q.description = "ORDEM: [G] Inspecione a marca do Hotel Beitacle após a troca — confirma se a Trupe ainda escuta."
 					q.reward_xp = 49000
 					q.reward_gold = 880000
-					q.objectives = [_criar_obj_visit(&"gon", "Gon Freecss")]
+					q.objectives = [_criar_obj_investigate(&"yorknew_hotel_beitacle")]
 
 				29:
 					q.quest_name = "Yorknew City 29/34: O Último Sacrifício de Pakunoda"
@@ -755,17 +766,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				30:
 					q.quest_name = "Yorknew City 30/34: O Leilão Oficial de Greed Island"
-					q.description = "ORDEM: Fale com Leorio no leilão Southernpiece. Depois Battera (contrato)."
+					q.description = "ORDEM: [G] Leia a aura do leilão Southernpiece antes de falar com anyone — a mesa esconde lances falsos."
 					q.reward_xp = 52000
 					q.reward_gold = 940000
-					q.objectives = [_criar_obj_visit(&"leorio", "Leorio")]
+					q.objectives = [_criar_obj_investigate(&"yorknew_leilao_aura")]
 
 				31:
 					q.quest_name = "Yorknew City 31/34: O Contrato do Bilionário Battera"
-					q.description = "ORDEM: Fale com Battera — inscrição GI. Depois teste Ren com Tsezguerra."
+					q.description = "ORDEM: Convença Battera a aceitar sua inscrição em Greed Island — termos claros, sem pressa."
 					q.reward_xp = 53000
 					q.reward_gold = 960000
-					q.objectives = [_criar_obj_visit(&"battera", "Bilionário Battera")]
+					q.objectives = [_criar_obj_persuasion(&"battera", "Bilionário Battera")]
 
 				32:
 					q.quest_name = "Yorknew City 32/34: O Teste de Hatsu de Tsezguerra"
@@ -837,10 +848,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				7:
 					q.quest_name = "Greed Island 7/36: O Domínio do Ko (Concentração Total)"
-					q.description = "ORDEM: Fale com Biscuit e treine Ko. Quebre rochas com concentração — um exercício."
+					q.description = "ORDEM: [KO] Inspecione o posto de concentração no desfiladeiro e aplique Ko nas rochas — sob pressão de Biscuit."
 					q.reward_xp = 50000
 					q.reward_gold = 900000
-					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
+					q.objectives = [_criar_obj_investigate(&"greed_ko_desfiladeiro")]
 
 				8:
 					q.quest_name = "Greed Island 8/36: Os Golens de Rocha"
@@ -851,24 +862,24 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				9:
 					q.quest_name = "Greed Island 9/36: O Domínio do Shu (Extensão de Aura)"
-					q.description = "ORDEM: Fale com Biscuit e treine Shu (envolver armas com aura). Um exercício. Depois Ken."
+					q.description = "ORDEM: [Z] Cruze as colinas furtivas estendendo aura na arma (Shu) sem revelar presença."
 					q.reward_xp = 56000
 					q.reward_gold = 1000000
-					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
+					q.objectives = [_criar_obj_stealth(&"greed_colinas_furtivas")]
 
 				10:
 					q.quest_name = "Greed Island 10/36: O Domínio do Ken (Armadura Contínua)"
-					q.description = "ORDEM: Fale com Biscuit e mantenha Ken sob pressão. Sem pular. Depois Ryu."
+					q.description = "ORDEM: [G] Leia o rastro Trace mantendo Ken — armadura contínua sob leitura de pista."
 					q.reward_xp = 58000
 					q.reward_gold = 1050000
-					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
+					q.objectives = [_criar_obj_investigate(&"greed_rastro_trace")]
 
 				11:
 					q.quest_name = "Greed Island 11/36: O Domínio do Ryu (Distribuição Dinâmica)"
-					q.description = "ORDEM: Fale com Biscuit e treine Ryu (70/30, 80/20). Depois nasce o Hatsu."
+					q.description = "ORDEM: [G] Resolva o Quiz das 100 Cartas aplicando Ryu — distribuição certa sob pergunta certa."
 					q.reward_xp = 60000
 					q.reward_gold = 1100000
-					q.objectives = [_criar_obj_visit(&"biscuit", "Mestra Biscuit Krueger")]
+					q.objectives = [_criar_obj_investigate(&"quiz_100_cartas")]
 
 				12:
 					q.quest_name = "Greed Island 12/36: O Nascimento do Hatsu Jajanken"
@@ -893,10 +904,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				15:
 					q.quest_name = "Greed Island 15/36: A Aliança com Tsezguerra"
-					q.description = "ORDEM: Fale com Tsezguerra (aliança). Proteja o Book. Depois [G] marca do Bomber."
+					q.description = "ORDEM: Convença Tsezguerra a selar a aliança — Book protegido, termos claros."
 					q.reward_xp = 68000
 					q.reward_gold = 1300000
-					q.objectives = [_criar_obj_visit(&"tsezguerra", "Tsezguerra")]
+					q.objectives = [_criar_obj_persuasion(&"tsezguerra", "Tsezguerra")]
 
 				16:
 					q.quest_name = "Greed Island 16/36: A Ameaça do Bomber Genthru"
@@ -907,10 +918,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				17:
 					q.quest_name = "Greed Island 17/36: O Pacto com Goreinu"
-					q.description = "ORDEM: Fale com Goreinu em Soufrabi. Depois Hisoka no lago. [Z] no porto se o GPS pedir."
+					q.description = "ORDEM: [Z] Atravesse o corredor de Soufrabi em silêncio até Goreinu — o pacto exige não ser visto."
 					q.reward_xp = 72000
 					q.reward_gold = 1400000
-					q.objectives = [_criar_obj_visit(&"goreinu", "Goreinu")]
+					q.objectives = [_criar_obj_stealth(&"greed_corredor_soufrabi")]
 
 				18:
 					q.quest_name = "Greed Island 18/36: O Encontro com Hisoka em Greed Island"
@@ -921,14 +932,14 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				19:
 					q.quest_name = "Greed Island 19/36: A Cidade Portuária de Soufrabi"
-					q.description = "ORDEM: Fale com Razor no porto/ginásio. Sem rush — demônios e queimada vêm depois."
+					q.description = "ORDEM: [G] Inspecione o ginásio/porto de Razor antes do confronto — regras do saque estão escritas na aura."
 					q.reward_xp = 78000
 					q.reward_gold = 1500000
-					q.objectives = [_criar_obj_visit(&"razor", "Game Master Razor")]
+					q.objectives = [_criar_obj_investigate(&"ginasio_razor")]
 
 				20:
 					q.quest_name = "Greed Island 20/36: O Ginásio do Game Master Razor"
-					q.description = "ORDEM: Apresente-se a Razor no ginásio. Depois derrote os demônios de Nen (GPS)."
+					q.description = "ORDEM: Apresente-se a Razor após ler o ginásio. Depois demônios de Nen (GPS)."
 					q.reward_xp = 80000
 					q.reward_gold = 1550000
 					q.objectives = [_criar_obj_visit(&"razor", "Game Master Razor")]
@@ -1101,10 +1112,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				8:
 					q.quest_name = "Formigas Chimera 8/48: A Aura Monstruosa de Neferpitou"
-					q.description = "ORDEM: Fale com Kite — sinta a aura de Pitou. Prepare fuga. Sem atacar a Guarda Real ainda."
+					q.description = "ORDEM: [G] Leia a intenção assassina de Pitou no ninho. Sem Gyo, a pressão esmaga — prepare a fuga."
 					q.reward_xp = 105000
 					q.reward_gold = 1700000
-					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
+					q.objectives = [_criar_obj_investigate(&"ngl_aura_pitou")]
 
 				9:
 					q.quest_name = "Formigas Chimera 9/48: O Sacrifício Heróico de Kite"
@@ -1115,10 +1126,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				10:
 					q.quest_name = "Formigas Chimera 10/48: A Fuga Desesperada de Killua"
-					q.description = "ORDEM: Fale com Killua na fronteira e fuja. Depois base Peijin (Netero)."
+					q.description = "ORDEM: [Z] Cruze a patrulha da fronteira NGL em silêncio. Aura acesa = formigas em cima."
 					q.reward_xp = 115000
 					q.reward_gold = 1900000
-					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
+					q.objectives = [_criar_obj_stealth(&"ngl_patrulha_fronteira")]
 
 				11:
 					q.quest_name = "Formigas Chimera 11/48: A Chegada da Tropa de Extermínio"
@@ -1129,10 +1140,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				12:
 					q.quest_name = "Formigas Chimera 12/48: A Provação de Morel e Knov"
-					q.description = "ORDEM: Fale com Morel e prove resolução. Depois Knuckle e Shoot."
+					q.description = "ORDEM: Convença Morel de que aguenta a invasão — resolução sem fanfarronice."
 					q.reward_xp = 125000
 					q.reward_gold = 2100000
-					q.objectives = [_criar_obj_visit(&"morel", "Morel Mackernasey")]
+					q.objectives = [_criar_obj_persuasion(&"morel", "Morel Mackernasey")]
 
 				13:
 					q.quest_name = "Formigas Chimera 13/48: Os Discípulos Knuckle e Shoot"
@@ -1206,17 +1217,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				23:
 					q.quest_name = "Formigas Chimera 23/48: A Partida de Gungi de Komugi"
-					q.description = "ORDEM: Fale com Meruem (Gungi). Não ataque fora da etapa. Depois reunião (Gon)."
+					q.description = "ORDEM: Negocie a partida de Gungi com Meruem — persuasão, não golpe. Depois reunião (Gon)."
 					q.reward_xp = 180000
 					q.reward_gold = 3200000
-					q.objectives = [_criar_obj_visit(&"meruem", "Rei Meruem")]
+					q.objectives = [_criar_obj_persuasion(&"meruem", "Rei Meruem")]
 
 				24:
 					q.quest_name = "Formigas Chimera 24/48: A Contagem Regressiva da Invasão"
-					q.description = "ORDEM: Fale com Gon e feche a equipe. Hora Zero depois — GPS."
+					q.description = "ORDEM: Derrote 2 guardas residuais (GPS) e feche o perímetro. Hora Zero depois."
 					q.reward_xp = 185000
 					q.reward_gold = 3300000
-					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
+					q.objectives = [_criar_obj_kill(&"guarda_peijin", 2)]
 
 				25:
 					q.quest_name = "Formigas Chimera 25/48: A Hora Zero (00:00:00)"
@@ -1234,17 +1245,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				27:
 					q.quest_name = "Formigas Chimera 27/48: O Encontro nas Escadarias Centrais"
-					q.description = "ORDEM: Fale com Shoot na escadaria. Youpi à frente — GPS um passo. Sem rush."
+					q.description = "ORDEM: [G] Leia a escadaria central — carapaça de Youpi ainda vibra. Depois o combate (GPS)."
 					q.reward_xp = 200000
 					q.reward_gold = 3600000
-					q.objectives = [_criar_obj_visit(&"shoot", "Shoot")]
+					q.objectives = [_criar_obj_investigate(&"escadaria_youpi")]
 
 				28:
 					q.quest_name = "Formigas Chimera 28/48: A Fumaça Deep Purple de Morel"
-					q.description = "ORDEM: Fale com Morel — Deep Purple isola Pouf. Depois Knuckle (Youpi)."
+					q.description = "ORDEM: [Z] Cruze o corredor do palácio sob a fumaça Deep Purple. Aura acesa = guarda."
 					q.reward_xp = 205000
 					q.reward_gold = 3700000
-					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
+					q.objectives = [_criar_obj_stealth(&"ngl_corredor_palacio")]
 
 				29:
 					q.quest_name = "Formigas Chimera 29/48: O Ataque Frenético de Shoot e Knuckle"
@@ -1297,10 +1308,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				36:
 					q.quest_name = "Formigas Chimera 36/48: O Voo de Netero e Meruem até a Tumba"
-					q.description = "ORDEM: Fale com Netero — tumba nuclear. Depois [G] Guanyin."
+					q.description = "ORDEM: [Z] Atravesse o vestíbulo da tumba nuclear em silêncio. Depois [G] Guanyin."
 					q.reward_xp = 250000
 					q.reward_gold = 5000000
-					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
+					q.objectives = [_criar_obj_stealth(&"ngl_vestibulo_tumba")]
 
 				37:
 					q.quest_name = "Formigas Chimera 37/48: O Guanyin Bodhisattva de 100 Tipos"
@@ -1339,10 +1350,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				42:
 					q.quest_name = "Formigas Chimera 42/48: O Juramento Supremo de Gon (Gon Adulto)"
-					q.description = "ORDEM: Fale com Gon — juramento. Depois derrote Neferpitou (GPS)."
+					q.description = "ORDEM: Persuada / selar o juramento com Gon — sem volta. Depois Neferpitou (GPS)."
 					q.reward_xp = 310000
 					q.reward_gold = 6500000
-					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
+					q.objectives = [_criar_obj_persuasion(&"gon", "Gon")]
 
 				43:
 					q.quest_name = "Formigas Chimera 43/48: O Jajanken da Aniquilação de Pitou"
@@ -1414,17 +1425,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				4:
 					q.quest_name = "Eleição Hunter 4/20: O Quarto de UTI no Hospital Hunter"
-					q.description = "ORDEM: Fale com Leorio na UTI. Depois Killua (resgate Alluka)."
+					q.description = "ORDEM: [G] Inspecione a UTI de Gon antes de falar com Leorio — o corpo ainda queima Nen."
 					q.reward_xp = 150000
 					q.reward_gold = 2500000
-					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
+					q.objectives = [_criar_obj_investigate(&"uti_gon_associacao")]
 
 				5:
 					q.quest_name = "Eleição Hunter 5/20: A Decisão Proibida de Killua"
-					q.description = "ORDEM: Fale com Killua — ele vai buscar Alluka. Depois [G] Cela."
+					q.description = "ORDEM: [Z] Cruze o corredor do hospital até Killua — sem aura, sem alarme da família."
 					q.reward_xp = 160000
 					q.reward_gold = 2700000
-					q.objectives = [_criar_obj_visit(&"killua", "Killua Zoldyck")]
+					q.objectives = [_criar_obj_stealth(&"assoc_corredor_hospital")]
 
 				6:
 					q.quest_name = "Eleição Hunter 6/20: A Masmorra Subterrânea de Alluka"
@@ -1449,10 +1460,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				9:
 					q.quest_name = "Eleição Hunter 9/20: A Emboscada de Illumi e Hisoka"
-					q.description = "ORDEM: Fale com Killua na rodovia. Depois mordomos perseguidores (GPS)."
+					q.description = "ORDEM: [Z] Cruze a rodovia noturna sob a mira de Illumi. Aura acesa = emboscada."
 					q.reward_xp = 200000
 					q.reward_gold = 3500000
-					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
+					q.objectives = [_criar_obj_stealth(&"assoc_rodovia_illumi")]
 
 				10:
 					q.quest_name = "Eleição Hunter 10/20: Mordomos Perseguidores na Rodovia"
@@ -1477,24 +1488,24 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				13:
 					q.quest_name = "Eleição Hunter 13/20: A 4ª Rodada da Votação Eleitoral"
-					q.description = "ORDEM: Fale com Cheadle no plenário. Depois Leorio (soco teleportado)."
+					q.description = "ORDEM: [G] Leia a aura do plenário na 4ª rodada — votos e pressão política."
 					q.reward_xp = 250000
 					q.reward_gold = 4500000
-					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle")]
+					q.objectives = [_criar_obj_investigate(&"plenario_eleicao")]
 
 				14:
 					q.quest_name = "Eleição Hunter 14/20: O Soco Teleportado de Leorio"
-					q.description = "ORDEM: Fale com Leorio — discurso / soco. Depois Cheadle (liderança)."
+					q.description = "ORDEM: Convença / apoie o discurso de Leorio — persuasão no palco, não só visita."
 					q.reward_xp = 260000
 					q.reward_gold = 4800000
-					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
+					q.objectives = [_criar_obj_persuasion(&"leorio", "Leorio Paradinight")]
 
 				15:
 					q.quest_name = "Eleição Hunter 15/20: Leorio Lidera a Eleição"
-					q.description = "ORDEM: Fale com Cheadle — Leorio em 1º. Depois Alluka / milagre no hospital."
+					q.description = "ORDEM: [Z] Volte ao hospital pelo corredor furtivo — Alluka / milagre à frente."
 					q.reward_xp = 270000
 					q.reward_gold = 5000000
-					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle")]
+					q.objectives = [_criar_obj_stealth(&"assoc_corredor_hospital")]
 
 				16:
 					q.quest_name = "Eleição Hunter 16/20: O Milagre de Nanika no Hospital"
@@ -1650,17 +1661,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				17:
 					q.quest_name = "Continente Negro 17/22: A Escalada dos 1.784 Metros"
-					q.description = "ORDEM: Fale com a Árvore de novo (escalada). Depois Ging no topo."
+					q.description = "ORDEM: [Z] Cruze a copa intermediária em silêncio — feras aladas caçam aura."
 					q.reward_xp = 530000
 					q.reward_gold = 10500000
-					q.objectives = [_criar_obj_visit(&"arvore_mundo", "Árvore do Mundo")]
+					q.objectives = [_criar_obj_stealth(&"cn_copa_intermediaria")]
 
 				18:
 					q.quest_name = "Continente Negro 18/22: O Ninho Gigante da Copa"
-					q.description = "ORDEM: Fale com Ging Freecss no Topo. Depois reencontro / filosofia."
+					q.description = "ORDEM: [G] Leia a aura do Nitro Rice residual na copa antes do reencontro com Ging."
 					q.reward_xp = 550000
 					q.reward_gold = 11000000
-					q.objectives = [_criar_obj_visit(&"ging_topo", "Ging Freecss no Topo")]
+					q.objectives = [_criar_obj_investigate(&"cn_nitro_rice_aura")]
 
 				19:
 					q.quest_name = "Continente Negro 19/22: O Reencontro no Topo do Mundo"
@@ -1711,10 +1722,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				3:
 					q.quest_name = "Guerra de Sucessão 3/26: O Ritual do Vaso Sagrado de Kakin"
-					q.description = "ORDEM: Examine o Vaso Sagrado. Depois [G] primeiro assassinato no corredor."
+					q.description = "ORDEM: [G] Leia o eco do porão imperial no ritual do Vaso Sagrado."
 					q.reward_xp = 390000
 					q.reward_gold = 8000000
-					q.objectives = [_criar_obj_visit(&"vaso_kakin", "Vaso Sagrado de Kakin")]
+					q.objectives = [_criar_obj_investigate(&"bw_porao_kakin")]
 
 				4:
 					q.quest_name = "Guerra de Sucessão 4/26: O Primeiro Assassinato a Bordo"
@@ -1746,17 +1757,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				8:
 					q.quest_name = "Guerra de Sucessão 8/26: Os Conveses Intermediários da Máfia"
-					q.description = "ORDEM: Caminhe aos conveses 3–4 e fale com Hinrigh (Xi-Yu). Sem rush."
+					q.description = "ORDEM: [G] Leia a marca das máfias de tier nos conveses 3–4 antes de Hinrigh."
 					q.reward_xp = 500000
 					q.reward_gold = 10500000
-					q.objectives = [_criar_obj_visit(&"hinrigh", "Hinrigh (Família Xi-Yu)")]
+					q.objectives = [_criar_obj_investigate(&"bw_mafia_tier")]
 
 				9:
 					q.quest_name = "Guerra de Sucessão 9/26: A Aliança com Hinrigh Biganduffno"
-					q.description = "ORDEM: Fale com Hinrigh (Biohazard). Depois [G] seita Heil-Ly."
+					q.description = "ORDEM: Convença Hinrigh a selar a aliança Xi-Yu — termos claros, Biohazard na mesa."
 					q.reward_xp = 525000
 					q.reward_gold = 11000000
-					q.objectives = [_criar_obj_visit(&"hinrigh", "Hinrigh")]
+					q.objectives = [_criar_obj_persuasion(&"hinrigh", "Hinrigh")]
 
 				10:
 					q.quest_name = "Guerra de Sucessão 10/26: O Contágio de Morena Prudo"
@@ -1774,17 +1785,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				12:
 					q.quest_name = "Guerra de Sucessão 12/26: A Caçada da Trupe Fantasma no Navio"
-					q.description = "ORDEM: Fale com Chrollo nos conveses profundos. Depois Hisoka (marcas de goma)."
+					q.description = "ORDEM: [Z] Cruze o armazém dos conveses profundos até Chrollo. Aura acesa atrai a Aranha."
 					q.reward_xp = 600000
 					q.reward_gold = 12500000
-					q.objectives = [_criar_obj_visit(&"chrollo", "Chrollo Lucilfer")]
+					q.objectives = [_criar_obj_stealth(&"bw_armazem_profundo")]
 
 				13:
 					q.quest_name = "Guerra de Sucessão 13/26: As Pistas de Sangue de Hisoka"
-					q.description = "ORDEM: Fale com Hisoka (Bungee Gum). Depois volte a Chrollo para negociar trégua."
+					q.description = "ORDEM: [G] Leia as marcas de Bungee Gum no convés — Hisoka já passou."
 					q.reward_xp = 625000
 					q.reward_gold = 13000000
-					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
+					q.objectives = [_criar_obj_investigate(&"bw_marca_bungee")]
 
 				14:
 					q.quest_name = "Guerra de Sucessão 14/26: A Trégua Provisória com a Trupe"
@@ -1844,10 +1855,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				22:
 					q.quest_name = "Guerra de Sucessão 22/26: O Duelo de Titãs nos Conveses"
-					q.description = "ORDEM: Fale com Hisoka no duelo dos profundos. Depois proteja Woble (Rainha Oito)."
+					q.description = "ORDEM: [Z] Cruze o corredor do Convés 3 até o duelo Hisoka×Chrollo."
 					q.reward_xp = 910000
 					q.reward_gold = 20000000
-					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka")]
+					q.objectives = [_criar_obj_stealth(&"bw_corredor_conves3")]
 
 				23:
 					q.quest_name = "Guerra de Sucessão 23/26: A Proteção do Príncipe Woble"
@@ -1882,6 +1893,8 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 	# Valores brutos históricos eram de outra curva; o fator evita saltos de dezenas de níveis.
 	q.reward_xp = escalar_xp_narrativo(arco, q.reward_xp)
 	q.reward_gold = escalar_jenny_narrativo(arco, q.reward_gold)
+	# Fase 0 — contrato de capítulo (ato / papel / verbo). Não afeta save keys.
+	StoryChapterContractScript.aplicar(q, arco, etapa)
 	return q
 
 

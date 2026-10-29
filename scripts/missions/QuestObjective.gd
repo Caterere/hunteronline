@@ -124,6 +124,20 @@ func describe() -> String:
 					desc_base = "🔍 [G] Gyo — Rosa Pobre (Poor Man's Rose)"
 				"escadaria_youpi":
 					desc_base = "🔍 [G] Gyo — Escadaria Central (Youpi)"
+				"ngl_aura_pitou":
+					desc_base = "🔍 [G] Gyo — Intenção Assassina (Pitou)"
+				"kukuroo_portao_aura":
+					desc_base = "🔍 [G] Gyo — Resíduo no Portão da Testagem"
+				"kukuroo_trono_silva":
+					desc_base = "🔍 [G] Gyo — Pressão do Trono de Silva"
+				"cn_nitro_rice_aura":
+					desc_base = "🔍 [G] Gyo — Aura do Nitro Rice"
+				"bw_porao_kakin":
+					desc_base = "🔍 [G] Gyo — Eco do Porão Imperial"
+				"bw_mafia_tier":
+					desc_base = "🔍 [G] Gyo — Marca das Máfias de Tier"
+				"bw_marca_bungee":
+					desc_base = "🔍 [G] Gyo — Marca de Bungee Gum"
 				"cela_alluka":
 					desc_base = "🔍 [G] Gyo — Cela / Cofre de Alluka"
 				"uti_gon_associacao":
@@ -174,8 +188,26 @@ func describe() -> String:
 					desc_base = "🥷 [Z] Zetsu — Vestíbulo do Ginásio"
 				"fronteira_goruto":
 					desc_base = "🥷 [Z] Zetsu — Fronteira Fortificada de Goruto"
+				"ngl_patrulha_fronteira":
+					desc_base = "🥷 [Z] Zetsu — Patrulha da Fronteira NGL"
+				"ngl_corredor_palacio":
+					desc_base = "🥷 [Z] Zetsu — Corredor do Palácio Real"
 				"ngl_vestibulo_tumba":
 					desc_base = "🥷 [Z] Zetsu — Vestíbulo da Tumba Nuclear"
+				"kukuroo_corredor_trono":
+					desc_base = "🥷 [Z] Zetsu — Corredor do Trono"
+				"assoc_rodovia_illumi":
+					desc_base = "🥷 [Z] Zetsu — Rodovia Noturna (Illumi)"
+				"assoc_corredor_hospital":
+					desc_base = "🥷 [Z] Zetsu — Corredor do Hospital Hunter"
+				"cn_copa_intermediaria":
+					desc_base = "🥷 [Z] Zetsu — Copa Intermediária da Árvore"
+				"bw_armazem_profundo":
+					desc_base = "🥷 [Z] Zetsu — Armazém dos Conveses Profundos"
+				"bw_corredor_conves3":
+					desc_base = "🥷 [Z] Zetsu — Corredor do Convés 3"
+				"bw_escotilha_heilly":
+					desc_base = "🥷 [Z] Zetsu — Escotilha Heil-Ly"
 				"aguas_proibidas":
 					desc_base = "🥷 [Z] Zetsu — Águas Proibidas"
 				"caverna_hellbell":

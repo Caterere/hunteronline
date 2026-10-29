@@ -66,8 +66,22 @@ func _popular_sensores_nen_arena() -> void:
 		NenSensorFactory.criar_gyo(
 			self, "GyoPistaDojoWing", Vector2(1080, -40),
 			&"arena_dojo_wing", "Resíduo no Dojo Shingen-ryu",
-			"Aura de ensino de Wing ainda paira no tatame. Gyo revela o caminho do Ten.",
+			"Aura de ensino de Wing ainda paira no tatame. Gyo revela o caminho do Ren.",
 			"Intensificação", 1, Color(0.55, 0.95, 0.75, 0.9)
+		)
+		# Clue canônico etapa 14 — pista do corredor 190 exige Gyo.
+		NenSensorFactory.criar_gyo(
+			self, "GyoPistaGyoCorredor", Vector2(2180, -50),
+			&"arena_pista_gyo", "Pista Oculta do Corredor 190",
+			"Marca de aura só legível com Gyo nos olhos. Wing deixou o exercício aqui.",
+			"Intensificação", 1, Color(0.95, 0.85, 0.35, 0.9)
+		)
+		# Clue canônico etapa 22 — poeira nos pés do clone de Kastro.
+		NenSensorFactory.criar_gyo(
+			self, "GyoPoeiraKastro", Vector2(3480, -40),
+			&"poeira_kastro", "Poeira nos Pés de Kastro",
+			"O clone não levanta poeira. Gyo foca nos pés reais — golpe final depois.",
+			"Materialização", 1, Color(0.9, 0.65, 0.4, 0.9)
 		)
 		NenSensorFactory.criar_ko(
 			self, "KoPoste200Andar", Vector2(3200, 20),
@@ -89,6 +103,12 @@ func _popular_sensores_nen_arena() -> void:
 			self, "KoPoste100Andar", Vector2(1580, 40),
 			"Poste Selado do 100º", &"ficha_arena", &"arena_ko_100"
 		)
+	# Zona Zetsu canônica etapa 13 — corredor de treino do dojo.
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuTreinoWing", Vector2(1120, 70),
+		&"treino_zetsu_arena", "Corredor de Treino Zetsu (Wing)",
+		Vector2(140, 100), &"lutador_arena", "Discípulo Alertado"
+	)
 	NenSensorFactory.criar_zetsu(
 		self, "ZetsuCorredorMedio", Vector2(1900, 80),
 		&"arena_corredor_medio", "Corredor dos Ringues Médios",

@@ -141,6 +141,7 @@ func _configurar_inimigos_zonas() -> void:
 					QuestSystem.registrar_spawn_posicao_missao(&"candidato_exame", node.global_position, 1, 4, -1, data_sabotador, "Candidato Sabotador")
 					QuestSystem.registrar_spawn_posicao_missao(&"candidato_exame", node.global_position, 1, 19, -1, data_sabotador, "Prisioneiro Condenado")
 					QuestSystem.registrar_spawn_posicao_missao(&"candidato_exame", node.global_position, 1, 21, -1, data_sabotador, "Competidor Veterano de Zevil")
+					QuestSystem.registrar_spawn_posicao_missao(&"candidato_exame", node.global_position, 1, 24, -1, data_sabotador, "Desafiante da Prova Final")
 
 	# Criaturas do Pantanal (Arco 1, Etapas 8 e 10)
 	for nome in ["MonstroPantanal1", "MonstroPantanal2", "MonstroPantanal3", "MonstroPantanal4"]:
@@ -376,6 +377,21 @@ func _popular_sensores_nen_exame() -> void:
 		self, "ZetsuZonaHisokaZevil", Vector2(5900, -20),
 		&"zona_hisoka_zevil", "Zona de Caça de Hisoka (Zevil)",
 		Vector2(160, 110), &"candidato_exame", "Candidato Alertado por Hisoka"
+	)
+	# Piloto Exame — placa-alvo (etapa 20) e caverna Ponzu (etapa 23)
+	var placa = NenSensorFactory.criar_gyo(
+		self, "GyoPlacaZevil", Vector2(5550, -10),
+		&"placa_zevil", "Placa-Alvo da 4ª Fase",
+		"Placa sorteada no embarque. Confira o número antes de caçar — observação antes da força.",
+		"Emissão", 1, Color(0.85, 0.75, 0.35, 0.9)
+	)
+	if placa != null:
+		placa.requer_gyo = false
+		placa.nivel_gyo_minimo = 0
+	NenSensorFactory.criar_zetsu(
+		self, "ZetsuCavernaPonzu", Vector2(6050, -20),
+		&"caverna_ponzu", "Caverna Venenosa de Ponzu",
+		Vector2(150, 100), &"candidato_exame", "Sentinela da Caverna"
 	)
 
 	if PlayerData != null and PlayerData.despertou_nen:

@@ -156,9 +156,9 @@ static func executar_gourmet_menchi_buhara(tree: SceneTree) -> void:
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
 		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.15, 1.15), "duration": 0.3},
 		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "the_world_of_adventurers"},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Buhara", "text": "Bons candidatos! O meu menu para a 2ª Fase é carne assada de Great Stamp Pig!"},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinadora Menchi", "text": "Cozinhar é arte — e risco. Carne mal preparada ou covardia: todos reprovados!"},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss", "text": "Eu e o Killua vamos caçar os javalis gigantes na floresta! Vamos nessa!"},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Buhara", "text": "Boa. Vocês chegaram. Minha prova é simples: carne de Great Stamp, fresca. Sem covardia."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinadora Menchi", "text": "E a minha não perdoa pressa. Respeito ao ingrediente. Precisão. Quem treme na floresta… reprova."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss", "text": "Então caçamos juntos. Killua, você lê o rastro — eu abro caminho!"},
 		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_gourmet_menchi", "value": true},
 		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
@@ -168,11 +168,87 @@ static func executar_gourmet_menchi_buhara(tree: SceneTree) -> void:
 		var hud = tree.get_first_node_in_group("player_hud") if tree != null else null
 		if hud != null and is_instance_valid(hud) and hud.has_method("exibir_notificacao"):
 			hud.exibir_notificacao("🐗 Cace o Grande Javali Selvagem (Great Stamp) na Floresta Biska!")
-		# Recompensa de marco: chance de adaga se ainda não tem
 		if PlayerData != null and not PlayerData.tem_item(&"adaga_zaban"):
 			PlayerData.adicionar_item(&"adaga_zaban", 1)
 			if EventBus != null:
-				EventBus.emit_toast("🔪 Menchi deixou uma Adaga de Zaban na mesa!", Color(1.0, 0.85, 0.35))
+				EventBus.emit_toast("Menchi deixou uma Adaga de Zaban na mesa", Color(1.0, 0.85, 0.35))
+	)
+
+
+# ------------------------------------------------------------
+# ARCO 1 PILOTO: VOTAÇÃO MAJORITÁRIA (TRICK TOWER)
+# ------------------------------------------------------------
+static func executar_votacao_trick_tower(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_votacao_trick", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.18, 1.18), "duration": 0.3},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Tonpa", "text": "Votação majoritária. Cinco votos. Os prisioneiros não brincam — e eu também não voto por sentimentalismo."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Leorio Paradinight", "text": "Então convença ele. A gente precisa da maioria — não de herói solo."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "votacao_trick_tower",
+			"speaker": "Votação",
+			"text": "Como você aborda Tonpa?",
+			"options": [
+				{"id": "argumento_grupo", "text": "Apelar ao grupo: juntos saímos vivos"},
+				{"id": "ameaca_leve", "text": "Pressão fria: voto contra e fica pra trás"},
+				{"id": "barganha", "text": "Barganha: ajuda agora, dívida depois"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Tonpa", "text": "…Tsk. Voto com vocês. Não porque confio — porque perder sozinho dói mais."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_votacao_trick", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	_iniciar_runner(tree, passos, "Votacao_TrickTower", func():
+		if QuestSystem != null and QuestSystem.has_method("register_persuasion"):
+			QuestSystem.register_persuasion(&"tonpa")
+		if EventBus != null:
+			EventBus.emit_toast("Maioria conquistada — avance a torre", Color(0.75, 0.9, 1.0))
+	)
+
+
+# ------------------------------------------------------------
+# ARCO 1 PILOTO: EMBARQUE ILHA ZEVIL
+# ------------------------------------------------------------
+static func executar_zevil_embarque(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_zevil_embarque", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "Quarta fase: Ilha Zevil. Cada um recebe um alvo. Roubar a placa — sem anunciar a caçada ao mundo inteiro."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Examinador Satotz", "text": "Inspecione sua placa antes de desembarcar. Quem corre cego vira presa de quem observa."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "zevil_estilo_caca",
+			"speaker": "Estilo de caça",
+			"text": "Como pretende jogar em Zevil?",
+			"options": [
+				{"id": "furtivo", "text": "Furtivo — observar antes de agir"},
+				{"id": "direto", "text": "Direto — pressionar o alvo cedo"},
+				{"id": "suporte", "text": "Suporte — proteger aliados e placas"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_zevil_embarque", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	_iniciar_runner(tree, passos, "Zevil_Embarque", func():
+		if EventBus != null:
+			EventBus.emit_toast("Inspecione a placa-alvo (GPS) antes da caçada", Color(0.85, 0.75, 1.0))
 	)
 
 
@@ -253,6 +329,43 @@ static func executar_montanha_kukuroo_cutscene(tree: SceneTree, callback_fim: Ca
 	)
 
 # ------------------------------------------------------------
+# ARCO 3 PILOTO: PRINCÍPIOS DE NEN (WING)
+# ------------------------------------------------------------
+static func executar_wing_principios_nen(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_wing_principios", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.25, 1.25), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Quatro princípios antes de qualquer Hatsu: Ten envolve, Zetsu silencia, Ren expande, Hatsu libera."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Ordem no dojo: Tatame (Ren) → Corredor Zetsu → Pista Gyo no 190. Sem pular."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "wing_foco_treino",
+			"speaker": "Foco do treino",
+			"text": "O que priorizar nas próximas horas?",
+			"options": [
+				{"id": "ten_base", "text": "Ten — manto estável primeiro"},
+				{"id": "zetsu_furtivo", "text": "Zetsu — sumir e regenerar"},
+				{"id": "gyo_leitura", "text": "Gyo — ler o que os outros escondem"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_wing_principios", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	_iniciar_runner(tree, passos, "Wing_Principios_Nen", func():
+		if EventBus != null:
+			EventBus.emit_toast("Dojo Wing: Ren → Zetsu → Gyo (GPS)", Color(0.55, 0.95, 0.75))
+	)
+
+
+# ------------------------------------------------------------
 # ARCO 3: ARENA CELESTIAL & O DESPERTAR DO NEN
 # ------------------------------------------------------------
 static func executar_arena_celestial_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
@@ -282,6 +395,43 @@ static func executar_arena_celestial_cutscene(tree: SceneTree, callback_fim: Cal
 	)
 
 # ------------------------------------------------------------
+# ARCO 6 PILOTO: HORA ZERO / INVASÃO NGL
+# ------------------------------------------------------------
+static func executar_ngl_hora_zero(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_ngl_hora_zero", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.25, 1.25), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Morel Mackernasey", "text": "Hora Zero. Portas do Knov abertas. Sem heroísmo solo — um objetivo de cada vez."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Isaac Netero", "text": "Escadaria, Youpi, tumba. A Rosa espera no fim. Não rush."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "ngl_foco_invasao",
+			"speaker": "Foco da invasão",
+			"text": "Onde concentrar a equipe?",
+			"options": [
+				{"id": "escadaria", "text": "Escadaria — isolar Youpi"},
+				{"id": "fumo", "text": "Fumaça — Deep Purple no corredor"},
+				{"id": "tumba", "text": "Tumba — caminho de Netero"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_ngl_hora_zero", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	_iniciar_runner(tree, passos, "NGL_Hora_Zero", func():
+		if EventBus != null:
+			EventBus.emit_toast("NGL: Escadaria → Corredor → Tumba (GPS)", Color(0.95, 0.45, 0.35))
+	)
+
+
+# ------------------------------------------------------------
 # ARCO 4: YORKNEW CITY & A TRUPE FANTASMA (GENEI RYODAN)
 # ------------------------------------------------------------
 static func executar_yorknew_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
@@ -308,6 +458,32 @@ static func executar_yorknew_cutscene(tree: SceneTree, callback_fim: Callable = 
 		em_cutscene = false
 		if callback_fim.is_valid():
 			callback_fim.call()
+
+
+# ------------------------------------------------------------
+# ARCO 5 PILOTO: BISCUIT — KO SOB PRESSÃO
+# ------------------------------------------------------------
+static func executar_biscuit_pressao_ko(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_biscuit_ko", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.3},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Ko não é força bruta — é recusa de desperdiçar um único fio de aura."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Desfiladeiro → Colinas Shu → Trace Ken → Quiz Ryu. Um de cada vez. Sem Bomber ainda."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_biscuit_ko", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	_iniciar_runner(tree, passos, "Biscuit_Pressao_Ko", func():
+		if EventBus != null:
+			EventBus.emit_toast("GI: Ko → Shu → Ken → Ryu (GPS)", Color(0.95, 0.75, 0.4))
+	)
 
 
 # ------------------------------------------------------------

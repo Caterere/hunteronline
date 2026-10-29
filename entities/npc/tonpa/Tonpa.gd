@@ -4,11 +4,17 @@ extends NPC
 # HUNTER ONLINE - NPC: TONPA (O ESMAGA-NOVATOS)
 # ============================================================
 #
-# Veterano do Exame Hunter que participa há 35 anos apenas
-# para ver novatos talentosos entrarem em desespero e fracassarem.
-# Dispara o evento surpresa da bebida com laxante/veneno.
+# Veterano do Exame Hunter. Piloto Fase 1:
+# - Etapa 1: DialogueTree ramificado (bebida / recusa / observação)
+# - Etapa 17: persuasão + cutscene de votação majoritária
 #
 # ============================================================
+
+const TonpaExameDialogueFactoryScript = preload("res://data/dialogues/TonpaExameDialogueFactory.gd")
+const StoryCutsceneManagerScript = preload("res://scripts/cutscenes/StoryCutsceneManager.gd")
+
+var _exame_tree: DialogueTree = null
+
 
 func _ready() -> void:
 	super()
@@ -18,25 +24,81 @@ func _ready() -> void:
 
 func _on_interacted(_player: CharacterBody2D) -> void:
 	print("[Tonpa] Interagindo com Tonpa o Esmaga-Novatos...")
-	QuestSystem.register_npc_visit(&"tonpa")
+	if QuestSystem != null:
+		QuestSystem.register_npc_visit(&"tonpa")
+		if QuestSystem.has_method("register_persuasion"):
+			QuestSystem.register_persuasion(&"tonpa")
 
+	var etapa: int = int(PlayerData.etapa_quest_arco) if PlayerData != null else 1
+	var arco: int = int(PlayerData.arco_atual) if PlayerData != null else 1
+
+	# Etapa 17 — votação majoritária (cutscene com escolha)
+	if arco == 1 and etapa == 17:
+		StoryCutsceneManagerScript.executar_votacao_trick_tower(get_tree())
+		return
+
+	# Etapa 1 (e reforço) — diálogo ramificado
+	if arco == 1 and etapa <= 2:
+		if _tentar_dialogue_tree():
+			return
+
+	_fallback_visual_dialogue()
+
+
+func _tentar_dialogue_tree() -> bool:
+	var diag_sys = get_tree().get_first_node_in_group("dialogue_system") as DialogueSystem
+	if diag_sys == null:
+		return false
+	if _exame_tree == null:
+		_exame_tree = TonpaExameDialogueFactoryScript.criar()
+	if _exame_tree == null or not _exame_tree.is_valid():
+		return false
+	# Registrar escolha ao terminar via conexão one-shot no ended
+	if not diag_sys.dialogue_ended.is_connected(_on_tonpa_dialogue_ended):
+		diag_sys.dialogue_ended.connect(_on_tonpa_dialogue_ended, CONNECT_ONE_SHOT)
+	if not diag_sys.dialogue_choice_made.is_connected(_on_tonpa_choice):
+		diag_sys.dialogue_choice_made.connect(_on_tonpa_choice)
+	diag_sys.start_dialogue(_exame_tree)
+	return true
+
+
+func _on_tonpa_choice(branch: DialogueBranch) -> void:
+	if branch == null or StoryManager == null:
+		return
+	var bid := str(branch.branch_id)
+	if bid.is_empty():
+		bid = str(branch.next_node_id)
+	StoryManager.register_choice("tonpa_bebida_exame", bid)
+
+
+func _on_tonpa_dialogue_ended() -> void:
+	var diag_sys = get_tree().get_first_node_in_group("dialogue_system") as DialogueSystem
+	if diag_sys != null and diag_sys.dialogue_choice_made.is_connected(_on_tonpa_choice):
+		diag_sys.dialogue_choice_made.disconnect(_on_tonpa_choice)
+
+
+func _fallback_visual_dialogue() -> void:
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
-	if visual_dialogue != null:
-		var tem_gyo = PlayerData.attributes.get("nivel_nen", 0) > 0 if PlayerData else false
-		var res_tonpa = SurpriseQuestSystem.processar_interacao_tonpa(tem_gyo) if SurpriseQuestSystem else {}
-		
-		var falas: Array[Dictionary] = [
-			{"falante": "Tonpa", "texto": "Ora ora, veja só! Mais um novato cheio de sonhos! Este já é o meu 35º Exame Hunter, sabia? Conheço cada canto deste mundo."},
-			{"falante": "Tonpa", "texto": "Para selar nossa aliança de Caçadores, pegue esta lata de suco gelada! Vai te dar uma energia incrível!"}
-		]
-		
-		if tem_gyo:
-			falas.append({"falante": "Você (Concentrando Gyo)", "texto": "(Concentrando Nen nos olhos com Gyo, você enxerga claramente os resíduos de laxante paralisante na tampa da lata! Você esmaga a lata com aura e encara o veterano!)"})
-			falas.append({"falante": "Tonpa", "texto": "Argh!... Como você percebeu?! Esse olhar... você não é um novato comum! Título Desbloqueado: [👁️ Imune a Trapaças]!"})
-		else:
-			falas.append({"falante": "Você", "texto": "(Você aceita a bebida e bebe um gole... Alguns segundos depois uma dor aguda atinge seu estômago!)"})
-			falas.append({"falante": "Tonpa", "texto": "Hahahahaha! Caiu direitinho! Mais um novato ingênuo destruído pelo veterano Tonpa!"})
-			
-		visual_dialogue.exibir_sequencia_falas(falas)
-	else:
+	if visual_dialogue == null:
 		falar_balao(fala_padrao, 3.5, Color(1.0, 0.7, 0.2, 1.0))
+		return
+
+	var tem_gyo = PlayerData.attributes.get("nivel_nen", 0) > 0 if PlayerData else false
+	var res_tonpa = SurpriseQuestSystem.processar_interacao_tonpa(tem_gyo) if SurpriseQuestSystem else {}
+	var _unused = res_tonpa
+
+	var falas: Array[Dictionary] = [
+		{"falante": "Tonpa", "texto": "Ora ora! Mais um novato cheio de sonhos. Este já é o meu 35º Exame — conheço cada armadilha deste túnel."},
+		{"falante": "Tonpa", "texto": "Para 'selar' camaradagem, pegue esta lata gelada. Vai te dar uma energia… especial."}
+	]
+	if tem_gyo:
+		falas.append({"falante": "Você", "texto": "(A tampa não fecha limpa. Você devolve a lata.)"})
+		falas.append({"falante": "Tonpa", "texto": "Argh… olhos afiados. Não é um novato comum."})
+		if StoryManager != null:
+			StoryManager.register_choice("tonpa_bebida_exame", "observar_tampa")
+	else:
+		falas.append({"falante": "Você", "texto": "(Um gole — depois a dor. Tonpa ri.)"})
+		falas.append({"falante": "Tonpa", "texto": "Hah! Caiu. Guarde a lição: no Exame, ninguém oferece nada de graça."})
+		if StoryManager != null:
+			StoryManager.register_choice("tonpa_bebida_exame", "aceitar_bebida")
+	visual_dialogue.exibir_sequencia_falas(falas)

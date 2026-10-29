@@ -5,17 +5,40 @@
 
 ## 1. ESTRUTURA NARRATIVA
 
-A narrativa do Hunter Online é dividida em **9 Sagas Canônicas**, cada uma composta por múltiplos capítulos lineares que formam a espinha dorsal da aventura do Hunter:
+A narrativa do Hunter Online é dividida em **9 Sagas Canônicas**, cada uma composta por múltiplos capítulos lineares que formam a espinha dorsal da aventura do Hunter.
+
+**SSOT de contagens:** `CanonQuestCatalog.obter_total_quests_do_arco` (total **254** etapas).
 
 1. **Saga 1: 287º Exame Hunter** (24 Etapas)
 2. **Saga 2: Montanha Kukuroo** (18 Etapas)
 3. **Saga 3: Arena Celestial** (26 Etapas)
-4. **Saga 4: Yorknew City & Trupe Fantasma** (35 Etapas)
-5. **Saga 5: Greed Island** (38 Etapas)
-6. **Saga 6: Formigas Chimera (NGL & Palácio)** (45 Etapas)
-7. **Saga 7: Eleição Hunter & Alluka** (22 Etapas)
-8. **Saga 8: Expedição ao Continente Negro** (20 Etapas)
+4. **Saga 4: Yorknew City & Trupe Fantasma** (34 Etapas)
+5. **Saga 5: Greed Island** (36 Etapas)
+6. **Saga 6: Formigas Chimera (NGL & Palácio)** (48 Etapas)
+7. **Saga 7: Eleição Hunter & Alluka** (20 Etapas)
+8. **Saga 8: Expedição ao Continente Negro** (22 Etapas)
 9. **Saga 9: Guerra de Sucessão Kakin (Black Whale 1)** (26 Etapas)
+
+### Contrato de capítulo (Fase 0)
+
+Cada etapa carrega metadado em `Quest.custom_data` via `StoryChapterContract`:
+
+- `act_id` / `act_name` — agrupador narrativo (ato)
+- `narrative_role` — `setup` | `bond` | `prep` | `prova` | `revelacao` | `climax` | `aftermath`
+- `playable_verb` — verbo jogável predominante
+- `contract_version` — `phase0`
+
+O Exame (Saga 1) é o piloto: atos Maratona → Numere → Gourmet → Dirigível → Trick Tower → Zevil → Clímax.
+
+**Fases 2–5** estendem o mesmo contrato a todas as sagas:
+
+- Arena: Escalada → Limiar 200º → Aprendizado de Nen (Wing: Ten/Ren/Zetsu/Gyo) → Mestres → Clímax Hisoka
+- Yorknew: Chegada → Trupe → Prisão/Apagão → Negociação/GI
+- GI: Entrada → Treino Biscuit (Ko/Shu/Ken/Ryu sob pressão) → Alianças → Razor → Clímax
+- Formigas: Fronteira → Tropa → Invasão → Tumba/Rosa → Aftermath (`executar_ngl_hora_zero`)
+- Kukuroo / Eleição / Continente / Sucessão: atos dedicados + soft streaks quebrados com sensores já no mapa
+
+Gates de técnica: `StoryNenGate` (Wing/Biscuit). Sensores Gyo/Zetsu/Ko nos mapas alinhados aos `target_clue_id` / `target_zone_id` do catálogo.
 
 ---
 

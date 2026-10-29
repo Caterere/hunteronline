@@ -46,6 +46,20 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 				"Um objetivo de cada vez. Evite emboscadas no corredor.",
 				"exame_largada_seen"
 			)
+		"exame_trick_tower":
+			return _pack(
+				"Satotz (eco)",
+				"Trick Tower: observação, voto e blefe. Nem tudo se resolve no soco.",
+				"Inspecione o alçapão. Depois, convença a maioria.",
+				"exame_trick_tower_seen"
+			)
+		"exame_zevil":
+			return _pack(
+				"Satotz (eco)",
+				"Zevil: placa, caça e silêncio. Hisoka lê quem grita aura.",
+				"Inspecione a placa. Zetsu na zona marcada.",
+				"exame_zevil_seen"
+			)
 		"vale_wing_nen":
 			return _pack(
 				"Mestre Wing",
@@ -85,8 +99,15 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 			return _pack(
 				"Mestre Wing",
 				"Nen não é atalho. É identidade.",
-				"Teste da Água, depois andares. Respire entre ranks.",
+				"Teste da Água → Ren no tatame → Zetsu → Gyo. Sem pular.",
 				"arena_wing_seen"
+			)
+		"arena_wing_principios":
+			return _pack(
+				"Mestre Wing",
+				"Ten envolve. Ren expande. Zetsu some. Gyo lê.",
+				"GPS marca o próximo exercício — um de cada vez.",
+				"arena_wing_principios_seen"
 			)
 		"arena_pre_200":
 			return _pack(
@@ -112,9 +133,16 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 		"greed_biscuit":
 			return _pack(
 				"Biscuit",
-				"Treino antes de Bomber. Ko, Ren, identidade.",
-				"Quando o Hatsu responder, você sobe de nível de verdade.",
+				"Treino antes de Bomber. Ko, Shu, Ken, Ryu.",
+				"Desfiladeiro → colinas → Trace → Quiz. Depois Bomber.",
 				"greed_biscuit_seen"
+			)
+		"greed_biscuit_ko":
+			return _pack(
+				"Biscuit",
+				"Ko sob pressão. Sem dispersão.",
+				"[G] no posto, depois a rocha. Um impacto limpo.",
+				"greed_biscuit_ko_seen"
 			)
 		"greed_soufrabi":
 			return _pack(
@@ -122,6 +150,13 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 				"Porto Soufrabi. Razor espera no ginásio.",
 				"Goreinu → Hisoka → Razor. Ordem clara.",
 				"greed_soufrabi_seen"
+			)
+		"ngl_hora_zero":
+			return _pack(
+				"Morel",
+				"Hora Zero. Portas abertas. Sem heroísmo solo.",
+				"Escadaria → corredor → tumba. GPS um passo.",
+				"ngl_hora_zero_seen"
 			)
 		"ngl_palacio":
 			return _pack(
