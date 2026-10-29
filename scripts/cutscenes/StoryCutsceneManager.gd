@@ -246,8 +246,7 @@ static func executar_zevil_embarque(tree: SceneTree) -> void:
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Zevil_Embarque", func():
-		em_cutscene = false
+	_iniciar_runner(tree, passos, "Zevil_Embarque", func():
 		if EventBus != null:
 			EventBus.emit_toast("Inspecione a placa-alvo (GPS) antes da caçada", Color(0.85, 0.75, 1.0))
 	)
@@ -360,8 +359,7 @@ static func executar_wing_principios_nen(tree: SceneTree) -> void:
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Wing_Principios_Nen", func():
-		em_cutscene = false
+	_iniciar_runner(tree, passos, "Wing_Principios_Nen", func():
 		if EventBus != null:
 			EventBus.emit_toast("Dojo Wing: Ren → Zetsu → Gyo (GPS)", Color(0.55, 0.95, 0.75))
 	)
@@ -427,8 +425,7 @@ static func executar_ngl_hora_zero(tree: SceneTree) -> void:
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "NGL_Hora_Zero", func():
-		em_cutscene = false
+	_iniciar_runner(tree, passos, "NGL_Hora_Zero", func():
 		if EventBus != null:
 			EventBus.emit_toast("NGL: Escadaria → Corredor → Tumba (GPS)", Color(0.95, 0.45, 0.35))
 	)
@@ -483,8 +480,7 @@ static func executar_biscuit_pressao_ko(tree: SceneTree) -> void:
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Biscuit_Pressao_Ko", func():
-		em_cutscene = false
+	_iniciar_runner(tree, passos, "Biscuit_Pressao_Ko", func():
 		if EventBus != null:
 			EventBus.emit_toast("GI: Ko → Shu → Ken → Ryu (GPS)", Color(0.95, 0.75, 0.4))
 	)
