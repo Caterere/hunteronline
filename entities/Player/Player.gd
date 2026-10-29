@@ -38,6 +38,7 @@ var _trauma: float = 0.0
 var _trauma_power: float = 2.0
 var _max_shake_offset: float = 8.0
 var _shake_decay: float = 2.8
+var _zoom_tween: Tween = null
 
 
 func _enter_tree() -> void:
@@ -113,7 +114,8 @@ func _on_camera_shake_requested(intensity: float, _duration: float) -> void:
 
 
 ## Zoom tático / cinematic (BossIntroBanner e mapas). Aceita float ou Vector2.
-func definir_zoom_camera(zoom_val: Variant) -> void:
+## `duracao` opcional: se > 0, interpola o zoom (BossIntroBanner passa 0.8s).
+func definir_zoom_camera(zoom_val: Variant, duracao: float = 0.0) -> void:
 	if _camera == null:
 		_camera = get_node_or_null("Camera2D") as Camera2D
 	if _camera == null:
@@ -124,7 +126,15 @@ func definir_zoom_camera(zoom_val: Variant) -> void:
 	elif typeof(zoom_val) == TYPE_FLOAT or typeof(zoom_val) == TYPE_INT:
 		var f := float(zoom_val)
 		z = Vector2(f, f)
-	_camera.zoom = z.clamp(Vector2(0.6, 0.6), Vector2(4.0, 4.0))
+	z = z.clamp(Vector2(0.6, 0.6), Vector2(4.0, 4.0))
+	if _zoom_tween != null and is_instance_valid(_zoom_tween):
+		_zoom_tween.kill()
+		_zoom_tween = null
+	if duracao <= 0.0:
+		_camera.zoom = z
+		return
+	_zoom_tween = create_tween()
+	_zoom_tween.tween_property(_camera, "zoom", z, duracao).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 func travar_controles(travar: bool = true) -> void:
