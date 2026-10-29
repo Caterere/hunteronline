@@ -35,7 +35,7 @@ const TEMPO_MINIMO_RESPIRO: float = 120.0
 const EVENTOS_VIAGEM: Dictionary = {
 	"estrada_comerciante": {
 		"titulo": "Comerciante na Estrada",
-		"bgm": "hunting_for_your_dream",
+		"bgm": "no_no_haru",
 		"falas": [
 			{"speaker": "Comerciante Errante", "text": "Ei, Hunter! A estrada até o próximo posto está movimentada. Quer um amuleto barato pra sorte?"},
 			{"speaker": "Comerciante Errante", "text": "Ou prefere só um rumor? Dizem que um aspirante sumiu perto das Ruínas de Zaban..."},
@@ -49,7 +49,7 @@ const EVENTOS_VIAGEM: Dictionary = {
 	},
 	"patrulha_associacao": {
 		"titulo": "Patrulha da Associação",
-		"bgm": "departure",
+		"bgm": "hashire",
 		"falas": [
 			{"speaker": "Patrulheiro Hunter", "text": "Documentos, por favor. A Associação reforçou a vigilância após rumores de Nen selvagem na região."},
 			{"speaker": "Patrulheiro Hunter", "text": "Se estiver indo ao Exame, mantenha a Licença à mão. Boa caçada."},
@@ -178,6 +178,9 @@ func iniciar_evento_viagem(ponto_origem: String, ponto_destino: String, evento_i
 
 
 func _aplicar_consequencia_viagem(evento_id: String, escolha: String) -> void:
+	if PlayerData == null:
+		push_warning("[StoryPacingManager] PlayerData nulo — consequência de viagem ignorada (%s)." % evento_id)
+		return
 	match evento_id:
 		"estrada_comerciante":
 			match escolha:

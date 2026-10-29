@@ -42,7 +42,10 @@ func _test_hud_scale() -> void:
 func _test_zoom() -> void:
 	var src := FileAccess.get_file_as_string("res://entities/Player/Player.gd")
 	_assert("definir_zoom_camera" in src, "Player.definir_zoom_camera")
+	_assert("duracao: float = 0.0" in src, "definir_zoom_camera aceita duração opcional")
 	_assert("1.75" in src, "zoom default 1.75")
+	var banner := FileAccess.get_file_as_string("res://ui/boss/BossIntroBanner.gd")
+	_assert("definir_zoom_camera(Vector2(0.88, 0.88), 0.8)" in banner, "BossIntroBanner chama zoom com duração")
 	var tscn := FileAccess.get_file_as_string("res://entities/Player/Player.tscn")
 	_assert("Vector2(1.75, 1.75)" in tscn, "Player.tscn Camera2D zoom 1.75")
 

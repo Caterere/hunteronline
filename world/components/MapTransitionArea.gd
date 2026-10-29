@@ -139,9 +139,25 @@ func _executar_transicao() -> void:
 	# Se houver diálogo prévio registrado (ex: conclusão de fase do Exame)
 	if callback_dialogo_previo.is_valid():
 		ja_trocando = true
+		var cena_trocada: Array = [false]
 		callback_dialogo_previo.call(func():
+			if cena_trocada[0]:
+				return
+			cena_trocada[0] = true
 			_mudar_cena()
 		)
+		# Safety: se a cutscene abortar sem chamar o callback (em_cutscene preso,
+		# runner ocupado), libera o portal após timeout em vez de softlock eterno.
+		var tree := get_tree()
+		if tree != null:
+			tree.create_timer(12.0).timeout.connect(func():
+				if cena_trocada[0] or not is_instance_valid(self):
+					return
+				push_warning("[MapTransitionArea] Timeout da cutscene de portal '%s' — liberando ja_trocando." % portal_name)
+				ja_trocando = false
+				if StoryCutsceneManager != null:
+					StoryCutsceneManager.forcar_liberacao_cutscene()
+			)
 		return
 
 	ja_trocando = true

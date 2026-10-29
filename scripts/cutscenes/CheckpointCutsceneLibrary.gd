@@ -17,20 +17,24 @@ static func executar(tree: SceneTree, cutscene_id: StringName, callback: Callabl
 		return
 	if StoryCutsceneManagerScript.em_cutscene:
 		return
+	if CutsceneSequenceRunnerScript.em_execucao:
+		return
 	var flag := "ckpt_%s" % String(cutscene_id)
 	if StoryManager != null and bool(StoryManager.get_story_flag(flag, false)):
 		return
 	var passos := obter_passos(cutscene_id)
 	if passos.is_empty():
 		return
-	StoryCutsceneManagerScript.em_cutscene = true
-	CutsceneSequenceRunnerScript.executar(tree, passos, "ckpt_%s" % String(cutscene_id), func():
+	# NÃO setar em_cutscene aqui: se executar() recusar, a flag ficava presa
+	# e bloqueava todos os portais/cutscenes de história. O runner seta em _iniciar.
+	var runner = CutsceneSequenceRunnerScript.executar(tree, passos, "ckpt_%s" % String(cutscene_id), func():
 		if StoryManager != null:
 			StoryManager.set_story_flag(flag, true)
-		StoryCutsceneManagerScript.em_cutscene = false
 		if callback.is_valid():
 			callback.call()
 	)
+	if runner == null and callback.is_valid():
+		callback.call()
 
 
 static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:

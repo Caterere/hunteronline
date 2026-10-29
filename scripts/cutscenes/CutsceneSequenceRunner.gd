@@ -58,6 +58,7 @@ var _callback_fim: Callable = Callable()
 var _player_cache: CharacterBody2D = null
 var _camera_original_zoom: Vector2 = Vector2.ONE
 var _camera_cache: Camera2D = null
+var _encerrado: bool = false
 
 
 static func interromper_sequencia_ativa(tree: SceneTree = null) -> void:
@@ -66,17 +67,25 @@ static func interromper_sequencia_ativa(tree: SceneTree = null) -> void:
 		if target_tree != null:
 			runner_ativo._finalizar(target_tree)
 		else:
+			runner_ativo._encerrado = true
 			runner_ativo.queue_free()
 			runner_ativo = null
 			em_execucao = false
+			StoryCutsceneManager.em_cutscene = false
 
 
 static func executar(tree: SceneTree, steps: Array[Dictionary], nome: String = "Cutscene", callback_fim: Callable = Callable()) -> Node:
+	if tree == null:
+		push_warning("[CutsceneSequenceRunner] SceneTree nulo — sequência '%s' não iniciada." % nome)
+		return null
 	if em_execucao and runner_ativo != null and is_instance_valid(runner_ativo):
-		push_warning("[CutsceneSequenceRunner] Já há uma sequência em execução: %s" % runner_ativo._nome_sequencia)
-		return runner_ativo
+		push_warning("[CutsceneSequenceRunner] Já há uma sequência em execução: %s (recusando '%s')" % [runner_ativo._nome_sequencia, nome])
+		return null
 
 	var root = tree.current_scene if tree.current_scene != null else tree.root
+	if root == null:
+		push_warning("[CutsceneSequenceRunner] Sem root de cena — sequência '%s' não iniciada." % nome)
+		return null
 	var script_ref = load("res://scripts/cutscenes/CutsceneSequenceRunner.gd") as GDScript
 	var runner: Node = script_ref.new()
 	runner.name = "CutsceneRunner_" + str(randi() % 1000)
@@ -85,9 +94,14 @@ static func executar(tree: SceneTree, steps: Array[Dictionary], nome: String = "
 	return runner
 
 
+func _pode_continuar() -> bool:
+	return is_instance_valid(self) and not _encerrado
+
+
 func _iniciar(tree: SceneTree, steps: Array[Dictionary], nome: String, callback_fim: Callable) -> void:
 	em_execucao = true
 	runner_ativo = self
+	_encerrado = false
 	_steps = steps
 	_current_step_idx = 0
 	_nome_sequencia = nome
@@ -96,9 +110,10 @@ func _iniciar(tree: SceneTree, steps: Array[Dictionary], nome: String, callback_
 	var players = tree.get_nodes_in_group("player")
 	if not players.is_empty():
 		_player_cache = players[0] as CharacterBody2D
-		_camera_cache = _player_cache.get_node_or_null("Camera2D") as Camera2D
-		if _camera_cache != null:
-			_camera_original_zoom = _camera_cache.zoom
+		if _player_cache != null:
+			_camera_cache = _player_cache.get_node_or_null("Camera2D") as Camera2D
+			if _camera_cache != null:
+				_camera_original_zoom = _camera_cache.zoom
 
 	if StoryManager != null:
 		StoryManager.set_pacing_state(StoryManager.StoryPacingState.CUTSCENE)
@@ -111,6 +126,8 @@ func _iniciar(tree: SceneTree, steps: Array[Dictionary], nome: String, callback_
 
 
 func _executar_proximo_passo(tree: SceneTree) -> void:
+	if not _pode_continuar():
+		return
 	if _current_step_idx >= _steps.size():
 		_finalizar(tree)
 		return
@@ -121,7 +138,7 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 	match tipo:
 		StepType.LOCK_INPUT:
 			var travar: bool = bool(step.get("lock", true))
-			if _player_cache != null and _player_cache.has_method("travar_controles"):
+			if _player_cache != null and is_instance_valid(_player_cache) and _player_cache.has_method("travar_controles"):
 				_player_cache.travar_controles(travar)
 			_avancar(tree)
 
@@ -130,7 +147,9 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 			if actor == null and step.get("is_player", false):
 				actor = _player_cache
 			var target_pos: Vector2 = step.get("target", Vector2.ZERO)
-			var spd: float = float(step.get("speed", 100.0))
+			# speed <= 0 gerava divisão por zero / await infinito (softlock com LOCK_INPUT).
+			var spd_raw: float = float(step.get("speed", 100.0))
+			var spd: float = spd_raw if spd_raw > 0.0 else 100.0
 			var wait_finish: bool = bool(step.get("wait", true))
 
 			if actor != null and is_instance_valid(actor):
@@ -140,17 +159,21 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 					# Suporte direto a interpolação ou velocidade direta
 					var tween = create_tween()
 					var dist = actor.global_position.distance_to(target_pos)
-					var duracao = max(0.1, dist / spd)
+					var duracao = maxf(0.1, dist / spd)
 					tween.tween_property(actor, "global_position", target_pos, duracao)
 					if wait_finish:
 						await tween.finished
+						if not _pode_continuar():
+							return
 						_avancar(tree)
 						return
 
 				if wait_finish:
 					var dist = actor.global_position.distance_to(target_pos)
-					var duracao = max(0.1, dist / spd)
+					var duracao = maxf(0.1, dist / spd)
 					await tree.create_timer(duracao).timeout
+					if not _pode_continuar():
+						return
 			_avancar(tree)
 
 		StepType.FACE_ACTOR:
@@ -186,6 +209,8 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 				var tween = create_tween()
 				tween.tween_property(_camera_cache, "global_position", pos_final, duracao).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 				await tween.finished
+				if not _pode_continuar():
+					return
 			_avancar(tree)
 
 		StepType.CAMERA_ZOOM:
@@ -199,10 +224,12 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 				var z: float = float(zoom_raw)
 				zoom_target = Vector2(z, z)
 			var duracao: float = float(step.get("duration", 0.5))
-			if _camera_cache != null:
+			if _camera_cache != null and is_instance_valid(_camera_cache):
 				var tween = create_tween()
 				tween.tween_property(_camera_cache, "zoom", zoom_target, duracao).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 				await tween.finished
+				if not _pode_continuar():
+					return
 			_avancar(tree)
 
 		StepType.CAMERA_SHAKE:
@@ -227,6 +254,8 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 					ComicBalloon.mostrar(bubble_target, text, max(2.0, tempo_auto if tempo_auto > 0 else 3.0), -40.0)
 					if tempo_auto > 0:
 						await tree.create_timer(tempo_auto).timeout
+						if not _pode_continuar():
+							return
 						_avancar(tree)
 						return
 
@@ -234,7 +263,10 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 				diag_box.show_dialogue(speaker, text)
 				if tempo_auto > 0:
 					await tree.create_timer(tempo_auto).timeout
-					diag_box.hide()
+					if not _pode_continuar():
+						return
+					if is_instance_valid(diag_box):
+						diag_box.hide()
 					_avancar(tree)
 				else:
 					# Avança ao clicar ou apertar interact
@@ -242,12 +274,23 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 			elif visual_diag != null and visual_diag.has_method("exibir_sequencia_falas"):
 				var falas: Array[Dictionary] = [{"falante": speaker, "texto": text}]
 				visual_diag.exibir_sequencia_falas(falas)
-				visual_diag.dialogo_concluido.connect(func(): _avancar(tree), CONNECT_ONE_SHOT)
+				if visual_diag.has_method("when_done"):
+					visual_diag.when_done(func():
+						if _pode_continuar():
+							_avancar(tree)
+					)
+				else:
+					visual_diag.dialogo_concluido.connect(func():
+						if _pode_continuar():
+							_avancar(tree)
+					, CONNECT_ONE_SHOT)
 			else:
 				var ComicBalloon = load("res://scripts/ui/ComicBalloon.gd")
-				if _player_cache != null and ComicBalloon != null:
+				if _player_cache != null and is_instance_valid(_player_cache) and ComicBalloon != null:
 					ComicBalloon.mostrar(_player_cache, "[%s]: %s" % [speaker, text], 3.0, -45.0)
 				await tree.create_timer(2.5).timeout
+				if not _pode_continuar():
+					return
 				_avancar(tree)
 
 		StepType.CHOICE:
@@ -255,6 +298,8 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 			var speaker: String = str(step.get("speaker", "Decisão"))
 			var prompt_text: String = str(step.get("text", "O que você decide fazer?"))
 			var options: Array = step.get("options", ["Prosseguir"])
+			if options.is_empty():
+				options = ["Prosseguir"]
 
 			var diag_box = tree.get_first_node_in_group("dialogue_box") as DialogueBox
 			if diag_box != null:
@@ -274,20 +319,26 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 				if diag_sys != null:
 					var choice_conn: Callable
 					choice_conn = func(branch_chosen: DialogueBranch):
+						if not _pode_continuar():
+							return
 						if diag_sys.dialogue_choice_made.is_connected(choice_conn):
 							diag_sys.dialogue_choice_made.disconnect(choice_conn)
-						var selected_val = branch_chosen.next_node_id
+						var selected_val = branch_chosen.next_node_id if branch_chosen != null else "default"
 						if StoryManager != null:
 							StoryManager.register_choice(choice_id, selected_val)
-						diag_box.hide()
+						if is_instance_valid(diag_box):
+							diag_box.hide()
 						_avancar(tree)
 					diag_sys.dialogue_choice_made.connect(choice_conn)
 				else:
 					await tree.create_timer(2.0).timeout
+					if not _pode_continuar():
+						return
 					if StoryManager != null:
 						var fallback_id: String = options[0].get("id", str(options[0])) if options[0] is Dictionary else str(options[0])
 						StoryManager.register_choice(choice_id, fallback_id)
-					diag_box.hide()
+					if is_instance_valid(diag_box):
+						diag_box.hide()
 					_avancar(tree)
 			else:
 				# Fallback headless / sem DialogueBox: registra 1ª opção e segue
@@ -315,8 +366,10 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 			_avancar(tree)
 
 		StepType.WAIT:
-			var secs: float = float(step.get("seconds", 1.0))
+			var secs: float = maxf(0.01, float(step.get("seconds", 1.0)))
 			await tree.create_timer(secs).timeout
+			if not _pode_continuar():
+				return
 			_avancar(tree)
 
 		StepType.AUDIO_SFX:
@@ -362,53 +415,50 @@ func _executar_proximo_passo(tree: SceneTree) -> void:
 
 
 func _esperar_confirmacao_dialogo(tree: SceneTree, diag_box: DialogueBox) -> void:
-	var process_check: Node = Node.new()
-	process_check.name = "DialogueAwaitHelper"
-	add_child(process_check)
+	# Guard contra double-advance: timer 8s e process_frame podiam ambos
+	# chamar cleanup no mesmo frame (queue_free é deferred → is_instance_valid
+	# ainda true) → dois _avancar → crash "previously freed" / passos pulados.
+	var done: Array = [false]
+	var frame_conn: Callable = Callable()
 
-	var timer_cooldown: float = 0.3
-	process_check.set_process(true)
-	
 	var cleanup := func():
-		if is_instance_valid(process_check):
-			process_check.queue_free()
-		diag_box.hide()
-		_avancar(tree)
+		if done[0]:
+			return
+		done[0] = true
+		if frame_conn.is_valid() and tree != null and tree.process_frame.is_connected(frame_conn):
+			tree.process_frame.disconnect(frame_conn)
+		if diag_box != null and is_instance_valid(diag_box):
+			diag_box.hide()
+		if _pode_continuar():
+			_avancar(tree)
 
 	# Timeout de segurança para nunca travar a cena
 	var max_timer = tree.create_timer(8.0)
 	max_timer.timeout.connect(func():
-		if is_instance_valid(process_check):
-			cleanup.call()
+		cleanup.call()
 	)
 
-	# Listener de input
-	var check_call = func(_delta):
-		timer_cooldown -= _delta
-		if timer_cooldown <= 0.0:
-			if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("attack") or Input.is_key_pressed(KEY_SPACE) or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-				cleanup.call()
-
-	process_check.set_script(null)
-	process_check.process_mode = Node.PROCESS_MODE_ALWAYS
-	# Conexão segura via frame de renderização
-	var frame_conn: Callable
+	# Input via process_frame (PROCESS_MODE_ALWAYS não precisa de helper node)
 	frame_conn = func():
-		if not is_instance_valid(process_check):
+		if done[0] or not _pode_continuar():
 			return
 		if Input.is_action_just_pressed("interact") or Input.is_action_just_pressed("attack") or Input.is_action_just_pressed("ui_accept"):
-			tree.process_frame.disconnect(frame_conn)
 			cleanup.call()
 	tree.process_frame.connect(frame_conn)
 
 
 func _avancar(tree: SceneTree) -> void:
+	if not _pode_continuar():
+		return
 	passo_concluido.emit(_current_step_idx)
 	_current_step_idx += 1
 	_executar_proximo_passo(tree)
 
 
 func _finalizar(tree: SceneTree) -> void:
+	if _encerrado:
+		return
+	_encerrado = true
 	print("[CutsceneSequenceRunner] 🏁 SEQUÊNCIA CONCLUÍDA: %s" % _nome_sequencia)
 
 	# Restaurar câmera original suavemente
@@ -428,11 +478,14 @@ func _finalizar(tree: SceneTree) -> void:
 
 	StoryCutsceneManager.em_cutscene = false
 	em_execucao = false
-	runner_ativo = null
+	if runner_ativo == self:
+		runner_ativo = null
 
 	sequencia_concluida.emit(_nome_sequencia)
 
-	if _callback_fim.is_valid():
-		_callback_fim.call()
+	var cb := _callback_fim
+	_callback_fim = Callable()
+	if cb.is_valid():
+		cb.call()
 
 	queue_free()

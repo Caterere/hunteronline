@@ -15,20 +15,48 @@ extends Node
 static var em_cutscene: bool = false
 
 
+## Se já há cutscene/runner ativo, invoca callback (fail-open de portal) e retorna true.
+static func _ocupado_fail_open(callback_fim: Callable = Callable()) -> bool:
+	if not em_cutscene and not CutsceneSequenceRunner.em_execucao:
+		return false
+	push_warning("[StoryCutsceneManager] Cutscene ocupada — fail-open do callback de portal.")
+	if callback_fim.is_valid():
+		callback_fim.call()
+	return true
+
+
+static func _iniciar_runner(tree: SceneTree, passos: Array[Dictionary], nome: String, callback_fim: Callable) -> bool:
+	var runner = CutsceneSequenceRunner.executar(tree, passos, nome, callback_fim)
+	if runner == null:
+		# executar recusou — não deixar em_cutscene preso nem portal softlock
+		em_cutscene = false
+		if callback_fim.is_valid():
+			callback_fim.call()
+		return false
+	return true
+
+
+static func _conectar_visual_ou_callback(visual_dialogue: Node, falas: Array[Dictionary], ao_fim: Callable) -> void:
+	visual_dialogue.exibir_sequencia_falas(falas)
+	if visual_dialogue.has_method("when_done"):
+		visual_dialogue.when_done(ao_fim)
+	else:
+		visual_dialogue.dialogo_concluido.connect(ao_fim, CONNECT_ONE_SHOT)
+
+
 # ------------------------------------------------------------
 # ARCO 1: EXAME HUNTER — ENCONTRO DOS 4 AMIGOS NA MARATONA (TÚNEL)
 # ------------------------------------------------------------
 static func executar_maratona_hunter(tree: SceneTree, gon: NPC, killua: NPC, leorio: NPC, kurapika: NPC, satotz: NPC) -> void:
-	if em_cutscene:
+	if em_cutscene or CutsceneSequenceRunner.em_execucao:
 		return
 
-	em_cutscene = true
 	print("[Cutscene] Iniciando Sequência do Exame Hunter: Encontro dos 4 Amigos...")
 
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
 		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.35},
-		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "departure"},
+		{"type": CutsceneSequenceRunner.StepType.AUDIO_BGM, "bgm": "hashire"},
 		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Gon Freecss (Nº 405)", "text": "Oi! Eu sou o Gon da Ilha da Baleia! Estou fazendo o Exame Hunter para descobrir por que meu pai, o Ging, escolheu ser Hunter acima de tudo!"},
 		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Killua Zoldyck (Nº 99)", "text": "Ei, skate não é trapaça! O examinador só mandou segui-lo. Eu sou o Killua... Fugir da minha família de assassinos parecia divertido, mas até agora tá bem fácil."},
 		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Leorio Paradinight (Nº 403)", "text": "Ufa... argh... calem a boca, seus moleques cheios de energia! Eu sou o Leorio! Se eu virar Hunter, vou ter dinheiro pra pagar a faculdade de medicina e tratar os doentes de graça!"},
@@ -40,12 +68,14 @@ static func executar_maratona_hunter(tree: SceneTree, gon: NPC, killua: NPC, leo
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Maratona_Encontro_Amigos", func():
+	_iniciar_runner(tree, passos, "Maratona_Encontro_Amigos", func():
 		_mover_amigos_maratona(tree, gon, killua, leorio, kurapika, satotz)
-		em_cutscene = false
 	)
 
 static func _mover_amigos_maratona(tree: SceneTree, gon: NPC, killua: NPC, leorio: NPC, kurapika: NPC, satotz: NPC) -> void:
+	if tree == null:
+		em_cutscene = false
+		return
 	var destino_satotz := Vector2(1750, -300)
 	if satotz != null and is_instance_valid(satotz):
 		destino_satotz = satotz.global_position + Vector2(-60, 0)
@@ -58,9 +88,11 @@ static func _mover_amigos_maratona(tree: SceneTree, gon: NPC, killua: NPC, leori
 
 	await tree.create_timer(2.0).timeout
 	em_cutscene = false
+	if tree == null:
+		return
 
 	var hud = tree.get_first_node_in_group("player_hud")
-	if hud != null and hud.has_method("exibir_notificacao"):
+	if hud != null and is_instance_valid(hud) and hud.has_method("exibir_notificacao"):
 		hud.exibir_notificacao("🏃 Siga o grupo e alcance o Examinador Satotz no fim do túnel!")
 
 
@@ -68,10 +100,9 @@ static func _mover_amigos_maratona(tree: SceneTree, gon: NPC, killua: NPC, leori
 # ARCO 1: ENTRADA NO PANTANAL NUMERE & AMEAÇA DE HISOKA
 # ------------------------------------------------------------
 static func executar_pantanal_hisoka(tree: SceneTree, satotz: NPC, hisoka: NPC, amigos: Array[NPC]) -> void:
-	if em_cutscene:
+	if em_cutscene or CutsceneSequenceRunner.em_execucao:
 		return
 
-	em_cutscene = true
 	print("[Cutscene] Iniciando Sequência do Pantanal Numere & Hisoka...")
 
 	var passos: Array[Dictionary] = [
@@ -89,12 +120,15 @@ static func executar_pantanal_hisoka(tree: SceneTree, satotz: NPC, hisoka: NPC, 
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Pantanal_Hisoka", func():
+	_iniciar_runner(tree, passos, "Pantanal_Hisoka", func():
 		_dispersar_amigos_pantanal(tree, amigos)
 	)
 
 
 static func _dispersar_amigos_pantanal(tree: SceneTree, amigos: Array[NPC]) -> void:
+	if tree == null:
+		em_cutscene = false
+		return
 	var destino_pantanal := Vector2(3400, -700)
 	for i in range(amigos.size()):
 		var amigo = amigos[i]
@@ -103,9 +137,11 @@ static func _dispersar_amigos_pantanal(tree: SceneTree, amigos: Array[NPC]) -> v
 
 	await tree.create_timer(2.0).timeout
 	em_cutscene = false
+	if tree == null:
+		return
 
 	var hud = tree.get_first_node_in_group("player_hud")
-	if hud != null and hud.has_method("exibir_notificacao"):
+	if hud != null and is_instance_valid(hud) and hud.has_method("exibir_notificacao"):
 		hud.exibir_notificacao("⚔️ Atravesse o Pantanal Numere e derrote as criaturas do nevoeiro!")
 
 
@@ -113,9 +149,8 @@ static func _dispersar_amigos_pantanal(tree: SceneTree, amigos: Array[NPC]) -> v
 # ARCO 1: FLORESTA BISKA & HUNTERS GOURMET (MENCHI & BUHARA)
 # ------------------------------------------------------------
 static func executar_gourmet_menchi_buhara(tree: SceneTree) -> void:
-	if em_cutscene:
+	if em_cutscene or CutsceneSequenceRunner.em_execucao:
 		return
-	em_cutscene = true
 
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
@@ -129,11 +164,10 @@ static func executar_gourmet_menchi_buhara(tree: SceneTree) -> void:
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Gourmet_Menchi", func():
-		em_cutscene = false
-		var hud = tree.get_first_node_in_group("player_hud")
-		if hud and hud.has_method("exibir_notificacao"):
-			hud.exibir_notificacao("Cace o Great Stamp na Floresta Biska")
+	_iniciar_runner(tree, passos, "Gourmet_Menchi", func():
+		var hud = tree.get_first_node_in_group("player_hud") if tree != null else null
+		if hud != null and is_instance_valid(hud) and hud.has_method("exibir_notificacao"):
+			hud.exibir_notificacao("🐗 Cace o Grande Javali Selvagem (Great Stamp) na Floresta Biska!")
 		if PlayerData != null and not PlayerData.tem_item(&"adaga_zaban"):
 			PlayerData.adicionar_item(&"adaga_zaban", 1)
 			if EventBus != null:
@@ -173,8 +207,7 @@ static func executar_votacao_trick_tower(tree: SceneTree) -> void:
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Votacao_TrickTower", func():
-		em_cutscene = false
+	_iniciar_runner(tree, passos, "Votacao_TrickTower", func():
 		if QuestSystem != null and QuestSystem.has_method("register_persuasion"):
 			QuestSystem.register_persuasion(&"tonpa")
 		if EventBus != null:
@@ -224,16 +257,16 @@ static func executar_zevil_embarque(tree: SceneTree) -> void:
 # ARCO 1: CLÍMAX & CONCLUSÃO DA 1ª FASE DO EXAME
 # ------------------------------------------------------------
 static func executar_conclusao_exame_hunter(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene:
+	if _ocupado_fail_open(callback_fim):
 		return
 
-	em_cutscene = true
 	print("[Cutscene] Conclusão da 1ª Fase do 287º Exame Hunter...")
 
 	if QuestSystem != null:
 		QuestSystem.register_npc_visit(&"satotz")
 
-	PlayerData.completar_etapa_historia(1)
+	# completar_etapa_historia → concluir_saga: só no FIM da cutscene (junto da
+	# troca de cena), não no início — evita race com quest sync mid-cutscene.
 
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
@@ -251,10 +284,11 @@ static func executar_conclusao_exame_hunter(tree: SceneTree, callback_fim: Calla
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Conclusao_Exame", func():
-		em_cutscene = false
-		var hud = tree.get_first_node_in_group("player_hud")
-		if hud != null and hud.has_method("exibir_notificacao"):
+	_iniciar_runner(tree, passos, "Conclusao_Exame", func():
+		if PlayerData != null:
+			PlayerData.completar_etapa_historia(1)
+		var hud = tree.get_first_node_in_group("player_hud") if tree != null else null
+		if hud != null and is_instance_valid(hud) and hud.has_method("exibir_notificacao"):
 			hud.exibir_notificacao("🏆 1ª FASE CONCLUÍDA! Rumo à Montanha Kukuroo!")
 		# Licença parcial / gear de marco
 		if PlayerData != null and not PlayerData.tem_item(&"colete_cacador"):
@@ -270,8 +304,8 @@ static func executar_conclusao_exame_hunter(tree: SceneTree, callback_fim: Calla
 # ARCO 2: MONTANHA KUKUROO (OS ASSASSINOS ZOLDYCK)
 # ------------------------------------------------------------
 static func executar_montanha_kukuroo_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene: return
-	em_cutscene = true
+	if _ocupado_fail_open(callback_fim):
+		return
 
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
@@ -288,9 +322,9 @@ static func executar_montanha_kukuroo_cutscene(tree: SceneTree, callback_fim: Ca
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Kukuroo_Portao", func():
-		PlayerData.completar_etapa_historia(2)
-		em_cutscene = false
+	_iniciar_runner(tree, passos, "Kukuroo_Portao", func():
+		if PlayerData != null:
+			PlayerData.completar_etapa_historia(2)
 		if callback_fim.is_valid():
 			callback_fim.call()
 	)
@@ -337,8 +371,8 @@ static func executar_wing_principios_nen(tree: SceneTree) -> void:
 # ARCO 3: ARENA CELESTIAL & O DESPERTAR DO NEN
 # ------------------------------------------------------------
 static func executar_arena_celestial_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene: return
-	em_cutscene = true
+	if _ocupado_fail_open(callback_fim):
+		return
 
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
@@ -355,9 +389,9 @@ static func executar_arena_celestial_cutscene(tree: SceneTree, callback_fim: Cal
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
-	CutsceneSequenceRunner.executar(tree, passos, "Arena_Despertar_Nen", func():
-		PlayerData.completar_etapa_historia(3)
-		em_cutscene = false
+	_iniciar_runner(tree, passos, "Arena_Despertar_Nen", func():
+		if PlayerData != null:
+			PlayerData.completar_etapa_historia(3)
 		if callback_fim.is_valid():
 			callback_fim.call()
 	)
@@ -404,10 +438,11 @@ static func executar_ngl_hora_zero(tree: SceneTree) -> void:
 # ARCO 4: YORKNEW CITY & A TRUPE FANTASMA (GENEI RYODAN)
 # ------------------------------------------------------------
 static func executar_yorknew_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene: return
+	if _ocupado_fail_open(callback_fim):
+		return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
+	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui") if tree != null else null
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
 		var falas: Array[Dictionary] = [
 			{"falante": "Kurapika", "texto": "Minhas correntes foram forjadas sob um Juramento de Sangue (Vow & Limitation). A Corrente do Julgamento só pode ser usada contra os 13 membros da Trupe Fantasma."},
@@ -415,15 +450,17 @@ static func executar_yorknew_cutscene(tree: SceneTree, callback_fim: Callable = 
 			{"falante": "Chrollo Lucilfer", "texto": "A Aranha não morrerá mesmo se a cabeça for decepada. Nossos membros continuarão marchando... Uvogin, toque o Réquiem que preparamos para você."},
 			{"falante": "Gon Freecss", "texto": "Kurapika! Nós não vamos deixar você carregar o peso dessa escuridão sozinho!"}
 		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.completar_etapa_historia(4)
+		_conectar_visual_ou_callback(visual_dialogue, falas, func():
+			if PlayerData != null:
+				PlayerData.completar_etapa_historia(4)
 			em_cutscene = false
-			if callback_fim.is_valid(): callback_fim.call()
-		, CONNECT_ONE_SHOT)
+			if callback_fim.is_valid():
+				callback_fim.call()
+		)
 	else:
 		em_cutscene = false
-		if callback_fim.is_valid(): callback_fim.call()
+		if callback_fim.is_valid():
+			callback_fim.call()
 
 
 # ------------------------------------------------------------
@@ -457,10 +494,11 @@ static func executar_biscuit_pressao_ko(tree: SceneTree) -> void:
 # ARCO 5: GREED ISLAND & O TREINO DE BISCUIT KRUEGER
 # ------------------------------------------------------------
 static func executar_greed_island_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene: return
+	if _ocupado_fail_open(callback_fim):
+		return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
+	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui") if tree != null else null
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
 		var falas: Array[Dictionary] = [
 			{"falante": "Biscuit Krueger", "texto": "Parem de choramingar! Vocês dois são diamantes brutos, mas as técnicas de combate de vocês estão cheias de frestas!"},
@@ -468,26 +506,29 @@ static func executar_greed_island_cutscene(tree: SceneTree, callback_fim: Callab
 			{"falante": "Razor (Game Master)", "texto": "Ging me disse que um dia o filho dele viria até aqui... Preparem-se para receber meu saque com 100% de Nen na quadra de queimada!"},
 			{"falante": "Genthru (O Bomber)", "texto": "Liberem as cartas de feitiço número 000 a 099 ou transformarei todos vocês em cinzas com o 'Little Flower'!"}
 		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.desbloquear_hatsu_creator()
-			PlayerData.completar_etapa_historia(5)
+		_conectar_visual_ou_callback(visual_dialogue, falas, func():
+			if PlayerData != null:
+				PlayerData.desbloquear_hatsu_creator()
+				PlayerData.completar_etapa_historia(5)
 			em_cutscene = false
-			if callback_fim.is_valid(): callback_fim.call()
-		, CONNECT_ONE_SHOT)
+			if callback_fim.is_valid():
+				callback_fim.call()
+		)
 	else:
 		em_cutscene = false
-		if callback_fim.is_valid(): callback_fim.call()
+		if callback_fim.is_valid():
+			callback_fim.call()
 
 
 # ------------------------------------------------------------
 # ARCO 6: FORMIGAS CHIMERA (NGL & O REI MERUEM)
 # ------------------------------------------------------------
 static func executar_chimera_ant_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene: return
+	if _ocupado_fail_open(callback_fim):
+		return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
+	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui") if tree != null else null
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
 		var falas: Array[Dictionary] = [
 			{"falante": "Kite", "texto": "Gon, Killua... se sentirem qualquer presença anormal na floresta de NGL, fujam imediatamente. A Rainha das Formigas Chimera deu à luz a predadores que devoram usuários de Nen."},
@@ -495,88 +536,99 @@ static func executar_chimera_ant_cutscene(tree: SceneTree, callback_fim: Callabl
 			{"falante": "Presidente Netero", "texto": "Meruem... Você não sabe nada sobre a malícia infinita que reside no fundo do coração humano. 'Guanyin Bodhisattva de 100 Tipos: Mão Zero'!"},
 			{"falante": "Rei Meruem", "texto": "Komugi... você ainda está aí? Segure minha mão... só mais um pouco..."}
 		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.completar_etapa_historia(6)
+		_conectar_visual_ou_callback(visual_dialogue, falas, func():
+			if PlayerData != null:
+				PlayerData.completar_etapa_historia(6)
 			em_cutscene = false
-			if callback_fim.is_valid(): callback_fim.call()
-		, CONNECT_ONE_SHOT)
+			if callback_fim.is_valid():
+				callback_fim.call()
+		)
 	else:
 		em_cutscene = false
-		if callback_fim.is_valid(): callback_fim.call()
+		if callback_fim.is_valid():
+			callback_fim.call()
 
 
 # ------------------------------------------------------------
 # ARCO 7: ELEIÇÃO DO 13º PRESIDENTE HUNTER & ALLUKA
 # ------------------------------------------------------------
 static func executar_eleicao_hunter_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene: return
+	if _ocupado_fail_open(callback_fim):
+		return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
+	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui") if tree != null else null
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
 		var falas: Array[Dictionary] = [
 			{"falante": "Ging Freecss", "texto": "O velho Netero nos deixou uma regra clara: todos os Hunters registrados devem votar para escolher o 13º Presidente. Não venham me encher o saco."},
 			{"falante": "Leorio Paradinight", "texto": "Ging! Como você tem coragem de ficar sentado aqui enquanto o Gon está em coma no hospital entre a vida e a morte?! TOMA ESSE SOCO TELEPORTADO!"},
 			{"falante": "Killua Zoldyck", "texto": "Nanika... por favor, cure o Gon! Eu prometo que vou te proteger para sempre, Alluka!"}
 		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.completar_etapa_historia(7)
+		_conectar_visual_ou_callback(visual_dialogue, falas, func():
+			if PlayerData != null:
+				PlayerData.completar_etapa_historia(7)
 			em_cutscene = false
-			if callback_fim.is_valid(): callback_fim.call()
-		, CONNECT_ONE_SHOT)
+			if callback_fim.is_valid():
+				callback_fim.call()
+		)
 	else:
 		em_cutscene = false
-		if callback_fim.is_valid(): callback_fim.call()
+		if callback_fim.is_valid():
+			callback_fim.call()
 
 
 # ------------------------------------------------------------
 # ARCO 8: EXPEDIÇÃO AO CONTINENTE NEGRO
 # ------------------------------------------------------------
 static func executar_continente_negro_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene: return
+	if _ocupado_fail_open(callback_fim):
+		return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
+	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui") if tree != null else null
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
 		var falas: Array[Dictionary] = [
 			{"falante": "Beyond Netero", "texto": "O mundo conhecido é apenas uma pequena poça dentro do Lago Mobius! Além dos limites repousa o Continente Negro — terra das 5 Grandes Calamidades e dos recursos lendários!"},
 			{"falante": "Ging Freecss", "texto": "O segredo de ser Hunter é procurar o que está além do horizonte. Aquilo que você quer não é o objetivo final, mas os companheiros e histórias que encontra pelo caminho."}
 		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.completar_etapa_historia(8)
+		_conectar_visual_ou_callback(visual_dialogue, falas, func():
+			if PlayerData != null:
+				PlayerData.completar_etapa_historia(8)
 			em_cutscene = false
-			if callback_fim.is_valid(): callback_fim.call()
-		, CONNECT_ONE_SHOT)
+			if callback_fim.is_valid():
+				callback_fim.call()
+		)
 	else:
 		em_cutscene = false
-		if callback_fim.is_valid(): callback_fim.call()
+		if callback_fim.is_valid():
+			callback_fim.call()
 
 
 # ------------------------------------------------------------
 # ARCO 9: GUERRA DE SUCESSÃO DE KAKIN & BALEIA NEGRA 1
 # ------------------------------------------------------------
 static func executar_guerra_sucessao_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
-	if em_cutscene: return
+	if _ocupado_fail_open(callback_fim):
+		return
 	em_cutscene = true
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
+	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui") if tree != null else null
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
 		var falas: Array[Dictionary] = [
 			{"falante": "Kurapika", "texto": "O Ritual da Urna Sagrada concedeu Bestas de Nen Parasitárias aos 14 Príncipes de Kakin. A bordo do navio Baleia Negra 1, uma guerra de assassinato e estratégias psicológicas começou."},
 			{"falante": "Príncipe Tserriednich", "texto": "Nen... que poder fascinante. Minha Besta Guardiã e meu Hatsu do Futuro Paralelo me tornarão o governante supremo deste mundo."}
 		]
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.completar_etapa_historia(9)
+		_conectar_visual_ou_callback(visual_dialogue, falas, func():
+			if PlayerData != null:
+				PlayerData.completar_etapa_historia(9)
 			em_cutscene = false
-			if callback_fim.is_valid(): callback_fim.call()
-		, CONNECT_ONE_SHOT)
+			if callback_fim.is_valid():
+				callback_fim.call()
+		)
 	else:
 		em_cutscene = false
-		if callback_fim.is_valid(): callback_fim.call()
+		if callback_fim.is_valid():
+			callback_fim.call()
 
 
 # ------------------------------------------------------------
@@ -589,7 +641,7 @@ static func executar_tour_lobby_cutscene(tree: SceneTree, elena: NPC, _player: C
 	em_cutscene = true
 	print("[Cutscene] Iniciando Apresentação e Tour Guiado do Lobby com Recepcionista Elena...")
 
-	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui")
+	var visual_dialogue = tree.get_first_node_in_group("visual_dialogue_ui") if tree != null else null
 	var falas: Array[Dictionary] = [
 		{"falante": "Recepcionista Elena", "texto": "Olá, novo Caçador! Seja muito bem-vindo à Capital dos Caçadores (Hunter Plaza)!"},
 		{"falante": "Recepcionista Elena", "texto": "Antes de iniciar suas missões, vou apresentar os distritos — e o primeiro passo obrigatório: despertar seu Nen!"},
@@ -602,26 +654,31 @@ static func executar_tour_lobby_cutscene(tree: SceneTree, elena: NPC, _player: C
 	]
 
 	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
-		visual_dialogue.exibir_sequencia_falas(falas)
-		visual_dialogue.dialogo_concluido.connect(func():
-			PlayerData.tour_lobby_concluido = true
+		_conectar_visual_ou_callback(visual_dialogue, falas, func():
+			if PlayerData != null:
+				PlayerData.tour_lobby_concluido = true
 			em_cutscene = false
-			var hud = tree.get_first_node_in_group("player_hud")
-			if hud != null and hud.has_method("exibir_notificacao"):
+			var hud = tree.get_first_node_in_group("player_hud") if tree != null else null
+			if hud != null and is_instance_valid(hud) and hud.has_method("exibir_notificacao"):
 				if PlayerData != null and not PlayerData.despertou_nen:
 					hud.exibir_notificacao("👉 Novo Objetivo: Fale com Mestre Wing ao norte!")
 				else:
 					hud.exibir_notificacao("👉 Novo Objetivo: Fale com o Guia da História na praça!")
-		, CONNECT_ONE_SHOT)
+		)
 	else:
 		if elena != null and is_instance_valid(elena):
 			elena.falar_balao("Vá ao norte: fale com Mestre Wing para despertar seu Nen!", 4.5, Color(0.35, 1.0, 0.55, 1.0))
-			await tree.create_timer(4.5).timeout
-			if is_instance_valid(elena): elena.fechar_balao_atual()
-		PlayerData.tour_lobby_concluido = true
+			if tree != null:
+				await tree.create_timer(4.5).timeout
+			if is_instance_valid(elena):
+				elena.fechar_balao_atual()
+		if PlayerData != null:
+			PlayerData.tour_lobby_concluido = true
 		em_cutscene = false
 
 
 static func forcar_liberacao_cutscene() -> void:
 	em_cutscene = false
+	CutsceneSequenceRunner.em_execucao = false
+	CutsceneSequenceRunner.runner_ativo = null
 	print("[StoryCutsceneManager] Estado de cutscene destravado com sucesso.")

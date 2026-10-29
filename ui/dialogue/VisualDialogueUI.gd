@@ -23,6 +23,9 @@ var indice_caractere: int = 0
 var tempo_digitacao: float = 0.0
 var imprimindo: bool = false
 var _aberto_no_frame_atual: bool = false
+## Incrementado a cada nova sequência. Listeners de gerações antigas no-opam
+## (evita double continuar_do_checkpoint / completar_etapa_historia).
+var _geracao: int = 0
 
 
 func _ready() -> void:
@@ -61,6 +64,11 @@ func exibir_fala(nome_falante: String, texto: String) -> void:
 
 
 func exibir_sequencia_falas(lista_falas: Array) -> void:
+	# Nova sequência invalida listeners ONE_SHOT da anterior (token).
+	_geracao += 1
+	if visible:
+		_abortar_ui_sem_emitir()
+
 	fila_dialogos.clear()
 	for item in lista_falas:
 		if item is Dictionary:
@@ -76,6 +84,32 @@ func exibir_sequencia_falas(lista_falas: Array) -> void:
 	if input_ctx != null:
 		input_ctx.push_context("DIALOGUE")
 	_mostrar_proxima_fala()
+
+
+## Conecta callback só para a sequência atual (seguro contra reentrância).
+func when_done(cb: Callable) -> void:
+	if not cb.is_valid():
+		return
+	var token: int = _geracao
+	dialogo_concluido.connect(func():
+		if token != _geracao:
+			return
+		if cb.is_valid():
+			cb.call()
+	, CONNECT_ONE_SHOT)
+
+
+func _abortar_ui_sem_emitir() -> void:
+	fila_dialogos.clear()
+	imprimindo = false
+	texto_completo = ""
+	indice_caractere = 0
+	visible = false
+	if get_tree() != null:
+		get_tree().paused = false
+	var input_ctx = get_node_or_null("/root/InputContextManager")
+	if input_ctx != null:
+		input_ctx.pop_context()
 
 
 func _mostrar_proxima_fala() -> void:
