@@ -12,6 +12,8 @@ extends NPC
 # ============================================================
 
 const ProgressionSystemsPrimerScript = preload("res://scripts/story/ProgressionSystemsPrimer.gd")
+const StoryNenGateScript = preload("res://scripts/story/StoryNenGate.gd")
+const StoryCutsceneManagerScript = preload("res://scripts/cutscenes/StoryCutsceneManager.gd")
 
 @export var quest: Quest
 
@@ -61,6 +63,8 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		PlayerData.despertou_nen = true
 		PlayerData.aplicar_nivel_nen(1)
 		PlayerData.aplicar_bonuses_afinidade()
+		StoryNenGateScript.garantir_tecnica(get_tree(), &"ten")
+		StoryNenGateScript.concluir_treino_marco(get_tree(), "ten_resistencia")
 
 		if int(PlayerData.afinidade_nen) == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
 			falas_wing.append({"falante": "Mestre Wing", "texto": "Hmm… a água não reagiu como nenhuma das cinco categorias comuns."})
@@ -69,11 +73,9 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 			falas_wing.append({"falante": "Mestre Wing", "texto": "A água reagiu. Sua personalidade… %s." % traco})
 			falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns pelo Teste da Água! Sua Afinidade Natal é: " + afinidade_nome.to_upper() + "!"})
 		falas_wing.append({"falante": "Mestre Wing", "texto": afinidade_desc})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Feito. Agora faça NESTA ordem — sem pular:"})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "1) [TAB → Nen Tree] e gaste SP (Ten → Ren → Zetsu). 2) Pratique [Z]/[G]/[X] na Floresta/Ruínas. 3) Só depois siga a missão no GPS."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Combate ficou mais lento de propósito: use o espaço para canalizar Nen/Hatsu. Não saia correndo — um objetivo de cada vez."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Ten envolve o corpo como um manto. Sem ele, o 200º andar esmaga quem sobe desprotegido."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Ordem: 1) [TAB → Nen Tree] Ten→Ren→Zetsu. 2) Pratique [Z]/[G]/[X]. 3) GPS — um objetivo de cada vez."})
 		PlayerData.quest_states["wing_tutorial_progresso"] = 2
-		# Presente de mestre: amuleto + faixa para o loop de equipamento
 		if not PlayerData.tem_item(&"amuleto_forca"):
 			PlayerData.adicionar_item(&"amuleto_forca", 1)
 		if not PlayerData.tem_item(&"faixa_concentracao"):
@@ -86,14 +88,38 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 			PlayerData.tour_lobby_concluido = true
 		if SaveManager != null:
 			SaveManager.salvar_jogo()
-		_exibir_falas(falas_wing)
+		_exibir_falas(falas_wing, func():
+			StoryCutsceneManagerScript.executar_wing_principios_nen(get_tree())
+		)
 		return
 
 	elif arco_atual == 3 and etapa_atual == 12:
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Ten e Ren fluem como passivas — não ativa tecla. Seu foco ativo é Zetsu, Gyo e En."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "[G] Gyo revela pistas. [X] En é radar + intimidação. [Z] Zetsu silencia aura. Treine isso no semiaberto."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Venha treinar comigo quando quiser reforçar a base de forma permanente."})
+		StoryNenGateScript.garantir_pacote_wing(get_tree(), 12)
+		StoryNenGateScript.concluir_treino_marco(get_tree(), "ren_basico_wing")
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Ren expande o volume. Ten segura o vazamento. Os dois andam juntos."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "[G] no dojo: inspecione o resíduo no tatame. Sem Gyo, o exercício não conta."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Depois: corredor Zetsu → pista Gyo. Sem pular."})
 		_exibir_falas(falas_wing, func(): _abrir_menu_treino())
+		return
+
+	elif arco_atual == 3 and etapa_atual == 13:
+		StoryNenGateScript.garantir_pacote_wing(get_tree(), 13)
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Zetsu fecha todos os nós. Sem aura, você some — e regenera."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "[Z] no corredor de treino ao lado do dojo. Aura acesa = falha."})
+		_exibir_falas(falas_wing)
+		return
+
+	elif arco_atual == 3 and etapa_atual == 14:
+		StoryNenGateScript.garantir_pacote_wing(get_tree(), 14)
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Gyo concentra aura nos olhos. Sem ele, armadilhas e clones são só ar."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "[G] na pista do corredor 190. A marca só aparece com foco."})
+		_exibir_falas(falas_wing)
+		return
+
+	elif arco_atual == 3 and etapa_atual == 22:
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Kastro materializa um clone. O falso não toca o chão direito."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "[G] na poeira dos pés. Depois o golpe — não antes."})
+		_exibir_falas(falas_wing)
 		return
 
 	_abrir_menu_treino()

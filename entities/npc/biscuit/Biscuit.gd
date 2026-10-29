@@ -7,8 +7,12 @@ extends NPC
 # Mestra de Hatsu de Shingen-ryu.
 # Desbloqueia e gerencia a criação de Hatsu para o jogador
 # exclusivamente após a conclusão da Saga de Greed Island.
+# Em GI mid-arc, libera Ko/Shu/Ken/Ryu sob pressão (StoryNenGate).
 #
 # ============================================================
+
+const StoryNenGateScript = preload("res://scripts/story/StoryNenGate.gd")
+const StoryCutsceneManagerScript = preload("res://scripts/cutscenes/StoryCutsceneManager.gd")
 
 @export var quest: Quest
 
@@ -27,6 +31,13 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		QuestSystem.register_npc_visit(&"biscuit")
 
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
+	var arco := int(PlayerData.arco_atual) if PlayerData != null else 0
+	var etapa := int(PlayerData.etapa_quest_arco) if PlayerData != null else 0
+
+	# CASO 0: Treino sob pressão em Greed Island (etapas 7–11)
+	if arco == 5 and etapa >= 7 and etapa <= 11 and PlayerData != null and PlayerData.despertou_nen:
+		_tratar_treino_gi(etapa, visual_dialogue)
+		return
 
 	# CASO 1: Jogador ainda nem despertou Nen
 	if PlayerData == null or not PlayerData.despertou_nen:
@@ -79,6 +90,54 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 			])
 
 	_abrir_menu_interacao()
+
+
+func _tratar_treino_gi(etapa: int, visual_dialogue: Node) -> void:
+	StoryNenGateScript.garantir_pacote_biscuit(get_tree(), etapa)
+	var falas: Array[Dictionary] = []
+	match etapa:
+		7:
+			StoryNenGateScript.concluir_treino_marco(get_tree(), "ko_basico_biscuit")
+			falas = [
+				{"falante": "Biscuit Krueger", "texto": "Ko: 100% da aura num ponto. Sem dispersão."},
+				{"falante": "Biscuit Krueger", "texto": "[G] no posto do desfiladeiro, depois quebre a rocha. Sob pressão — agora."},
+			]
+			_exibir_e_cutscene(falas, visual_dialogue)
+			return
+		9:
+			falas = [
+				{"falante": "Biscuit Krueger", "texto": "Shu estende aura na arma. Sem revelar presença — Zetsu no corpo, Shu na lâmina."},
+				{"falante": "Biscuit Krueger", "texto": "[Z] nas colinas furtivas. Aura acesa = monstro em cima de você."},
+			]
+		10:
+			falas = [
+				{"falante": "Biscuit Krueger", "texto": "Ken é armadura contínua. Se cair no meio da leitura, você morre."},
+				{"falante": "Biscuit Krueger", "texto": "[G] no rastro Trace mantendo Ken. Sem relaxar."},
+			]
+		11:
+			falas = [
+				{"falante": "Biscuit Krueger", "texto": "Ryu: 70/30, 80/20 — distribuição dinâmica sob pergunta."},
+				{"falante": "Biscuit Krueger", "texto": "[G] no Quiz das 100 Cartas. Errar a proporção custa o round."},
+			]
+		_:
+			falas = [
+				{"falante": "Biscuit Krueger", "texto": "Um exercício de cada vez. GPS marca o próximo — sem pular."},
+			]
+	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
+		visual_dialogue.exibir_sequencia_falas(falas)
+	else:
+		_abrir_menu_interacao()
+
+
+func _exibir_e_cutscene(falas: Array[Dictionary], visual_dialogue: Node) -> void:
+	if visual_dialogue != null and visual_dialogue.has_method("exibir_sequencia_falas"):
+		visual_dialogue.exibir_sequencia_falas(falas)
+		if visual_dialogue.has_signal("dialogo_concluido"):
+			visual_dialogue.dialogo_concluido.connect(func():
+				StoryCutsceneManagerScript.executar_biscuit_pressao_ko(get_tree())
+			, CONNECT_ONE_SHOT)
+	else:
+		StoryCutsceneManagerScript.executar_biscuit_pressao_ko(get_tree())
 
 
 func _abrir_menu_interacao() -> void:
@@ -185,8 +244,8 @@ func _on_opcao_treinar() -> void:
 			])
 		return
 
-	# Preferência: Ren → Ko conforme nível
-	var ordem: Array[String] = ["ren_intensificacao", "fluxo_ko"]
+	# Preferência: Ko básico (GI) → Ren → Ko avançado
+	var ordem: Array[String] = ["ko_basico_biscuit", "ren_intensificacao", "fluxo_ko"]
 	var escolhido: String = ""
 	for tid in ordem:
 		var check: Dictionary = ts.pode_iniciar_treino(tid)
@@ -195,16 +254,15 @@ func _on_opcao_treinar() -> void:
 			break
 
 	if escolhido.is_empty():
-		# Todos concluídos ou nível baixo
 		var msgs: Array[Dictionary] = [
 			{"falante": "Biscuit Krueger", "texto": "Ken e Ryu são os pilares para sustentar seu Hatsu em combate!"},
 		]
-		if ts.ja_concluiu_treino("ren_intensificacao") and ts.ja_concluiu_treino("fluxo_ko"):
-			msgs.append({"falante": "Biscuit Krueger", "texto": "Você já absorveu meus treinos avançados. Continue forjando seu Hatsu e refine na Árvore de Nen [N]!"})
+		if ts.ja_concluiu_treino("ko_basico_biscuit") and ts.ja_concluiu_treino("ren_intensificacao") and ts.ja_concluiu_treino("fluxo_ko"):
+			msgs.append({"falante": "Biscuit Krueger", "texto": "Você já absorveu meus treinos. Continue forjando seu Hatsu e refine na Árvore de Nen [N]!"})
 		elif int(PlayerData.attributes.get("nivel", 1)) < 15:
-			msgs.append({"falante": "Biscuit Krueger", "texto": "Volte no Nível 15 para o treino de Ren Explosivo. Corpo fraco, aura fraca!"})
+			msgs.append({"falante": "Biscuit Krueger", "texto": "Ko básico já está no desfiladeiro. Ren Explosivo no Nível 15. Corpo fraco, aura fraca!"})
 		else:
-			msgs.append({"falante": "Biscuit Krueger", "texto": "Ainda não. Cumpram os pré-requisitos de nível (Ren: 15 · Ko: 30) e voltem!"})
+			msgs.append({"falante": "Biscuit Krueger", "texto": "Pré-requisitos: Ko básico (GI) · Ren Nv.15 · Ko extremo Nv.30."})
 		if visual_dialogue != null:
 			visual_dialogue.exibir_sequencia_falas(msgs)
 		return
@@ -216,7 +274,6 @@ func _on_opcao_treinar() -> void:
 				{"falante": "Biscuit Krueger", "texto": "Isso! Sessão dura: %s." % str(resultado.get("treino", ""))},
 				{"falante": "Biscuit Krueger", "texto": "Seu corpo mudou de verdade: %s. Não desperdice." % str(resultado.get("recompensa", ""))},
 			])
-			# Presente pós-treino Ren
 			if escolhido == "ren_intensificacao" and not PlayerData.tem_item(&"pingente_nen"):
 				PlayerData.adicionar_item(&"pingente_nen", 1)
 				if EventBus != null:

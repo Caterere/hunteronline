@@ -26,6 +26,17 @@ const CATALOGO_TREINOS: Dictionary = {
 		"recompensa_nen_points": 1,
 		"texto_recompensa": "+25 Aura Máxima e +1 Ponto de Nen Skill Tree",
 	},
+	"ren_basico_wing": {
+		"nome": "Primeira Expansão de Ren (Shingen-ryu)",
+		"instrutor": "Mestre Wing",
+		"instrutor_ids": ["wing", "mestre wing"],
+		"descricao": "Libera Ren sob supervisão — volume de aura sem romper o Ten.",
+		"requisito_nivel": 1,
+		"requer_nen": true,
+		"recompensa_forca": 2.0,
+		"recompensa_aura_max": 15.0,
+		"texto_recompensa": "+2 Força e +15 Aura Máxima (base Ren)",
+	},
 	"fortalecimento_fisico": {
 		"nome": "Condicionamento Físico de Caçador",
 		"instrutor": "Treinador de Zaban",
@@ -58,6 +69,17 @@ const CATALOGO_TREINOS: Dictionary = {
 		"recompensa_nen_points": 2,
 		"recompensa_forca": 10.0,
 		"texto_recompensa": "+2 Pontos de Nen e +10 Força",
+	},
+	"ko_basico_biscuit": {
+		"nome": "Ko no Desfiladeiro (Biscuit)",
+		"instrutor": "Biscuit Krueger",
+		"instrutor_ids": ["biscuit"],
+		"descricao": "Concentração total sob pressão — quebra pedras do desfiladeiro.",
+		"requisito_nivel": 1,
+		"requer_nen": true,
+		"recompensa_forca": 4.0,
+		"recompensa_aura_max": 20.0,
+		"texto_recompensa": "+4 Força e +20 Aura Máxima (Ko básico)",
 	},
 }
 

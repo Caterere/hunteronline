@@ -296,6 +296,44 @@ static func executar_montanha_kukuroo_cutscene(tree: SceneTree, callback_fim: Ca
 	)
 
 # ------------------------------------------------------------
+# ARCO 3 PILOTO: PRINCÍPIOS DE NEN (WING)
+# ------------------------------------------------------------
+static func executar_wing_principios_nen(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_wing_principios", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.25, 1.25), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Quatro princípios antes de qualquer Hatsu: Ten envolve, Zetsu silencia, Ren expande, Hatsu libera."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Ordem no dojo: Tatame (Ren) → Corredor Zetsu → Pista Gyo no 190. Sem pular."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "wing_foco_treino",
+			"speaker": "Foco do treino",
+			"text": "O que priorizar nas próximas horas?",
+			"options": [
+				{"id": "ten_base", "text": "Ten — manto estável primeiro"},
+				{"id": "zetsu_furtivo", "text": "Zetsu — sumir e regenerar"},
+				{"id": "gyo_leitura", "text": "Gyo — ler o que os outros escondem"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_wing_principios", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	CutsceneSequenceRunner.executar(tree, passos, "Wing_Principios_Nen", func():
+		em_cutscene = false
+		if EventBus != null:
+			EventBus.emit_toast("Dojo Wing: Ren → Zetsu → Gyo (GPS)", Color(0.55, 0.95, 0.75))
+	)
+
+
+# ------------------------------------------------------------
 # ARCO 3: ARENA CELESTIAL & O DESPERTAR DO NEN
 # ------------------------------------------------------------
 static func executar_arena_celestial_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
@@ -348,6 +386,33 @@ static func executar_yorknew_cutscene(tree: SceneTree, callback_fim: Callable = 
 	else:
 		em_cutscene = false
 		if callback_fim.is_valid(): callback_fim.call()
+
+
+# ------------------------------------------------------------
+# ARCO 5 PILOTO: BISCUIT — KO SOB PRESSÃO
+# ------------------------------------------------------------
+static func executar_biscuit_pressao_ko(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_biscuit_ko", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.3},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Ko não é força bruta — é recusa de desperdiçar um único fio de aura."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Desfiladeiro → Colinas Shu → Trace Ken → Quiz Ryu. Um de cada vez. Sem Bomber ainda."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_biscuit_ko", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	CutsceneSequenceRunner.executar(tree, passos, "Biscuit_Pressao_Ko", func():
+		em_cutscene = false
+		if EventBus != null:
+			EventBus.emit_toast("GI: Ko → Shu → Ken → Ryu (GPS)", Color(0.95, 0.75, 0.4))
+	)
 
 
 # ------------------------------------------------------------

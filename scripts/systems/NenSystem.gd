@@ -1559,6 +1559,25 @@ func desbloquear_tecnica(
 		return
 
 	tecnicas[tecnica_enum]["desbloqueada"] = true
+	if int(tecnicas[tecnica_enum].get("nivel", 0)) < 1:
+		tecnicas[tecnica_enum]["nivel"] = 1
+
+	# Persiste no save (StoryNenGate / diálogos / skill tree).
+	if PlayerData != null:
+		if not (PlayerData.tecnicas_nen is Dictionary):
+			PlayerData.tecnicas_nen = {}
+		var key := str(tecnica_id).to_lower()
+		var cur = PlayerData.tecnicas_nen.get(key, {})
+		var nivel := 1
+		var xp := 0
+		if cur is Dictionary:
+			nivel = maxi(1, int(cur.get("nivel", 1)))
+			xp = int(cur.get("xp", 0))
+		PlayerData.tecnicas_nen[key] = {
+			"nivel": nivel,
+			"xp": xp,
+			"desbloqueada": true,
+		}
 
 	print(
 		"[NenSystem] Técnica desbloqueada: ",

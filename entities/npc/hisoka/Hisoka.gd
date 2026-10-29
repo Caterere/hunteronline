@@ -22,9 +22,19 @@ func _ready() -> void:
 func _on_interacted(_player: CharacterBody2D) -> void:
 	print("[Hisoka] Interagindo com Hisoka Morow...")
 	QuestSystem.register_npc_visit(&"hisoka")
+	if QuestSystem != null and QuestSystem.has_method("register_persuasion"):
+		QuestSystem.register_persuasion(&"hisoka")
 
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
 	var arco := int(PlayerData.arco_atual) if PlayerData != null else 0
+	var etapa := int(PlayerData.etapa_quest_arco) if PlayerData != null else 0
+
+	if visual_dialogue != null and arco == 3 and etapa == 24:
+		visual_dialogue.exibir_sequencia_falas([
+			{"falante": "Hisoka Morow", "texto": "♠ Regras do duelo: ringue do 200º, sem plateia no meio, sem fuga. Aceita?"},
+			{"falante": "Hisoka Morow", "texto": "♥ Bom. Sua fruta cheira madura. Schwing~ — o GPS marca o ringue. Não me faça esperar."},
+		])
+		return
 
 	if visual_dialogue != null and arco == 5:
 		visual_dialogue.exibir_sequencia_falas([

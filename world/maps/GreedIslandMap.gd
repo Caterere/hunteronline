@@ -438,6 +438,13 @@ func _instanciar_sensores_nen_greed() -> void:
 			"Marcas de escavação sem Nen. Treine Ko depois — fale com Biscuit. Um exercício de cada vez.",
 			"Intensificação", 1, Color(0.95, 0.7, 0.4, 0.9)
 		)
+		# Clue canônico etapa 7 — posto de concentração Ko (também quebra via KO).
+		NenSensorFactory.criar_gyo(
+			self, "GyoPostoKoDesfiladeiro", Vector2(1560, -20),
+			&"greed_ko_desfiladeiro", "Posto de Concentração Ko",
+			"Biscuit marcou o ponto de impacto. Leia com Gyo, depois aplique Ko na rocha.",
+			"Intensificação", 1, Color(1.0, 0.55, 0.3, 0.9)
+		)
 		NenSensorFactory.criar_gyo(
 			self, "GyoExplosaoBomber", Vector2(2100, 20),
 			&"explosao_bomber", "Marca da Explosão do Bomber",

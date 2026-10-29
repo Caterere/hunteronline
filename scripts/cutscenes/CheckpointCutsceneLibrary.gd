@@ -95,8 +95,15 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 			return _pack(
 				"Mestre Wing",
 				"Nen não é atalho. É identidade.",
-				"Teste da Água, depois andares. Respire entre ranks.",
+				"Teste da Água → Ren no tatame → Zetsu → Gyo. Sem pular.",
 				"arena_wing_seen"
+			)
+		"arena_wing_principios":
+			return _pack(
+				"Mestre Wing",
+				"Ten envolve. Ren expande. Zetsu some. Gyo lê.",
+				"GPS marca o próximo exercício — um de cada vez.",
+				"arena_wing_principios_seen"
 			)
 		"arena_pre_200":
 			return _pack(
@@ -122,9 +129,16 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 		"greed_biscuit":
 			return _pack(
 				"Biscuit",
-				"Treino antes de Bomber. Ko, Ren, identidade.",
-				"Quando o Hatsu responder, você sobe de nível de verdade.",
+				"Treino antes de Bomber. Ko, Shu, Ken, Ryu.",
+				"Desfiladeiro → colinas → Trace → Quiz. Depois Bomber.",
 				"greed_biscuit_seen"
+			)
+		"greed_biscuit_ko":
+			return _pack(
+				"Biscuit",
+				"Ko sob pressão. Sem dispersão.",
+				"[G] no posto, depois a rocha. Um impacto limpo.",
+				"greed_biscuit_ko_seen"
 			)
 		"greed_soufrabi":
 			return _pack(

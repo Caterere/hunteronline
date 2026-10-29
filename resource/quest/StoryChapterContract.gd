@@ -47,6 +47,12 @@ static func obter_meta(arco: int, etapa: int) -> Dictionary:
 	match arco:
 		1:
 			return _meta_exame(etapa)
+		3:
+			return _meta_arena(etapa)
+		4:
+			return _meta_yorknew(etapa)
+		5:
+			return _meta_greed(etapa)
 		_:
 			return _meta_saga_generica(arco, etapa)
 
@@ -72,6 +78,29 @@ static func listar_atos_saga(arco: int) -> Array[Dictionary]:
 				{"act_id": "exame_trick_tower", "act_name": "Trick Tower", "etapas": Vector2i(16, 19)},
 				{"act_id": "exame_zevil", "act_name": "Ilha Zevil", "etapas": Vector2i(20, 23)},
 				{"act_id": "exame_climax", "act_name": "Prova Final", "etapas": Vector2i(24, 24)},
+			]
+		3:
+			return [
+				{"act_id": "arena_andares", "act_name": "Escalada dos Andares", "etapas": Vector2i(1, 5)},
+				{"act_id": "arena_200", "act_name": "Limiar do 200º", "etapas": Vector2i(6, 9)},
+				{"act_id": "arena_nen", "act_name": "Aprendizado de Nen", "etapas": Vector2i(10, 15)},
+				{"act_id": "arena_mestres", "act_name": "Mestres & Trapaceiros", "etapas": Vector2i(16, 22)},
+				{"act_id": "arena_climax", "act_name": "Clímax Hisoka", "etapas": Vector2i(23, 26)},
+			]
+		4:
+			return [
+				{"act_id": "york_chegada", "act_name": "Chegada & Mercado", "etapas": Vector2i(1, 7)},
+				{"act_id": "york_trupe", "act_name": "Sombra da Trupe", "etapas": Vector2i(8, 15)},
+				{"act_id": "york_prisao", "act_name": "Prisão & Apagão", "etapas": Vector2i(16, 23)},
+				{"act_id": "york_desfecho", "act_name": "Negociação & GI", "etapas": Vector2i(24, 34)},
+			]
+		5:
+			return [
+				{"act_id": "gi_entrada", "act_name": "Entrada & Regras", "etapas": Vector2i(1, 4)},
+				{"act_id": "gi_biscuit", "act_name": "Treino Biscuit", "etapas": Vector2i(5, 14)},
+				{"act_id": "gi_aliancas", "act_name": "Alianças & Bomber", "etapas": Vector2i(15, 22)},
+				{"act_id": "gi_razor", "act_name": "Razor & Queimada", "etapas": Vector2i(23, 28)},
+				{"act_id": "gi_climax", "act_name": "Clímax GI", "etapas": Vector2i(29, 36)},
 			]
 		_:
 			var total: int = total_etapas_arco(arco)
@@ -128,6 +157,116 @@ static func _meta_exame(etapa: int) -> Dictionary:
 			return _pack("exame_climax", "Prova Final", ROLE_CLIMAX, "mixed")
 		_:
 			return {}
+
+
+static func _meta_arena(etapa: int) -> Dictionary:
+	match etapa:
+		1:
+			return _pack("arena_andares", "Escalada dos Andares", ROLE_SETUP, "visit")
+		2, 3, 4, 5:
+			return _pack("arena_andares", "Escalada dos Andares", ROLE_PROVA, "kill")
+		6, 8, 9:
+			return _pack("arena_200", "Limiar do 200º", ROLE_PREP if etapa < 9 else ROLE_SETUP, "visit")
+		7:
+			return _pack("arena_200", "Limiar do 200º", ROLE_PROVA, "stealth")
+		10:
+			return _pack("arena_nen", "Aprendizado de Nen", ROLE_REVELACAO, "investigate")
+		11:
+			return _pack("arena_nen", "Aprendizado de Nen", ROLE_SETUP, "visit")
+		12:
+			return _pack("arena_nen", "Aprendizado de Nen", ROLE_PROVA, "investigate")
+		13:
+			return _pack("arena_nen", "Aprendizado de Nen", ROLE_PROVA, "stealth")
+		14:
+			return _pack("arena_nen", "Aprendizado de Nen", ROLE_PROVA, "investigate")
+		15:
+			return _pack("arena_nen", "Aprendizado de Nen", ROLE_PROVA, "stealth")
+		16, 17, 20:
+			return _pack("arena_mestres", "Mestres & Trapaceiros", ROLE_PREP, "visit")
+		18, 19, 21:
+			return _pack("arena_mestres", "Mestres & Trapaceiros", ROLE_PROVA, "kill")
+		22:
+			return _pack("arena_mestres", "Mestres & Trapaceiros", ROLE_REVELACAO, "investigate")
+		23:
+			return _pack("arena_climax", "Clímax Hisoka", ROLE_PREP, "kill")
+		24:
+			return _pack("arena_climax", "Clímax Hisoka", ROLE_BOND, "persuasion")
+		25:
+			return _pack("arena_climax", "Clímax Hisoka", ROLE_CLIMAX, "kill")
+		26:
+			return _pack("arena_climax", "Clímax Hisoka", ROLE_AFTERMATH, "visit")
+		_:
+			return {}
+
+
+static func _meta_yorknew(etapa: int) -> Dictionary:
+	var atos: Array[Dictionary] = listar_atos_saga(4)
+	var act := atos[0]
+	for a in atos:
+		var faixa: Vector2i = a.get("etapas", Vector2i(1, 1))
+		if etapa >= faixa.x and etapa <= faixa.y:
+			act = a
+			break
+	var role := ROLE_PREP
+	var verb := "visit"
+	match etapa:
+		2, 7, 13, 19, 29, 33:
+			role = ROLE_REVELACAO
+			verb = "investigate"
+		5, 10, 18, 23, 34:
+			role = ROLE_PROVA
+			verb = "kill"
+		8, 15, 21, 25:
+			role = ROLE_PROVA
+			verb = "stealth"
+		11, 24, 26, 31, 32:
+			role = ROLE_PROVA
+			verb = "persuasion"
+		28:
+			role = ROLE_REVELACAO
+			verb = "investigate"
+		30:
+			role = ROLE_REVELACAO
+			verb = "investigate"
+		34:
+			role = ROLE_CLIMAX
+			verb = "kill"
+	return _pack(str(act.get("act_id")), str(act.get("act_name")), role, verb)
+
+
+static func _meta_greed(etapa: int) -> Dictionary:
+	var atos: Array[Dictionary] = listar_atos_saga(5)
+	var act := atos[0]
+	for a in atos:
+		var faixa: Vector2i = a.get("etapas", Vector2i(1, 1))
+		if etapa >= faixa.x and etapa <= faixa.y:
+			act = a
+			break
+	var role := ROLE_PREP
+	var verb := "visit"
+	match etapa:
+		3, 6, 7, 10, 16, 19:
+			role = ROLE_REVELACAO if etapa in [3, 6, 16, 19] else ROLE_PROVA
+			verb = "investigate"
+		4, 8, 14, 21, 25, 28, 30, 31:
+			role = ROLE_PROVA
+			verb = "kill"
+		9, 17:
+			role = ROLE_PROVA
+			verb = "stealth"
+		11:
+			role = ROLE_PROVA
+			verb = "investigate"
+		12:
+			role = ROLE_CLIMAX
+			verb = "visit"
+		15, 32:
+			role = ROLE_BOND
+			verb = "persuasion"
+		36:
+			role = ROLE_CLIMAX
+			verb = "kill"
+	return _pack(str(act.get("act_id")), str(act.get("act_name")), role, verb)
 
 
 static func _meta_saga_generica(arco: int, etapa: int) -> Dictionary:

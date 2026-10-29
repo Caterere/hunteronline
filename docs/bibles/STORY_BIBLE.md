@@ -30,6 +30,14 @@ Cada etapa carrega metadado em `Quest.custom_data` via `StoryChapterContract`:
 
 O Exame (Saga 1) é o piloto: atos Maratona → Numere → Gourmet → Dirigível → Trick Tower → Zevil → Clímax.
 
+**Fase 2 (Arena/Nen)** e **Fase 3 (Yorknew + GI)** estendem o mesmo contrato:
+
+- Arena: Escalada → Limiar 200º → Aprendizado de Nen (Wing: Ten/Ren/Zetsu/Gyo) → Mestres → Clímax Hisoka
+- Yorknew: Chegada → Trupe → Prisão/Apagão → Negociação/GI
+- GI: Entrada → Treino Biscuit (Ko/Shu/Ken/Ryu sob pressão) → Alianças → Razor → Clímax
+
+Gates de técnica: `StoryNenGate` (Wing/Biscuit). Sensores Gyo/Zetsu/Ko nos mapas alinhados aos `target_clue_id` / `target_zone_id` do catálogo.
+
 ---
 
 ## 2. O STORY CHECKPOINT SYSTEM
