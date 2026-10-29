@@ -273,10 +273,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				5:
 					q.quest_name = "Montanha Kukuroo 5/18: O Portão da Testagem (4 Toneladas)"
-					q.description = "Reúna toda a sua força muscular e empurre a primeira folha de ferro do Portão da Testagem (Testing Gate)!"
+					q.description = "[G] Leia o resíduo de aura no Portão da Testagem antes de empurrar as 4 toneladas."
 					q.reward_xp = 3200
 					q.reward_gold = 26000
-					q.objectives = [_criar_obj_visit(&"portao_testagem", "Portão da Testagem (Testing Gate)")]
+					q.objectives = [_criar_obj_investigate(&"kukuroo_portao_aura")]
 
 				6:
 					q.quest_name = "Montanha Kukuroo 6/18: A Alameda dos Cães de Caça"
@@ -343,17 +343,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				15:
 					q.quest_name = "Montanha Kukuroo 15/18: As Escadarias do Castelo Central"
-					q.description = "Suba as imensas escadarias de pedra da mansão principal rumo à câmara do chefe da família."
+					q.description = "[Z] Cruze o corredor do trono em silêncio até Silva. Aura acesa desperta mordomos."
 					q.reward_xp = 5200
 					q.reward_gold = 50000
-					q.objectives = [_criar_obj_visit(&"silva", "Silva Zoldyck")]
+					q.objectives = [_criar_obj_stealth(&"kukuroo_corredor_trono")]
 
 				16:
 					q.quest_name = "Montanha Kukuroo 16/18: A Sala do Trono dos Assassinos"
-					q.description = "Audiência solene com Silva Zoldyck na imensa câmara de pedra dos assassinos profissionais."
+					q.description = "[G] Leia a pressão do trono de Silva — intenção assassina pura antes do pacto."
 					q.reward_xp = 5400
 					q.reward_gold = 55000
-					q.objectives = [_criar_obj_visit(&"silva", "Silva Zoldyck")]
+					q.objectives = [_criar_obj_investigate(&"kukuroo_trono_silva")]
 
 				17:
 					q.quest_name = "Montanha Kukuroo 17/18: O Pacto de Sangue de Silva"
@@ -1112,10 +1112,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				8:
 					q.quest_name = "Formigas Chimera 8/48: A Aura Monstruosa de Neferpitou"
-					q.description = "ORDEM: Fale com Kite — sinta a aura de Pitou. Prepare fuga. Sem atacar a Guarda Real ainda."
+					q.description = "ORDEM: [G] Leia a intenção assassina de Pitou no ninho. Sem Gyo, a pressão esmaga — prepare a fuga."
 					q.reward_xp = 105000
 					q.reward_gold = 1700000
-					q.objectives = [_criar_obj_visit(&"kite", "Kite")]
+					q.objectives = [_criar_obj_investigate(&"ngl_aura_pitou")]
 
 				9:
 					q.quest_name = "Formigas Chimera 9/48: O Sacrifício Heróico de Kite"
@@ -1126,10 +1126,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				10:
 					q.quest_name = "Formigas Chimera 10/48: A Fuga Desesperada de Killua"
-					q.description = "ORDEM: Fale com Killua na fronteira e fuja. Depois base Peijin (Netero)."
+					q.description = "ORDEM: [Z] Cruze a patrulha da fronteira NGL em silêncio. Aura acesa = formigas em cima."
 					q.reward_xp = 115000
 					q.reward_gold = 1900000
-					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
+					q.objectives = [_criar_obj_stealth(&"ngl_patrulha_fronteira")]
 
 				11:
 					q.quest_name = "Formigas Chimera 11/48: A Chegada da Tropa de Extermínio"
@@ -1140,10 +1140,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				12:
 					q.quest_name = "Formigas Chimera 12/48: A Provação de Morel e Knov"
-					q.description = "ORDEM: Fale com Morel e prove resolução. Depois Knuckle e Shoot."
+					q.description = "ORDEM: Convença Morel de que aguenta a invasão — resolução sem fanfarronice."
 					q.reward_xp = 125000
 					q.reward_gold = 2100000
-					q.objectives = [_criar_obj_visit(&"morel", "Morel Mackernasey")]
+					q.objectives = [_criar_obj_persuasion(&"morel", "Morel Mackernasey")]
 
 				13:
 					q.quest_name = "Formigas Chimera 13/48: Os Discípulos Knuckle e Shoot"
@@ -1217,17 +1217,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				23:
 					q.quest_name = "Formigas Chimera 23/48: A Partida de Gungi de Komugi"
-					q.description = "ORDEM: Fale com Meruem (Gungi). Não ataque fora da etapa. Depois reunião (Gon)."
+					q.description = "ORDEM: Negocie a partida de Gungi com Meruem — persuasão, não golpe. Depois reunião (Gon)."
 					q.reward_xp = 180000
 					q.reward_gold = 3200000
-					q.objectives = [_criar_obj_visit(&"meruem", "Rei Meruem")]
+					q.objectives = [_criar_obj_persuasion(&"meruem", "Rei Meruem")]
 
 				24:
 					q.quest_name = "Formigas Chimera 24/48: A Contagem Regressiva da Invasão"
-					q.description = "ORDEM: Fale com Gon e feche a equipe. Hora Zero depois — GPS."
+					q.description = "ORDEM: Derrote 2 guardas residuais (GPS) e feche o perímetro. Hora Zero depois."
 					q.reward_xp = 185000
 					q.reward_gold = 3300000
-					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
+					q.objectives = [_criar_obj_kill(&"guarda_peijin", 2)]
 
 				25:
 					q.quest_name = "Formigas Chimera 25/48: A Hora Zero (00:00:00)"
@@ -1245,17 +1245,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				27:
 					q.quest_name = "Formigas Chimera 27/48: O Encontro nas Escadarias Centrais"
-					q.description = "ORDEM: Fale com Shoot na escadaria. Youpi à frente — GPS um passo. Sem rush."
+					q.description = "ORDEM: [G] Leia a escadaria central — carapaça de Youpi ainda vibra. Depois o combate (GPS)."
 					q.reward_xp = 200000
 					q.reward_gold = 3600000
-					q.objectives = [_criar_obj_visit(&"shoot", "Shoot")]
+					q.objectives = [_criar_obj_investigate(&"escadaria_youpi")]
 
 				28:
 					q.quest_name = "Formigas Chimera 28/48: A Fumaça Deep Purple de Morel"
-					q.description = "ORDEM: Fale com Morel — Deep Purple isola Pouf. Depois Knuckle (Youpi)."
+					q.description = "ORDEM: [Z] Cruze o corredor do palácio sob a fumaça Deep Purple. Aura acesa = guarda."
 					q.reward_xp = 205000
 					q.reward_gold = 3700000
-					q.objectives = [_criar_obj_visit(&"morel", "Morel")]
+					q.objectives = [_criar_obj_stealth(&"ngl_corredor_palacio")]
 
 				29:
 					q.quest_name = "Formigas Chimera 29/48: O Ataque Frenético de Shoot e Knuckle"
@@ -1308,10 +1308,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				36:
 					q.quest_name = "Formigas Chimera 36/48: O Voo de Netero e Meruem até a Tumba"
-					q.description = "ORDEM: Fale com Netero — tumba nuclear. Depois [G] Guanyin."
+					q.description = "ORDEM: [Z] Atravesse o vestíbulo da tumba nuclear em silêncio. Depois [G] Guanyin."
 					q.reward_xp = 250000
 					q.reward_gold = 5000000
-					q.objectives = [_criar_obj_visit(&"netero", "Presidente Isaac Netero")]
+					q.objectives = [_criar_obj_stealth(&"ngl_vestibulo_tumba")]
 
 				37:
 					q.quest_name = "Formigas Chimera 37/48: O Guanyin Bodhisattva de 100 Tipos"
@@ -1350,10 +1350,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				42:
 					q.quest_name = "Formigas Chimera 42/48: O Juramento Supremo de Gon (Gon Adulto)"
-					q.description = "ORDEM: Fale com Gon — juramento. Depois derrote Neferpitou (GPS)."
+					q.description = "ORDEM: Persuada / selar o juramento com Gon — sem volta. Depois Neferpitou (GPS)."
 					q.reward_xp = 310000
 					q.reward_gold = 6500000
-					q.objectives = [_criar_obj_visit(&"gon", "Gon")]
+					q.objectives = [_criar_obj_persuasion(&"gon", "Gon")]
 
 				43:
 					q.quest_name = "Formigas Chimera 43/48: O Jajanken da Aniquilação de Pitou"
@@ -1425,17 +1425,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				4:
 					q.quest_name = "Eleição Hunter 4/20: O Quarto de UTI no Hospital Hunter"
-					q.description = "ORDEM: Fale com Leorio na UTI. Depois Killua (resgate Alluka)."
+					q.description = "ORDEM: [G] Inspecione a UTI de Gon antes de falar com Leorio — o corpo ainda queima Nen."
 					q.reward_xp = 150000
 					q.reward_gold = 2500000
-					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
+					q.objectives = [_criar_obj_investigate(&"uti_gon_associacao")]
 
 				5:
 					q.quest_name = "Eleição Hunter 5/20: A Decisão Proibida de Killua"
-					q.description = "ORDEM: Fale com Killua — ele vai buscar Alluka. Depois [G] Cela."
+					q.description = "ORDEM: [Z] Cruze o corredor do hospital até Killua — sem aura, sem alarme da família."
 					q.reward_xp = 160000
 					q.reward_gold = 2700000
-					q.objectives = [_criar_obj_visit(&"killua", "Killua Zoldyck")]
+					q.objectives = [_criar_obj_stealth(&"assoc_corredor_hospital")]
 
 				6:
 					q.quest_name = "Eleição Hunter 6/20: A Masmorra Subterrânea de Alluka"
@@ -1460,10 +1460,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				9:
 					q.quest_name = "Eleição Hunter 9/20: A Emboscada de Illumi e Hisoka"
-					q.description = "ORDEM: Fale com Killua na rodovia. Depois mordomos perseguidores (GPS)."
+					q.description = "ORDEM: [Z] Cruze a rodovia noturna sob a mira de Illumi. Aura acesa = emboscada."
 					q.reward_xp = 200000
 					q.reward_gold = 3500000
-					q.objectives = [_criar_obj_visit(&"killua", "Killua")]
+					q.objectives = [_criar_obj_stealth(&"assoc_rodovia_illumi")]
 
 				10:
 					q.quest_name = "Eleição Hunter 10/20: Mordomos Perseguidores na Rodovia"
@@ -1488,24 +1488,24 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				13:
 					q.quest_name = "Eleição Hunter 13/20: A 4ª Rodada da Votação Eleitoral"
-					q.description = "ORDEM: Fale com Cheadle no plenário. Depois Leorio (soco teleportado)."
+					q.description = "ORDEM: [G] Leia a aura do plenário na 4ª rodada — votos e pressão política."
 					q.reward_xp = 250000
 					q.reward_gold = 4500000
-					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle")]
+					q.objectives = [_criar_obj_investigate(&"plenario_eleicao")]
 
 				14:
 					q.quest_name = "Eleição Hunter 14/20: O Soco Teleportado de Leorio"
-					q.description = "ORDEM: Fale com Leorio — discurso / soco. Depois Cheadle (liderança)."
+					q.description = "ORDEM: Convença / apoie o discurso de Leorio — persuasão no palco, não só visita."
 					q.reward_xp = 260000
 					q.reward_gold = 4800000
-					q.objectives = [_criar_obj_visit(&"leorio", "Leorio Paradinight")]
+					q.objectives = [_criar_obj_persuasion(&"leorio", "Leorio Paradinight")]
 
 				15:
 					q.quest_name = "Eleição Hunter 15/20: Leorio Lidera a Eleição"
-					q.description = "ORDEM: Fale com Cheadle — Leorio em 1º. Depois Alluka / milagre no hospital."
+					q.description = "ORDEM: [Z] Volte ao hospital pelo corredor furtivo — Alluka / milagre à frente."
 					q.reward_xp = 270000
 					q.reward_gold = 5000000
-					q.objectives = [_criar_obj_visit(&"cheadle", "Cheadle")]
+					q.objectives = [_criar_obj_stealth(&"assoc_corredor_hospital")]
 
 				16:
 					q.quest_name = "Eleição Hunter 16/20: O Milagre de Nanika no Hospital"
@@ -1661,17 +1661,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				17:
 					q.quest_name = "Continente Negro 17/22: A Escalada dos 1.784 Metros"
-					q.description = "ORDEM: Fale com a Árvore de novo (escalada). Depois Ging no topo."
+					q.description = "ORDEM: [Z] Cruze a copa intermediária em silêncio — feras aladas caçam aura."
 					q.reward_xp = 530000
 					q.reward_gold = 10500000
-					q.objectives = [_criar_obj_visit(&"arvore_mundo", "Árvore do Mundo")]
+					q.objectives = [_criar_obj_stealth(&"cn_copa_intermediaria")]
 
 				18:
 					q.quest_name = "Continente Negro 18/22: O Ninho Gigante da Copa"
-					q.description = "ORDEM: Fale com Ging Freecss no Topo. Depois reencontro / filosofia."
+					q.description = "ORDEM: [G] Leia a aura do Nitro Rice residual na copa antes do reencontro com Ging."
 					q.reward_xp = 550000
 					q.reward_gold = 11000000
-					q.objectives = [_criar_obj_visit(&"ging_topo", "Ging Freecss no Topo")]
+					q.objectives = [_criar_obj_investigate(&"cn_nitro_rice_aura")]
 
 				19:
 					q.quest_name = "Continente Negro 19/22: O Reencontro no Topo do Mundo"
@@ -1722,10 +1722,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				3:
 					q.quest_name = "Guerra de Sucessão 3/26: O Ritual do Vaso Sagrado de Kakin"
-					q.description = "ORDEM: Examine o Vaso Sagrado. Depois [G] primeiro assassinato no corredor."
+					q.description = "ORDEM: [G] Leia o eco do porão imperial no ritual do Vaso Sagrado."
 					q.reward_xp = 390000
 					q.reward_gold = 8000000
-					q.objectives = [_criar_obj_visit(&"vaso_kakin", "Vaso Sagrado de Kakin")]
+					q.objectives = [_criar_obj_investigate(&"bw_porao_kakin")]
 
 				4:
 					q.quest_name = "Guerra de Sucessão 4/26: O Primeiro Assassinato a Bordo"
@@ -1757,17 +1757,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				8:
 					q.quest_name = "Guerra de Sucessão 8/26: Os Conveses Intermediários da Máfia"
-					q.description = "ORDEM: Caminhe aos conveses 3–4 e fale com Hinrigh (Xi-Yu). Sem rush."
+					q.description = "ORDEM: [G] Leia a marca das máfias de tier nos conveses 3–4 antes de Hinrigh."
 					q.reward_xp = 500000
 					q.reward_gold = 10500000
-					q.objectives = [_criar_obj_visit(&"hinrigh", "Hinrigh (Família Xi-Yu)")]
+					q.objectives = [_criar_obj_investigate(&"bw_mafia_tier")]
 
 				9:
 					q.quest_name = "Guerra de Sucessão 9/26: A Aliança com Hinrigh Biganduffno"
-					q.description = "ORDEM: Fale com Hinrigh (Biohazard). Depois [G] seita Heil-Ly."
+					q.description = "ORDEM: Convença Hinrigh a selar a aliança Xi-Yu — termos claros, Biohazard na mesa."
 					q.reward_xp = 525000
 					q.reward_gold = 11000000
-					q.objectives = [_criar_obj_visit(&"hinrigh", "Hinrigh")]
+					q.objectives = [_criar_obj_persuasion(&"hinrigh", "Hinrigh")]
 
 				10:
 					q.quest_name = "Guerra de Sucessão 10/26: O Contágio de Morena Prudo"
@@ -1785,17 +1785,17 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				12:
 					q.quest_name = "Guerra de Sucessão 12/26: A Caçada da Trupe Fantasma no Navio"
-					q.description = "ORDEM: Fale com Chrollo nos conveses profundos. Depois Hisoka (marcas de goma)."
+					q.description = "ORDEM: [Z] Cruze o armazém dos conveses profundos até Chrollo. Aura acesa atrai a Aranha."
 					q.reward_xp = 600000
 					q.reward_gold = 12500000
-					q.objectives = [_criar_obj_visit(&"chrollo", "Chrollo Lucilfer")]
+					q.objectives = [_criar_obj_stealth(&"bw_armazem_profundo")]
 
 				13:
 					q.quest_name = "Guerra de Sucessão 13/26: As Pistas de Sangue de Hisoka"
-					q.description = "ORDEM: Fale com Hisoka (Bungee Gum). Depois volte a Chrollo para negociar trégua."
+					q.description = "ORDEM: [G] Leia as marcas de Bungee Gum no convés — Hisoka já passou."
 					q.reward_xp = 625000
 					q.reward_gold = 13000000
-					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka Morow")]
+					q.objectives = [_criar_obj_investigate(&"bw_marca_bungee")]
 
 				14:
 					q.quest_name = "Guerra de Sucessão 14/26: A Trégua Provisória com a Trupe"
@@ -1855,10 +1855,10 @@ static func obter_quest_da_etapa(arco: int, etapa: int) -> Quest:
 
 				22:
 					q.quest_name = "Guerra de Sucessão 22/26: O Duelo de Titãs nos Conveses"
-					q.description = "ORDEM: Fale com Hisoka no duelo dos profundos. Depois proteja Woble (Rainha Oito)."
+					q.description = "ORDEM: [Z] Cruze o corredor do Convés 3 até o duelo Hisoka×Chrollo."
 					q.reward_xp = 910000
 					q.reward_gold = 20000000
-					q.objectives = [_criar_obj_visit(&"hisoka", "Hisoka")]
+					q.objectives = [_criar_obj_stealth(&"bw_corredor_conves3")]
 
 				23:
 					q.quest_name = "Guerra de Sucessão 23/26: A Proteção do Príncipe Woble"

@@ -147,6 +147,13 @@ static func obter_passos(cutscene_id: StringName) -> Array[Dictionary]:
 				"Goreinu → Hisoka → Razor. Ordem clara.",
 				"greed_soufrabi_seen"
 			)
+		"ngl_hora_zero":
+			return _pack(
+				"Morel",
+				"Hora Zero. Portas abertas. Sem heroísmo solo.",
+				"Escadaria → corredor → tumba. GPS um passo.",
+				"ngl_hora_zero_seen"
+			)
 		"ngl_palacio":
 			return _pack(
 				"Morel (eco)",

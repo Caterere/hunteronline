@@ -363,6 +363,44 @@ static func executar_arena_celestial_cutscene(tree: SceneTree, callback_fim: Cal
 	)
 
 # ------------------------------------------------------------
+# ARCO 6 PILOTO: HORA ZERO / INVASÃO NGL
+# ------------------------------------------------------------
+static func executar_ngl_hora_zero(tree: SceneTree) -> void:
+	if em_cutscene:
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_ngl_hora_zero", false)):
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.25, 1.25), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Morel Mackernasey", "text": "Hora Zero. Portas do Knov abertas. Sem heroísmo solo — um objetivo de cada vez."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Isaac Netero", "text": "Escadaria, Youpi, tumba. A Rosa espera no fim. Não rush."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "ngl_foco_invasao",
+			"speaker": "Foco da invasão",
+			"text": "Onde concentrar a equipe?",
+			"options": [
+				{"id": "escadaria", "text": "Escadaria — isolar Youpi"},
+				{"id": "fumo", "text": "Fumaça — Deep Purple no corredor"},
+				{"id": "tumba", "text": "Tumba — caminho de Netero"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_ngl_hora_zero", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	CutsceneSequenceRunner.executar(tree, passos, "NGL_Hora_Zero", func():
+		em_cutscene = false
+		if EventBus != null:
+			EventBus.emit_toast("NGL: Escadaria → Corredor → Tumba (GPS)", Color(0.95, 0.45, 0.35))
+	)
+
+
+# ------------------------------------------------------------
 # ARCO 4: YORKNEW CITY & A TRUPE FANTASMA (GENEI RYODAN)
 # ------------------------------------------------------------
 static func executar_yorknew_cutscene(tree: SceneTree, callback_fim: Callable = Callable()) -> void:

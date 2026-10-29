@@ -39,20 +39,30 @@ static func aplicar(quest: Quest, arco: int, etapa: int) -> void:
 	quest.custom_data["contract_version"] = CONTRACT_VERSION
 	quest.custom_data["arco"] = arco
 	quest.custom_data["etapa"] = etapa
-	if not quest.custom_data.has("playable_verb"):
-		quest.custom_data["playable_verb"] = _infer_verb(quest)
+	# Verbo sempre espelha objetivos reais do catálogo (SSOT).
+	quest.custom_data["playable_verb"] = _infer_verb(quest)
 
 
 static func obter_meta(arco: int, etapa: int) -> Dictionary:
 	match arco:
 		1:
 			return _meta_exame(etapa)
+		2:
+			return _meta_kukuroo(etapa)
 		3:
 			return _meta_arena(etapa)
 		4:
 			return _meta_yorknew(etapa)
 		5:
 			return _meta_greed(etapa)
+		6:
+			return _meta_formigas(etapa)
+		7:
+			return _meta_eleicao(etapa)
+		8:
+			return _meta_continente(etapa)
+		9:
+			return _meta_sucessao(etapa)
 		_:
 			return _meta_saga_generica(arco, etapa)
 
@@ -94,6 +104,12 @@ static func listar_atos_saga(arco: int) -> Array[Dictionary]:
 				{"act_id": "york_prisao", "act_name": "Prisão & Apagão", "etapas": Vector2i(16, 23)},
 				{"act_id": "york_desfecho", "act_name": "Negociação & GI", "etapas": Vector2i(24, 34)},
 			]
+		2:
+			return [
+				{"act_id": "kuku_portao", "act_name": "Portão & Alameda", "etapas": Vector2i(1, 7)},
+				{"act_id": "kuku_mansao", "act_name": "Mansão dos Mordomos", "etapas": Vector2i(8, 14)},
+				{"act_id": "kuku_trono", "act_name": "Trono & Resgate", "etapas": Vector2i(15, 18)},
+			]
 		5:
 			return [
 				{"act_id": "gi_entrada", "act_name": "Entrada & Regras", "etapas": Vector2i(1, 4)},
@@ -101,6 +117,33 @@ static func listar_atos_saga(arco: int) -> Array[Dictionary]:
 				{"act_id": "gi_aliancas", "act_name": "Alianças & Bomber", "etapas": Vector2i(15, 22)},
 				{"act_id": "gi_razor", "act_name": "Razor & Queimada", "etapas": Vector2i(23, 28)},
 				{"act_id": "gi_climax", "act_name": "Clímax GI", "etapas": Vector2i(29, 36)},
+			]
+		6:
+			return [
+				{"act_id": "ngl_fronteira", "act_name": "Fronteira NGL", "etapas": Vector2i(1, 10)},
+				{"act_id": "ngl_tropa", "act_name": "Tropa de Extermínio", "etapas": Vector2i(11, 19)},
+				{"act_id": "ngl_invasao", "act_name": "Invasão do Palácio", "etapas": Vector2i(20, 33)},
+				{"act_id": "ngl_tumba", "act_name": "Tumba & Rosa", "etapas": Vector2i(34, 42)},
+				{"act_id": "ngl_aftermath", "act_name": "Aftermath", "etapas": Vector2i(43, 48)},
+			]
+		7:
+			return [
+				{"act_id": "ele_associacao", "act_name": "Associação & UTI", "etapas": Vector2i(1, 6)},
+				{"act_id": "ele_alluka", "act_name": "Resgate Alluka", "etapas": Vector2i(7, 12)},
+				{"act_id": "ele_votacao", "act_name": "Votação & Milagre", "etapas": Vector2i(13, 20)},
+			]
+		8:
+			return [
+				{"act_id": "cn_expedicao", "act_name": "Expedição Beyond", "etapas": Vector2i(1, 7)},
+				{"act_id": "cn_calamidades", "act_name": "Calamidades", "etapas": Vector2i(8, 14)},
+				{"act_id": "cn_arvore", "act_name": "Árvore do Mundo", "etapas": Vector2i(15, 22)},
+			]
+		9:
+			return [
+				{"act_id": "bw_embarque", "act_name": "Embarque & Ritual", "etapas": Vector2i(1, 6)},
+				{"act_id": "bw_mafia", "act_name": "Máfia & Heil-Ly", "etapas": Vector2i(7, 14)},
+				{"act_id": "bw_principe", "act_name": "Príncipe Tserriednich", "etapas": Vector2i(15, 21)},
+				{"act_id": "bw_climax", "act_name": "Estabilização", "etapas": Vector2i(22, 26)},
 			]
 		_:
 			var total: int = total_etapas_arco(arco)
@@ -269,15 +312,73 @@ static func _meta_greed(etapa: int) -> Dictionary:
 	return _pack(str(act.get("act_id")), str(act.get("act_name")), role, verb)
 
 
-static func _meta_saga_generica(arco: int, etapa: int) -> Dictionary:
-	var total: int = total_etapas_arco(arco)
+static func _meta_kukuroo(etapa: int) -> Dictionary:
+	return _meta_atos_com_papel(2, etapa, {
+		5: ROLE_REVELACAO, 6: ROLE_PROVA, 7: ROLE_PROVA, 9: ROLE_PROVA,
+		11: ROLE_PROVA, 13: ROLE_REVELACAO, 14: ROLE_PROVA, 15: ROLE_PROVA,
+		16: ROLE_REVELACAO, 17: ROLE_BOND, 18: ROLE_AFTERMATH,
+	})
+
+
+static func _meta_formigas(etapa: int) -> Dictionary:
+	return _meta_atos_com_papel(6, etapa, {
+		3: ROLE_PROVA, 4: ROLE_REVELACAO, 5: ROLE_PROVA, 7: ROLE_PROVA,
+		8: ROLE_REVELACAO, 10: ROLE_PROVA, 12: ROLE_PROVA, 16: ROLE_REVELACAO,
+		18: ROLE_PROVA, 19: ROLE_PROVA, 22: ROLE_REVELACAO, 23: ROLE_BOND,
+		26: ROLE_REVELACAO, 27: ROLE_REVELACAO, 28: ROLE_PROVA, 32: ROLE_PROVA,
+		33: ROLE_PROVA, 36: ROLE_PROVA, 37: ROLE_REVELACAO, 39: ROLE_REVELACAO,
+		42: ROLE_CLIMAX, 43: ROLE_CLIMAX, 48: ROLE_AFTERMATH,
+	})
+
+
+static func _meta_eleicao(etapa: int) -> Dictionary:
+	return _meta_atos_com_papel(7, etapa, {
+		4: ROLE_REVELACAO, 6: ROLE_REVELACAO, 9: ROLE_PROVA, 10: ROLE_PROVA,
+		11: ROLE_PROVA, 12: ROLE_CLIMAX, 13: ROLE_REVELACAO, 14: ROLE_PROVA,
+		16: ROLE_BOND, 20: ROLE_AFTERMATH,
+	})
+
+
+static func _meta_continente(etapa: int) -> Dictionary:
+	return _meta_atos_com_papel(8, etapa, {
+		4: ROLE_PROVA, 5: ROLE_REVELACAO, 6: ROLE_PROVA, 8: ROLE_REVELACAO,
+		9: ROLE_PROVA, 10: ROLE_PROVA, 11: ROLE_PROVA, 12: ROLE_PROVA,
+		13: ROLE_PROVA, 14: ROLE_PROVA, 16: ROLE_PROVA, 17: ROLE_PROVA,
+		18: ROLE_REVELACAO, 20: ROLE_BOND, 21: ROLE_REVELACAO, 22: ROLE_AFTERMATH,
+	})
+
+
+static func _meta_sucessao(etapa: int) -> Dictionary:
+	return _meta_atos_com_papel(9, etapa, {
+		3: ROLE_REVELACAO, 4: ROLE_REVELACAO, 6: ROLE_PROVA, 8: ROLE_REVELACAO,
+		9: ROLE_PROVA, 10: ROLE_REVELACAO, 11: ROLE_PROVA, 12: ROLE_PROVA,
+		13: ROLE_REVELACAO, 14: ROLE_BOND, 15: ROLE_PROVA, 16: ROLE_REVELACAO,
+		18: ROLE_PROVA, 19: ROLE_CLIMAX, 20: ROLE_PROVA, 21: ROLE_PROVA,
+		22: ROLE_PROVA, 24: ROLE_CLIMAX, 26: ROLE_AFTERMATH,
+	})
+
+
+static func _meta_atos_com_papel(arco: int, etapa: int, papeis: Dictionary) -> Dictionary:
+	var act := _ato_da_etapa(arco, etapa)
+	var role := str(papeis.get(etapa, ROLE_PREP))
+	if etapa <= 2 and not papeis.has(etapa):
+		role = ROLE_SETUP
+	return _pack(str(act.get("act_id")), str(act.get("act_name")), role, "visit")
+
+
+static func _ato_da_etapa(arco: int, etapa: int) -> Dictionary:
 	var atos: Array[Dictionary] = listar_atos_saga(arco)
-	var act: Dictionary = atos[0]
+	var act: Dictionary = atos[0] if not atos.is_empty() else {}
 	for a in atos:
 		var faixa: Vector2i = a.get("etapas", Vector2i(1, 1))
 		if etapa >= faixa.x and etapa <= faixa.y:
-			act = a
-			break
+			return a
+	return act
+
+
+static func _meta_saga_generica(arco: int, etapa: int) -> Dictionary:
+	var total: int = total_etapas_arco(arco)
+	var act: Dictionary = _ato_da_etapa(arco, etapa)
 	var role := ROLE_PREP
 	if etapa <= 2:
 		role = ROLE_SETUP
