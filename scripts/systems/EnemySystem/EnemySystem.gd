@@ -557,20 +557,34 @@ func aplicar_dano_defesa(quantidade: float, is_heavy: bool = false) -> void:
 		stagger_timer = tempo_defesa_quebrada
 		defesa_quebrada.emit()
 		entrou_em_stagger.emit()
-		if EventBus != null:
-			EventBus.enemy_staggered.emit(enemy_body if enemy_body != null else self)
-			EventBus.emit_hitstop(0.14 if is_heavy else 0.10)
-			EventBus.emit_camera_shake(0.60 if is_heavy else 0.40, 0.28)
-		ComicBalloon.mostrar(enemy_body if enemy_body != null else self, "💥 DEFESA QUEBRADA! (VULNERÁVEL)", 2.4, -46.0)
-		if enemy_sprite != null:
-			enemy_sprite.modulate = Color(0.6, 1.2, 2.5, 1.0)
-		if AudioManager != null:
-			var pos_sfx: Vector2 = enemy_body.global_position if enemy_body != null else Vector2.ZERO
-			AudioManager.tocar_sfx_posicional("stagger_break", pos_sfx, 1.10)
+		_disparar_climax_postura(is_heavy)
 
 
 func aplicar_dano_postura(quantidade: float) -> void:
 	aplicar_dano_defesa(quantidade, false)
+
+
+## Vitória de postura (Sekiro beat): hitstop + shake + VFX + punish window legível.
+func _disparar_climax_postura(is_heavy: bool) -> void:
+	var body: Node = enemy_body if enemy_body != null else self
+	var pos: Vector2 = body.global_position if body is Node2D else Vector2.ZERO
+	if EventBus != null:
+		EventBus.enemy_staggered.emit(body)
+		EventBus.emit_hitstop(0.18 if is_heavy else 0.14)
+		EventBus.emit_camera_shake(0.72 if is_heavy else 0.55, 0.34)
+		if EventBus.has_method("emit_toast"):
+			EventBus.emit_toast("💥 GUARDA QUEBRADA — PUNISH!", Color(1.0, 0.85, 0.35))
+		if EventBus.has_method("emit_floating_text"):
+			EventBus.emit_floating_text(pos + Vector2(0, -52), "VULNERÁVEL ×1.8", Color(0.45, 0.95, 1.0))
+	ComicBalloon.mostrar(body, "💥 DEFESA QUEBRADA! (VULNERÁVEL)", 2.6, -46.0)
+	if enemy_sprite != null:
+		enemy_sprite.modulate = Color(0.55, 1.25, 2.6, 1.0)
+	# Cratera / anel de aura — leitura de "quebra de osso"
+	CombatImpactEffect.spawn_dust_kickup(body, pos, Vector2(0, 40))
+	HatsuProceduralFxKit.impact_ring(body, pos, Color(0.55, 0.9, 1.0), 56.0)
+	HatsuProceduralFxKit.cast_flash(body, pos, Color(0.7, 0.95, 1.0), 1.15)
+	if AudioManager != null:
+		AudioManager.tocar_sfx_posicional("stagger_break", pos, 1.15)
 
 
 # =========================================================

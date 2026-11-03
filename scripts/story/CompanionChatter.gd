@@ -9,7 +9,8 @@ extends Node
 # ============================================================
 
 @export var saga_id: int = 4
-@export var intervalo_minimo_s: float = 18.0
+## Anti toast-spam: intervalo maior nos arcos mid (intensidade > ruído)
+@export var intervalo_minimo_s: float = 22.0
 
 var _ultimo_toast_s: float = -999.0
 var _falas_ja: Dictionary = {}
@@ -59,15 +60,15 @@ static func _catalogo_para_saga(saga: int) -> Array[Dictionary]:
 	match saga:
 		2:
 			return [
-				{"id": "kuku_portao", "x_min": 0.0, "x_max": 500.0, "speaker": "Gon", "texto": "Esse portão é enorme… um de cada vez, ok?"},
-				{"id": "kuku_alameda", "x_min": 900.0, "x_max": 1600.0, "speaker": "Killua", "texto": "Mike ouve aura. [Z] nos arbustos se precisar."},
-				{"id": "kuku_mansao", "x_min": 2200.0, "x_max": 2800.0, "speaker": "Gon", "texto": "Gotoh e as moedas. Concentra — sem rush."},
+				{"id": "kuku_portao", "x_min": 0.0, "x_max": 500.0, "speaker": "Gon", "texto": "Portão enorme. Hit1→hit2→finisher; heavy quebra guarda."},
+				{"id": "kuku_alameda", "x_min": 900.0, "x_max": 1600.0, "speaker": "Killua", "texto": "Mike ouve aura. [Z] nos arbustos. Telegraph colorido = afinidade."},
+				{"id": "kuku_mansao", "x_min": 2200.0, "x_max": 2800.0, "speaker": "Gon", "texto": "Gotoh. Quando a guarda quebrar — punish. Sem rush."},
 			]
 		3:
 			return [
-				{"id": "arena_recep", "x_min": 0.0, "x_max": 400.0, "speaker": "Killua", "texto": "Registra, luta, sobe. Torre longa — respira entre andares."},
-				{"id": "arena_wing", "x_min": 900.0, "x_max": 1300.0, "speaker": "Gon", "texto": "Wing e o Teste da Água. Sem Nen, o topo esmaga."},
-				{"id": "arena_200", "x_min": 3200.0, "x_max": 3800.0, "speaker": "Killua", "texto": "200º. Hisoka. Um objetivo — depois Yorknew."},
+				{"id": "arena_recep", "x_min": 0.0, "x_max": 400.0, "speaker": "Killua", "texto": "Registra e sobe. Training Wing = respiro do combo."},
+				{"id": "arena_wing", "x_min": 900.0, "x_max": 1300.0, "speaker": "Gon", "texto": "Wing: canalize Hatsu → impacto → residual. Identidade no tatame."},
+				{"id": "arena_200", "x_min": 3200.0, "x_max": 3800.0, "speaker": "Killua", "texto": "200º. Hisoka. PD no telegraph, depois Hatsu no espaço."},
 			]
 		4:
 			return [

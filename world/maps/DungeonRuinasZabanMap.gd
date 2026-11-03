@@ -73,7 +73,7 @@ func _densificar_steam_early_ruinas() -> void:
 		"hatsu_moments": [
 			{"name": "HatsuMomentRuinas", "pos": Vector2(280, 240),
 				"titulo": "Eco do Guardião",
-				"descricao": "Antes do chefe: canalize, impacto, residual. Mastery cresce em elites.",
+				"descricao": "Antes do chefe: canalize → impacto → residual. Quebre a barra de defesa; a janela azul é o punish. Mastery cresce em elites.",
 				"flag": "hatsu_moment_ruinas"},
 		],
 		"checkpoints": [
@@ -321,9 +321,11 @@ func _instanciar_mob(pos: Vector2, nome: String, is_boss: bool, is_elite: bool =
 		if es.enemy_data != null:
 			es.enemy_data.role = "boss"
 			es.enemy_data.attack_telegraph_type = "aoe_circle"
+			es.enemy_data.nen_type = NenAffinityData.CategoriaAfinidade.CONJURACAO
 			if "attack_windup" in es.enemy_data:
 				es.enemy_data.attack_windup = maxf(float(es.enemy_data.attack_windup), 0.6)
 		es.died.connect(_on_boss_derrotado)
+		call_deferred("_juice_entrada_boss", enemy)
 		if QuestSystem != null:
 			if not es.died.is_connected(QuestSystem.register_enemy_kill):
 				es.died.connect(QuestSystem.register_enemy_kill)
@@ -504,15 +506,31 @@ func _on_raid_phase_changed(phase_index: int, phase_id: String) -> void:
 func _dica_fase_solo(phase_id: String) -> String:
 	match phase_id.to_lower():
 		"gate", "approach":
-			return "Quebre a barra de defesa, canalize Hatsu no espaço"
+			return "Heavy → quebra guarda → punish ×1.8; Hatsu no espaço"
 		"collapse":
 			return "Adds spawnam — limpe-os, depois volte ao boss"
 		"midpoint":
-			return "AoE maior — saia do círculo vermelho"
+			return "AoE maior (telegraph azul = Conjuração) — saia do círculo"
 		"enrage":
-			return "Burst final — dodge + Hatsu sem rush"
+			return "Burst final — PD no telegraph + Hatsu residual"
 		_:
 			return "Saia dos AoE, um alvo de cada vez"
+
+
+## Juice de entrada do Guardião (referência de climax early).
+func _juice_entrada_boss(boss: Node) -> void:
+	if boss == null or not is_instance_valid(boss):
+		return
+	var pos: Vector2 = boss.global_position if boss is Node2D else Vector2(320, 120)
+	HatsuProceduralFxKit.cast_flash(self, pos, Color(0.35, 0.8, 1.0), 1.4)
+	HatsuProceduralFxKit.impact_ring(self, pos, Color(0.3, 0.75, 1.0), 70.0)
+	HatsuSignatureKit._spawn_residual_crater(self, pos, Color(0.35, 0.75, 1.0), 1.1)
+	if EventBus != null:
+		EventBus.emit_hitstop(0.14)
+		EventBus.emit_camera_shake(0.55, 0.32)
+		EventBus.emit_toast("🗿 Guardião Ancestral — quebre a guarda, punishe o azul", Color(0.45, 0.85, 1.0))
+	if AudioManager != null:
+		AudioManager.tocar_sfx_tipo("boss_phase", 0.92)
 
 
 func _aplicar_fase_no_boss(phase_index: int, phase_id: String) -> void:

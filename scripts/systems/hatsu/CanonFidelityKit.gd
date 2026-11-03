@@ -114,6 +114,40 @@ static func is_charged_hatsu(hatsu: HatsuData) -> bool:
 	return "jajanken" in n and "pedra" in n
 
 
+static func is_jajanken_pedra(hatsu: HatsuData) -> bool:
+	if hatsu == null:
+		return false
+	var n := hatsu.nome.to_lower()
+	return ("jajanken" in n and "pedra" in n) or hatsu.hatsu_id == "gon_jajanken_pedra"
+
+
+static func is_jajanken_papel(hatsu: HatsuData) -> bool:
+	if hatsu == null:
+		return false
+	var n := hatsu.nome.to_lower()
+	return ("jajanken" in n and "papel" in n) or hatsu.hatsu_id == "gon_jajanken_papel"
+
+
+static func is_jajanken_tesoura(hatsu: HatsuData) -> bool:
+	if hatsu == null:
+		return false
+	var n := hatsu.nome.to_lower()
+	return ("jajanken" in n and "tesoura" in n) or hatsu.hatsu_id == "gon_jajanken_tesoura"
+
+
+static func is_godspeed(hatsu: HatsuData) -> bool:
+	if hatsu == null:
+		return false
+	var n := hatsu.nome.to_lower()
+	return "godspeed" in n or "kanmuru" in n or hatsu.hatsu_id == "killua_kanmuru"
+
+
+static func is_crazy_slots(hatsu: HatsuData) -> bool:
+	if hatsu == null:
+		return false
+	return "crazy slots" in hatsu.nome.to_lower() or hatsu.hatsu_id == "kite_crazy_slots"
+
+
 static func is_bungee(hatsu: HatsuData) -> bool:
 	if hatsu == null:
 		return false

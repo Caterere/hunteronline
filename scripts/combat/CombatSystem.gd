@@ -47,6 +47,23 @@ var combo_step: int = 0 # 0 = Golpe 1, 1 = Golpe 2, 2 = Finalizador
 var combo_window_timer: float = 0.0
 const COMBO_WINDOW_MAX: float = 0.45
 
+# Cancel rules (Trilha F — intensidade):
+# 1) Dodge cancela recovery de ataque (tentar_esquivar)
+# 2) Heavy buffer no finisher — hold/RMB durante hit3 enfileira pesado
+# 3) Hatsu cancela ataque (cancelar_ataque_para_hatsu)
+var heavy_buffer_pendente: bool = false
+const HEAVY_BUFFER_MAX: float = 0.28
+var heavy_buffer_timer: float = 0.0
+
+# Perfis de impacto (GAME_FEEL_BIBLE §3–4) — hit1/hit2/finisher/heavy distintos
+const HIT_PROFILE := {
+	"hit1": {"hitstop": 0.04, "shake": 0.15, "shake_dur": 0.12, "arc": 28.0, "dust": false, "color": Color(0.95, 0.97, 1.0)},
+	"hit2": {"hitstop": 0.05, "shake": 0.22, "shake_dur": 0.14, "arc": 32.0, "dust": false, "color": Color(1.0, 0.98, 0.88)},
+	"finisher": {"hitstop": 0.08, "shake": 0.35, "shake_dur": 0.20, "arc": 40.0, "dust": true, "color": Color(1.0, 0.92, 0.45)},
+	"ko": {"hitstop": 0.12, "shake": 0.48, "shake_dur": 0.26, "arc": 42.0, "dust": true, "color": Color(1.0, 0.82, 0.25)},
+	"heavy": {"hitstop": 0.15, "shake": 0.60, "shake_dur": 0.32, "arc": 46.0, "dust": true, "color": Color(1.0, 0.88, 0.40)},
+}
+
 # Contra-Ataque de Perfect Dodge (janela curta = skill, não buff longo)
 var contra_ataque_ativo: bool = false
 var contra_ataque_timer: float = 0.0
@@ -194,6 +211,11 @@ var is_heavy_attack: bool = false
 # ============================================================
 
 func tentar_ataque_pesado(direcao: Vector2) -> bool:
+	# Cancel rule 2: durante finisher (hit3), bufferiza o pesado em vez de dropar o input
+	if estado == Estado.ATACANDO and not is_heavy_attack and combo_step == 2 and not pode_atacar:
+		solicitar_heavy_buffer()
+		return false
+
 	if not pode_atacar or esquivando or estado == Estado.MORTO or owner_body == null:
 		return false
 
@@ -208,6 +230,8 @@ func tentar_ataque_pesado(direcao: Vector2) -> bool:
 	pode_atacar = false
 	estado = Estado.ATACANDO
 	is_heavy_attack = true
+	heavy_buffer_pendente = false
+	heavy_buffer_timer = 0.0
 
 	# Consumo leve de aura por impacto de Ko concentrado se Nen despertado
 	if PlayerData != null and PlayerData.despertou_nen:
@@ -219,12 +243,22 @@ func tentar_ataque_pesado(direcao: Vector2) -> bool:
 	if AudioManager != null:
 		AudioManager.tocar_punch()
 
-	CombatImpactEffect.spawn_swing_arc(owner_body, owner_body.global_position, ultima_direcao, 42.0, Color(1.0, 0.9, 0.55), true)
+	var hp: Dictionary = HIT_PROFILE["heavy"]
+	CombatImpactEffect.spawn_swing_arc(
+		owner_body, owner_body.global_position, ultima_direcao,
+		float(hp["arc"]), hp["color"] as Color, true
+	)
 
 	_disparar_hitbox_ataque(ultima_direcao)
 	_enviar_ataque_rede_se_cliente(true)
 	ataque_timer = ataque_cooldown * 2.2 # Recuperação mais lenta
 	return true
+
+
+## Enfileira heavy enquanto o finisher ainda está em recovery (cancel rule 2).
+func solicitar_heavy_buffer() -> void:
+	heavy_buffer_pendente = true
+	heavy_buffer_timer = HEAVY_BUFFER_MAX
 
 
 # ============================================================
@@ -281,7 +315,24 @@ func tentar_atacar(direcao: Vector2) -> void:
 	if AudioManager != null:
 		AudioManager.tocar_slash()
 
-	CombatImpactEffect.spawn_swing_arc(owner_body, owner_body.global_position, ultima_direcao, 32.0, Color.WHITE, false)
+	# Swing arc distinto por step (identidade visual sem clip novo)
+	var profile_key := "hit1"
+	match combo_step:
+		1: profile_key = "hit2"
+		2: profile_key = "finisher"
+	var swing_p: Dictionary = HIT_PROFILE[profile_key]
+	CombatImpactEffect.spawn_swing_arc(
+		owner_body, owner_body.global_position, ultima_direcao,
+		float(swing_p["arc"]), swing_p["color"] as Color, combo_step == 2
+	)
+	# Godspeed: arco elétrico nos basics (modo amarrado ao ataque)
+	if PlayerData != null and PlayerData.quest_states.get("godspeed_ativo", false):
+		CombatImpactEffect.spawn_swing_arc(
+			owner_body, owner_body.global_position, ultima_direcao,
+			float(swing_p["arc"]) * 1.12, Color(0.55, 0.88, 1.0, 0.95), false
+		)
+		if owner_body != null and owner_body.has_method("_spawn_afterimage"):
+			owner_body.call("_spawn_afterimage", Color(0.55, 0.9, 1.0, 0.55))
 
 	_disparar_hitbox_ataque(ultima_direcao)
 	_enviar_ataque_rede_se_cliente(false)
@@ -444,23 +495,20 @@ func _on_attack_hit(
 		is_crit = true
 		_mostrar_texto_flutuante("⏱ PUNISH +25%", Color(0.95, 0.75, 0.35))
 
-	# Disparar Hitstop e Camera Shake direcional (Game Feel & Juice)
+	# Hitstop + shake + VFX por perfil (hit1 / hit2 / finisher / ko / heavy)
 	if EventBus != null:
 		var target_pos: Vector2 = enemy.global_position if enemy is Node2D else owner_body.global_position
-		if is_heavy_attack:
-			EventBus.emit_hitstop(0.18)
-			EventBus.emit_directional_shake(0.65, 0.35, ultima_direcao)
-			# Golpe carregado: slash forte — sem anel/bola de impacto blunt
-			CombatImpactEffect.spawn_slash(enemy, target_pos, ultima_direcao, Color(1.0, 0.9, 0.45))
-			CombatImpactEffect.spawn_dust_kickup(enemy, target_pos, ultima_direcao * 90.0)
-		elif is_crit or combo_step == 2:
-			EventBus.emit_hitstop(0.12)
-			EventBus.emit_directional_shake(0.45, 0.25, ultima_direcao)
-			CombatImpactEffect.spawn_slash(enemy, target_pos, ultima_direcao, Color(1.0, 0.95, 0.5))
-		else:
-			EventBus.emit_hitstop(0.04)
-			EventBus.emit_directional_shake(0.20, 0.15, ultima_direcao)
-			CombatImpactEffect.spawn_slash(enemy, target_pos, ultima_direcao, Color.WHITE)
+		var profile: Dictionary = _resolver_hit_profile(is_crit)
+		EventBus.emit_hitstop(float(profile["hitstop"]))
+		EventBus.emit_directional_shake(float(profile["shake"]), float(profile["shake_dur"]), ultima_direcao)
+		CombatImpactEffect.spawn_slash(enemy, target_pos, ultima_direcao, profile["color"] as Color)
+		if bool(profile.get("dust", false)):
+			CombatImpactEffect.spawn_dust_kickup(enemy, target_pos, ultima_direcao * (110.0 if is_heavy_attack else 80.0))
+		if is_heavy_attack or combo_step == 2:
+			CombatImpactEffect.spawn_swing_arc(enemy, target_pos, ultima_direcao, float(profile["arc"]) * 0.55, profile["color"] as Color, true)
+		# Godspeed residual elétrico no impacto dos basics
+		if not is_heavy_attack and PlayerData != null and PlayerData.quest_states.get("godspeed_ativo", false):
+			HatsuProceduralFxKit.lightning_arcs(enemy, target_pos, ultima_direcao, Color(0.65, 0.9, 1.0), 0.75)
 		EventBus.combat_hit_landed.emit(owner_body, enemy, dano, is_crit)
 		EventBus.target_changed.emit(enemy)
 
@@ -495,11 +543,31 @@ func _on_attack_hit(
 
 
 func cancelar_ataque_para_hatsu() -> void:
+	# Cancel rule 3: Hatsu interrompe ataque imediatamente
 	if estado == Estado.ATACANDO:
 		estado = Estado.NORMAL
 		pode_atacar = true
 		ataque_timer = 0.0
+		heavy_buffer_pendente = false
+		heavy_buffer_timer = 0.0
 		_desativar_hitbox_ataque()
+
+
+func _resolver_hit_profile(is_crit: bool) -> Dictionary:
+	if is_heavy_attack:
+		return HIT_PROFILE["heavy"]
+	var ko_ativo := false
+	if nen_system != null and nen_system.tecnica_ativa(NenSystem.Tecnica.KO):
+		ko_ativo = true
+	if ko_ativo and (is_crit or combo_step == 2):
+		return HIT_PROFILE["ko"]
+	match combo_step:
+		1:
+			return HIT_PROFILE["hit2"]
+		2:
+			return HIT_PROFILE["finisher"]
+		_:
+			return HIT_PROFILE["hit1"]
 
 
 
@@ -741,6 +809,14 @@ func _atualizar_timers(
 		if contra_ataque_timer <= 0.0:
 			contra_ataque_ativo = false
 
+	# Heavy buffer timer (cancel rule 2)
+	if heavy_buffer_timer > 0.0:
+		heavy_buffer_timer -= delta
+		if heavy_buffer_timer <= 0.0:
+			heavy_buffer_timer = 0.0
+			if not (estado == Estado.ATACANDO and not pode_atacar):
+				heavy_buffer_pendente = false
+
 	# Ataque
 	if ataque_timer > 0.0:
 		ataque_timer -= delta
@@ -749,6 +825,11 @@ func _atualizar_timers(
 			pode_atacar = true
 			if estado == Estado.ATACANDO:
 				estado = Estado.NORMAL
+			# Flush heavy buffer assim que recovery libera
+			if heavy_buffer_pendente and not esquivando and estado != Estado.MORTO:
+				heavy_buffer_pendente = false
+				heavy_buffer_timer = 0.0
+				tentar_ataque_pesado(ultima_direcao)
 
 	# Cooldown Esquiva (mais lento sob pressão de combate)
 	if esquiva_timer > 0.0:

@@ -425,11 +425,22 @@ const DASH_TRAIL_TINT := Color(0.75, 0.88, 1.0, 0.62)
 
 
 func _attack(delta: float = 0.016) -> void:
-	if not combat_system.pode_atacar or combat_system.esquivando:
+	if combat_system == null or combat_system.esquivando:
 		_attack_charge_timer = 0.0
 		return
 
 	var quer_ataque_pesado_direto: bool = Input.is_mouse_button_pressed(MOUSE_BUTTON_RIGHT) or (InputMap.has_action("heavy_attack") and Input.is_action_just_pressed("heavy_attack"))
+
+	# Cancel rule 2: durante finisher, RMB/hold enfileira heavy mesmo sem pode_atacar
+	if quer_ataque_pesado_direto and not combat_system.pode_atacar:
+		if combat_system.estado == combat_system.Estado.ATACANDO and combat_system.combo_step == 2 and not combat_system.is_heavy_attack:
+			combat_system.solicitar_heavy_buffer()
+		_attack_charge_timer = 0.0
+		return
+
+	if not combat_system.pode_atacar:
+		_attack_charge_timer = 0.0
+		return
 
 	if quer_ataque_pesado_direto:
 		_executar_golpe_pesado()
@@ -486,10 +497,17 @@ func _executar_golpe_normal() -> void:
 	if _state_machine != null:
 		_state_machine.travel("attack")
 
-	# 4. Micro-shake de feedback de impacto
-	if EventBus != null:
-		var shake_trauma: float = 0.28 if combat_system != null and combat_system.combo_step == 2 else 0.12
-		var shake_dur: float = 0.15 if combat_system != null and combat_system.combo_step == 2 else 0.08
+	# 4. Micro-shake por step do combo (hit1 / hit2 / finisher)
+	if EventBus != null and combat_system != null:
+		var shake_trauma: float = 0.12
+		var shake_dur: float = 0.08
+		match combat_system.combo_step:
+			1:
+				shake_trauma = 0.18
+				shake_dur = 0.10
+			2:
+				shake_trauma = 0.32
+				shake_dur = 0.18
 		EventBus.camera_shake_requested.emit(shake_trauma, shake_dur)
 
 

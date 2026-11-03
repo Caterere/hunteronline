@@ -1,7 +1,7 @@
 # Hunter Online — Estado Atual do Jogo (Handoff para Agente)
 
-> **Data do snapshot:** 2026-10-27 (evolução MMORPG Phase 1 + refino Steam)  
-> **Branch de trabalho:** `cursor/refine-bugs-balance-8573`  
+> **Data do snapshot:** 2026-11-03 (Trilha F — refino intensidade Saga+Combate+Hatsu)  
+> **Branch de trabalho:** `cursor/refino-intensidade-48b6`  
 > **Branch base histórico:** `main`  
 > **Objetivo deste doc:** handoff completo para outro agent continuar o trabalho sem redescobrir o projeto.  
 > **Regra de ouro:** código e cenas vencem docs desatualizados. Em conflito design vs código → preferir código e reportar.
@@ -40,7 +40,16 @@
 - [x] **Validação ritmo Yorknew→Whale** (battery suites + `test_session_abcd_final_smoke_suite` 31/31)
 - [x] **Co-op polish leve** (raid solo polish já shipado; suite assertions verdes — exit 134 = leak conhecido)
 
-### Progresso desta sessão (out/2026 — evolução MMORPG Phase 1)
+### Progresso desta sessão (2026-11-03 — Trilha F Intensidade)
+- [x] Combate: `HIT_PROFILE` hit1/hit2/finisher/ko/heavy; heavy buffer no finisher; climax postura (`_disparar_climax_postura`)
+- [x] Telegraph inimigo por afinidade Nen; Alfa Ninho elite Emissão; Guardião Zaban juice entrada
+- [x] Hatsu pipeline `play_intensity_pipeline` (Pedra/Papel/Tesoura/Godspeed/Bungee/Jail/Slots)
+- [x] Bungee toolkit alvo **ou** self; Crazy Slots arma persiste 6s; Godspeed trail nos basics
+- [x] Hatsu moments + CompanionChatter teach feel; anti toast-spam 22s
+- [x] Docs: `TASKS_HOJE_2026-11-03.md`, `HATSU_FICHAS_BACKLOG_2026-11-03.md`
+- [x] Suites: `test_hatsu_combat_feel` 29/29 · `test_refino_intensidade` 18/18 · fidelity 79/79 · dash heavy 9/9
+
+### Progresso anterior (out/2026 — evolução MMORPG Phase 1)
 - [x] Refino Steam: bounty XP+match; early TTK; skill-tree cluster identity; Training Wing Vale; primer Wing (nível/Nen/Tree/Hatsu)
 - [x] PlaytestVisualMode: grama opcional; **ENABLED_DEFAULT=false** → mapas ricos (Wang+kits) no default
 - [x] Perfect Dodge juice: aura burst + dust + `spawn_perfect_dodge` + shake
@@ -377,7 +386,7 @@ Regras: MODIFY DON'T REBUILD; escopo mínimo; preservar saves v2.4;
 foco COMBATE+NEN+HATSU+PROGRESSÃO; não criar sistemas MMO novos
 se já existem stubs/implementações; cumprir gates G1–G5.
 
-Tarefa sugerida: [PREENCHER — ex. Trilha A early Steam density / playtest G5].
+Tarefa sugerida: G5 humano early (Luiz) · fichas Hatsu Manipulação (Indoor Fish / Deep Purple / Needle) · branching arcs 2–7.
 ```
 
 ---

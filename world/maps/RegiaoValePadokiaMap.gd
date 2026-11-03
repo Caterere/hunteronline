@@ -119,7 +119,7 @@ func _densificar_steam_early_vale() -> void:
 		"hatsu_moments": [
 			{"name": "HatsuMomentVale", "pos": Vector2(420, 280),
 				"titulo": "Eco do Moinho",
-				"descricao": "Após Gyo→Zetsu→Ko, o Hatsu responde com identidade. Biscuit virá depois.",
+				"descricao": "Você já fez Gyo→Zetsu→Ko. Agora sinta: canalização → impacto → residual. Pedra carrega; Papel emite; Tesoura corta. Biscuit virá depois.",
 				"flag": "hatsu_moment_vale"},
 		],
 		"checkpoints": [
@@ -200,7 +200,7 @@ func _inicializar_quests_padokia() -> void:
 				QuestSystem.start_quest(quest_tut)
 				print("[RegiaoValePadokiaMap] Tutorial Nen 3-beat iniciado: ", quest_tut.quest_name)
 				if EventBus != null:
-					EventBus.emit_toast("Wing: [G] Moinho → [Z] Beco Norte → [KO] Barreira. Depois Ruínas.", Color(0.55, 0.9, 1.0))
+					EventBus.emit_toast("Wing: [G] Moinho → [Z] Beco Norte → [KO] Barreira. Depois: combo + Hatsu no espaço.", Color(0.55, 0.9, 1.0))
 			var quest_inv = PadokiaQuestCatalogScript.obter_quest_investigacao_furto()
 			if not PlayerData.is_quest_active(quest_inv) and not PlayerData.is_quest_completed(quest_inv):
 				QuestSystem.start_quest(quest_inv)

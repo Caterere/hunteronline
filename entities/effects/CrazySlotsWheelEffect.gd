@@ -17,6 +17,11 @@ var target_player: CharacterBody2D = null
 var numero_sorteado: int = 2
 var tempo_animacao: float = 0.0
 var finalizou_giro: bool = false
+## Arma conjurada persiste N segundos (adaptar play ao roll)
+var persistir_arma: bool = false
+var persist_sec: float = 6.0
+var _arma_persistida: bool = false
+var _persist_timer: float = 0.0
 
 
 func setup(player_body: CharacterBody2D) -> void:
@@ -34,6 +39,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if target_player == null or not is_instance_valid(target_player):
+		_limpar_flag_arma()
 		queue_free()
 		return
 
@@ -43,11 +49,38 @@ func _process(delta: float) -> void:
 	if tempo_animacao >= 0.5 and not finalizou_giro:
 		finalizou_giro = true
 		_executar_golpe_arma()
+		if persistir_arma:
+			_ativar_persistencia_arma()
 
-	if tempo_animacao >= 1.2:
+	if persistir_arma and _arma_persistida:
+		_persist_timer -= delta
+		if _persist_timer <= 0.0:
+			_limpar_flag_arma()
+			queue_free()
+			return
+	elif tempo_animacao >= 1.2 and not persistir_arma:
 		queue_free()
+		return
 
 	queue_redraw()
+
+
+func _ativar_persistencia_arma() -> void:
+	_arma_persistida = true
+	_persist_timer = persist_sec
+	if PlayerData != null:
+		PlayerData.quest_states["crazy_slots_arma"] = numero_sorteado
+		PlayerData.quest_states["crazy_slots_arma_ate"] = Time.get_unix_time_from_system() + persist_sec
+	var nome_arma := {2: "Foice", 3: "Clava", 4: "Rifle"}.get(numero_sorteado, "Arma")
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("🎰 Crazy Slots — %s %.0fs" % [nome_arma, persist_sec], Color(0.95, 0.4, 0.55))
+
+
+func _limpar_flag_arma() -> void:
+	if PlayerData != null:
+		PlayerData.quest_states.erase("crazy_slots_arma")
+		PlayerData.quest_states.erase("crazy_slots_arma_ate")
+	_arma_persistida = false
 
 
 func _executar_golpe_arma() -> void:
