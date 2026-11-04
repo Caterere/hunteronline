@@ -50,6 +50,14 @@
 - [x] QuestHUD + MissionGPS scale **1.35** (legibilidade com PlayerHUD)
 - [x] Suite: `scratch/test_mmorpg_evolution_phase1_suite.tscn`
 
+### Progresso — Trilha G Aura Cast Fidelity (nov/2026)
+- [x] Ken passivo (nível Skill Tree / PassiveNenController) + Primer/Biscuit alinhados
+- [x] Gyo inspect SSOT via `EnemyNenKit.inspect_summary` → `EnemySystem.obter_dados_inspecao_gyo`
+- [x] EnemyAI: `SEARCH` pós-Zetsu, `alertar_matilha`, Feitan HP50, Nobunaga En persistente, Genthru countdown, Comando de Matilha
+- [x] Cast vivo: Gon/Killua/Leorio etapa beats; Hisoka sem ORDEM; Kurapika Yorknew; LivingNPC STORY; CompanionChatter voz HxH
+- [x] Suite: `scratch/test_aura_cast_fidelity_suite.tscn`
+- [ ] G5 humano Arena→Floresta Gyo/Zetsu/matilha — **não gravado neste PR**
+
 ### Progresso histórico (set/2026 — imersão arcos)
 - [x] Densidade Exame→Whale + Nen no mundo + raid solo polish + LAN proof suite (ver checklists Steam)
 
