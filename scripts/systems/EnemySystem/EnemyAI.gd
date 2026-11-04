@@ -632,7 +632,7 @@ func _executar_terremoto_com_telegrafia() -> void:
 
 # --- TELEGRAFIA VISUAL NO CHÃO (FLOOR AOE DANGER ZONE) ---
 
-func _criar_indicador_chao_aoe(pos_global: Vector2, raio: float, duracao: float) -> void:
+func _criar_indicador_chao_aoe(pos_global: Vector2, raio: float, duracao: float, cor_afin: Color = Color(1.0, 0.15, 0.12)) -> void:
 	var map_parent = enemy_body.get_parent() if enemy_body != null else get_tree().current_scene
 	if map_parent == null:
 		return
@@ -642,12 +642,12 @@ func _criar_indicador_chao_aoe(pos_global: Vector2, raio: float, duracao: float)
 	indicador.global_position = pos_global
 	indicador.z_index = -1 # Desenha no chão abaixo dos personagens
 
+	var fill := Color(cor_afin.r, cor_afin.g, cor_afin.b, 0.28)
+	var edge := Color(cor_afin.r, cor_afin.g, cor_afin.b, 0.90)
 	# Custom script de desenho imediato via callable
 	indicador.draw.connect(func():
-		var cor_preenchimento := Color(1.0, 0.1, 0.1, 0.25)
-		var cor_borda := Color(1.0, 0.2, 0.2, 0.85)
-		indicador.draw_circle(Vector2.ZERO, raio, cor_preenchimento)
-		indicador.draw_arc(Vector2.ZERO, raio, 0.0, TAU, 32, cor_borda, 2.0)
+		indicador.draw_circle(Vector2.ZERO, raio, fill)
+		indicador.draw_arc(Vector2.ZERO, raio, 0.0, TAU, 32, edge, 2.0)
 	)
 
 	map_parent.add_child(indicador)
@@ -1038,21 +1038,38 @@ func _mostrar_telegraph() -> void:
 	if telegraph_type == "flash" and _obter_role() == "ranged":
 		telegraph_type = "aoe_circle"
 
+	# Cor por afinidade Nen (Steam polish §6.1) — elite/puzzle legível
+	var cor_afin: Color = _cor_telegraph_afinidade()
 	var sprite = enemy_body.get_node_or_null("Sprite2D") as Sprite2D
 	match telegraph_type:
 		"aoe_circle":
 			if sprite != null:
-				sprite.modulate = Color(2.2, 0.55, 0.2, 1.0)
-			_criar_indicador_chao_aoe(enemy_body.global_position, 52.0, maxf(0.22, windup_timer))
+				sprite.modulate = Color(
+					clampf(cor_afin.r * 2.1, 0.4, 2.5),
+					clampf(cor_afin.g * 1.6, 0.3, 2.2),
+					clampf(cor_afin.b * 1.4, 0.2, 2.2),
+					1.0
+				)
+			_criar_indicador_chao_aoe(enemy_body.global_position, 52.0, maxf(0.22, windup_timer), cor_afin)
 		"exclamation":
 			if sprite != null:
-				sprite.modulate = Color(2.0, 1.6, 0.3, 1.0)
+				sprite.modulate = Color(
+					clampf(cor_afin.r * 1.9 + 0.3, 0.5, 2.2),
+					clampf(cor_afin.g * 1.7 + 0.2, 0.5, 2.0),
+					clampf(cor_afin.b * 1.2, 0.2, 2.0),
+					1.0
+				)
 		_:
 			if sprite != null:
-				sprite.modulate = Color(2.4, 0.35, 0.35, 1.0) # Flash de alerta
+				sprite.modulate = Color(
+					clampf(cor_afin.r * 2.2, 0.5, 2.5),
+					clampf(cor_afin.g * 1.3, 0.25, 2.2),
+					clampf(cor_afin.b * 1.3, 0.25, 2.2),
+					1.0
+				)
 
-	# Cone / slash direcional no chão — leitura de ângulo do golpe
-	_criar_telegraph_slash_direcional(maxf(0.22, windup_timer))
+	# Cone / slash direcional no chão — leitura de ângulo do golpe (tint afinidade)
+	_criar_telegraph_slash_direcional(maxf(0.22, windup_timer), cor_afin)
 
 	if _telegraph_indicator == null or not is_instance_valid(_telegraph_indicator):
 		var lbl = Label.new()
@@ -1060,7 +1077,7 @@ func _mostrar_telegraph() -> void:
 		lbl.text = "!" if telegraph_type != "aoe_circle" else "◎"
 		lbl.position = Vector2(-6, -44)
 		lbl.add_theme_font_size_override("font_size", 10)
-		lbl.add_theme_color_override("font_color", Color(1.0, 0.15, 0.15, 1.0) if telegraph_type != "aoe_circle" else Color(1.0, 0.55, 0.15, 1.0))
+		lbl.add_theme_color_override("font_color", cor_afin.lightened(0.15))
 		lbl.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.9))
 		enemy_body.add_child(lbl)
 		_telegraph_indicator = lbl
@@ -1071,7 +1088,16 @@ func _mostrar_telegraph() -> void:
 		tw.tween_property(lbl, "modulate:a", 1.0, 0.12)
 
 
-func _criar_telegraph_slash_direcional(duracao: float) -> void:
+func _cor_telegraph_afinidade() -> Color:
+	var nen_type: int = 0
+	if enemy_system != null and enemy_system.enemy_data != null:
+		nen_type = int(enemy_system.enemy_data.nen_type)
+	if NenAffinityData != null:
+		return NenAffinityData.obter_cor_afinidade(nen_type)
+	return Color(1.0, 0.25, 0.2)
+
+
+func _criar_telegraph_slash_direcional(duracao: float, cor_afin: Color = Color(1.0, 0.25, 0.18)) -> void:
 	if enemy_body == null:
 		return
 	if _telegraph_slash != null and is_instance_valid(_telegraph_slash):
@@ -1087,6 +1113,8 @@ func _criar_telegraph_slash_direcional(duracao: float) -> void:
 	slash.rotation = dir.angle()
 	var reach: float = 58.0
 	var half_arc: float = deg_to_rad(38.0)
+	var fill := Color(cor_afin.r, cor_afin.g, cor_afin.b, 0.30)
+	var edge := Color(cor_afin.r, cor_afin.g, cor_afin.b, 0.92)
 	slash.draw.connect(func():
 		var pts: PackedVector2Array = PackedVector2Array()
 		pts.append(Vector2.ZERO)
@@ -1094,8 +1122,8 @@ func _criar_telegraph_slash_direcional(duracao: float) -> void:
 		for i in range(steps + 1):
 			var a: float = -half_arc + (half_arc * 2.0) * (float(i) / float(steps))
 			pts.append(Vector2(cos(a), sin(a)) * reach)
-		slash.draw_colored_polygon(pts, Color(1.0, 0.18, 0.12, 0.28))
-		slash.draw_arc(Vector2.ZERO, reach, -half_arc, half_arc, 16, Color(1.0, 0.35, 0.2, 0.9), 2.0)
+		slash.draw_colored_polygon(pts, fill)
+		slash.draw_arc(Vector2.ZERO, reach, -half_arc, half_arc, 16, edge, 2.0)
 	)
 	var map_parent = enemy_body.get_parent()
 	if map_parent == null:

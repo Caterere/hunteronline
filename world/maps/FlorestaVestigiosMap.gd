@@ -63,7 +63,7 @@ func _densificar_steam_early_floresta() -> void:
 		"hatsu_moments": [
 			{"name": "HatsuMomentFloresta", "pos": Vector2(480, 400),
 				"titulo": "Clareira do Eco",
-				"descricao": "Entre packs, o Hatsu pede janela. Heavy + mastery — não spam leve.",
+				"descricao": "Entre packs, o Hatsu pede janela. Telegraph do Alfa é laranja (Emissão). Heavy quebra guarda → punish ×1.8. Não spam leve.",
 				"flag": "hatsu_moment_floresta"},
 		],
 		"checkpoints": [
@@ -517,7 +517,8 @@ func _instanciar_feras_selvagens() -> void:
 			{"name": "FeraSombra3", "pos": Vector2(160, 520), "id": &"lobo_sombras", "label": "Lobo das Sombras", "def": 85.0, "role": "fast", "tint": Color.WHITE, "telegraph": "flash"},
 			{"name": "FeraSombra4", "pos": Vector2(640, 200), "id": &"fera_alada", "label": "Fera Alada Emboscadora", "def": 95.0, "role": "ambusher", "tint": Color.WHITE, "telegraph": "flash"},
 			{"name": "SentinelaRuinasEntrada", "pos": Vector2(400, 560), "id": &"sentinela_pedra", "label": "Sentinela de Pedra Ancestral", "def": 140.0, "role": "tank", "tint": Color(0.7, 0.7, 0.65), "telegraph": "aoe_circle"},
-			{"name": "AlfaNinhoElite", "pos": Vector2(600, 500), "id": &"alfa_ninho_elite", "label": "Alfa do Ninho (Elite Nen)", "def": 180.0, "role": "ambusher", "tint": Color(0.95, 0.55, 0.9), "telegraph": "aoe_circle", "elite": true},
+			# Elite puzzle Nen: Emissão (telegraph laranja) + Uivo de Aura
+			{"name": "AlfaNinhoElite", "pos": Vector2(600, 500), "id": &"alfa_ninho_elite", "label": "Alfa do Ninho (Elite Nen)", "def": 180.0, "role": "ambusher", "tint": Color(0.95, 0.55, 0.9), "telegraph": "aoe_circle", "elite": true, "nen_type": 2},
 		]
 		for m in mobs_data:
 			var mob = enemy_scn.instantiate()
@@ -543,11 +544,16 @@ func _instanciar_feras_selvagens() -> void:
 					es.enemy_data.role = m.get("role", "bruiser")
 					es.enemy_data.enemy_name = m["label"]
 					es.enemy_data.attack_telegraph_type = String(m.get("telegraph", "flash"))
+					if m.has("nen_type"):
+						es.enemy_data.nen_type = int(m["nen_type"])
 					if bool(m.get("elite", false)):
 						es.enemy_data.is_elite = true
 						es.enemy_data.npc_tier = maxi(2, int(es.enemy_data.npc_tier))
 						if str(es.enemy_data.hatsu_name).is_empty():
 							es.enemy_data.hatsu_name = "Uivo de Aura"
+						# Garantir telegraph afinidade-aware (Emissão default no Alfa)
+						if not m.has("nen_type"):
+							es.enemy_data.nen_type = NenAffinityData.CategoriaAfinidade.EMISSAO
 				if es.has_method("_vincular_textura_inimigo"):
 					es._vincular_textura_inimigo()
 				var ai = mob.get_node_or_null("EnemyAI") as EnemyAI

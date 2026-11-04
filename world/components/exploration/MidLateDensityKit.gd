@@ -171,6 +171,8 @@ static func _ativar_hatsu_moment(area: Node, titulo: String, descricao: String, 
 	var am_hatsu = Engine.get_main_loop().root.get_node_or_null("/root/AudioManager") if Engine.get_main_loop() else null
 	if am_hatsu != null and am_hatsu.has_method("tocar_stinger_reward"):
 		am_hatsu.tocar_stinger_reward("hatsu")
+	# Juice cast → impacto → residual (ensina o feel novo sem toast spam)
+	_play_hatsu_moment_juice(area)
 	if EventBus != null:
 		if mastery_msg.is_empty():
 			EventBus.emit_toast("⚡ Momento Hatsu: %s" % titulo, Color(0.85, 0.55, 1.0))
@@ -182,8 +184,21 @@ static func _ativar_hatsu_moment(area: Node, titulo: String, descricao: String, 
 		if visual != null and visual.has_method("exibir_sequencia_falas"):
 			visual.exibir_sequencia_falas([
 				{"falante": "Narrador", "texto": descricao},
-				{"falante": "Aura", "texto": "A identidade do seu Hatsu fica um pouco mais clara. Continue."}
+				{"falante": "Aura", "texto": "Canalize → impacto → residual. Mastery ≥10 densifica o residual. Combo: hit1/hit2/finisher/heavy; quebre a guarda para punish ×1.8."}
 			])
+
+
+static func _play_hatsu_moment_juice(area: Node) -> void:
+	if area == null or not (area is Node2D):
+		return
+	var pos: Vector2 = (area as Node2D).global_position
+	var parent: Node = area.get_parent() if area.get_parent() != null else area
+	HatsuProceduralFxKit.cast_flash(parent, pos, Color(0.85, 0.55, 1.0), 1.2)
+	HatsuProceduralFxKit.impact_ring(parent, pos, Color(0.75, 0.45, 1.0), 48.0)
+	HatsuSignatureKit._spawn_residual_crater(parent, pos, Color(0.8, 0.5, 1.0), 0.7)
+	if EventBus != null:
+		EventBus.emit_hitstop(0.10)
+		EventBus.emit_camera_shake(0.32, 0.18)
 
 
 ## Concede mastery real via HatsuData (não o contador fantasma em attributes).

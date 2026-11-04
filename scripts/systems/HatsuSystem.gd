@@ -516,9 +516,12 @@ func _iniciar_carga(slot_index: int) -> void:
 	_definir_estado_slot(slot_index, SlotState.ACTIVATING)
 	imobilizado_timer = 0.2
 	if combat_system != null:
-		combat_system._mostrar_texto_flutuante("✊ Segure… Jajanken!", Color(1.0, 0.85, 0.3))
+		combat_system._mostrar_texto_flutuante("✊ Segure… Jajanken Pedra!", Color(1.0, 0.85, 0.3))
 	if owner_body != null:
 		HatsuSignatureKit.telegraph_cast(owner_body, hatsu, CanonFidelityKit.CHARGE_MAX_SEC)
+		# Charge telegraph pesado (Ko crater preview)
+		HatsuProceduralFxKit.cast_flash(owner_body.get_parent(), owner_body.global_position, Color(1.0, 0.75, 0.2), 1.1)
+		HatsuSignatureKit._spawn_residual_crater(owner_body.get_parent(), owner_body.global_position, Color(1.0, 0.7, 0.25), 0.9)
 
 
 func _cancelar_carga(motivo: String) -> void:
@@ -542,7 +545,10 @@ func _liberar_carga() -> void:
 	_pending_charge_mult = CanonFidelityKit.charge_power_mult(t)
 	_definir_estado_slot(s, SlotState.READY)
 	if combat_system != null:
-		combat_system._mostrar_texto_flutuante("✊ Pedra! (%.0f%%)" % (_pending_charge_mult * 100.0), Color(1.0, 0.55, 0.15))
+		combat_system._mostrar_texto_flutuante("✊ PEDRA! (%.0f%%)" % (_pending_charge_mult * 100.0), Color(1.0, 0.55, 0.15))
+	if owner_body != null and EventBus != null:
+		EventBus.emit_hitstop(0.10 + 0.05 * _pending_charge_mult)
+		EventBus.emit_camera_shake(0.35 + 0.25 * _pending_charge_mult, 0.22)
 	usar_hatsu(s)
 	_pending_charge_mult = 1.0
 
@@ -813,12 +819,14 @@ func _aplicar_feel_impacto_hatsu(enemy_sys: Node, dano: int, direcao: Vector2, f
 				var pull: Vector2 = (owner_body.global_position - body.global_position).normalized() * 40.0
 				if enemy_sys.has_method("_apply_knockback"):
 					enemy_sys._apply_knockback(pull, 80.0)
-	# Impacto visual procedural no alvo
+	# Impacto visual procedural no alvo (+ pipeline cast→impact→residual por identidade)
 	var hit_pos: Vector2 = owner_body.global_position if owner_body != null else Vector2.ZERO
 	if enemy_sys.get_parent() != null and enemy_sys.get_parent() is Node2D:
 		hit_pos = (enemy_sys.get_parent() as Node2D).global_position
 	var hit_dir: Vector2 = direcao if direcao != Vector2.ZERO else Vector2.RIGHT
-	if hatsu != null:
+	if hatsu != null and owner_body != null:
+		HatsuSignatureKit.play_intensity_pipeline(owner_body, hatsu, hit_pos, hit_dir)
+	elif hatsu != null:
 		HatsuProceduralFxKit.play_estilo(enemy_sys, hit_pos, hit_dir, int(hatsu.estilo_visual), hatsu.cor_aura, 0.85)
 	else:
 		HatsuProceduralFxKit.impact_ring(enemy_sys, hit_pos, Color(0.5, 0.85, 1.0), 26.0)
@@ -1546,7 +1554,7 @@ func _executar_controle(hatsu: HatsuData, eficiencia: float) -> void:
 func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 	match hatsu.categoria:
 		HatsuData.Categoria.INTENSIFICACAO:
-			if hatsu.forma == HatsuData.Forma.TOQUE or hatsu.nome.contains("Pedra"):
+			if CanonFidelityKit.is_jajanken_pedra(hatsu) or hatsu.forma == HatsuData.Forma.TOQUE or hatsu.nome.contains("Pedra"):
 				_criar_golpe_direto(hatsu, eficiencia * 1.6)
 			elif hatsu.forma == HatsuData.Forma.PESSOAL:
 				_executar_cura(hatsu, eficiencia)
@@ -1554,20 +1562,25 @@ func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 				_criar_explosao_area(hatsu, eficiencia)
 
 		HatsuData.Categoria.TRANSFORMACAO:
-			if hatsu.nome.contains("Godspeed") or hatsu.nome.contains("Kanmuru"):
-				# D2-A: modo unificado (Whirlwind+SoL fundidos em um timer fluido)
+			if CanonFidelityKit.is_godspeed(hatsu) or hatsu.nome.contains("Godspeed") or hatsu.nome.contains("Kanmuru"):
+				# D2-A: modo unificado + trail elétrico nos basics (CombatSystem)
 				godspeed_timer = hatsu.duracao
 				PlayerData.quest_states["godspeed_ativo"] = true
 				if owner_body != null:
+					HatsuSignatureKit.play_intensity_pipeline(owner_body, hatsu, owner_body.global_position, Vector2.RIGHT)
 					var fx := GodspeedElectricEffect.new()
 					fx.setup(owner_body, hatsu.duracao)
 					owner_body.get_parent().add_child(fx)
+					if combat_system != null:
+						combat_system._mostrar_texto_flutuante("⚡ GODSPEED — basics drenam aura", Color(0.55, 0.9, 1.0))
 					owner_body.get_tree().create_timer(hatsu.duracao).timeout.connect(func():
 						PlayerData.quest_states["godspeed_ativo"] = false
+						if combat_system != null:
+							combat_system._mostrar_texto_flutuante("⚡ Godspeed esgotado", Color(0.7, 0.75, 0.9))
 					)
 			elif hatsu.nome.contains("Pain Packer") or hatsu.nome.contains("Rising Sun") or (HatsuData.Condicao.DOR_ACUMULADA in hatsu.condicoes):
 				_criar_explosao_area(hatsu, eficiencia)
-			elif hatsu.forma == HatsuData.Forma.TOQUE or hatsu.nome.contains("Tesoura"):
+			elif CanonFidelityKit.is_jajanken_tesoura(hatsu) or hatsu.forma == HatsuData.Forma.TOQUE or hatsu.nome.contains("Tesoura"):
 				_criar_golpe_direto(hatsu, eficiencia)
 			elif CanonFidelityKit.is_bungee(hatsu):
 				_criar_bungee_gum(hatsu, eficiencia)
@@ -1582,14 +1595,18 @@ func _executar_dano_categorizado(hatsu: HatsuData, eficiencia: float) -> void:
 			elif hatsu.forma == HatsuData.Forma.AREA or hatsu.nome.contains("Dragon Dive"):
 				_criar_explosao_area(hatsu, eficiencia)
 			else:
+				# Papel e emissões: trail + impacto (não bola genérica)
 				_criar_projetil(hatsu, eficiencia)
 
 		HatsuData.Categoria.CONJURACAO:
-			if hatsu.nome.contains("Crazy Slots"):
+			if CanonFidelityKit.is_crazy_slots(hatsu) or hatsu.nome.contains("Crazy Slots"):
 				if owner_body != null:
 					var fx := CrazySlotsWheelEffect.new()
 					fx.setup(owner_body)
+					fx.persistir_arma = true
+					fx.persist_sec = 6.0
 					owner_body.add_child(fx)
+					HatsuSignatureKit.play_intensity_pipeline(owner_body, hatsu, owner_body.global_position)
 			elif CanonFidelityKit.is_texture_surprise(hatsu):
 				_executar_texture_surprise(hatsu)
 			elif hatsu.nome.contains("Guanyin") or hatsu.nome.contains("Bodhisattva"):
@@ -1735,6 +1752,17 @@ func _criar_projetil(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	var vp: VisualProfile = PlayerData.aura_visual_profile.blend_with_hatsu(raw_vp) if PlayerData.aura_visual_profile != null else raw_vp
 
 	HatsuVisual.spawn_cast_effect(owner_body.global_position, vp, owner_body.get_parent())
+	# Papel / emissão: trail de cast legível
+	if CanonFidelityKit.is_jajanken_papel(hatsu) or hatsu.categoria == HatsuData.Categoria.EMISSAO:
+		vp.primary_color = Color(0.45, 0.9, 1.0) if CanonFidelityKit.is_jajanken_papel(hatsu) else vp.primary_color
+		HatsuProceduralFxKit.emission_bolts(owner_body.get_parent(), owner_body.global_position, direcao, vp.primary_color, 2, 1.0)
+		HatsuSignatureKit._spawn_residual_trail(
+			owner_body.get_parent(),
+			owner_body.global_position,
+			owner_body.global_position + direcao * mini(alcance_max, 80.0),
+			vp.primary_color,
+			0.28
+		)
 
 	for si in range(shots):
 		var spread: float = 0.0
@@ -1878,6 +1906,10 @@ func _criar_golpe_direto(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 						_clear_chain_jail_mark(enemy)
 						if combat_system != null:
 							combat_system._mostrar_texto_flutuante("⛓️ JUDGEMENT!", Color(0.95, 0.15, 0.25))
+						# Payoff visual só com mark
+						HatsuSignatureKit._spawn_chain_visual(
+							owner_body.get_parent(), owner_body.global_position, enemy.global_position, Color(0.95, 0.2, 0.3)
+						)
 					else:
 						dmg_mult = CanonFidelityKit.JUDGEMENT_UNMARKED_MULT
 						if combat_system != null:
@@ -1885,9 +1917,12 @@ func _criar_golpe_direto(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 				var dano_hatsu: int = int(float(_calcular_dano_hatsu(hatsu, eficiencia, enemy)) * dmg_mult)
 				_aplicar_feel_impacto_hatsu(enemy_sys, dano_hatsu, direcao, 200.0, hatsu)
 				HatsuVisual.spawn_impact_effect(enemy.global_position, vp, owner_body.get_parent())
-				# D1-B: Chain Jail marca + Zetsu forçado no alvo
+				# D1-B: Chain Jail marca + Zetsu forçado no alvo + corrente visual
 				if CanonFidelityKit.is_chain_jail(hatsu):
 					_marcar_chain_jail(enemy)
+					HatsuSignatureKit._spawn_chain_visual(
+						owner_body.get_parent(), owner_body.global_position, enemy.global_position, Color(0.75, 0.35, 1.0)
+					)
 					if enemy_sys.has_method("aplicar_zetsu_forcado"):
 						enemy_sys.aplicar_zetsu_forcado(3.0)
 					elif "stun_timer" in enemy_sys:
@@ -1968,7 +2003,7 @@ func _executar_texture_surprise(hatsu: HatsuData) -> void:
 
 
 func _criar_bungee_gum(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
-	# D6-A: projétil + tether elástico multi-âncora (borracha e goma)
+	# Toolkit: puxar alvo OU puxar self (hold dodge/shift ou sem alvo próximo)
 	if owner_body == null:
 		return
 	var direcao: Vector2 = Vector2.DOWN
@@ -1977,11 +2012,28 @@ func _criar_bungee_gum(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	elif owner_body.velocity != Vector2.ZERO:
 		direcao = owner_body.velocity.normalized()
 
+	var pull_self: bool = Input.is_action_pressed("dodge") or Input.is_key_pressed(KEY_SHIFT)
+	# Sem inimigo no alcance → modo yo-yo (puxa self para âncora)
+	var tem_alvo_proximo := false
+	for e in owner_body.get_tree().get_nodes_in_group("enemy"):
+		if e is Node2D and is_instance_valid(e):
+			if owner_body.global_position.distance_to(e.global_position) <= hatsu.alcance + 24.0:
+				tem_alvo_proximo = true
+				break
+	if not tem_alvo_proximo:
+		pull_self = true
+
 	var raw_vp: VisualProfile = hatsu.obter_visual_profile()
 	var vp: VisualProfile = PlayerData.aura_visual_profile.blend_with_hatsu(raw_vp) if PlayerData.aura_visual_profile != null else raw_vp
 	vp.primary_color = Color(1.0, 0.35, 0.75)
 
 	var map_parent: Node = owner_body.get_parent() if owner_body.get_parent() != null else owner_body
+	HatsuSignatureKit.play_intensity_pipeline(owner_body, hatsu, owner_body.global_position + direcao * 40.0, direcao)
+
+	if pull_self:
+		_bungee_pull_self(direcao, hatsu.alcance, vp, map_parent)
+		return
+
 	var area := Area2D.new()
 	area.name = "BungeeGumProjetil"
 	area.collision_layer = 1 << 3
@@ -2016,6 +2068,8 @@ func _criar_bungee_gum(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 		_spawn_bungee_tether(enemy as Node2D)
 		# Âncora no chão sob o caster (multi-âncora)
 		_spawn_bungee_ground_anchor(owner_body.global_position - direcao * 12.0)
+		if combat_system != null:
+			combat_system._mostrar_texto_flutuante("🎀 Bungee — puxa alvo", Color(1.0, 0.4, 0.75))
 		if is_instance_valid(area):
 			HatsuVisual.spawn_impact_effect(area.global_position, vp, map_parent)
 			area.queue_free()
@@ -2025,11 +2079,36 @@ func _criar_bungee_gum(hatsu: HatsuData, eficiencia: float = 1.0) -> void:
 	tween.tween_property(area, "global_position", area.global_position + (direcao * alcance_max), alcance_max / velocidade)
 	tween.tween_callback(func():
 		if is_instance_valid(area):
-			# Sem alvo: ancora no ponto final (gruda no cenário)
+			# Sem alvo: ancora e puxa self (yo-yo)
 			_spawn_bungee_ground_anchor(area.global_position)
+			_bungee_yo_yo_to(area.global_position)
 			HatsuVisual.spawn_impact_effect(area.global_position, vp, map_parent)
 			area.queue_free()
 	)
+
+
+func _bungee_pull_self(direcao: Vector2, alcance: float, vp: VisualProfile, map_parent: Node) -> void:
+	var anchor_pos: Vector2 = owner_body.global_position + direcao.normalized() * maxf(48.0, alcance * 0.65)
+	_spawn_bungee_ground_anchor(anchor_pos)
+	_bungee_yo_yo_to(anchor_pos)
+	HatsuVisual.spawn_impact_effect(anchor_pos, vp, map_parent)
+	if combat_system != null:
+		combat_system._mostrar_texto_flutuante("🎀 Bungee — puxa self", Color(1.0, 0.45, 0.8))
+
+
+func _bungee_yo_yo_to(anchor_pos: Vector2) -> void:
+	if owner_body == null or not (owner_body is CharacterBody2D):
+		return
+	var body := owner_body as CharacterBody2D
+	var tw := body.create_tween()
+	tw.tween_method(func(_s: float):
+		if not is_instance_valid(body):
+			return
+		var d: Vector2 = anchor_pos - body.global_position
+		if d.length() > 10.0:
+			body.global_position += d.normalized() * mini(14.0, d.length() * 0.35)
+			body.velocity = d.normalized() * 220.0
+	, 0.0, 1.0, 0.45)
 
 
 func _spawn_bungee_tether(target: Node2D) -> void:

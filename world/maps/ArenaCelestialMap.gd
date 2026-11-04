@@ -468,7 +468,7 @@ func _densificar_steam_mid_arena() -> void:
 		"hatsu_moments": [
 			{"name": "HatsuMomentArena", "pos": Vector2(1250, -20),
 				"titulo": "Identidade no Tatame",
-				"descricao": "Wing ensina: Hatsu é quem você é sob pressão. O ringue responde.",
+				"descricao": "Wing: Hatsu é quem você é sob pressão. Canalize → impacto → residual. Training Wing reforça o combo hit1/hit2/finisher/heavy.",
 				"flag": "hatsu_moment_arena"},
 		],
 		"checkpoints": [

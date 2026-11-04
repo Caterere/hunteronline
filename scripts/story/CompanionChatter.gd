@@ -9,7 +9,8 @@ extends Node
 # ============================================================
 
 @export var saga_id: int = 4
-@export var intervalo_minimo_s: float = 18.0
+## Anti toast-spam: intervalo maior nos arcos mid (intensidade > ruído)
+@export var intervalo_minimo_s: float = 22.0
 
 var _ultimo_toast_s: float = -999.0
 var _falas_ja: Dictionary = {}

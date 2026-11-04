@@ -20,6 +20,178 @@ enum Kind {
 }
 
 
+## Pipeline cast → impacto → residual (Steam polish §6.3). Mastery ≥10 densifica residual.
+static func play_intensity_pipeline(caster: Node2D, hatsu: HatsuData, hit_pos: Vector2 = Vector2.ZERO, dir: Vector2 = Vector2.RIGHT) -> void:
+	if caster == null or not is_instance_valid(caster) or hatsu == null:
+		return
+	var parent: Node = caster.get_parent() if caster.get_parent() != null else caster
+	var cor: Color = NenAffinityData.obter_cor_afinidade(hatsu.categoria) if NenAffinityData != null else hatsu.cor_aura
+	var mastery: float = float(hatsu.mastery) if "mastery" in hatsu else 0.0
+	var scale_m: float = 1.0 + clampf(mastery, 0.0, 100.0) / 200.0 # até +50% @100
+	var residual_boost: bool = mastery >= 10.0
+	var impact_at: Vector2 = hit_pos if hit_pos != Vector2.ZERO else caster.global_position
+	var d: Vector2 = dir if dir != Vector2.ZERO else Vector2.RIGHT
+	var n := hatsu.nome.to_lower()
+
+	# --- IMPACTO por identidade ---
+	if ("jajanken" in n and "pedra" in n) or (hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO and "pedra" in n):
+		HatsuProceduralFxKit.cast_flash(parent, impact_at, Color(1.0, 0.75, 0.2), 1.25 * scale_m)
+		HatsuProceduralFxKit.impact_ring(parent, impact_at, Color(1.0, 0.7, 0.25), 48.0 * scale_m)
+		CombatImpactEffect.spawn_dust_kickup(parent, impact_at, d * 120.0)
+		if residual_boost:
+			HatsuProceduralFxKit.ember_sparks(parent, impact_at, Color(1.0, 0.85, 0.35), 16)
+			_spawn_residual_crater(parent, impact_at, Color(1.0, 0.7, 0.2), 0.55 + mastery * 0.004)
+	elif ("jajanken" in n and "papel" in n) or "papel" in n and "jajanken" in n:
+		HatsuProceduralFxKit.emission_bolts(parent, impact_at, d, Color(0.45, 0.9, 1.0), 4, scale_m)
+		HatsuProceduralFxKit.impact_ring(parent, impact_at, Color(0.4, 0.85, 1.0), 34.0 * scale_m)
+		if residual_boost:
+			_spawn_residual_trail(parent, impact_at - d * 40.0, impact_at, Color(0.45, 0.9, 1.0), 0.4 + mastery * 0.003)
+	elif ("jajanken" in n and "tesoura" in n) or "tesoura" in n:
+		HatsuProceduralFxKit.slash_arc(parent, impact_at, d, Color(0.95, 0.98, 1.0), 40.0 * scale_m, true)
+		CombatImpactEffect.spawn_slash(parent, impact_at, d, Color(0.9, 0.95, 1.0))
+		if residual_boost:
+			_spawn_residual_slash(parent, impact_at, d, Color(0.85, 0.92, 1.0), 0.35 + mastery * 0.002)
+	elif "godspeed" in n or "kanmuru" in n:
+		HatsuProceduralFxKit.lightning_arcs(parent, caster.global_position, d, Color(0.65, 0.9, 1.0), scale_m)
+		HatsuProceduralFxKit.cast_flash(parent, caster.global_position, Color(0.55, 0.85, 1.0), 1.1 * scale_m)
+		if residual_boost:
+			_spawn_residual_aura(parent, caster, Color(0.55, 0.9, 1.0), 0.8 + mastery * 0.005)
+	elif "chain jail" in n or "aprisionamento" in n:
+		_spawn_chain_visual(parent, caster.global_position, impact_at, Color(0.75, 0.35, 1.0))
+		HatsuProceduralFxKit.impact_ring(parent, impact_at, Color(0.7, 0.3, 0.95), 36.0 * scale_m)
+		if residual_boost:
+			_spawn_residual_aura(parent, null, Color(0.7, 0.3, 0.95), 0.6, impact_at)
+	elif "judgement" in n or "julgamento" in n:
+		_spawn_chain_visual(parent, caster.global_position, impact_at, Color(0.95, 0.2, 0.3))
+		HatsuProceduralFxKit.cast_flash(parent, impact_at, Color(1.0, 0.2, 0.25), 1.3 * scale_m)
+		HatsuProceduralFxKit.impact_ring(parent, impact_at, Color(0.95, 0.15, 0.25), 50.0 * scale_m)
+	elif "bungee" in n:
+		HatsuProceduralFxKit.serpent_wave(parent, caster.global_position, d, Color(1.0, 0.4, 0.75), scale_m)
+		if residual_boost:
+			HatsuProceduralFxKit.mist_cloud(parent, impact_at, Color(1.0, 0.35, 0.7), 0.7)
+	elif "crazy slots" in n:
+		HatsuProceduralFxKit.cast_flash(parent, caster.global_position, Color(0.95, 0.35, 0.55), 1.2 * scale_m)
+		HatsuProceduralFxKit.spin_star(parent, caster.global_position, Color(1.0, 0.4, 0.55), scale_m)
+	else:
+		HatsuProceduralFxKit.play_for_hatsu(parent, impact_at, d, hatsu, scale_m)
+		if residual_boost:
+			HatsuProceduralFxKit.impact_ring(parent, impact_at, cor, 28.0 * scale_m)
+
+	var bus = _event_bus()
+	if bus != null and bus.has_method("emit_hitstop"):
+		var hs: float = 0.15 if hatsu.categoria == HatsuData.Categoria.INTENSIFICACAO else 0.12
+		if residual_boost:
+			hs += 0.02
+		bus.emit_hitstop(hs)
+
+
+static func _spawn_residual_crater(parent: Node, pos: Vector2, cor: Color, dur: float) -> void:
+	if parent == null:
+		return
+	var n := Node2D.new()
+	n.name = "HatsuResidualCrater"
+	n.z_index = -1
+	n.global_position = pos
+	var c := cor
+	n.draw.connect(func():
+		n.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 28, Color(c.r, c.g, c.b, 0.55), 2.5)
+		n.draw_arc(Vector2.ZERO, 14.0, 0.0, TAU, 20, Color(c.r, c.g, c.b, 0.35), 1.5)
+	)
+	parent.add_child(n)
+	n.queue_redraw()
+	var tw := n.create_tween()
+	tw.tween_property(n, "modulate:a", 0.0, maxf(0.25, dur))
+	tw.tween_callback(n.queue_free)
+
+
+static func _spawn_residual_trail(parent: Node, from: Vector2, to: Vector2, cor: Color, dur: float) -> void:
+	if parent == null:
+		return
+	var line := Line2D.new()
+	line.name = "HatsuResidualTrail"
+	line.width = 3.5
+	line.default_color = Color(cor.r, cor.g, cor.b, 0.75)
+	line.z_index = 7
+	line.points = PackedVector2Array([from, to])
+	parent.add_child(line)
+	var tw := line.create_tween()
+	tw.tween_property(line, "modulate:a", 0.0, maxf(0.2, dur))
+	tw.tween_callback(line.queue_free)
+
+
+static func _spawn_residual_slash(parent: Node, pos: Vector2, dir: Vector2, cor: Color, dur: float) -> void:
+	if parent == null:
+		return
+	var line := Line2D.new()
+	line.name = "HatsuResidualSlash"
+	line.width = 2.5
+	line.default_color = Color(cor.r, cor.g, cor.b, 0.7)
+	line.z_index = 8
+	var a := pos - dir.normalized() * 18.0
+	var b := pos + dir.normalized() * 28.0
+	line.points = PackedVector2Array([a, b])
+	parent.add_child(line)
+	var tw := line.create_tween()
+	tw.tween_property(line, "modulate:a", 0.0, maxf(0.18, dur))
+	tw.tween_callback(line.queue_free)
+
+
+static func _spawn_residual_aura(parent: Node, follow: Node2D, cor: Color, dur: float, fixed_pos: Vector2 = Vector2.ZERO) -> void:
+	if parent == null and follow == null:
+		return
+	var root: Node = parent if parent != null else (follow.get_parent() if follow != null else null)
+	if root == null:
+		return
+	var n := Node2D.new()
+	n.name = "HatsuResidualAura"
+	n.z_index = 5
+	if fixed_pos != Vector2.ZERO:
+		n.global_position = fixed_pos
+	elif follow != null:
+		n.global_position = follow.global_position
+	var c := cor
+	n.draw.connect(func():
+		n.draw_arc(Vector2.ZERO, 18.0, 0.0, TAU, 24, Color(c.r, c.g, c.b, 0.55), 1.8)
+	)
+	root.add_child(n)
+	n.queue_redraw()
+	var elapsed := {"t": 0.0}
+	var tw := n.create_tween()
+	tw.set_loops(maxi(1, int(dur / 0.08)))
+	tw.tween_callback(func():
+		elapsed["t"] = float(elapsed["t"]) + 0.08
+		if follow != null and is_instance_valid(follow) and fixed_pos == Vector2.ZERO:
+			n.global_position = follow.global_position
+		n.queue_redraw()
+		if float(elapsed["t"]) >= dur and is_instance_valid(n):
+			n.queue_free()
+	)
+	tw.tween_interval(0.08)
+
+
+static func _spawn_chain_visual(parent: Node, from: Vector2, to: Vector2, cor: Color) -> void:
+	if parent == null:
+		return
+	var line := Line2D.new()
+	line.name = "ChainJailVisual"
+	line.width = 2.8
+	line.default_color = Color(cor.r, cor.g, cor.b, 0.9)
+	line.z_index = 9
+	# Elos segmentados
+	var pts := PackedVector2Array()
+	var steps := 6
+	for i in range(steps + 1):
+		var t: float = float(i) / float(steps)
+		var p: Vector2 = from.lerp(to, t)
+		p += Vector2(0, sin(t * PI) * 6.0)
+		pts.append(p)
+	line.points = pts
+	parent.add_child(line)
+	var tw := line.create_tween()
+	tw.tween_property(line, "modulate:a", 0.0, 0.85)
+	tw.tween_callback(line.queue_free)
+
+
 static func telegraph_cast(caster: Node2D, hatsu: HatsuData, cast_time: float = 0.35) -> void:
 	if caster == null or not is_instance_valid(caster):
 		return
