@@ -111,8 +111,8 @@ func _tratar_treino_gi(etapa: int, visual_dialogue: Node) -> void:
 			]
 		10:
 			falas = [
-				{"falante": "Biscuit Krueger", "texto": "Ken é armadura contínua. Se cair no meio da leitura, você morre."},
-				{"falante": "Biscuit Krueger", "texto": "[G] no rastro Trace mantendo Ken. Sem relaxar."},
+				{"falante": "Biscuit Krueger", "texto": "Ken é Ren no corpo inteiro — blindagem passiva. Se cair no meio da leitura, você morre."},
+				{"falante": "Biscuit Krueger", "texto": "[G] no rastro Trace. A árvore segura o Ken; você segura a disciplina."},
 			]
 		11:
 			falas = [

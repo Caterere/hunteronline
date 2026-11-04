@@ -951,7 +951,8 @@ func tecnica_ativa(
 		Tecnica.KO:
 			return bool(tecnicas.get(Tecnica.KO, {}).get("desbloqueada", false))
 		Tecnica.KEN:
-			return bool(tecnicas.get(Tecnica.KEN, {}).get("desbloqueada", false))
+			# Ken é passivo (Ren no corpo inteiro) — nunca "técnica ativa" no HUD.
+			return false
 		Tecnica.RYU:
 			return bool(tecnicas.get(Tecnica.RYU, {}).get("desbloqueada", false))
 		# Técnicas Ativas Especiais (consultam ActiveNenController):
@@ -1677,10 +1678,23 @@ func aplicar_shu_no_dano(dano_base: float) -> float:
 
 
 func aplicar_ken_no_dano(dano_recebido: float) -> float:
-	# KEN permanece como técnica ativa separada
-	if not tecnica_ativa(Tecnica.KEN):
+	# KEN é passivo (Ren no corpo inteiro) — escala com nível na Skill Tree, como Ten.
+	var nivel: int = obter_nivel_tecnica(Tecnica.KEN)
+	if nivel <= 0:
+		# Fallback: ken_mastery na árvore desbloqueia sem setar nivel em tecnicas[]
+		if PlayerData != null and PlayerData.has_method("obter_modificador_total"):
+			var mod_def: float = float(PlayerData.obter_modificador_total("defesa"))
+			if mod_def >= 0.14 and bool(tecnicas.get(Tecnica.KEN, {}).get("desbloqueada", false)):
+				nivel = 1
+		if nivel <= 0 and bool(tecnicas.get(Tecnica.KEN, {}).get("desbloqueada", false)):
+			nivel = 1
+	if nivel <= 0:
 		return dano_recebido
-	return dano_recebido * 0.50
+	if passive_controller != null and passive_controller.has_method("obter_multiplicador_ken_dano"):
+		return dano_recebido * float(passive_controller.obter_multiplicador_ken_dano(nivel))
+	# Base: 35% mitigação no rank 1, +5% por rank, teto 65%
+	var mitigacao: float = minf(0.35 + 0.05 * float(nivel - 1), 0.65)
+	return dano_recebido * (1.0 - mitigacao)
 
 
 func aplicar_ryu_no_dano_ataque(dano_base: float) -> float:

@@ -388,6 +388,60 @@ static func attack_pattern(data: EnemyData) -> String:
 	return "pressure"
 
 
+## Resumo curto para Gyo inspect (PT-BR). Consome EnemyData já enrich()'ado.
+static func inspect_summary(data: EnemyData) -> Dictionary:
+	var out := {
+		"categoria_nen": "Intensificação",
+		"concentracao_aura": "Equilibrada",
+		"fraqueza": "Vulnerável a sequências e quebra de guarda",
+	}
+	if data == null:
+		return out
+	var nen_type: int = int(data.nen_type) if "nen_type" in data else NEN_INTENSIFICACAO
+	if NenAffinityData != null:
+		out["categoria_nen"] = NenAffinityData.obter_nome_afinidade(nen_type)
+	else:
+		match nen_type:
+			NEN_TRANSFORMACAO: out["categoria_nen"] = "Transformação"
+			NEN_EMISSAO: out["categoria_nen"] = "Emissão"
+			NEN_CONJURACAO: out["categoria_nen"] = "Conjuração"
+			NEN_MANIPULACAO: out["categoria_nen"] = "Manipulação"
+			NEN_ESPECIALIZACAO: out["categoria_nen"] = "Especialização"
+			_: out["categoria_nen"] = "Intensificação"
+	var role := str(data.role) if "role" in data else "bruiser"
+	var tier: int = int(data.npc_tier) if "npc_tier" in data else 1
+	if data.is_boss or tier >= 4:
+		out["concentracao_aura"] = "Densa — elite/boss"
+	elif role in ["nen_user", "tactician", "assassin"] or tier >= 3:
+		out["concentracao_aura"] = "Concentrada — usuário de Nen"
+	elif role in ["tank", "brute"]:
+		out["concentracao_aura"] = "Espessa — corpo reforçado"
+	elif role in ["fast", "ambusher", "ranged"]:
+		out["concentracao_aura"] = "Fluida — difícil de prender"
+	else:
+		out["concentracao_aura"] = "Equilibrada"
+	var weakness: Array = data.weakness_tags if "weakness_tags" in data and data.weakness_tags != null else []
+	if not weakness.is_empty():
+		out["fraqueza"] = "Fraco contra: %s" % _tag_label(str(weakness[0]))
+	elif not str(data.hatsu_name).is_empty():
+		out["fraqueza"] = "Hatsu: %s — quebre a guarda antes do cast" % str(data.hatsu_name)
+	return out
+
+
+static func _tag_label(tag: String) -> String:
+	match tag.to_lower():
+		"ko": return "Ko / finalizador"
+		"blunt": return "impacto contundente"
+		"slashing": return "corte"
+		"piercing": return "perfuração"
+		"nen": return "aura / Hatsu"
+		"fire": return "fogo / Transformação"
+		"poison": return "veneno"
+		"long_range": return "projéteis"
+		"control": return "controle"
+		_: return tag.replace("_", " ")
+
+
 ## Tags de ataque derivadas da categoria/forma do Hatsu do jogador.
 static func attack_tags_from_hatsu(hatsu: Resource) -> Array:
 	var tags: Array = []
