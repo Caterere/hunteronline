@@ -34,14 +34,24 @@ func _test_primer_content() -> void:
 	_assert("nen" in ids, "tópico nen")
 	_assert("nen_tree" in ids, "tópico nen_tree")
 	_assert("hatsu" in ids, "tópico hatsu")
+	_assert("combate" in ids, "tópico combate")
+	_assert("votos" in ids, "tópico votos")
 	_assert(Primer.falas_nivel().size() >= 3, "falas nível")
 	_assert(Primer.falas_nen_tree().size() >= 3, "falas nen tree")
 	_assert(Primer.falas_hatsu().size() >= 3, "falas hatsu")
+	_assert(Primer.falas_combate().size() >= 3, "falas combate")
+	_assert(Primer.falas_votos().size() >= 3, "falas votos")
 	var blob := ""
 	for f in Primer.falas_nen():
 		blob += str(f.get("texto", ""))
 	_assert("[Z]" in blob and "[G]" in blob and "[X]" in blob, "controles Z/G/X nas falas Nen")
 	_assert("PASSIV" in blob.to_upper() or "passiv" in blob, "Ten/Ren como passivas")
+	var bisc_tops: Array = Primer.topicos_biscuit()
+	_assert(bisc_tops.size() >= 3, "topicos_biscuit subset")
+	var bisc_ids: Array = []
+	for t in bisc_tops:
+		bisc_ids.append(str(t.get("id", "")))
+	_assert("votos" in bisc_ids and "hatsu" in bisc_ids, "Biscuit: hatsu+votos")
 
 
 func _test_wing_wiring() -> void:

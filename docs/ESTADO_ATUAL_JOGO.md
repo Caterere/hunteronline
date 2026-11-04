@@ -50,6 +50,13 @@
 - [x] QuestHUD + MissionGPS scale **1.35** (legibilidade com PlayerHUD)
 - [x] Suite: `scratch/test_mmorpg_evolution_phase1_suite.tscn`
 
+### Progresso — diálogos íntimos Wing + Biscuit (nov/2026)
+- [x] `executar_wing_principios_nen` expandida (~10–14 beats + escolha íntima); handoff curto em `Wing.gd` pós-água; etapas 12–14 com 1 frase íntima cada
+- [x] `executar_biscuit_pressao_ko` íntima (GI etapa 7) + nova `executar_biscuit_forja_hatsu` no unlock Slot 1 (`cutscene_biscuit_forja_hatsu`)
+- [x] Primer: tópicos `combate` + `votos`; `topicos_biscuit()`; menus Wing/Biscuit Conversar amarrados
+- [x] Suite: `scratch/test_wing_biscuit_intimate_teach_suite.tscn` (+ asserts em primer/biscuit unlock)
+- [ ] G5 humano Arena→GI forja — **não gravado neste PR**; validar olho-no-olho + teclas no play
+
 ### Progresso histórico (set/2026 — imersão arcos)
 - [x] Densidade Exame→Whale + Nen no mundo + raid solo polish + LAN proof suite (ver checklists Steam)
 

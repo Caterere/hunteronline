@@ -329,7 +329,7 @@ static func executar_montanha_kukuroo_cutscene(tree: SceneTree, callback_fim: Ca
 	)
 
 # ------------------------------------------------------------
-# ARCO 3 PILOTO: PRINCÍPIOS DE NEN (WING)
+# ARCO 3 PILOTO: AULA ÍNTIMA DE NEN (WING)
 # ------------------------------------------------------------
 static func executar_wing_principios_nen(tree: SceneTree) -> void:
 	if em_cutscene:
@@ -338,24 +338,35 @@ static func executar_wing_principios_nen(tree: SceneTree) -> void:
 		return
 	em_cutscene = true
 
+	var afin_nome := "sua natureza"
+	if PlayerData != null and NenAffinityData != null:
+		afin_nome = NenAffinityData.obter_nome_afinidade(PlayerData.afinidade_nen)
+
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
-		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.25, 1.25), "duration": 0.35},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Quatro princípios antes de qualquer Hatsu: Ten envolve, Zetsu silencia, Ren expande, Hatsu libera."},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Ordem no dojo: Tatame (Ren) → Corredor Zetsu → Pista Gyo no 190. Sem pular."},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.28, 1.28), "duration": 0.4},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Olha pra mim. A água já te entregou — eu só confirmo. Essa aura é sua: %s." % afin_nome},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Ten não é truque. É a pele que falta. Sem ele, o 200º te esmaga — e eu não quero ver você virar pó."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Ren enche o volume; Ten segura o vazamento. Os dois andam juntos no seu corpo."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Zetsu fecha todos os nós: você some… e regenera. En [X] e Gyo [G] pedem aura acesa — com Zetsu [Z] eles se cancelam. Escolha o momento."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Hatsu vem depois. Agora você aprende a não sangrar aura. [TAB] — Ten → Ren → Zetsu primeiro. SP é identidade, não enfeite."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "No corpo a corpo: leve em três tempos — hit, hit, finisher. Segure o golpe pra heavy. Quando a guarda do inimigo quebrar, punish. Sem piedade na janela."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Telegraph vermelho ou colorido: Perfect Dodge na hora certa. Você sente o tempo — confia nisso."},
 		{
 			"type": CutsceneSequenceRunner.StepType.CHOICE,
 			"choice_id": "wing_foco_treino",
-			"speaker": "Foco do treino",
-			"text": "O que priorizar nas próximas horas?",
+			"speaker": "Mestre Wing",
+			"text": "O que você quer priorizar agora — de verdade, não o que soa heroico?",
 			"options": [
 				{"id": "ten_base", "text": "Ten — manto estável primeiro"},
 				{"id": "zetsu_furtivo", "text": "Zetsu — sumir e regenerar"},
 				{"id": "gyo_leitura", "text": "Gyo — ler o que os outros escondem"},
 			],
 		},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Seja Ten, Zetsu ou Gyo — você escolheu olhar pra dentro. Eu fico de olho. Quando vacilar, volta aqui."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Mestre Wing", "text": "Dojo: tatame Ren, depois corredor Zetsu, depois pista Gyo no 190. GPS marca. Eu não te abandono no 200º."},
 		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_wing_principios", "value": true},
-		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.25},
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
 	]
 
@@ -461,7 +472,7 @@ static func executar_yorknew_cutscene(tree: SceneTree, callback_fim: Callable = 
 
 
 # ------------------------------------------------------------
-# ARCO 5 PILOTO: BISCUIT — KO SOB PRESSÃO
+# ARCO 5 PILOTO: BISCUIT — KO SOB PRESSÃO (AULA ÍNTIMA)
 # ------------------------------------------------------------
 static func executar_biscuit_pressao_ko(tree: SceneTree) -> void:
 	if em_cutscene:
@@ -472,9 +483,24 @@ static func executar_biscuit_pressao_ko(tree: SceneTree) -> void:
 
 	var passos: Array[Dictionary] = [
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
-		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.2, 1.2), "duration": 0.3},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Ko não é força bruta — é recusa de desperdiçar um único fio de aura."},
-		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Desfiladeiro → Colinas Shu → Trace Ken → Quiz Ryu. Um de cada vez. Sem Bomber ainda."},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.25, 1.25), "duration": 0.35},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Você chegou até aqui sem Hatsu completo. Isso é coragem — não fraqueza. Eu treino quem aguenta olhar pra dor."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Ko não é força bruta. É recusar desperdiçar um único fio. Cem por cento num ponto — o resto do corpo fica nu."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "No combate: finisher e heavy pedem essa concentração. Quando a guarda do inimigo quebrar, você pune. Ko é a lâmina do punish."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Depois vem Shu na arma, Ken como armadura, Ryu pra redistribuir sob pergunta. Um de cada vez. Sem Bomber ainda."},
+		{
+			"type": CutsceneSequenceRunner.StepType.CHOICE,
+			"choice_id": "biscuit_foco_gi",
+			"speaker": "Biscuit Krueger",
+			"text": "Onde você quer sangrar primeiro no treino?",
+			"options": [
+				{"id": "ko_puro", "text": "Ko — um ponto, sem desperdício"},
+				{"id": "shu_arma", "text": "Shu — aura na arma, corpo em Zetsu"},
+				{"id": "ken_sobrevida", "text": "Ken — armadura que não cai"},
+			],
+		},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Escolha feita. Eu não vou te poupar — mas também não vou te largar no desfiladeiro."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "GPS: desfiladeiro Ko → colinas Shu → Trace Ken → Quiz Ryu. Respira. Agora."},
 		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_biscuit_ko", "value": true},
 		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.2},
 		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
@@ -483,6 +509,43 @@ static func executar_biscuit_pressao_ko(tree: SceneTree) -> void:
 	_iniciar_runner(tree, passos, "Biscuit_Pressao_Ko", func():
 		if EventBus != null:
 			EventBus.emit_toast("GI: Ko → Shu → Ken → Ryu (GPS)", Color(0.95, 0.75, 0.4))
+	)
+
+
+# ------------------------------------------------------------
+# ARCO 5: BISCUIT — FORJA DO HATSU (SLOT 1)
+# ------------------------------------------------------------
+static func executar_biscuit_forja_hatsu(tree: SceneTree, callback_fim: Callable = Callable()) -> void:
+	if em_cutscene:
+		if callback_fim.is_valid():
+			callback_fim.call()
+		return
+	if StoryManager != null and bool(StoryManager.get_story_flag("cutscene_biscuit_forja_hatsu", false)):
+		if callback_fim.is_valid():
+			callback_fim.call()
+		return
+	em_cutscene = true
+
+	var passos: Array[Dictionary] = [
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.3, 1.3), "duration": 0.4},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Você sobreviveu a Greed Island. Sua aura não é mais pedra bruta — ainda tem arestas, mas aguenta o fogo."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Agora forjamos seu Hatsu. Slot [1] abre hoje. Os slots [2]–[4] vêm com nível e arco — sem pressa falsa."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Canalize → impacto → residual. Aura cara. Mastery sobe no uso sério, não em farm de fraco."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Votos e juramentos: quanto mais severo o risco, maior o poder. O HUD mostra o tradeoff — leia antes de assinar com a alma."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Seu Hatsu é quem você é sob pressão. Não copie o Gon. Não copie a mim. Olha pra dentro e forja."},
+		{"type": CutsceneSequenceRunner.StepType.DIALOGUE, "speaker": "Biscuit Krueger", "text": "Quando estiver pronto, abra a criação. Eu fico aqui — e se a forja doer, você volta e conversa comigo."},
+		{"type": CutsceneSequenceRunner.StepType.SET_FLAG, "flag": "cutscene_biscuit_forja_hatsu", "value": true},
+		{"type": CutsceneSequenceRunner.StepType.CAMERA_ZOOM, "zoom": Vector2(1.0, 1.0), "duration": 0.25},
+		{"type": CutsceneSequenceRunner.StepType.LOCK_INPUT, "lock": false},
+	]
+
+	_iniciar_runner(tree, passos, "Biscuit_Forja_Hatsu", func():
+		em_cutscene = false
+		if EventBus != null:
+			EventBus.emit_toast("✨ Slot 1 — forje seu Hatsu", Color(1.0, 0.9, 0.35))
+		if callback_fim.is_valid():
+			callback_fim.call()
 	)
 
 

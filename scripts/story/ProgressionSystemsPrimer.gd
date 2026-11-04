@@ -11,14 +11,27 @@ extends RefCounted
 const SPEAKER_DEFAULT := "Mestre Wing"
 
 
-static func topicos() -> Array[Dictionary]:
+static func topicos(speaker: String = SPEAKER_DEFAULT) -> Array[Dictionary]:
 	return [
-		{"id": "nivel", "label": "📖 Nível, XP e Skill Points", "falas": falas_nivel()},
-		{"id": "nen", "label": "📖 Nen — técnicas ativas e passivas", "falas": falas_nen()},
-		{"id": "nen_tree", "label": "📖 Nen Tree (Constelação)", "falas": falas_nen_tree()},
-		{"id": "hatsu", "label": "📖 Hatsu — criação, slots e mastery", "falas": falas_hatsu()},
-		{"id": "controles", "label": "📖 Controles rápidos", "falas": falas_controles()},
-		{"id": "ordem", "label": "📖 Ordem recomendada (não pule)", "falas": falas_ordem()},
+		{"id": "nivel", "label": "📖 Nível, XP e Skill Points", "falas": falas_nivel(speaker)},
+		{"id": "nen", "label": "📖 Nen — técnicas ativas e passivas", "falas": falas_nen(speaker)},
+		{"id": "nen_tree", "label": "📖 Nen Tree (Constelação)", "falas": falas_nen_tree(speaker)},
+		{"id": "hatsu", "label": "📖 Hatsu — criação, slots e mastery", "falas": falas_hatsu(speaker)},
+		{"id": "combate", "label": "📖 Combate — combo, heavy, guarda", "falas": falas_combate(speaker)},
+		{"id": "votos", "label": "📖 Votos, juramentos e mastery", "falas": falas_votos(speaker)},
+		{"id": "controles", "label": "📖 Controles rápidos", "falas": falas_controles(speaker)},
+		{"id": "ordem", "label": "📖 Ordem recomendada (não pule)", "falas": falas_ordem(speaker)},
+	]
+
+
+## Subconjunto íntimo pra Biscuit (Conversar / forja).
+static func topicos_biscuit() -> Array[Dictionary]:
+	var sp := "Biscuit Krueger"
+	return [
+		{"id": "hatsu", "label": "✨ Hatsu — slots e forja", "falas": falas_hatsu(sp)},
+		{"id": "votos", "label": "🔗 Votos e juramentos", "falas": falas_votos(sp)},
+		{"id": "combate", "label": "⚔️ Combate — Ko no punish", "falas": falas_combate(sp)},
+		{"id": "nen", "label": "📖 Nen avançado (Ko/Shu/Ken/Ryu)", "falas": falas_nen(sp)},
 	]
 
 
@@ -58,6 +71,24 @@ static func falas_hatsu(speaker: String = SPEAKER_DEFAULT) -> Array[Dictionary]:
 	]
 
 
+static func falas_combate(speaker: String = SPEAKER_DEFAULT) -> Array[Dictionary]:
+	return [
+		{"falante": speaker, "texto": "Leve em três tempos: hit, hit, finisher. O terceiro pesa mais — você sente no corpo do inimigo."},
+		{"falante": speaker, "texto": "Heavy: segure o ataque ou use o botão direito. Quebra a barra de guarda. Quando ela cair, punish com tudo — janela curta, ×1.8 de dano."},
+		{"falante": speaker, "texto": "Perfect Dodge no telegraph (flash/círculo/cor de afinidade). Na janela certa você contra-ataca. [Shift] ou clique direito pra esquivar."},
+		{"falante": speaker, "texto": "Ko concentra aura no golpe decisivo. Hatsu [1]–[4] entra no espaço depois do punish — aura cara, sem spam."},
+	]
+
+
+static func falas_votos(speaker: String = SPEAKER_DEFAULT) -> Array[Dictionary]:
+	return [
+		{"falante": speaker, "texto": "Votos e juramentos amarram sua alma ao Hatsu. Quanto mais severo o risco, maior o poder — e maior a conta se você falhar."},
+		{"falante": speaker, "texto": "Na criação, leia o tradeoff no HUD antes de confirmar. Não assine o que seu corpo não aguenta ainda."},
+		{"falante": speaker, "texto": "Mastery sobe usando o Hatsu contra alvos relevantes. A cada ~10 pontos o impacto e o residual ficam mais densos. Farm em fraco rende pouco."},
+		{"falante": speaker, "texto": "Seu Hatsu é quem você é sob pressão. Não copie outro Hunter. Forje o que ressoa com a sua afinidade."},
+	]
+
+
 static func falas_controles(speaker: String = SPEAKER_DEFAULT) -> Array[Dictionary]:
 	return [
 		{"falante": speaker, "texto": "Mover: WASD/setas. Ataque leve: [Espaço]/clique esquerdo. Pesado: segure. Esquiva: [Shift]/direito — Perfect Dodge na janela do telegraph inimigo."},
@@ -75,12 +106,14 @@ static func falas_ordem(speaker: String = SPEAKER_DEFAULT) -> Array[Dictionary]:
 
 
 ## Modal com botões de tópico. `ao_falar` recebe Array[Dictionary] de falas.
+## `lista_topicos` opcional: subset (ex. topicos_biscuit()).
 static func abrir_menu_guia(
 	host: Node,
 	ao_falar: Callable,
 	ao_fechar: Callable = Callable(),
 	titulo: String = "🥋 GUIA DE PROGRESSÃO",
-	subtitulo: String = "Nível · Nen · Nen Tree · Hatsu"
+	subtitulo: String = "Nível · Nen · Nen Tree · Hatsu · Combate · Votos",
+	lista_topicos: Array = []
 ) -> CanvasLayer:
 	if host == null:
 		return null
@@ -148,9 +181,10 @@ static func abrir_menu_guia(
 		if ao_fechar.is_valid():
 			ao_fechar.call()
 
-	for topico in topicos():
-		var falas: Array = topico.get("falas", [])
-		var label: String = str(topico.get("label", "Tópico"))
+	var lista: Array = lista_topicos if not lista_topicos.is_empty() else topicos()
+	for topico in lista:
+		var falas: Array = topico.get("falas", []) if topico is Dictionary else []
+		var label: String = str(topico.get("label", "Tópico")) if topico is Dictionary else "Tópico"
 		var btn := Button.new()
 		btn.text = label
 		btn.add_theme_font_size_override("font_size", 8)
