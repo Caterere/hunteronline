@@ -22,6 +22,13 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 	QuestSystem.register_npc_visit(&"kurapika")
 
 	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui")
+	var arco := int(PlayerData.arco_atual) if PlayerData != null else 0
+	var etapa := int(PlayerData.etapa_quest_arco) if PlayerData != null else 0
+
+	if visual_dialogue != null and arco == 4:
+		var falas_york: Array[Dictionary] = _falas_yorknew(etapa)
+		visual_dialogue.exibir_sequencia_falas(falas_york)
+		return
 
 	if visual_dialogue != null:
 		var falas: Array[Dictionary] = []
@@ -33,29 +40,44 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 			falas = [
 				{"falante": "Kurapika", "texto": "Companheiro Caçador da Lista Negra (%s)..." % rank_nome},
 				{"falante": "Kurapika", "texto": "Nossa missão não é apenas punir o crime, mas resgatar as relíquias culturais arrancadas de povos que não podem mais se defender."},
-				{"falante": "Kurapika", "texto": "Alvos S-rank no Quadro de Bounties são caças abertas: party, threat compartilhado e loot por contribuição. Inicie Karkov ou Drakon quando estiver pronto."}
+				{"falante": "Kurapika", "texto": "Alvos S-rank no Quadro de Bounties são caças abertas. Inicie Karkov ou Drakon quando o corpo — e o voto — aguentarem."}
 			]
-			# Oferece atalho para a caça aberta mais próxima (Karkov)
 			_oferecer_open_hunt_atalho()
 		elif nivel_nen >= 8:
 			falas = [
 				{"falante": "Kurapika", "texto": "Você tem um olhar resoluto. O Nen que flui em seu corpo carrega peso e disciplina."},
-				{"falante": "Kurapika", "texto": "Eu sou Kurapika, o último sobrevivente do Clã Kurta. Dediquei minha vida a caçar os monstros da Lista Negra e recuperar os Olhos Escarlates roubados do meu povo."},
-				{"falante": "Kurapika", "texto": "Se você compartilha da busca pela justiça e está disposto a impor Restrições severas ao seu poder, junte-se aos Caçadores da Lista Negra!"},
-				{"falante": "Kurapika", "texto": "Acesse a aba de Facções no Jornal de Missões [J] para selar sua aliança."}
+				{"falante": "Kurapika", "texto": "Eu sou Kurapika, o último sobrevivente do Clã Kurta. Dediquei minha vida a caçar os monstros da Lista Negra e recuperar os Olhos Escarlates."},
+				{"falante": "Kurapika", "texto": "Se aceita Restrições severas ao seu poder, junte-se aos Caçadores da Lista Negra. Selamos no Jornal [J] — Facções."}
 			]
 			if FactionManager and PlayerData.faccao_atual.is_empty():
 				FactionManager.ingressar_faccao("blacklist")
 				PlayerData.registrar_segredo("recrutado_blacklist")
 		else:
 			falas = [
-				{"falante": "Kurapika", "texto": "Os criminosos da Lista Negra não hesitam em matar. Desenvolva seu Nen até o Nível 8 antes de tentar rastrear alvos de alto calibre."}
+				{"falante": "Kurapika", "texto": "A Lista Negra não perdoa amadores. Fortaleça seu Nen antes de rastrear alvos de alto calibre."}
 			]
 
 		visual_dialogue.exibir_sequencia_falas(falas)
 	else:
 		falar_balao(fala_padrao, 3.8, Color(1.0, 0.3, 0.3, 1.0))
 
+
+func _falas_yorknew(etapa: int) -> Array[Dictionary]:
+	# Beats Yorknew: voto / cemitério / Trupe (tom frio, sem ORDEM)
+	if etapa <= 8:
+		return [
+			{"falante": "Kurapika", "texto": "Yorknew… cada rua esconde uma corrente. Meu voto já está assinado — o seu ainda pode escolher."},
+			{"falante": "Kurapika", "texto": "Olhe o leilão com Gyo. O que brilha demais costuma sangrar depois."},
+		]
+	if etapa <= 18:
+		return [
+			{"falante": "Kurapika", "texto": "O cemitério não é pausa. É lembrança. A Trupe caça no silêncio entre os túmulos."},
+			{"falante": "Kurapika", "texto": "Se eu tremer, não é medo de morrer — é medo de esquecer o ódio. Fique perto."},
+		]
+	return [
+		{"falante": "Kurapika", "texto": "As correntes só fecham na Aranha. Fora disso, meu coração é o preço."},
+		{"falante": "Kurapika", "texto": "Quando a Trupe aparecer, não me impeça. Cubra Gon e Killua — eu pago o que prometi."},
+	]
 
 func _oferecer_open_hunt_atalho() -> void:
 	# Sem UI modal aqui: se não houver caça ativa, deixa rumor + toast apontando o quadro

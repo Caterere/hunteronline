@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scratch/test_wing_biscuit_intimate_teach_suite.gd" id="1"]
+
+[node name="TestWingBiscuitIntimateTeach" type="Node"]
+script = ExtResource("1")

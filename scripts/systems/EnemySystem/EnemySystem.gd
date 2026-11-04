@@ -225,6 +225,11 @@ func _ready() -> void:
 	var NenKit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
 	if NenKit != null and NenKit.has_method("enrich"):
 		NenKit.enrich(enemy_data)
+	if NenKit != null and NenKit.has_method("inspect_summary"):
+		var summary: Dictionary = NenKit.inspect_summary(enemy_data)
+		categoria_nen_info = str(summary.get("categoria_nen", categoria_nen_info))
+		concentracao_aura_info = str(summary.get("concentracao_aura", concentracao_aura_info))
+		fraqueza_info = str(summary.get("fraqueza", fraqueza_info))
 
 	# -----------------------------------------------------
 	# CARREGAR DADOS DO ENEMY DATA
@@ -495,6 +500,15 @@ func _mostrar_fala_combate(linha: String, duracao: float = 2.0) -> void:
 # =========================================================
 
 func obter_dados_inspecao_gyo() -> Dictionary:
+	# Re-sincroniza do kit se ainda estiver no placeholder genérico
+	if enemy_data != null:
+		var NenKit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")
+		if NenKit != null and NenKit.has_method("inspect_summary"):
+			var summary: Dictionary = NenKit.inspect_summary(enemy_data)
+			if categoria_nen_info == "Intensificação" or fraqueza_info.begins_with("Vulnerável a sequências"):
+				categoria_nen_info = str(summary.get("categoria_nen", categoria_nen_info))
+				concentracao_aura_info = str(summary.get("concentracao_aura", concentracao_aura_info))
+				fraqueza_info = str(summary.get("fraqueza", fraqueza_info))
 	return {
 		"nome": enemy_name,
 		"categoria_nen": categoria_nen_info,

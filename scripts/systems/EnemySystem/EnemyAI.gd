@@ -63,6 +63,7 @@ enum State {
 	RETURN,
 	STAGGER,
 	ALERT,
+	SEARCH,
 	FLEE,
 	GUARD
 }
@@ -82,24 +83,85 @@ var _timer_golpes_leves: float = 0.0
 const GUARD_DURACAO_BASE: float = 1.15
 const GOLPES_LEVES_PARA_GUARDA: int = 3
 const PERFECT_DODGE_TELEGRAPH_RANGE: float = 96.0
+const PACK_ALERT_RADIUS: float = 200.0
+const SEARCH_DURATION: float = 2.4
 
 # Aggro & Estados Canônicos (Fase 4)
 var threat_table: Dictionary = {}
 var current_target: Node2D = null
 var alert_timer: float = 0.0
 var flee_timer: float = 0.0
+var search_timer: float = 0.0
+var search_point: Vector2 = Vector2.ZERO
 var active_boss_phase_indices: Array[int] = []
 var _intro_exibida: bool = false
+var _pack_alert_cooldown: float = 0.0
 
 func adicionar_ameaca(alvo: Node, valor: float) -> void:
 	if alvo == null or not is_instance_valid(alvo):
 		return
 	var atual: float = float(threat_table.get(alvo, 0.0))
 	threat_table[alvo] = atual + valor
-	if current_state == State.IDLE or current_state == State.RETURN:
+	if current_state == State.IDLE or current_state == State.RETURN or current_state == State.SEARCH:
 		current_state = State.ALERT
 		alert_timer = 0.6
 		_checar_disparo_intro_boss()
+	# Matilha: alerta aliados próximos (formigas / lobos / quimera)
+	if valor >= 4.0 and _pack_alert_cooldown <= 0.0:
+		alertar_matilha(alvo, maxf(valor * 0.55, 8.0))
+
+
+## Propaga ameaça a inimigos do mesmo grupo no raio (bible Pack AI ~200px).
+func alertar_matilha(alvo: Node, valor: float = 12.0) -> void:
+	if enemy_body == null or alvo == null:
+		return
+	_pack_alert_cooldown = 1.1
+	var grupo := _pack_group_id()
+	if grupo.is_empty():
+		return
+	var tree := enemy_body.get_tree()
+	if tree == null:
+		return
+	for n in tree.get_nodes_in_group("enemies"):
+		if n == null or not is_instance_valid(n) or n == enemy_body:
+			continue
+		if not (n is Node2D):
+			continue
+		var other_body := n as Node2D
+		if other_body.global_position.distance_to(enemy_body.global_position) > PACK_ALERT_RADIUS:
+			continue
+		var other_ai = other_body.get_node_or_null("EnemyAI")
+		if other_ai == null:
+			other_ai = other_body.get_node_or_null("AI")
+		if other_ai == null or other_ai == self:
+			continue
+		if not other_ai.has_method("_pack_group_id"):
+			continue
+		if str(other_ai._pack_group_id()) != grupo:
+			continue
+		if other_ai.has_method("adicionar_ameaca"):
+			# Evita recursão: só bump threat_table + ALERT local
+			var t: Dictionary = other_ai.threat_table if "threat_table" in other_ai else {}
+			var cur: float = float(t.get(alvo, 0.0))
+			other_ai.threat_table[alvo] = cur + valor
+			if other_ai.current_state == State.IDLE or other_ai.current_state == State.RETURN or other_ai.current_state == State.SEARCH:
+				other_ai.current_state = State.ALERT
+				other_ai.alert_timer = 0.55
+
+
+func _pack_group_id() -> String:
+	var id_str := ""
+	if enemy_system != null and enemy_system.enemy_data != null:
+		id_str = str(enemy_system.enemy_data.enemy_id).to_lower()
+		if id_str.is_empty():
+			id_str = str(enemy_system.enemy_data.enemy_name).to_lower()
+	if id_str.is_empty() and enemy_system != null:
+		id_str = str(enemy_system.enemy_id).to_lower()
+	if "formiga" in id_str or "quimera" in id_str or "matilha" in id_str:
+		return "chimera_pack"
+	if "lobo" in id_str or "wolf" in id_str:
+		return "wolf_pack"
+	return ""
 
 func obter_alvo_principal() -> Node2D:
 	var para_remover: Array = []
@@ -304,6 +366,9 @@ func _physics_process(delta: float) -> void:
 		intimidacao_en_timer -= delta
 		if intimidacao_en_timer <= 0.0:
 			intimidacao_red_defesa = 0.0
+
+	if _pack_alert_cooldown > 0.0:
+		_pack_alert_cooldown -= delta
 
 	if taunt_timer > 0.0:
 		taunt_timer -= delta
@@ -640,6 +705,8 @@ func _update_state() -> void:
 		return
 	if current_state == State.ALERT and alert_timer > 0.0:
 		return
+	if current_state == State.SEARCH and search_timer > 0.0:
+		return
 	if current_state == State.FLEE and flee_timer > 0.0:
 		return
 
@@ -678,14 +745,16 @@ func _update_state() -> void:
 	if em_zetsu:
 		if threat_table.has(current_target):
 			threat_table[current_target] = float(threat_table[current_target]) * 0.1
-		if current_state == State.CHASE and distance > range_ativo:
+		if current_state in [State.CHASE, State.ALERT] and distance > range_ativo:
 			ComicBalloon.mostrar(enemy_body, "❓ A presença sumiu?! Onde foi?!", 1.8, -38.0)
-			current_state = State.RETURN if return_to_position else State.IDLE
+			_entrar_search(current_target.global_position)
 			return
 
-	# Alvo fora do alcance de detecção
+	# Alvo fora do alcance de detecção (após chase) → SEARCH breve, depois RETURN
 	if distance > range_ativo:
-		if return_to_position:
+		if current_state == State.CHASE:
+			_entrar_search(current_target.global_position)
+		elif return_to_position:
 			current_state = State.RETURN
 		else:
 			current_state = State.IDLE
@@ -724,6 +793,9 @@ func _execute_state() -> void:
 		State.ALERT:
 			_alert()
 
+		State.SEARCH:
+			_search()
+
 		State.CHASE:
 			_chase()
 
@@ -756,6 +828,51 @@ func _alert() -> void:
 	alert_timer -= get_physics_process_delta_time()
 	if alert_timer <= 0.0:
 		current_state = State.CHASE
+
+
+func _entrar_search(last_known: Vector2) -> void:
+	search_point = last_known
+	search_timer = SEARCH_DURATION
+	current_state = State.SEARCH
+	_remover_telegraph()
+
+
+## Zetsu / perda de visão: varre last-known, depois RETURN (bible SEARCH).
+func _search() -> void:
+	_remover_telegraph()
+	_sair_guarda()
+	var dt := get_physics_process_delta_time()
+	search_timer -= dt
+	if enemy_body == null:
+		current_state = State.IDLE
+		return
+	# Re-detecta se o alvo reapareceu (saiu de Zetsu / voltou ao raio)
+	var alvo = obter_alvo_principal()
+	if alvo != null and is_instance_valid(alvo):
+		var nen_sys = alvo.get_node_or_null("NenSystem")
+		var ainda_zetsu = (nen_sys != null and nen_sys.has_method("esta_em_zetsu") and nen_sys.esta_em_zetsu())
+		var dist := enemy_body.global_position.distance_to(alvo.global_position)
+		var range_ativo: float = obter_raio_deteccao_efetivo(alvo)
+		if not ainda_zetsu and dist <= range_ativo:
+			current_state = State.CHASE
+			return
+	var dest: Vector2 = search_point
+	# Oscila levemente em torno do last-known (varredura)
+	var wobble := Vector2(cos(search_timer * 4.0), sin(search_timer * 3.2)) * 28.0
+	dest += wobble
+	var direction: Vector2 = (dest - enemy_body.global_position)
+	if direction.length() > 6.0:
+		direction = direction.normalized()
+		_set_animation_direction(direction)
+		enemy_body.velocity = direction * (move_speed * 0.72)
+		enemy_body.move_and_slide()
+	else:
+		enemy_body.velocity = Vector2.ZERO
+	if search_timer <= 0.0:
+		if return_to_position:
+			current_state = State.RETURN
+		else:
+			current_state = State.IDLE
 
 
 func _flee() -> void:
@@ -1292,7 +1409,7 @@ func _return() -> void:
 
 func _update_animation() -> void:
 	var sprite = enemy_body.get_node_or_null("Sprite2D") as Sprite2D
-	var andando := current_state == State.CHASE or current_state == State.RETURN
+	var andando := current_state == State.CHASE or current_state == State.RETURN or current_state == State.SEARCH
 	if enemy_system != null and enemy_system.has_method("aplicar_folha_movimento"):
 		enemy_system.aplicar_folha_movimento(andando)
 
@@ -1315,6 +1432,8 @@ func _update_animation() -> void:
 		State.IDLE:
 			_state_machine.travel("idle")
 		State.CHASE:
+			_state_machine.travel("walk")
+		State.SEARCH:
 			_state_machine.travel("walk")
 		State.RETURN:
 			_state_machine.travel("walk")
@@ -1481,6 +1600,9 @@ func _tentar_hatsu_por_nome(dir: Vector2, hatsu_nome: String) -> bool:
 	if "névoa" in n or "nevoa" in n or "lodo" in n or "presas" in n:
 		_hatsu_nevoa_toxica(dir)
 		return true
+	if "comando de matilha" in n:
+		_hatsu_comando_matilha(dir)
+		return true
 	if "comando" in n or "besta de nen" in n or "trupe" in n or "zoldyck" in n or "guarda real" in n:
 		_hatsu_aura_comando(dir)
 		return true
@@ -1603,6 +1725,27 @@ func _hatsu_aura_comando(dir: Vector2) -> void:
 	)
 
 
+## Formiga líder: call-to-arms real + buff (não só AoE genérico).
+func _hatsu_comando_matilha(dir: Vector2) -> void:
+	ComicBalloon.mostrar(enemy_body, "🐜 COMANDO DE MATILHA — ATACAR!", 2.2, -42.0)
+	HatsuProceduralFxKit.play_named(enemy_body, enemy_body.global_position, dir, "Comando de Matilha")
+	if EventBus != null:
+		EventBus.emit_camera_shake(0.40, 0.20)
+		EventBus.emit_toast("🐜 A matilha responde ao líder!", Color(0.95, 0.75, 0.35))
+	var fx := HatsuAreaExplosionNode.new()
+	fx.setup(90.0, Color(0.85, 0.55, 0.15), Color(0.4, 0.2, 0.05))
+	enemy_body.add_child(fx)
+	var dist: float = enemy_body.global_position.distance_to(player.global_position) if player else 999.0
+	if dist <= 90.0:
+		_aplicar_dano_jogador(18 + int(enemy_system.strength * 0.12) if enemy_system else 18, dir, 100.0)
+	move_speed *= 1.12
+	get_tree().create_timer(3.5).timeout.connect(func():
+		move_speed /= 1.12
+	)
+	if player != null:
+		alertar_matilha(player, 22.0)
+
+
 func _executar_hatsu_modular(dir: Vector2, h: HatsuData) -> void:
 	if h == null: return
 	ComicBalloon.mostrar(enemy_body, "⚡ [%s]!" % h.nome.to_upper(), 2.0, -42.0)
@@ -1690,11 +1833,21 @@ func _hatsu_uvogin() -> void:
 
 
 func _hatsu_feitan(dir: Vector2) -> void:
-	if is_fase_2 or (enemy_system != null and enemy_system.health <= enemy_system.max_health * 0.55):
+	# Rising Sun só sob gate HP (EnemyData Condicao.HP_ABAIXO_50 / fase 2)
+	var hp_ratio := 1.0
+	if enemy_system != null:
+		hp_ratio = float(enemy_system.health) / maxf(1.0, float(enemy_system.max_health))
+	var rising_ok: bool = is_fase_2 or hp_ratio <= 0.50
+	if rising_ok:
 		ComicBalloon.mostrar(enemy_body, "☀️ PAIN PACKER: RISING SUN! QUEIMEM ATÉ AS CINZAS!", 2.5, -42.0)
+		if EventBus != null:
+			EventBus.emit_hatsu_dramatic_callout(enemy_body, "Rising Sun", "Transformação — dor acumulada", Color(1.0, 0.35, 0.1))
+			EventBus.emit_toast("☀️ Rising Sun — Feitan queima o campo!", Color(1.0, 0.45, 0.15))
 		var fx := HatsuAreaExplosionNode.new()
 		fx.setup(110.0, Color(1.0, 0.3, 0.1), Color(1.0, 0.9, 0.2))
 		enemy_body.add_child(fx)
+		if HatsuProceduralFxKit != null and HatsuProceduralFxKit.has_method("impact_ring"):
+			HatsuProceduralFxKit.impact_ring(enemy_body, enemy_body.global_position, Color(1.0, 0.4, 0.1), 100.0)
 
 		var dist: float = enemy_body.global_position.distance_to(player.global_position)
 		if dist <= 110.0:
@@ -1820,14 +1973,32 @@ func _hatsu_meruem(dir: Vector2) -> void:
 
 
 func _hatsu_nobunaga() -> void:
-	ComicBalloon.mostrar(enemy_body, "⚔️ IAI SLASH: RAIO DE EN DE 4 METROS!", 2.0, -42.0)
+	ComicBalloon.mostrar(enemy_body, "⚔️ EN — círculo de 4 metros. Entrou, morreu.", 2.2, -42.0)
+	if EventBus != null:
+		EventBus.emit_hatsu_dramatic_callout(enemy_body, "En de Nobunaga", "Iai — zona persistente", Color(0.85, 0.9, 1.0))
+	# Anel persistente de En (~3s), não one-shot
+	var raio_en := 64.0
 	var fx := HatsuAreaExplosionNode.new()
-	fx.setup(60.0, Color(0.9, 0.9, 1.0), Color.WHITE)
+	fx.setup(raio_en, Color(0.9, 0.9, 1.0), Color.WHITE)
 	enemy_body.add_child(fx)
-
-	var dist: float = enemy_body.global_position.distance_to(player.global_position)
-	if dist <= 60.0:
-		_aplicar_dano_jogador(30, (player.global_position - enemy_body.global_position).normalized(), 180.0)
+	if HatsuProceduralFxKit != null and HatsuProceduralFxKit.has_method("impact_ring"):
+		HatsuProceduralFxKit.impact_ring(enemy_body, enemy_body.global_position, Color(0.75, 0.85, 1.0), raio_en)
+	enemy_body.set_meta("nobunaga_en_until", Time.get_ticks_msec() + 3000)
+	var ticks := 6
+	for i in range(ticks):
+		var delay := 0.45 * float(i)
+		get_tree().create_timer(delay).timeout.connect(func():
+			if not is_instance_valid(enemy_body) or player == null or not is_instance_valid(player):
+				return
+			var until_ms: int = int(enemy_body.get_meta("nobunaga_en_until", 0))
+			if Time.get_ticks_msec() > until_ms:
+				return
+			var dist: float = enemy_body.global_position.distance_to(player.global_position)
+			if dist <= raio_en:
+				_aplicar_dano_jogador(12 if i > 0 else 28, (player.global_position - enemy_body.global_position).normalized(), 120.0 if i == 0 else 40.0)
+				if i == 0 and EventBus != null:
+					EventBus.emit_toast("⚔️ Dentro do En de Nobunaga!", Color(0.9, 0.95, 1.0))
+		)
 
 
 func _hatsu_phinks(dir: Vector2) -> void:
@@ -1944,14 +2115,40 @@ func _hatsu_youpi() -> void:
 
 
 func _hatsu_genthru(dir: Vector2) -> void:
-	ComicBalloon.mostrar(enemy_body, "💣 LITTLE FLOWER! LIBEREM!", 2.0, -40.0)
-	var fx := HatsuAreaExplosionNode.new()
-	fx.setup(55.0, Color(1.0, 0.4, 0.1), Color.WHITE)
-	enemy_body.add_child(fx)
-
-	var dist: float = enemy_body.global_position.distance_to(player.global_position)
-	if dist <= 55.0:
-		_aplicar_dano_jogador(26, dir, 160.0)
+	# Contato marca bomba; countdown legível; detona se o player ficar perto
+	ComicBalloon.mostrar(enemy_body, "💣 LITTLE FLOWER — contagem…", 2.0, -40.0)
+	if EventBus != null:
+		EventBus.emit_hatsu_dramatic_callout(enemy_body, "Little Flower", "Bomba de contato", Color(1.0, 0.45, 0.1))
+		EventBus.emit_toast("💣 Genthru plantou — 2s!", Color(1.0, 0.5, 0.2))
+	var marcado := false
+	var dist0: float = enemy_body.global_position.distance_to(player.global_position) if player else 999.0
+	if dist0 <= 58.0:
+		marcado = true
+		if player != null and player.has_method("set_meta"):
+			player.set_meta("genthru_bomb_until", Time.get_ticks_msec() + 2000)
+		ComicBalloon.mostrar(player if player else enemy_body, "💣!", 1.2, -48.0)
+	# Countdown visual no chão
+	var fx_warn := HatsuAreaExplosionNode.new()
+	fx_warn.setup(50.0, Color(1.0, 0.55, 0.15, 0.5), Color(1.0, 0.8, 0.2))
+	enemy_body.add_child(fx_warn)
+	get_tree().create_timer(2.0).timeout.connect(func():
+		if not is_instance_valid(enemy_body):
+			return
+		ComicBalloon.mostrar(enemy_body, "💣 LIBEREM!", 1.6, -40.0)
+		var fx := HatsuAreaExplosionNode.new()
+		fx.setup(62.0, Color(1.0, 0.35, 0.08), Color.WHITE)
+		enemy_body.add_child(fx)
+		if player == null or not is_instance_valid(player):
+			return
+		var dist: float = enemy_body.global_position.distance_to(player.global_position)
+		var ainda_marcado := marcado
+		if player.has_meta("genthru_bomb_until"):
+			ainda_marcado = Time.get_ticks_msec() <= int(player.get_meta("genthru_bomb_until"))
+		if dist <= 62.0 or ainda_marcado:
+			_aplicar_dano_jogador(32 if ainda_marcado else 26, dir, 180.0)
+			if EventBus != null:
+				EventBus.emit_toast("💥 Little Flower detonou!", Color(1.0, 0.4, 0.15))
+	)
 
 
 func _hatsu_razor(dir: Vector2) -> void:

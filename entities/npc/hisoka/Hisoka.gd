@@ -38,9 +38,11 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 
 	if visual_dialogue != null and arco == 5:
 		visual_dialogue.exibir_sequencia_falas([
-			{"falante": "Hisoka Morow", "texto": "ORDEM: Fale comigo (recruta) → ginásio com Razor. Queimada depois. Sem pular etapas. ♥"},
-			{"falante": "Hisoka Morow", "texto": "Schwing~ Siga o GPS — um objetivo de cada vez. Eu jogo quando a fruta estiver madura."}
+			{"falante": "Hisoka Morow", "texto": "♥ Greed Island… o tabuleiro cheira a sangue doce. Recruta-me se quiser ver a carta certa."},
+			{"falante": "Hisoka Morow", "texto": "♠ Razor no ginásio, queimada depois. Eu jogo quando a fruta estiver madura — Schwing~ Não me faça esperar no ponto errado."}
 		])
+		if EventBus != null:
+			EventBus.emit_toast("♥ Hisoka: ginásio → Razor (GPS)", Color(0.95, 0.35, 0.65))
 		return
 
 	if visual_dialogue != null:
