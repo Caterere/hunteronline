@@ -13,6 +13,7 @@ extends NPC
 
 const StoryNenGateScript = preload("res://scripts/story/StoryNenGate.gd")
 const StoryCutsceneManagerScript = preload("res://scripts/cutscenes/StoryCutsceneManager.gd")
+const ProgressionSystemsPrimerScript = preload("res://scripts/story/ProgressionSystemsPrimer.gd")
 
 @export var quest: Quest
 
@@ -72,7 +73,7 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 				])
 			return
 
-		# Cumpriu Greed Island -> Iniciação da Mestra Biscuit e Desbloqueio do Slot 1
+		# Cumpriu Greed Island -> cutscene íntima de forja + Slot 1
 		if HatsuProgressionManager != null:
 			HatsuProgressionManager.unlock_slot(1)
 		else:
@@ -80,14 +81,11 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 
 		if TutorialManager != null and TutorialManager.has_method("disparar_tutorial_contextual"):
 			TutorialManager.disparar_tutorial_contextual("hatsu_desbloqueio")
-		if EventBus != null and EventBus.has_method("emit_toast"):
-			EventBus.emit_toast("✨ Hatsu Slot 1 liberado — crie sua habilidade e sinta o peso em combate!", Color(1.0, 0.9, 0.35))
 
-		if visual_dialogue != null:
-			visual_dialogue.exibir_sequencia_falas([
-				{"falante": "Biscuit Krueger", "texto": "Excelente! Você sobreviveu e completou Greed Island! Sua aura foi forjada no calor das batalhas reais."},
-				{"falante": "Biscuit Krueger", "texto": "Agora forjamos seu Hatsu. Cada afinidade tem peso diferente em combate — canalize, solte e sinta o impacto. Slot 1 DESBLOQUEADO!"}
-			])
+		StoryCutsceneManagerScript.executar_biscuit_forja_hatsu(get_tree(), func():
+			_abrir_menu_interacao()
+		)
+		return
 
 	_abrir_menu_interacao()
 
@@ -99,25 +97,25 @@ func _tratar_treino_gi(etapa: int, visual_dialogue: Node) -> void:
 		7:
 			StoryNenGateScript.concluir_treino_marco(get_tree(), "ko_basico_biscuit")
 			falas = [
-				{"falante": "Biscuit Krueger", "texto": "Ko: 100% da aura num ponto. Sem dispersão."},
-				{"falante": "Biscuit Krueger", "texto": "[G] no posto do desfiladeiro, depois quebre a rocha. Sob pressão — agora."},
+				{"falante": "Biscuit Krueger", "texto": "Chega perto. Ko vai doer — e eu preciso que você entenda por quê antes de quebrar a rocha."},
+				{"falante": "Biscuit Krueger", "texto": "Depois do que eu te falar: posto do desfiladeiro com Gyo, então a pedra. [G]"},
 			]
 			_exibir_e_cutscene(falas, visual_dialogue)
 			return
 		9:
 			falas = [
-				{"falante": "Biscuit Krueger", "texto": "Shu estende aura na arma. Sem revelar presença — Zetsu no corpo, Shu na lâmina."},
-				{"falante": "Biscuit Krueger", "texto": "[Z] nas colinas furtivas. Aura acesa = monstro em cima de você."},
+				{"falante": "Biscuit Krueger", "texto": "Shu é intimidade com a arma: aura nela, corpo em silêncio. Eu confio que você aguenta o contraste."},
+				{"falante": "Biscuit Krueger", "texto": "Colinas furtivas. Aura acesa = monstro em cima de você. [Z]"},
 			]
 		10:
 			falas = [
-				{"falante": "Biscuit Krueger", "texto": "Ken é Ren no corpo inteiro — blindagem passiva. Se cair no meio da leitura, você morre."},
+				{"falante": "Biscuit Krueger", "texto": "Ken é Ren no corpo inteiro — blindagem passiva. Se cair no meio da leitura, você morre — e eu não enterro aluno preguiçoso."},
 				{"falante": "Biscuit Krueger", "texto": "[G] no rastro Trace. A árvore segura o Ken; você segura a disciplina."},
 			]
 		11:
 			falas = [
-				{"falante": "Biscuit Krueger", "texto": "Ryu: 70/30, 80/20 — distribuição dinâmica sob pergunta."},
-				{"falante": "Biscuit Krueger", "texto": "[G] no Quiz das 100 Cartas. Errar a proporção custa o round."},
+				{"falante": "Biscuit Krueger", "texto": "Ryu é conversa com a própria aura: 70/30, 80/20 — sob pergunta, sem mentir pro corpo."},
+				{"falante": "Biscuit Krueger", "texto": "Quiz das 100 Cartas. Errar a proporção custa o round. [G]"},
 			]
 		_:
 			falas = [
@@ -197,7 +195,7 @@ func _abrir_menu_interacao() -> void:
 	vbox.add_child(sep)
 
 	# Botões de Opção
-	_criar_botao("💬 Conversar (Filosofia de Nen)", vbox, _on_opcao_conversar)
+	_criar_botao("💬 Conversar (Hatsu · Votos · Combate)", vbox, _on_opcao_conversar)
 	_criar_botao("🥋 Treinar (Fundamentos de Ken & Ryu)", vbox, _on_opcao_treinar)
 	_criar_botao("✨ Aprender / Criar Hatsu", vbox, _on_opcao_criar_hatsu)
 	_criar_botao("❌ Fechar [ESC]", vbox, _fechar_menu_interacao)
@@ -224,12 +222,22 @@ func _fechar_menu_interacao() -> void:
 
 func _on_opcao_conversar() -> void:
 	_fechar_menu_interacao()
-	var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui") if get_tree() != null else null
-	if visual_dialogue != null:
-		visual_dialogue.exibir_sequencia_falas([
-			{"falante": "Biscuit Krueger", "texto": "O Hatsu reflete sua alma e seus desejos mais profundos. Não copie outros Hunters, forje algo que ressoe com seu espírito e com sua afinidade natal!"},
-			{"falante": "Biscuit Krueger", "texto": "Lembre-se: quanto mais severas forem suas restrições e juramentos de Nen (Vows), mais avassalador será o seu poder em combate!"}
-		])
+	ProgressionSystemsPrimerScript.abrir_menu_guia(
+		self,
+		func(falas: Array):
+			var visual_dialogue = get_tree().get_first_node_in_group("visual_dialogue_ui") if get_tree() != null else null
+			if visual_dialogue == null:
+				return
+			var arr: Array[Dictionary] = []
+			for f in falas:
+				if f is Dictionary:
+					arr.append(f)
+			visual_dialogue.exibir_sequencia_falas(arr),
+		Callable(),
+		"🥋 BISCUIT — TIRA DÚVIDAS",
+		"Hatsu · votos · combate · Nen avançado",
+		ProgressionSystemsPrimerScript.topicos_biscuit()
+	)
 
 
 func _on_opcao_treinar() -> void:

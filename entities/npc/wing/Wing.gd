@@ -66,15 +66,13 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		StoryNenGateScript.garantir_tecnica(get_tree(), &"ten")
 		StoryNenGateScript.concluir_treino_marco(get_tree(), "ten_resistencia")
 
+		# Handoff íntimo curto → cutscene aula completa (evita ORDEM seca duplicada)
 		if int(PlayerData.afinidade_nen) == NenAffinityData.CategoriaAfinidade.ESPECIALIZACAO:
-			falas_wing.append({"falante": "Mestre Wing", "texto": "Hmm… a água não reagiu como nenhuma das cinco categorias comuns."})
-			falas_wing.append({"falante": "Mestre Wing", "texto": "Sua aura %s. Isso é extremamente raro — Especialização!" % traco})
+			falas_wing.append({"falante": "Mestre Wing", "texto": "Hmm… a água não se encaixa em nenhuma das cinco. Sua aura %s — Especialização. Raro demais pra eu fingir surpresa fria." % traco})
 		else:
-			falas_wing.append({"falante": "Mestre Wing", "texto": "A água reagiu. Sua personalidade… %s." % traco})
-			falas_wing.append({"falante": "Mestre Wing", "texto": "Parabéns pelo Teste da Água! Sua Afinidade Natal é: " + afinidade_nome.to_upper() + "!"})
+			falas_wing.append({"falante": "Mestre Wing", "texto": "A água reagiu à sua personalidade… %s. Afinidade: %s." % [traco, afinidade_nome.to_upper()]})
 		falas_wing.append({"falante": "Mestre Wing", "texto": afinidade_desc})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Ten envolve o corpo como um manto. Sem ele, o 200º andar esmaga quem sobe desprotegido."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Ordem: 1) [TAB → Nen Tree] Ten→Ren→Zetsu. 2) Pratique [Z]/[G]/[X]. 3) GPS — um objetivo de cada vez."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Agora olha pra mim. Vou te ensinar o que segura o seu corpo vivo no 200º — sem pressa, sem mentira."})
 		PlayerData.quest_states["wing_tutorial_progresso"] = 2
 		if not PlayerData.tem_item(&"amuleto_forca"):
 			PlayerData.adicionar_item(&"amuleto_forca", 1)
@@ -85,7 +83,7 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 		if EventBus != null:
 			EventBus.emit_toast("🥋 Nen despertado! Afinidade: %s" % afinidade_nome, Color(0.35, 1.0, 0.55))
 		if PlayerData != null:
-			PlayerData.tour_lobby_concluido = true
+			PlayerData.tutorial_lobby_concluido = true
 		if SaveManager != null:
 			SaveManager.salvar_jogo()
 		_exibir_falas(falas_wing, func():
@@ -96,23 +94,23 @@ func _on_interacted(_player: CharacterBody2D) -> void:
 	elif arco_atual == 3 and etapa_atual == 12:
 		StoryNenGateScript.garantir_pacote_wing(get_tree(), 12)
 		StoryNenGateScript.concluir_treino_marco(get_tree(), "ren_basico_wing")
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Ren expande o volume. Ten segura o vazamento. Os dois andam juntos."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "[G] no dojo: inspecione o resíduo no tatame. Sem Gyo, o exercício não conta."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Depois: corredor Zetsu → pista Gyo. Sem pular."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Sinto sua aura ainda escapando pelas pontas dos dedos. Ren enche; Ten segura — no seu corpo, não no meu discurso."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Inspecione o resíduo no tatame. Sem Gyo, o exercício não conta. [G]"})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Depois: corredor Zetsu → pista Gyo. Eu espero você do outro lado."})
 		_exibir_falas(falas_wing, func(): _abrir_menu_treino())
 		return
 
 	elif arco_atual == 3 and etapa_atual == 13:
 		StoryNenGateScript.garantir_pacote_wing(get_tree(), 13)
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Zetsu fecha todos os nós. Sem aura, você some — e regenera."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "[Z] no corredor de treino ao lado do dojo. Aura acesa = falha."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Medo de sumir? Zetsu é isso — fechar tudo e confiar que você volta. Respira."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Corredor ao lado do dojo. Aura acesa = falha. [Z]"})
 		_exibir_falas(falas_wing)
 		return
 
 	elif arco_atual == 3 and etapa_atual == 14:
 		StoryNenGateScript.garantir_pacote_wing(get_tree(), 14)
-		falas_wing.append({"falante": "Mestre Wing", "texto": "Gyo concentra aura nos olhos. Sem ele, armadilhas e clones são só ar."})
-		falas_wing.append({"falante": "Mestre Wing", "texto": "[G] na pista do corredor 190. A marca só aparece com foco."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Sem Gyo, o mundo mente pra você. Eu não quero que você lute cego — nunca mais."})
+		falas_wing.append({"falante": "Mestre Wing", "texto": "Pista do corredor 190. A marca só aparece com foco. [G]"})
 		_exibir_falas(falas_wing)
 		return
 
@@ -188,8 +186,8 @@ func _abrir_menu_treino() -> void:
 	sep.modulate = HunterUIStyle.COLOR_BORDER_SUBTLE
 	vbox.add_child(sep)
 
-	_criar_botao("📖 Guia: Nível · Nen · Tree · Hatsu", vbox, _on_opcao_guia_progressao)
-	_criar_botao("💬 Conselhos rápidos de Nen", vbox, _on_opcao_conversar)
+	_criar_botao("📖 Guia: Nen · Combate · Votos · Tree", vbox, _on_opcao_guia_progressao)
+	_criar_botao("💬 Conselhos rápidos (íntimo)", vbox, _on_opcao_conversar)
 
 	var treinos: Array[String] = []
 	if ts != null:
@@ -241,16 +239,16 @@ func _on_opcao_guia_progressao() -> void:
 			_exibir_falas(arr),
 		Callable(),
 		"🥋 MESTRE WING — GUIA",
-		"Pergunte tudo: nível, Nen, Constelação e Hatsu"
+		"Pergunte tudo: Nen, combate, votos, Constelação, Hatsu"
 	)
 
 
 func _on_opcao_conversar() -> void:
 	_fechar_menu()
 	_exibir_falas([
-		{"falante": "Mestre Wing", "texto": "Ativas: [Z] Zetsu, [G] Gyo, [X] En. Ten/Ren/Shu/Ko/Ryu são passivas na Constelação [TAB → Nen Tree]."},
-		{"falante": "Mestre Wing", "texto": "Equipe uma arma em [I] para o Shu revestir a lâmina. Treine comigo para ganhos permanentes."},
-		{"falante": "Mestre Wing", "texto": "Quer o guia completo? Abra o menu de novo e escolha “Guia: Nível · Nen · Tree · Hatsu”."},
+		{"falante": "Mestre Wing", "texto": "Eu fico de olho em você. Ativas: [Z] Zetsu, [G] Gyo, [X] En — Zetsu cancela os outros. Passivas na Constelação [TAB]."},
+		{"falante": "Mestre Wing", "texto": "Combo leve em três tempos; heavy quebra guarda; punish na janela. Equipe arma em [I] pro Shu."},
+		{"falante": "Mestre Wing", "texto": "Dúvida grande? Abra o Guia no menu — combate e votos estão lá. Quando vacilar, volta."},
 	])
 
 

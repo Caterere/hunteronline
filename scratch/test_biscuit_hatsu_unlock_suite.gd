@@ -21,6 +21,7 @@ func _ready() -> void:
 	await _executar_teste("6. Persistência Atômica de Save / Load", _teste_persistencia_save_load)
 	await _executar_teste("7. Conclusão Repetida de Greed Island (Idempotência)", _teste_conclusao_repetida)
 	await _executar_teste("8. Instanciação e Abertura Segura do HatsuCreationUI pela Biscuit", _teste_biscuit_abrir_creator)
+	await _executar_teste("9. Source — forja íntima Slot 1 + Primer votos", _teste_source_forja_intima)
 
 	print("\n============================================================")
 	print("📊 RESULTADO DA SUÍTE BISCUIT & HATSU CREATOR:")
@@ -281,4 +282,23 @@ func _teste_biscuit_abrir_creator() -> bool:
 	hatsu_ui.fechar()
 	hatsu_ui.queue_free()
 	biscuit.queue_free()
+	return true
+
+
+func _teste_source_forja_intima() -> bool:
+	var bisc := FileAccess.get_file_as_string("res://entities/npc/biscuit/Biscuit.gd")
+	var scm := FileAccess.get_file_as_string("res://scripts/cutscenes/StoryCutsceneManager.gd")
+	var primer := FileAccess.get_file_as_string("res://scripts/story/ProgressionSystemsPrimer.gd")
+	if bisc.find("executar_biscuit_forja_hatsu") < 0:
+		print("  Erro: Biscuit não dispara executar_biscuit_forja_hatsu no unlock.")
+		return false
+	if scm.find("cutscene_biscuit_forja_hatsu") < 0:
+		print("  Erro: flag cutscene_biscuit_forja_hatsu ausente.")
+		return false
+	if scm.find("Votos") < 0 and scm.find("votos") < 0:
+		print("  Erro: forja sem menção a votos.")
+		return false
+	if primer.find("falas_votos") < 0 or primer.find("topicos_biscuit") < 0:
+		print("  Erro: Primer sem falas_votos / topicos_biscuit.")
+		return false
 	return true
