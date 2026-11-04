@@ -48,7 +48,7 @@ static func falas_nen(speaker: String = SPEAKER_DEFAULT) -> Array[Dictionary]:
 	return [
 		{"falante": speaker, "texto": "Nen é o fluxo de aura. Depois do despertar, Ten e Ren passam a proteger e reforçar você de forma PASSIVA — não precisa apertar tecla."},
 		{"falante": speaker, "texto": "Ativas no mundo e combate: [Z] Zetsu (esconde aura / emboscada), [G] Gyo (vê pistas e fraquezas), [X] En (radar de presença). Use fora da briga também."},
-		{"falante": speaker, "texto": "Ko, Shu e Ryu avançam pela Constelação e pelo treino. Ko concentra aura para quebrar guarda; Shu reveste arma; Ryu equilibra ofensa/defesa."},
+		{"falante": speaker, "texto": "Ko, Shu, Ken e Ryu avançam pela Constelação e pelo treino. Ko quebra guarda; Shu reveste arma; Ken é blindagem passiva (Ren no corpo inteiro); Ryu equilibra ofensa/defesa."},
 		{"falante": speaker, "texto": "Aura gasta em técnicas e Hatsu. Sem aura, você vira carne. Recupere com tempo, Perfect Dodge e itens Pedra de Aura / Gourmet — sem poções clássicas."},
 	]
 

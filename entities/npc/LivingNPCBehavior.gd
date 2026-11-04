@@ -87,6 +87,30 @@ func _ready() -> void:
 				cargo_final = "Examinador Hunter"
 				marcador_final = "quest"
 				hierarchy = NPCHierarchy.STORY
+			elif "gon" in n_lower:
+				cargo_final = "Candidato / Companheiro"
+				marcador_final = "story"
+				hierarchy = NPCHierarchy.STORY
+			elif "killua" in n_lower:
+				cargo_final = "Zoldyck / Companheiro"
+				marcador_final = "story"
+				hierarchy = NPCHierarchy.STORY
+			elif "leorio" in n_lower:
+				cargo_final = "Médico / Companheiro"
+				marcador_final = "story"
+				hierarchy = NPCHierarchy.STORY
+			elif "kurapika" in n_lower:
+				cargo_final = "Blacklist / Kurta"
+				marcador_final = "story"
+				hierarchy = NPCHierarchy.STORY
+			elif "hisoka" in n_lower:
+				cargo_final = "Mágico Predador"
+				marcador_final = "story"
+				hierarchy = NPCHierarchy.STORY
+			elif "chrollo" in n_lower or "kuroro" in n_lower:
+				cargo_final = "Cabeça da Trupe"
+				marcador_final = "story"
+				hierarchy = NPCHierarchy.STORY
 			elif "menchi" in n_lower or "buhara" in n_lower:
 				cargo_final = "Gourmet Hunter"
 				marcador_final = "quest"

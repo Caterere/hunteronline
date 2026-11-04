@@ -57,6 +57,14 @@
 - [x] Suite: `scratch/test_wing_biscuit_intimate_teach_suite.tscn` (+ asserts em primer/biscuit unlock)
 - [ ] G5 humano Arena→GI forja — **não gravado neste PR**; validar olho-no-olho + teclas no play
 
+### Progresso — Trilha G Aura Cast Fidelity (nov/2026)
+- [x] Ken passivo (nível Skill Tree / PassiveNenController) + Primer/Biscuit alinhados
+- [x] Gyo inspect SSOT via `EnemyNenKit.inspect_summary` → `EnemySystem.obter_dados_inspecao_gyo`
+- [x] EnemyAI: `SEARCH` pós-Zetsu, `alertar_matilha`, Feitan HP50, Nobunaga En persistente, Genthru countdown, Comando de Matilha
+- [x] Cast vivo: Gon/Killua/Leorio etapa beats; Hisoka sem ORDEM; Kurapika Yorknew; LivingNPC STORY; CompanionChatter voz HxH
+- [x] Suite: `scratch/test_aura_cast_fidelity_suite.tscn`
+- [ ] G5 humano Arena→Floresta Gyo/Zetsu/matilha — **não gravado neste PR**
+
 ### Progresso histórico (set/2026 — imersão arcos)
 - [x] Densidade Exame→Whale + Nen no mundo + raid solo polish + LAN proof suite (ver checklists Steam)
 
