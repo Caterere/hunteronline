@@ -15,6 +15,9 @@ extends Node2D
 
 const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 
+## Em combate, balões sobre inimigos cobrem o sprite — desligados por padrão.
+static var suppress_on_enemies: bool = true
+
 var panel: PanelContainer
 var label: Label
 var tail_polygon: Polygon2D
@@ -34,6 +37,8 @@ static func mostrar(
 ) -> Node2D:
 	if alvo == null or not alvo.is_inside_tree() or texto.strip_edges().is_empty():
 		return null
+	if suppress_on_enemies and _eh_inimigo(alvo):
+		return null
 
 	var scn: GDScript = load("res://scripts/ui/ComicBalloon.gd") as GDScript
 	if scn == null:
@@ -52,6 +57,19 @@ static func mostrar(
 
 	balloon._configurar_visual(texto, duracao, bg_color, border_color)
 	return balloon
+
+
+static func _eh_inimigo(alvo: Node) -> bool:
+	if alvo == null:
+		return false
+	if alvo.is_in_group("enemies") or alvo.is_in_group("enemy"):
+		return true
+	if alvo.get_node_or_null("EnemySystem") != null:
+		return true
+	var p: Node = alvo.get_parent()
+	if p != null and (p.is_in_group("enemies") or p.is_in_group("enemy") or p.get_node_or_null("EnemySystem") != null):
+		return true
+	return false
 
 
 func _configurar_visual(texto: String, duracao: float, bg_color: Color, border_color: Color) -> void:

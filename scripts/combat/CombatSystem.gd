@@ -239,15 +239,9 @@ func tentar_ataque_pesado(direcao: Vector2) -> bool:
 		if aura_atual >= 10.0:
 			PlayerData.attributes["aura"] = aura_atual - 10.0
 
-	_mostrar_texto_flutuante("💥 IMPACTO PESADO!", Color(1.0, 0.85, 0.2))
+	# Sem arco/círculo dourado no heavy — leitura limpa; peso fica no hitstop/shake/slash.
 	if AudioManager != null:
 		AudioManager.tocar_punch()
-
-	var hp: Dictionary = HIT_PROFILE["heavy"]
-	CombatImpactEffect.spawn_swing_arc(
-		owner_body, owner_body.global_position, ultima_direcao,
-		float(hp["arc"]), hp["color"] as Color, true
-	)
 
 	_disparar_hitbox_ataque(ultima_direcao)
 	_enviar_ataque_rede_se_cliente(true)
@@ -504,8 +498,9 @@ func _on_attack_hit(
 		CombatImpactEffect.spawn_slash(enemy, target_pos, ultima_direcao, profile["color"] as Color)
 		if bool(profile.get("dust", false)):
 			CombatImpactEffect.spawn_dust_kickup(enemy, target_pos, ultima_direcao * (110.0 if is_heavy_attack else 80.0))
-		if is_heavy_attack or combo_step == 2:
-			CombatImpactEffect.spawn_swing_arc(enemy, target_pos, ultima_direcao, float(profile["arc"]) * 0.55, profile["color"] as Color, true)
+		# Finisher leve ainda ganha arco fino; heavy não spawna círculo/arco grosso.
+		if not is_heavy_attack and combo_step == 2:
+			CombatImpactEffect.spawn_swing_arc(enemy, target_pos, ultima_direcao, float(profile["arc"]) * 0.55, profile["color"] as Color, false)
 		# Godspeed residual elétrico no impacto dos basics
 		if not is_heavy_attack and PlayerData != null and PlayerData.quest_states.get("godspeed_ativo", false):
 			HatsuProceduralFxKit.lightning_arcs(enemy, target_pos, ultima_direcao, Color(0.65, 0.9, 1.0), 0.75)
@@ -1175,6 +1170,10 @@ func _executar_perfect_dodge(_atacante: Node) -> void:
 
 
 func _mostrar_texto_flutuante(texto: String, cor: Color) -> void:
+	# Clarity: feedback tático (IMPACTO PESADO / COUNTER / PUNISH / PD) não cobre o combate.
+	# Mensagens importantes já vão para toast/HUD quando necessário.
+	if DamageNumberSystem != null and DamageNumberSystem.get("COMBAT_CLARITY") == true:
+		return
 	if owner_body == null:
 		return
 	var tree := get_tree()

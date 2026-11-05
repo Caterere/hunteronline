@@ -22,6 +22,9 @@ extends Node
 
 const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 
+## Quando true: só números de dano no mundo. XP/Jenny/esquiva/táticos ficam no HUD/toast.
+const COMBAT_CLARITY := true
+
 var _recent_spawns: Array[Vector2] = []
 var _cleanup_timer: float = 0.0
 
@@ -77,58 +80,78 @@ func _on_combat_engine_hit(_atacante: Node, defensor: Node, dano: int, is_crit: 
 	spawn_dano(defensor, dano, is_crit)
 
 
-## Spawna um número de dano estilizado sobre o alvo com tipografia HxH
+## Spawna um número de dano estilizado sobre o alvo (leitura limpa: só "-N").
 func spawn_dano(alvo_ou_pos: Variant, dano: int, is_crit: bool = false, is_weakness: bool = false, is_resisted: bool = false, _tag: String = "", is_hatsu: bool = false) -> void:
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	if pos == Vector2.ZERO and not (alvo_ou_pos is Vector2 and alvo_ou_pos == Vector2.ZERO):
 		return
 
-	var texto: String = ""
-	var cor: Color = HunterUIStyle.COLOR_TEXT_PRIMARY
+	var texto: String = "-%d" % dano
+	var cor: Color = Color(1.0, 0.95, 0.7)
 	var escala: float = 1.0
 
-	if is_crit and is_hatsu:
-		texto = "⚡ CRIT HATSU -%d" % dano
-		cor = Color(1.0, 0.4, 0.95)
-		escala = 1.35
-	elif is_hatsu:
-		texto = "✦ HATSU -%d" % dano
-		cor = Color(0.85, 0.35, 1.0)
-		escala = 1.15
-	elif is_crit:
-		texto = "💥 CRIT -%d" % dano
-		cor = HunterUIStyle.COLOR_CRIT_GOLD
-		escala = 1.25
-	elif is_weakness:
-		texto = "🎯 WEAK -%d" % dano
-		cor = HunterUIStyle.COLOR_WEAK_ORANGE
-		escala = 1.15
-	elif is_resisted:
-		texto = "🛡️ RESIST -%d" % dano
-		cor = HunterUIStyle.COLOR_BLOCK_STEEL
-		escala = 0.85
+	if COMBAT_CLARITY:
+		# Só o número — cor sinaliza tipo sem poluir com palavras/emoji.
+		if is_crit and is_hatsu:
+			cor = Color(1.0, 0.45, 0.95)
+			escala = 1.3
+		elif is_hatsu:
+			cor = Color(0.85, 0.4, 1.0)
+			escala = 1.12
+		elif is_crit:
+			cor = HunterUIStyle.COLOR_CRIT_GOLD
+			escala = 1.22
+		elif is_weakness:
+			cor = HunterUIStyle.COLOR_WEAK_ORANGE
+			escala = 1.12
+		elif is_resisted:
+			cor = HunterUIStyle.COLOR_BLOCK_STEEL
+			escala = 0.9
 	else:
-		texto = "-%d" % dano
-		cor = Color(1.0, 0.95, 0.7)
-		escala = 1.0
+		if is_crit and is_hatsu:
+			texto = "⚡ CRIT HATSU -%d" % dano
+			cor = Color(1.0, 0.4, 0.95)
+			escala = 1.35
+		elif is_hatsu:
+			texto = "✦ HATSU -%d" % dano
+			cor = Color(0.85, 0.35, 1.0)
+			escala = 1.15
+		elif is_crit:
+			texto = "💥 CRIT -%d" % dano
+			cor = HunterUIStyle.COLOR_CRIT_GOLD
+			escala = 1.25
+		elif is_weakness:
+			texto = "🎯 WEAK -%d" % dano
+			cor = HunterUIStyle.COLOR_WEAK_ORANGE
+			escala = 1.15
+		elif is_resisted:
+			texto = "🛡️ RESIST -%d" % dano
+			cor = HunterUIStyle.COLOR_BLOCK_STEEL
+			escala = 0.85
 
-	spawn_texto(pos, texto, cor, escala)
+	spawn_texto(pos, texto, cor, escala, 0.75, true)
 
 
 ## Spawna indicação de esquiva
 func spawn_esquiva(alvo_ou_pos: Variant) -> void:
+	if COMBAT_CLARITY:
+		return
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	spawn_texto(pos, "🍃 DODGE", HunterUIStyle.COLOR_DODGE_CYAN, 1.1)
 
 
 ## Spawna indicação de Perfect Dodge (janela de counter)
 func spawn_perfect_dodge(alvo_ou_pos: Variant) -> void:
+	if COMBAT_CLARITY:
+		return
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	spawn_texto(pos, "⚡ PERFECT DODGE", Color(0.35, 1.0, 0.55), 1.25, 0.95)
 
 
 ## Spawna indicação de bloqueio
 func spawn_bloqueio(alvo_ou_pos: Variant) -> void:
+	if COMBAT_CLARITY:
+		return
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	spawn_texto(pos, "🛡️ BLOCKED", HunterUIStyle.COLOR_BLOCK_STEEL, 1.0)
 
@@ -136,29 +159,36 @@ func spawn_bloqueio(alvo_ou_pos: Variant) -> void:
 ## Spawna indicação de cura
 func spawn_cura(alvo_ou_pos: Variant, valor: int) -> void:
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
-	spawn_texto(pos, "+%d HP" % valor, HunterUIStyle.COLOR_HEAL_GREEN, 1.15)
+	spawn_texto(pos, "+%d HP" % valor, HunterUIStyle.COLOR_HEAL_GREEN, 1.15, 0.75, true)
 
 
 ## Spawna indicação de imunidade (GAME_FEEL §5)
 func spawn_imune(alvo_ou_pos: Variant) -> void:
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
-	spawn_texto(pos, "IMUNE", Color(0.75, 0.85, 1.0, 0.95), 1.2, 0.9)
+	spawn_texto(pos, "IMUNE", Color(0.75, 0.85, 1.0, 0.95), 1.2, 0.9, true)
 
 
 ## Feedback flutuante de XP (Maple-style)
 func spawn_xp(alvo_ou_pos: Variant, valor: int) -> void:
+	if COMBAT_CLARITY:
+		return
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	spawn_texto(pos, "+%d XP" % valor, Color(0.45, 0.85, 1.0), 1.1, 0.9)
 
 
 ## Feedback flutuante de Jenny
 func spawn_jenny(alvo_ou_pos: Variant, valor: int) -> void:
+	if COMBAT_CLARITY:
+		return
 	var pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 	spawn_texto(pos, "+%d Jenny" % valor, Color(1.0, 0.85, 0.25), 1.05, 0.85)
 
 
-## Spawna um texto arbitrário estilizado no mundo
-func spawn_texto(alvo_ou_pos: Variant, texto: String, cor: Color, escala: float = 1.0, duracao: float = 0.75) -> void:
+## Spawna um texto arbitrário estilizado no mundo.
+## force_show=true ignora COMBAT_CLARITY (usado por dano/cura/imune).
+func spawn_texto(alvo_ou_pos: Variant, texto: String, cor: Color, escala: float = 1.0, duracao: float = 0.75, force_show: bool = false) -> void:
+	if COMBAT_CLARITY and not force_show:
+		return
 	var world_pos: Vector2 = _resolver_posicao(alvo_ou_pos)
 
 	# Jitter aleatório para evitar sobreposição em golpes rápidos de combo
