@@ -33,9 +33,9 @@ func _aura_curve() -> void:
 	_assert(int(ProgressionConfig.SAGA_LEVEL_RANGES[1].y) <= 12, "soft-max exame <= 12")
 
 func _damage() -> void:
-	_assert(is_equal_approx(float(ProgressionConfig.BASE_STATS["forca"]), 4.0), "forca base 4")
-	var dmg := CombatEngine.calcular_dano({"forca": 4.0, "dano_base": 2.0}, {"defesa": 2.0})
-	_assert(dmg <= 8, "dano early fraco (got %d)" % dmg)
+	_assert(is_equal_approx(float(ProgressionConfig.BASE_STATS["forca"]), 8.0), "forca base 8 (L1 ≈10 dmg)")
+	var dmg := CombatEngine.calcular_dano({"forca": 8.0, "dano_base": 2.0}, {"defesa": 2.0})
+	_assert(dmg >= 8 and dmg <= 12, "dano L1 sem Nen ~10 (got %d)" % dmg)
 	var ce := FileAccess.get_file_as_string("res://autoload/CombatEngine.gd")
 	_assert("var dano_base: float = 2.0" in ce, "dano_base 2")
 

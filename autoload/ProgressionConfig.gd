@@ -28,11 +28,13 @@ const BASE_LEVEL: int = 1
 # ------------------------------------------------------------
 # 2. VALORES BASE (NÍVEL 1) & ALVOS ENDGAME (NÍVEL 1000)
 # ------------------------------------------------------------
-# Valores no Nível 1 (Humano / Aspirante inicial) — metade do baseline antigo
-# para o early-game não ficar trivial demais.
+# Stats físicos sobem com o NÍVEL NORMAL mesmo sem Nen.
+# Nen continua sendo o grande multiplicador (aura / técnicas / afinidade).
+# Âncoras early: L1 forca 8 → dano básico ≈10; L10 forca 23 → dano ≈25
+# (com CombatEngine dano_base=2), crescimento mínimo e legível.
 const BASE_STATS: Dictionary = {
-	"vida_max": 50.0,
-	"forca": 4.0,
+	"vida_max": 60.0,
+	"forca": 8.0,
 	"defesa": 5.0,
 	"velocidade": 5.0,
 	"aura_max": 40.0
@@ -47,6 +49,17 @@ const TARGET_STATS_LEVEL_1000: Dictionary = {
 	"velocidade": 150.0,
 	"aura_max": 800000.0
 }
+
+## Stats físicos com âncoras early legíveis (L1 / L10 / L60), depois curva até L1000.
+const PHYSICAL_STATS: Array[String] = ["vida_max", "forca", "defesa", "velocidade"]
+## Valores em L1, L10 e L60 — interpolação linear entre âncoras.
+const EARLY_STAT_ANCHORS: Dictionary = {
+	"forca": [8.0, 23.0, 95.0],
+	"vida_max": [60.0, 140.0, 480.0],
+	"defesa": [5.0, 12.0, 42.0],
+	"velocidade": [5.0, 7.5, 16.0],
+}
+const EARLY_BLEND_LEVEL: int = 60
 
 # ------------------------------------------------------------
 # VALORES PADRÃO PARA ATRIBUTOS SECUNDÁRIOS & COMBATE
@@ -129,29 +142,68 @@ const SAGA_LEVEL_RANGES: Dictionary = {
 # ============================================================
 
 ## Calcula o atributo base derivado estritamente do Nível do personagem.
-## Aplica a fórmula determinística de Power-Law contínua:
-## base + (target - base) * ((level - 1) / (MAX_LEVEL - 1)) ^ p
+## Físicos (vida/força/defesa/vel): âncoras early legíveis sem Nen, depois curva até L1000.
+## Aura: power-law contínua (só relevante após despertar Nen).
 static func calcular_stat_base(stat_name: String, level: int) -> float:
 	var lvl_clamped: int = clamp(level, BASE_LEVEL, MAX_LEVEL)
-	
+
 	if SECONDARY_STAT_DEFAULTS.has(stat_name):
 		return float(SECONDARY_STAT_DEFAULTS[stat_name])
 	if not BASE_STATS.has(stat_name):
 		return 0.0
-		
+
+	if stat_name in PHYSICAL_STATS:
+		return _calcular_stat_fisico_por_nivel(stat_name, lvl_clamped)
+
+	return _calcular_stat_power_law(stat_name, lvl_clamped)
+
+
+static func _calcular_stat_fisico_por_nivel(stat_name: String, level: int) -> float:
+	var anchors: Array = EARLY_STAT_ANCHORS.get(stat_name, [])
+	if anchors.size() < 3:
+		return _calcular_stat_power_law(stat_name, level)
+
+	var a1: float = float(anchors[0])
+	var a10: float = float(anchors[1])
+	var a60: float = float(anchors[2])
+	var target_val: float = float(TARGET_STATS_LEVEL_1000.get(stat_name, a60))
+	var exponent: float = float(STAT_EXPONENTS.get(stat_name, 1.0))
+
+	if level <= BASE_LEVEL:
+		return a1
+	if level >= MAX_LEVEL:
+		return target_val
+	if level <= 10:
+		var t_early: float = float(level - 1) / 9.0
+		return lerpf(a1, a10, t_early)
+	if level <= EARLY_BLEND_LEVEL:
+		var t_mid: float = float(level - 10) / float(EARLY_BLEND_LEVEL - 10)
+		return lerpf(a10, a60, t_mid)
+
+	# L60 → L1000: power-law a partir da âncora L60 até o alvo endgame
+	var t_late: float = float(level - EARLY_BLEND_LEVEL) / float(MAX_LEVEL - EARLY_BLEND_LEVEL)
+	return a60 + (target_val - a60) * pow(t_late, exponent)
+
+
+static func _calcular_stat_power_law(stat_name: String, level: int) -> float:
 	var base_val: float = float(BASE_STATS.get(stat_name, 10.0))
 	var target_val: float = float(TARGET_STATS_LEVEL_1000.get(stat_name, 100.0))
 	var exponent: float = float(STAT_EXPONENTS.get(stat_name, 1.0))
-	
-	if lvl_clamped <= BASE_LEVEL:
+
+	if level <= BASE_LEVEL:
 		return base_val
-	if lvl_clamped >= MAX_LEVEL:
+	if level >= MAX_LEVEL:
 		return target_val
-		
-	var progresso_normalizado: float = float(lvl_clamped - BASE_LEVEL) / float(MAX_LEVEL - BASE_LEVEL)
+
+	var progresso_normalizado: float = float(level - BASE_LEVEL) / float(MAX_LEVEL - BASE_LEVEL)
 	var fator_curva: float = pow(progresso_normalizado, exponent)
-	
 	return base_val + (target_val - base_val) * fator_curva
+
+
+## Dano básico estimado sem Nen (dano_base CombatEngine + forca).
+static func estimar_dano_basico_sem_nen(level: int, dano_base: float = 2.0) -> int:
+	var forca: float = calcular_stat_base("forca", level)
+	return maxi(1, int(round(dano_base + forca)))
 
 
 ## Retorna o valor inteiro arredondado do atributo base

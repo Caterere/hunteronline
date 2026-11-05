@@ -227,9 +227,10 @@ func _verificar_level_up() -> void:
 		if DamageNumberSystem != null:
 			var player_node = get_parent()
 			if player_node != null and player_node is Node2D:
-				DamageNumberSystem.spawn_texto(player_node, "LEVEL UP!", Color(1.0, 0.9, 0.35), 1.4, 1.2)
+				# force_show: LEVEL UP / deltas de status precisam aparecer mesmo com COMBAT_CLARITY
+				DamageNumberSystem.spawn_texto(player_node, "LEVEL UP!", Color(1.0, 0.9, 0.35), 1.4, 1.2, true)
 				if not delta_txt.is_empty():
-					DamageNumberSystem.spawn_texto(player_node, delta_txt, Color(0.55, 1.0, 0.7), 1.1, 0.95)
+					DamageNumberSystem.spawn_texto(player_node, delta_txt, Color(0.55, 1.0, 0.7), 1.1, 0.95, true)
 		if EventBus != null and EventBus.has_method("emit_camera_shake"):
 			EventBus.emit_camera_shake(0.35, 0.25)
 
