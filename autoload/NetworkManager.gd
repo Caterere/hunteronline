@@ -121,6 +121,15 @@ func is_dedicated_server() -> bool:
 	return current_mode == NetworkMode.DEDICATED_SERVER
 
 
+func is_listen_host() -> bool:
+	return current_mode == NetworkMode.HOST_LISTEN
+
+
+## Mundo autoritativo ativo (dedicated OU listen-host com coordinator).
+func has_authoritative_world() -> bool:
+	return is_server_authoritative() and world_coordinator != null
+
+
 func _conectar_sinais_multiplayer() -> void:
 	if not multiplayer.peer_connected.is_connected(_on_peer_connected):
 		multiplayer.peer_connected.connect(_on_peer_connected)
@@ -139,9 +148,19 @@ func _conectar_sinais_multiplayer() -> void:
 # ============================================================
 
 func iniciar_host(porta: int = ConnectionManagerScript.PADRAO_PORTA, max_jogadores: int = 4, nome_sala: String = "Lobby de Caçada") -> Error:
-	var err: Error = connection_manager.iniciar_servidor(porta, max_jogadores)
+	_garantir_character_id_local()
+	var cfg = ServerConfigScript.new()
+	cfg.server_name = nome_sala if not nome_sala.is_empty() else "Mundo Cooperativo"
+	cfg.port = porta
+	cfg.max_players = maxi(2, max_jogadores)
+	cfg.enable_lan_discovery = true
+	cfg.save_path = "user://listen_host_saves/"
+	if PlayerData != null and "nome_personagem" in PlayerData and not str(PlayerData.nome_personagem).is_empty():
+		cfg.server_name = "Mundo de %s" % str(PlayerData.nome_personagem)
+
+	var err: Error = connection_manager.iniciar_servidor(cfg.port, cfg.max_players)
 	if err != OK:
-		push_error("[NetworkManager] Falha ao iniciar host na porta %d: Erro %d" % [porta, err])
+		push_error("[NetworkManager] Falha ao iniciar host na porta %d: Erro %d" % [cfg.port, err])
 		return err
 
 	multiplayer.multiplayer_peer = connection_manager.peer
@@ -149,11 +168,23 @@ func iniciar_host(porta: int = ConnectionManagerScript.PADRAO_PORTA, max_jogador
 	local_peer_id = 1
 
 	session.limpar()
-	session.room_name = nome_sala
-	session.max_players = max_jogadores
-	session.adicionar_peer(1, _obter_dados_jogador_local())
+	session.room_name = cfg.server_name
+	session.max_players = cfg.max_players
+	session.current_map_path = cfg.starting_map
 
-	print("[NetworkManager] 🌐 Host iniciado com sucesso na porta %d!" % porta)
+	_bootstrap_authoritative_world(cfg)
+
+	var local_data := _obter_dados_jogador_local()
+	session.adicionar_peer(1, local_data)
+	var spawn_pos := Vector2(100, 100)
+	if PlayerData != null and PlayerData.posicao_salva != Vector2.ZERO:
+		spawn_pos = PlayerData.posicao_salva
+	if world_coordinator != null:
+		world_coordinator.register_player(1, local_data, spawn_pos)
+	if discovery_broadcaster != null:
+		discovery_broadcaster.update_beacon(cfg.server_name, cfg.port, 1, cfg.max_players, cfg.region)
+
+	print("[NetworkManager] 🌐 Listen-host (Criar Mundo) online na porta %d — anfitrião joga neste PC." % cfg.port)
 	return OK
 
 
@@ -163,7 +194,6 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	if cfg.has_method("apply_cmdline_args"):
 		cfg.apply_cmdline_args()
 
-	server_config = cfg
 	var err: Error = connection_manager.iniciar_servidor(cfg.port, cfg.max_players)
 	if err != OK:
 		push_error("[HunterServer] ❌ Falha ao iniciar socket ENet na porta %d: Erro %d" % [cfg.port, err])
@@ -176,45 +206,9 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	session.limpar()
 	session.room_name = cfg.server_name
 	session.max_players = cfg.max_players
+	session.current_map_path = cfg.starting_map
 
-	# Inicializar Storage e Coordinator no servidor
-	server_storage = ServerStorageManagerScript.new(cfg.save_path)
-	world_coordinator = ServerWorldCoordinatorScript.new(cfg.tick_rate, cfg.starting_map)
-	world_coordinator.interest_radius_default = float(cfg.interest_radius)
-	world_coordinator.use_snapshot_delta = bool(cfg.snapshot_delta)
-	world_coordinator.snapshot_ready.connect(_on_server_snapshot_ready)
-	if not world_coordinator.player_damaged.is_connected(_on_server_player_damaged):
-		world_coordinator.player_damaged.connect(_on_server_player_damaged)
-	if not world_coordinator.entity_died.is_connected(_on_server_entity_died):
-		world_coordinator.entity_died.connect(_on_server_entity_died)
-	if not world_coordinator.player_died.is_connected(_on_server_player_died):
-		world_coordinator.player_died.connect(_on_server_player_died)
-	if not world_coordinator.player_respawned.is_connected(_on_server_player_respawned):
-		world_coordinator.player_respawned.connect(_on_server_player_respawned)
-	if world_coordinator.has_signal("ally_revive_started") and not world_coordinator.ally_revive_started.is_connected(_on_server_ally_revive_started):
-		world_coordinator.ally_revive_started.connect(_on_server_ally_revive_started)
-		world_coordinator.ally_revive_progress.connect(_on_server_ally_revive_progress)
-		world_coordinator.ally_revive_cancelled.connect(_on_server_ally_revive_cancelled)
-		world_coordinator.ally_revive_completed.connect(_on_server_ally_revive_completed)
-	world_coordinator.start_coordinator()
-	_seed_demo_enemies_if_needed()
-
-	# Iniciar Broadcaster de Descoberta LAN (desligar em VPS / host público)
-	if bool(cfg.enable_lan_discovery):
-		discovery_broadcaster = LanDiscoveryBroadcasterScript.new()
-		discovery_broadcaster.start_broadcast(
-			cfg.server_name,
-			cfg.port,
-			0,
-			cfg.max_players,
-			cfg.region,
-			cfg.discovery_port
-		)
-	else:
-		discovery_broadcaster = null
-		print("[HunterServer] LAN discovery desabilitado (modo host/VPS).")
-
-	_iniciar_master_announce_se_habilitado(cfg)
+	_bootstrap_authoritative_world(cfg)
 
 	print("\n============================================================")
 	print("                HUNTER MMORPG DEDICATED SERVER              ")
@@ -237,6 +231,94 @@ func iniciar_servidor_dedicado(cfg: Variant = null) -> Error:
 	print("Waiting for hunter connections...")
 	print("============================================================\n")
 	return OK
+
+
+func _bootstrap_authoritative_world(cfg: Variant) -> void:
+	server_config = cfg
+	_demo_enemies_seeded = false
+
+	if discovery_broadcaster != null:
+		discovery_broadcaster.stop_broadcast()
+		discovery_broadcaster = null
+	if world_coordinator != null:
+		world_coordinator.stop_coordinator()
+		world_coordinator = null
+
+	server_storage = ServerStorageManagerScript.new(cfg.save_path)
+	world_coordinator = ServerWorldCoordinatorScript.new(cfg.tick_rate, cfg.starting_map)
+	world_coordinator.interest_radius_default = float(cfg.interest_radius)
+	world_coordinator.use_snapshot_delta = bool(cfg.snapshot_delta)
+	if not world_coordinator.snapshot_ready.is_connected(_on_server_snapshot_ready):
+		world_coordinator.snapshot_ready.connect(_on_server_snapshot_ready)
+	if not world_coordinator.player_damaged.is_connected(_on_server_player_damaged):
+		world_coordinator.player_damaged.connect(_on_server_player_damaged)
+	if not world_coordinator.entity_died.is_connected(_on_server_entity_died):
+		world_coordinator.entity_died.connect(_on_server_entity_died)
+	if not world_coordinator.player_died.is_connected(_on_server_player_died):
+		world_coordinator.player_died.connect(_on_server_player_died)
+	if not world_coordinator.player_respawned.is_connected(_on_server_player_respawned):
+		world_coordinator.player_respawned.connect(_on_server_player_respawned)
+	if world_coordinator.has_signal("ally_revive_started") and not world_coordinator.ally_revive_started.is_connected(_on_server_ally_revive_started):
+		world_coordinator.ally_revive_started.connect(_on_server_ally_revive_started)
+		world_coordinator.ally_revive_progress.connect(_on_server_ally_revive_progress)
+		world_coordinator.ally_revive_cancelled.connect(_on_server_ally_revive_cancelled)
+		world_coordinator.ally_revive_completed.connect(_on_server_ally_revive_completed)
+	world_coordinator.start_coordinator()
+	_seed_demo_enemies_if_needed()
+
+	if bool(cfg.enable_lan_discovery):
+		discovery_broadcaster = LanDiscoveryBroadcasterScript.new()
+		discovery_broadcaster.start_broadcast(
+			cfg.server_name,
+			cfg.port,
+			session.peers.size() if session != null else 0,
+			cfg.max_players,
+			cfg.region,
+			cfg.discovery_port
+		)
+	else:
+		discovery_broadcaster = null
+		print("[HunterServer] LAN discovery desabilitado (modo host/VPS).")
+
+	_iniciar_master_announce_se_habilitado(cfg)
+
+
+func _garantir_character_id_local() -> void:
+	if PlayerData == null:
+		return
+	if str(PlayerData.character_id).is_empty() and PlayerData.has_method("gerar_novo_character_id"):
+		PlayerData.gerar_novo_character_id()
+
+
+func _character_id_em_uso(character_id: String, except_peer: int = -1) -> bool:
+	if character_id.is_empty() or session == null:
+		return false
+	for pid in session.peers.keys():
+		if int(pid) == except_peer:
+			continue
+		var info: Dictionary = session.obter_peer_info(pid)
+		if str(info.get("character_id", "")) == character_id:
+			return true
+	if world_coordinator != null:
+		for pid2 in world_coordinator.players.keys():
+			if int(pid2) == except_peer:
+				continue
+			var p: Dictionary = world_coordinator.players[pid2]
+			if str(p.get("character_id", "")) == character_id:
+				return true
+	return false
+
+
+func _atualizar_discovery_beacon_players() -> void:
+	if discovery_broadcaster == null or server_config == null or session == null:
+		return
+	discovery_broadcaster.update_beacon(
+		server_config.server_name,
+		server_config.port,
+		session.peers.size(),
+		server_config.max_players,
+		server_config.region
+	)
 
 
 func iniciar_master_registry(listen_port: int = 7780) -> Error:
@@ -319,17 +401,20 @@ func desconectar() -> void:
 		return
 
 	print("[NetworkManager] 🔌 Desconectando da sessão multiplayer...")
-	if is_dedicated_server():
+	if is_server_authoritative():
 		if discovery_broadcaster != null:
 			discovery_broadcaster.stop_broadcast()
 			discovery_broadcaster = null
 		if world_coordinator != null:
 			world_coordinator.stop_coordinator()
 			world_coordinator = null
+		server_storage = null
+		server_config = null
+		_demo_enemies_seeded = false
 
 	if master_registry != null:
-		# Em modo registry puro, deixar o caller decidir; em announce/dedicated, parar.
-		if str(master_registry.mode) == "announce" or is_dedicated_server():
+		# Em modo registry puro, deixar o caller decidir; em announce/dedicated/host, parar.
+		if str(master_registry.mode) == "announce" or is_server_authoritative():
 			master_registry.stop()
 			master_registry = null
 
@@ -425,15 +510,7 @@ func _on_peer_connected(id: int) -> void:
 	print("[NetworkManager] Caçador conectado no socket: Peer %d" % id)
 	session.adicionar_peer(id)
 	if is_server_authoritative():
-		# Atualizar contador do beacon se for servidor dedicado
-		if is_dedicated_server() and discovery_broadcaster != null and server_config != null:
-			discovery_broadcaster.update_beacon(
-				server_config.server_name,
-				server_config.port,
-				session.peers.size(),
-				server_config.max_players,
-				server_config.region
-			)
+		_atualizar_discovery_beacon_players()
 		_atualizar_master_announce_players()
 		rpc_id(id, "rpc_sincronizar_sessao", session.room_name, session.max_players)
 
@@ -441,8 +518,8 @@ func _on_peer_connected(id: int) -> void:
 func _on_peer_disconnected(id: int) -> void:
 	print("[NetworkManager] Caçador desconectado do socket: Peer %d" % id)
 
-	# Se for servidor dedicado, salvar estado do jogador e limpar coordenador
-	if is_dedicated_server():
+	# Servidor autoritativo (dedicated ou listen-host): persistir e limpar coordinator
+	if is_server_authoritative():
 		if world_coordinator != null:
 			var removed_entity = world_coordinator.unregister_player(id)
 			var char_id = str(removed_entity.get("character_id", ""))
@@ -537,16 +614,18 @@ func _physics_process(delta: float) -> void:
 	if is_offline_singleplayer():
 		return
 
-	# Servidor Dedicado
-	if is_dedicated_server():
-		if world_coordinator != null:
-			world_coordinator.tick(delta)
+	# Dedicated ou listen-host com mundo autoritativo
+	if has_authoritative_world():
+		if is_listen_host():
+			_push_local_host_intent()
+		world_coordinator.tick(delta)
 		if discovery_broadcaster != null:
 			discovery_broadcaster.update(delta)
 		_tick_server_autosave(delta)
+		# Snapshots saem pelo sinal snapshot_ready do coordinator — sem P2P legado.
 		return
 
-	# Cliente ou Host de Gameplay
+	# Cliente remoto
 	_snapshot_timer += delta
 	if _snapshot_timer >= SNAPSHOT_INTERVAL:
 		_snapshot_timer = 0.0
@@ -565,7 +644,7 @@ func _physics_process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if is_offline_singleplayer() or is_dedicated_server():
 		return
-	if current_mode != NetworkMode.CLIENT_PEER:
+	if current_mode != NetworkMode.CLIENT_PEER and not is_listen_host():
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
 		if event.keycode == KEY_E:
@@ -615,6 +694,7 @@ func _atualizar_snapshot_bandwidth_janela(delta: float) -> void:
 
 
 func _obter_dados_jogador_local() -> Dictionary:
+	_garantir_character_id_local()
 	var info := {
 		"name": "Hunter",
 		"level": 1,
@@ -622,7 +702,8 @@ func _obter_dados_jogador_local() -> Dictionary:
 		"hp": 100,
 		"hp_max": 100,
 		"aura": 100.0,
-		"aura_max": 100.0
+		"aura_max": 100.0,
+		"character_id": ""
 	}
 	if PlayerData != null:
 		info["name"] = PlayerData.nome_personagem if "nome_personagem" in PlayerData and not PlayerData.nome_personagem.is_empty() else "Hunter"
@@ -632,7 +713,22 @@ func _obter_dados_jogador_local() -> Dictionary:
 		info["hp_max"] = int(PlayerData.attributes.get("vida_max", 100))
 		info["aura"] = float(PlayerData.attributes.get("aura", 100.0))
 		info["aura_max"] = float(PlayerData.attributes.get("aura_max", 100.0))
+		info["character_id"] = str(PlayerData.character_id)
 	return info
+
+
+func _push_local_host_intent() -> void:
+	if not is_listen_host() or world_coordinator == null:
+		return
+	var player = GameManager.active_player if GameManager != null else null
+	if player == null or not is_instance_valid(player):
+		return
+	var move_dir: Vector2 = player.velocity.normalized() if player.velocity != Vector2.ZERO else Vector2.ZERO
+	var facing_dir: Vector2 = player._direcao_olhar if "_direcao_olhar" in player else Vector2.DOWN
+	var nen_tech: String = ""
+	if PlayerData != null:
+		nen_tech = str(PlayerData.quest_states.get("tecnica_nen_ativa", ""))
+	world_coordinator.update_player_intent(local_peer_id, move_dir, facing_dir, nen_tech)
 
 
 func _enviar_snapshot_local() -> void:
@@ -714,6 +810,14 @@ func rpc_requisitar_handshake(auth_data: Dictionary) -> void:
 		rpc_id(sender_id, "rpc_handshake_rejeitado", "Servidor lotado (%d/%d jogadores)." % [session.peers.size(), max_cap])
 		return
 
+	# 4. Identidade de personagem: character_id ≠ peer_id; rejeitar duplicata online
+	if c_id.is_empty():
+		rpc_id(sender_id, "rpc_handshake_rejeitado", "character_id ausente — carregue um personagem válido.")
+		return
+	if _character_id_em_uso(c_id, sender_id):
+		rpc_id(sender_id, "rpc_handshake_rejeitado", "Personagem já conectado nesta sessão (character_id em uso).")
+		return
+
 	# Registro de sucesso — normalizar nickname → name para sessão/puppets
 	var attrs = auth_data.get("attributes", {})
 	if not (attrs is Dictionary):
@@ -731,7 +835,7 @@ func rpc_requisitar_handshake(auth_data: Dictionary) -> void:
 	session.adicionar_peer(sender_id, normalized)
 
 	var spawn_pos := Vector2(100, 100)
-	if is_dedicated_server():
+	if has_authoritative_world() or server_storage != null:
 		if server_storage != null:
 			var saved = server_storage.load_player_state(c_id)
 			if not saved.is_empty() and saved.has("position"):
@@ -743,6 +847,9 @@ func rpc_requisitar_handshake(auth_data: Dictionary) -> void:
 
 		if world_coordinator != null:
 			world_coordinator.register_player(sender_id, normalized, spawn_pos)
+
+	_atualizar_discovery_beacon_players()
+	_atualizar_master_announce_players()
 
 	# Preparar lista de jogadores existentes com posições reais do coordenador
 	var existing: Array = []
@@ -769,7 +876,7 @@ func rpc_requisitar_handshake(auth_data: Dictionary) -> void:
 
 	rpc_id(sender_id, "rpc_handshake_aceito", s_meta, spawn_pos, existing)
 	rpc("rpc_notificar_jogador_conectado", sender_id, normalized, spawn_pos)
-	print("[NetworkManager] 🤝 Handshake aceito com sucesso para %s (Peer %d)" % [nick, sender_id])
+	print("[NetworkManager] 🤝 Handshake aceito para %s (Peer %d, character_id=%s)" % [nick, sender_id, c_id])
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -843,24 +950,29 @@ func _on_server_snapshot_ready(_snapshot: Dictionary) -> void:
 		return
 	_last_snapshot_send_msec = now_ms
 
-	# Dedicated: snapshot por peer (AoI + delta). Host listen: broadcast full.
-	if is_dedicated_server():
-		var radius: float = float(server_config.interest_radius) if server_config != null else 900.0
-		for peer_id in session.peers.keys():
-			var peer_snap: Dictionary = world_coordinator.build_interest_snapshot(int(peer_id), radius)
-			# Evita enviar pacote vazio (sem mudanças) em modo delta
-			if not bool(peer_snap.get("full", false)):
-				var has_data: bool = (
-					(peer_snap.get("players", []) as Array).size() > 0
-					or (peer_snap.get("enemies", []) as Array).size() > 0
-					or (peer_snap.get("removed_players", []) as Array).size() > 0
-					or (peer_snap.get("removed_enemies", []) as Array).size() > 0
-				)
-				if not has_data:
-					continue
-			_enviar_snapshot_para_peer(int(peer_id), peer_snap)
-	else:
-		_enviar_snapshot_para_peer(0, world_coordinator.build_world_snapshot())
+	# Dedicated + listen-host: snapshot por peer (AoI + delta).
+	var radius: float = float(server_config.interest_radius) if server_config != null else 900.0
+	for peer_id in session.peers.keys():
+		var pid: int = int(peer_id)
+		var peer_snap: Dictionary = world_coordinator.build_interest_snapshot(pid, radius)
+		# Evita enviar pacote vazio (sem mudanças) em modo delta
+		if not bool(peer_snap.get("full", false)):
+			var has_data: bool = (
+				(peer_snap.get("players", []) as Array).size() > 0
+				or (peer_snap.get("enemies", []) as Array).size() > 0
+				or (peer_snap.get("removed_players", []) as Array).size() > 0
+				or (peer_snap.get("removed_enemies", []) as Array).size() > 0
+			)
+			if not has_data:
+				continue
+		# Listen-host: aplica snapshot localmente (reconcile) sem RPC para peer 1.
+		if is_listen_host() and pid == local_peer_id:
+			_aplicar_snapshot_mundo(peer_snap)
+			continue
+		# Dedicated peer 1 não tem cliente; skip. Clientes remotos recebem via rpc_id.
+		if is_dedicated_server() and pid == 1:
+			continue
+		_enviar_snapshot_para_peer(pid, peer_snap)
 
 
 func _enviar_snapshot_para_peer(peer_id: int, snap: Dictionary) -> void:
@@ -1094,17 +1206,23 @@ func _on_combat_hits_confirmed(hits: Array) -> void:
 
 
 func _on_server_player_damaged(peer_id: int, damage: int, source_net_id: int, hp_remaining: int, knockback_dir: Vector2) -> void:
-	if not is_dedicated_server():
+	if not has_authoritative_world():
 		return
-	rpc_id(peer_id, "rpc_aplicar_dano_jogador", damage, source_net_id, hp_remaining, knockback_dir)
+	if peer_id == local_peer_id and is_listen_host():
+		rpc_aplicar_dano_jogador(damage, source_net_id, hp_remaining, knockback_dir)
+	elif peer_id != local_peer_id or not is_dedicated_server():
+		rpc_id(peer_id, "rpc_aplicar_dano_jogador", damage, source_net_id, hp_remaining, knockback_dir)
 
 
 func _on_server_entity_died(net_id: int, killer_peer_id: int, rewards: Dictionary) -> void:
-	if not is_dedicated_server():
+	if not has_authoritative_world():
 		return
 	if killer_peer_id <= 0:
 		return
-	rpc_id(killer_peer_id, "rpc_recompensa_kill", net_id, rewards)
+	if killer_peer_id == local_peer_id and is_listen_host():
+		rpc_recompensa_kill(net_id, rewards)
+	else:
+		rpc_id(killer_peer_id, "rpc_recompensa_kill", net_id, rewards)
 	# Também avisa todos para VFX de morte do proxy (se ainda existir)
 	rpc("rpc_notificar_inimigo_morto", net_id)
 
@@ -1132,21 +1250,27 @@ func rpc_aplicar_dano_jogador(damage: int, source_net_id: int, hp_remaining: int
 
 
 func _on_server_player_died(peer_id: int, source_net_id: int) -> void:
-	if not is_dedicated_server():
+	if not has_authoritative_world():
 		return
 	var death_pos := Vector2.ZERO
 	if world_coordinator != null and world_coordinator.players.has(peer_id):
 		var p: Dictionary = world_coordinator.players[peer_id]
 		death_pos = p.get("downed_pos", p.get("position", Vector2.ZERO)) as Vector2
-	rpc_id(peer_id, "rpc_jogador_morreu", source_net_id)
+	if peer_id == local_peer_id and is_listen_host():
+		rpc_jogador_morreu(source_net_id)
+	else:
+		rpc_id(peer_id, "rpc_jogador_morreu", source_net_id)
 	# Notifica outros clientes com posição do corpo (para prompt [E] e range)
 	rpc("rpc_notificar_jogador_estado", peer_id, true, death_pos)
 
 
 func _on_server_player_respawned(peer_id: int, spawn_pos: Vector2, hp: int, aura: float) -> void:
-	if not is_dedicated_server():
+	if not has_authoritative_world():
 		return
-	rpc_id(peer_id, "rpc_jogador_respawnou", spawn_pos, hp, aura)
+	if peer_id == local_peer_id and is_listen_host():
+		rpc_jogador_respawnou(spawn_pos, hp, aura)
+	else:
+		rpc_id(peer_id, "rpc_jogador_respawnou", spawn_pos, hp, aura)
 	rpc("rpc_notificar_jogador_estado", peer_id, false, spawn_pos)
 
 
@@ -1204,7 +1328,7 @@ func rpc_jogador_respawnou(spawn_pos: Vector2, hp: int, aura: float) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func rpc_solicitar_respawn() -> void:
-	if not is_dedicated_server() or world_coordinator == null:
+	if not has_authoritative_world():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	world_coordinator.request_respawn(sender_id)
@@ -1235,11 +1359,12 @@ func rpc_notificar_jogador_estado(peer_id: int, is_dead: bool, pos: Vector2) -> 
 				puppet.target_position = pos
 
 
-## Cliente pede respawn antecipado (botão Renascer / abandonar desmaio).
+## Cliente/host pede respawn antecipado (botão Renascer / abandonar desmaio).
 func solicitar_respawn() -> void:
-	if current_mode != NetworkMode.CLIENT_PEER:
-		return
-	rpc_id(1, "rpc_solicitar_respawn")
+	if current_mode == NetworkMode.CLIENT_PEER:
+		rpc_id(1, "rpc_solicitar_respawn")
+	elif is_listen_host() and has_authoritative_world():
+		world_coordinator.request_respawn(local_peer_id)
 
 
 # ============================================================
@@ -1248,25 +1373,25 @@ func solicitar_respawn() -> void:
 
 
 func _on_server_ally_revive_started(reviver_id: int, target_id: int) -> void:
-	if not is_dedicated_server():
+	if not has_authoritative_world():
 		return
 	rpc("rpc_ally_revive_started", reviver_id, target_id)
 
 
 func _on_server_ally_revive_progress(reviver_id: int, target_id: int, progress_01: float) -> void:
-	if not is_dedicated_server():
+	if not has_authoritative_world():
 		return
 	rpc("rpc_ally_revive_progress", reviver_id, target_id, progress_01)
 
 
 func _on_server_ally_revive_cancelled(reviver_id: int, target_id: int, reason: String) -> void:
-	if not is_dedicated_server():
+	if not has_authoritative_world():
 		return
 	rpc("rpc_ally_revive_cancelled", reviver_id, target_id, reason)
 
 
 func _on_server_ally_revive_completed(target_id: int, pos: Vector2, hp: int, aura: float) -> void:
-	if not is_dedicated_server():
+	if not has_authoritative_world():
 		return
 	# player_respawned já notifica restauração; este RPC é feedback explícito de revive
 	rpc("rpc_ally_revive_completed", target_id, pos, hp, aura)
@@ -1274,7 +1399,7 @@ func _on_server_ally_revive_completed(target_id: int, pos: Vector2, hp: int, aur
 
 @rpc("any_peer", "call_remote", "reliable")
 func rpc_solicitar_revive_aliado(target_peer_id: int) -> void:
-	if not is_dedicated_server() or world_coordinator == null:
+	if not has_authoritative_world():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	var result: Dictionary = world_coordinator.begin_ally_revive(sender_id, target_peer_id)
@@ -1284,7 +1409,7 @@ func rpc_solicitar_revive_aliado(target_peer_id: int) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func rpc_cancelar_revive_aliado() -> void:
-	if not is_dedicated_server() or world_coordinator == null:
+	if not has_authoritative_world():
 		return
 	var sender_id: int = multiplayer.get_remote_sender_id()
 	world_coordinator.cancel_ally_revive_by_reviver(sender_id, "cancelled")
@@ -1342,9 +1467,9 @@ func rpc_ally_revive_rejected(_target_id: int, reason: String) -> void:
 		EventBus.emit_toast("💉 Não foi possível reviver (%s)" % reason)
 
 
-## Cliente: tenta reviver o aliado caído mais próximo (tecla E / interact).
+## Cliente/host: tenta reviver o aliado caído mais próximo (tecla E / interact).
 func tentar_revive_aliado_proximo() -> void:
-	if current_mode != NetworkMode.CLIENT_PEER:
+	if current_mode != NetworkMode.CLIENT_PEER and not is_listen_host():
 		return
 	if _local_revive_channeling:
 		return
@@ -1367,15 +1492,23 @@ func tentar_revive_aliado_proximo() -> void:
 			EventBus.emit_toast("💉 Nenhum aliado caído por perto")
 		return
 	_revive_prompt_peer = best_id
-	rpc_id(1, "rpc_solicitar_revive_aliado", best_id)
+	if is_listen_host() and has_authoritative_world():
+		var result: Dictionary = world_coordinator.begin_ally_revive(local_peer_id, best_id)
+		if not bool(result.get("ok", false)):
+			rpc_ally_revive_rejected(best_id, str(result.get("reason", "fail")))
+	else:
+		rpc_id(1, "rpc_solicitar_revive_aliado", best_id)
 
 
 func cancelar_revive_local() -> void:
-	if current_mode != NetworkMode.CLIENT_PEER:
+	if current_mode != NetworkMode.CLIENT_PEER and not is_listen_host():
 		return
 	if not _local_revive_channeling:
 		return
-	rpc_id(1, "rpc_cancelar_revive_aliado")
+	if is_listen_host() and has_authoritative_world():
+		world_coordinator.cancel_ally_revive_by_reviver(local_peer_id, "cancelled")
+	else:
+		rpc_id(1, "rpc_cancelar_revive_aliado")
 	_local_revive_channeling = false
 
 
@@ -1491,17 +1624,16 @@ func obter_mapa_sessao() -> String:
 
 @rpc("any_peer", "call_remote", "unreliable_ordered")
 func rpc_enviar_intencao_input(move_dir: Vector2, facing: Vector2, nen_tech: String) -> void:
-	if not is_server_authoritative():
+	if not has_authoritative_world():
 		return
 
 	var sender_id: int = multiplayer.get_remote_sender_id()
-	if is_dedicated_server() and world_coordinator != null:
-		world_coordinator.update_player_intent(sender_id, move_dir, facing, nen_tech)
+	world_coordinator.update_player_intent(sender_id, move_dir, facing, nen_tech)
 
 
 @rpc("any_peer", "call_remote", "reliable")
 func rpc_solicitar_ataque_servidor(pos_origem: Vector2, direcao: Vector2, is_heavy: bool) -> void:
-	if not is_server_authoritative():
+	if not has_authoritative_world():
 		return
 
 	var sender_id: int = multiplayer.get_remote_sender_id()
@@ -1509,10 +1641,21 @@ func rpc_solicitar_ataque_servidor(pos_origem: Vector2, direcao: Vector2, is_hea
 	if anti_cheat != null and not anti_cheat.validar_taxa_ataque(sender_id, cd_nom):
 		return
 
-	if is_dedicated_server() and world_coordinator != null:
-		var hits = world_coordinator.apply_player_attack(sender_id, pos_origem, direcao, 40, 45.0, is_heavy)
-		if not hits.is_empty():
-			rpc("rpc_confirmar_acertos_combate", hits)
+	var hits = world_coordinator.apply_player_attack(sender_id, pos_origem, direcao, 40, 45.0, is_heavy)
+	if not hits.is_empty():
+		rpc("rpc_confirmar_acertos_combate", hits)
+
+
+## Listen-host: ataque local do anfitrião validado no coordinator (sem RPC self).
+func solicitar_ataque_host_local(pos_origem: Vector2, direcao: Vector2, is_heavy: bool) -> void:
+	if not is_listen_host() or not has_authoritative_world():
+		return
+	var cd_nom: float = 0.50 if is_heavy else 0.30
+	if anti_cheat != null and not anti_cheat.validar_taxa_ataque(local_peer_id, cd_nom):
+		return
+	var hits = world_coordinator.apply_player_attack(local_peer_id, pos_origem, direcao, 40, 45.0, is_heavy)
+	if not hits.is_empty():
+		rpc("rpc_confirmar_acertos_combate", hits)
 
 
 @rpc("authority", "call_local", "reliable")

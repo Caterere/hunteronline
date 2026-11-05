@@ -265,7 +265,7 @@ func _atualizar_slots() -> void:
 			hbox.add_child(btn_jogar)
 
 			var btn_multi := Button.new()
-			btn_multi.text = "LAN / VPN >"
+			btn_multi.text = "MULTIPLAYER >"
 			btn_multi.add_theme_font_size_override("font_size", 5)
 			HunterUIStyle.aplicar_estilo_botao(btn_multi, HunterUIStyle.COLOR_BORDER_CYAN)
 			btn_multi.pressed.connect(func(): _jogar_multiplayer_com_slot(slot_idx))
