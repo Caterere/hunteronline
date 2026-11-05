@@ -251,8 +251,12 @@ func rpc_confirmar_entrada_party(dados_novo_membro: Dictionary) -> void:
 		_sincronizar_todos_membros()
 
 
-@rpc("authority", "call_remote", "reliable")
+# any_peer: em dedicated o líder humano NÃO é peer 1 (servidor). Validamos sender == líder.
+@rpc("any_peer", "call_remote", "reliable")
 func rpc_atualizar_dados_party(lista_membros: Array, p_id: String, l_id: int) -> void:
+	var sender_id: int = multiplayer.get_remote_sender_id() if multiplayer.has_multiplayer_peer() else 0
+	if sender_id > 0 and sender_id != int(l_id):
+		return
 	party_id = p_id
 	lider_id = l_id
 	membros.clear()
@@ -261,8 +265,12 @@ func rpc_atualizar_dados_party(lista_membros: Array, p_id: String, l_id: int) ->
 	party_dados_atualizados.emit(lista_membros)
 
 
-@rpc("authority", "call_remote", "reliable")
+@rpc("any_peer", "call_remote", "reliable")
 func rpc_voce_foi_expulso() -> void:
+	var sender_id: int = multiplayer.get_remote_sender_id() if multiplayer.has_multiplayer_peer() else 0
+	# Só aceita expulsão se o sender for o líder atual conhecido (ou ainda não temos party).
+	if sender_id > 0 and lider_id > 0 and sender_id != lider_id:
+		return
 	party_id = ""
 	lider_id = 0
 	membros.clear()

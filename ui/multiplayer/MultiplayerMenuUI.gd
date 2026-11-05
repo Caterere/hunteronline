@@ -6,9 +6,10 @@ extends Control
 # ============================================================
 #
 # Interface gráfica para conexão multiplayer:
-# - Conexão Direta (IP manual para Radmin VPN / LAN / Internet)
-# - Descoberta de Servidores LAN (UDP Broadcast listener)
-# - Inicialização de servidor dedicado local
+# - Criar Mundo (listen-host: anfitrião joga neste PC)
+# - Encontrar Partida LAN (UDP Broadcast listener)
+# - Conexão Direta (IP manual para Radmin VPN / Internet)
+# - Servidor dedicado headless (avançado; preferir iniciar_servidor_lan.sh)
 # ============================================================
 
 const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
@@ -84,7 +85,7 @@ func _construir_ui() -> void:
 
 	# Título
 	var lbl_title := Label.new()
-	lbl_title.text = "HUNTER ONLINE — MULTIPLAYER LAN / VPN / VPS"
+	lbl_title.text = "HUNTER ONLINE — MULTIPLAYER LAN"
 	lbl_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	lbl_title.add_theme_font_size_override("font_size", 9)
 	lbl_title.add_theme_color_override("font_color", HunterUIStyle.COLOR_TEXT_GOLD)
@@ -125,18 +126,24 @@ func _construir_ui() -> void:
 	col_left.add_child(line_edit_password)
 
 	btn_connect = Button.new()
-	btn_connect.text = "CONECTAR AO SERVIDOR"
+	btn_connect.text = "ENTRAR NA PARTIDA"
 	HunterUIStyle.aplicar_estilo_botao(btn_connect, HunterUIStyle.COLOR_BORDER_GREEN)
 	btn_connect.pressed.connect(_on_connect_pressed)
 	col_left.add_child(btn_connect)
 
 	btn_start_server = Button.new()
-	btn_start_server.text = "⚡ INICIAR SERVIDOR NESTE PC"
+	btn_start_server.text = "CRIAR MUNDO"
 	HunterUIStyle.aplicar_estilo_botao(btn_start_server, HunterUIStyle.COLOR_BORDER_GOLD)
-	btn_start_server.pressed.connect(_on_start_server_pressed)
+	btn_start_server.pressed.connect(_on_criar_mundo_pressed)
 	col_left.add_child(btn_start_server)
 
-	# Coluna Direita: Servidores LAN Detectados
+	var btn_dedicated := Button.new()
+	btn_dedicated.text = "Servidor dedicado (este PC não joga)"
+	HunterUIStyle.aplicar_estilo_botao(btn_dedicated, Color(0.55, 0.55, 0.65, 1.0))
+	btn_dedicated.pressed.connect(_on_start_dedicated_pressed)
+	col_left.add_child(btn_dedicated)
+
+	# Coluna Direita: Encontrar Partida LAN
 	var col_right := VBoxContainer.new()
 	col_right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	col_right.add_theme_constant_override("separation", 5)
@@ -146,7 +153,7 @@ func _construir_ui() -> void:
 	col_right.add_child(hbox_lan_hdr)
 
 	var lbl_lan := Label.new()
-	lbl_lan.text = "SERVIDORES LAN LOCAIS"
+	lbl_lan.text = "ENCONTRAR PARTIDA LAN"
 	lbl_lan.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lbl_lan.add_theme_font_size_override("font_size", 6)
 	lbl_lan.add_theme_color_override("font_color", HunterUIStyle.COLOR_AURA_CYAN)
@@ -467,18 +474,47 @@ func _on_connect_pressed() -> void:
 		_atualizar_label_status("Erro ao abrir socket de cliente: %d" % err, Color(1.0, 0.3, 0.3))
 
 
-func _on_start_server_pressed() -> void:
-	_atualizar_label_status("Iniciando Servidor Dedicado... (este PC nao joga — use outro cliente / script separado)", Color(0.2, 0.8, 1.0))
+func _on_criar_mundo_pressed() -> void:
+	_atualizar_label_status("Criando mundo cooperativo (você joga como anfitrião)...", Color(0.2, 0.8, 1.0))
+	var porta: int = 7777
+	if line_edit_port != null:
+		var parsed: int = int(line_edit_port.text.strip_edges())
+		if parsed > 0:
+			porta = parsed
+	var err: Error = NetworkManager.iniciar_host(porta, 4, "Mundo Cooperativo")
+	if err != OK:
+		_atualizar_label_status("Erro ao criar mundo: %d" % err, Color(1.0, 0.3, 0.3))
+		return
+
+	btn_start_server.disabled = true
+	btn_connect.disabled = true
+	_atualizar_label_status("Mundo hospedado na porta %d. Entrando..." % porta, Color(0.3, 1.0, 0.5))
+	_entrar_mapa_sessao()
+
+
+func _on_start_dedicated_pressed() -> void:
+	_atualizar_label_status("Iniciando servidor dedicado... (este PC não joga)", Color(0.2, 0.8, 1.0))
 	var err = NetworkManager.iniciar_servidor_dedicado()
 	if err == OK:
 		var porta: int = 7777
 		if NetworkManager.server_config != null:
 			porta = int(NetworkManager.server_config.port)
-		_atualizar_label_status("Servidor Online na porta %d. Prefira ./iniciar_servidor_lan.sh + cliente em outro PC." % porta, Color(0.3, 1.0, 0.5))
+		_atualizar_label_status("Dedicated Online na porta %d. Use outro cliente ou ./iniciar_servidor_lan.sh." % porta, Color(0.3, 1.0, 0.5))
 		btn_start_server.disabled = true
 		btn_connect.disabled = true
 	else:
-		_atualizar_label_status("Erro ao iniciar servidor: %d" % err, Color(1.0, 0.3, 0.3))
+		_atualizar_label_status("Erro ao iniciar servidor dedicado: %d" % err, Color(1.0, 0.3, 0.3))
+
+
+func _entrar_mapa_sessao() -> void:
+	var map_path := "res://world/lobby.tscn"
+	if NetworkManager != null and NetworkManager.has_method("obter_mapa_sessao"):
+		map_path = NetworkManager.obter_mapa_sessao()
+	var trans = get_node_or_null("/root/SceneTransition")
+	if trans != null and trans.has_method("mudar_cena"):
+		trans.mudar_cena(map_path, "Capital dos Caçadores", "Sessão Co-op LAN")
+	else:
+		get_tree().change_scene_to_file(map_path)
 
 
 func _on_handshake_completed(success: bool, reason: String) -> void:
@@ -487,14 +523,7 @@ func _on_handshake_completed(success: bool, reason: String) -> void:
 
 	if success:
 		_atualizar_label_status("Conexão autorizada! Entrando no mundo...", Color(0.3, 1.0, 0.5))
-		var map_path := "res://world/lobby.tscn"
-		if NetworkManager != null and NetworkManager.has_method("obter_mapa_sessao"):
-			map_path = NetworkManager.obter_mapa_sessao()
-		var trans = get_node_or_null("/root/SceneTransition")
-		if trans != null and trans.has_method("mudar_cena"):
-			trans.mudar_cena(map_path, "Capital dos Caçadores", "Sessão Co-op LAN")
-		else:
-			get_tree().change_scene_to_file(map_path)
+		_entrar_mapa_sessao()
 	else:
 		_atualizar_label_status("Conexão falhou: %s" % reason, Color(1.0, 0.3, 0.3))
 

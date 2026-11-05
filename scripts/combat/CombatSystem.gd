@@ -334,20 +334,26 @@ func tentar_atacar(direcao: Vector2) -> void:
 
 
 func _enviar_ataque_rede_se_cliente(is_heavy: bool) -> void:
-	# Em cliente dedicado, a autoridade de dano é o servidor (proxies não têm EnemySystem).
+	# Em cliente/listen-host, a autoridade de dano é o coordinator (proxies não têm EnemySystem).
 	if NetworkManager == null:
-		return
-	if NetworkManager.current_mode != NetworkManager.NetworkMode.CLIENT_PEER:
 		return
 	if owner_body == null:
 		return
-	NetworkManager.rpc_id(
-		1,
-		"rpc_solicitar_ataque_servidor",
-		owner_body.global_position,
-		ultima_direcao,
-		is_heavy
-	)
+	if NetworkManager.current_mode == NetworkManager.NetworkMode.CLIENT_PEER:
+		NetworkManager.rpc_id(
+			1,
+			"rpc_solicitar_ataque_servidor",
+			owner_body.global_position,
+			ultima_direcao,
+			is_heavy
+		)
+	elif NetworkManager.has_method("is_listen_host") and NetworkManager.is_listen_host():
+		if NetworkManager.has_method("solicitar_ataque_host_local"):
+			NetworkManager.solicitar_ataque_host_local(
+				owner_body.global_position,
+				ultima_direcao,
+				is_heavy
+			)
 
 # ============================================================
 # DISPARAR HITBOX (REUTILIZAÇÃO CACHEADA SEM ALOCAÇÃO)

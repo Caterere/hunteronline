@@ -39,27 +39,22 @@ O Hunter MMORPG opera sobre a camada de transporte **ENet (UDP confiável e não
 ## 3. PROTOCOLO DE DESCOBERTA LAN (UDP BROADCAST)
 
 ### Porta: `7778 UDP` | Frequência: 1.5 segundos
-O servidor dedicado emite periodicamente pacotes de broadcast para a sub-rede local (`255.255.255.255:7778`).
+Listen-host (**Criar Mundo**) e servidor dedicado (quando `enable_lan_discovery=true`) emitem periodicamente pacotes de broadcast para a sub-rede local (`255.255.255.255:7778`).
 
-### Estrutura do Pacote de Descoberta:
+### Estrutura do Pacote de Descoberta (código atual):
 ```text
-[Magic Header: 24 bytes String] + [JSON Payload UTF-8]
-```
-- **Magic Header:** `HUNTER_LAN_BROADCAST_v1`
-- **JSON Payload Exemplo:**
-```json
-{
-  "nome": "Hunter Dedicated LAN",
-  "porta": 7777,
-  "jogadores": 2,
-  "max_jogadores": 16,
-  "versao": "1.2.0-dedicated",
-  "mapa": "res://world/lobby.tscn",
-  "requer_senha": false
-}
+HUNTER_LAN_SERVER|<server_name>|<game_port>|<players>|<max_players>|<region>|<timestamp_ms>
 ```
 
-O cliente escuta a porta `7778` através do `LanDiscoveryListener`, calcula o tempo de resposta e exibe o servidor na lista com um clique para conexão direta.
+Exemplo:
+```text
+HUNTER_LAN_SERVER|Mundo de Gon|7777|2|4|Capital dos Caçadores|123456789
+```
+
+Implementação: `LanDiscoveryBroadcaster.gd` / `LanDiscoveryListener.gd`.  
+O cliente escuta a porta `7778`, exibe a partida em **Encontrar Partida LAN** e conecta via ENet na `game_port` anunciada (padrão **7777**).
+
+> Nota: documentação antiga citava magic `HUNTER_LAN_BROADCAST_v1` + JSON — isso **não** é o wire format ativo.
 
 ---
 

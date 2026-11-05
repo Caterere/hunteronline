@@ -657,8 +657,10 @@ func _test_19_nen_mitigation_death_respawn() -> void:
 	assert_test(deaths.size() == 1, "player_died emitido")
 	assert_test(int(coord.players[8]["hp"]) == 0, "HP zerado na morte")
 
-	# Avançar tempo de respawn (~3.5s)
-	for i in range(80):
+	# Avançar tempo de desmaio → respawn forçado (DOWNED_TIMEOUT_SEC, tipicamente 30s)
+	var downed_timeout: float = float(ServerWorldCoordinatorScript.DOWNED_TIMEOUT_SEC)
+	var max_ticks: int = int(ceil(downed_timeout / 0.05)) + 5
+	for i in range(max_ticks):
 		coord.tick(0.05)
 		if respawns.size() > 0:
 			break
