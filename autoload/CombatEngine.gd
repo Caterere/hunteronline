@@ -296,7 +296,7 @@ func calcular_dano_jogador(
 	atualizar_contexto_skill_tree(ctx)
 
 	var forca: float = float(PlayerData.attributes.get("forca", 10))
-	# Lv1: 2+4=6 — TTK early ~6–12s com mobs buffados (sem one-hit)
+	# Lv1: 2+8=10 · Lv10: 2+23=25 (sem Nen) — TTK early legível; Nen amplifica à parte
 	var dano_base: float = 2.0
 
 	if PlayerData.quest_states.get("guanyin_bodhisattva_ativo", false):

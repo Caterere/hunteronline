@@ -36,7 +36,7 @@ func _ready() -> void:
 func _test_base_stats_halved() -> void:
 	print("-- BASE_STATS --")
 	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["vida_max"]), 50.0), "vida_max base = 50")
-	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["forca"]), 4.0), "forca base = 4")
+	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["forca"]), 8.0), "forca base = 8")
 	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["defesa"]), 5.0), "defesa base = 5")
 	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["velocidade"]), 5.0), "velocidade base = 5")
 	assert_test(is_equal_approx(float(ProgressionConfig.BASE_STATS["aura_max"]), 50.0), "aura_max base = 50")
