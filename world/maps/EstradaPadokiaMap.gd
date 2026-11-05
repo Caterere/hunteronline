@@ -49,6 +49,7 @@ func _ready() -> void:
 	_densificar_vida_estrada()
 	_instanciar_sensores_nen_estrada()
 	_densificar_steam_early_estrada()
+	_anexar_farm_zone()
 	_criar_zona_protecao_escolta()
 	if not SimpleGrassTerrainPolicyScript.ENABLED:
 		_criar_grande_ponte()
@@ -238,6 +239,14 @@ func _instanciar_sensores_nen_estrada() -> void:
 			)
 			bau.add_child(inter)
 		add_child(bau)
+
+
+func _anexar_farm_zone() -> void:
+	var FarmZoneDirectorScript = load("res://world/content/FarmZoneDirector.gd")
+	var FarmZoneCatalogScript = load("res://resource/world/FarmZoneCatalog.gd")
+	if FarmZoneDirectorScript == null or FarmZoneCatalogScript == null:
+		return
+	FarmZoneDirectorScript.anexar_ao_mapa(self, FarmZoneCatalogScript.criar_zona_estrada())
 
 
 func _densificar_steam_early_estrada() -> void:

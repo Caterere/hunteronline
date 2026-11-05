@@ -56,10 +56,20 @@ func _ready() -> void:
 	_posicionar_player()
 	_configurar_audio_e_hud()
 	_iniciar_raid_vertical()
+	_anexar_farm_zone()
 	_densificar_steam_early_ruinas()
 	if QuestSystem != null:
 		QuestSystem.sincronizar_inimigos_do_mapa(self)
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.DUNGEON)
+
+
+func _anexar_farm_zone() -> void:
+	var FarmZoneDirectorScript = load("res://world/content/FarmZoneDirector.gd")
+	var FarmZoneCatalogScript = load("res://resource/world/FarmZoneCatalog.gd")
+	if FarmZoneDirectorScript == null or FarmZoneCatalogScript == null:
+		return
+	# Farm zone outer: população aleatória L45–70 além das sentinelas/boss fixos
+	FarmZoneDirectorScript.anexar_ao_mapa(self, FarmZoneCatalogScript.criar_zona_ruinas())
 
 
 func _densificar_steam_early_ruinas() -> void:

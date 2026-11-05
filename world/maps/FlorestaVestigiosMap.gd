@@ -35,6 +35,7 @@ func _ready() -> void:
 	_posicionar_player()
 	_criar_elementos_floresta()
 	_instanciar_feras_selvagens()
+	_anexar_farm_zone()
 	# Defer densify: evita "parent busy" quando kits/sensores anexam no mesmo _ready
 	call_deferred("_densificar_steam_early_floresta")
 	MapAtmosphereDecorator.attach(self, MapAtmosphereDecorator.MapKind.FLORESTA)
@@ -53,6 +54,14 @@ func _ready() -> void:
 	var quest_sys = get_node_or_null("/root/QuestSystem")
 	if quest_sys != null and quest_sys.has_method("sincronizar_inimigos_do_mapa"):
 		quest_sys.sincronizar_inimigos_do_mapa(self)
+
+
+func _anexar_farm_zone() -> void:
+	var FarmZoneDirectorScript = load("res://world/content/FarmZoneDirector.gd")
+	var FarmZoneCatalogScript = load("res://resource/world/FarmZoneCatalog.gd")
+	if FarmZoneDirectorScript == null or FarmZoneCatalogScript == null:
+		return
+	FarmZoneDirectorScript.anexar_ao_mapa(self, FarmZoneCatalogScript.criar_zona_floresta())
 
 
 func _densificar_steam_early_floresta() -> void:

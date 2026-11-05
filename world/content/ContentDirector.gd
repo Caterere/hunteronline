@@ -363,6 +363,11 @@ func _gerenciar_despawn_e_ciclo_de_vida(player_pos: Vector2) -> void:
 
 
 func _enemy_id_para_risco(risk: int) -> StringName:
+	var profile = config.zone_profiles.get(risk, {}) if config != null else {}
+	var allowed: Array = profile.get("allowed_pve", [])
+	if allowed is Array and not allowed.is_empty():
+		var pick = allowed[rng.randi() % allowed.size()]
+		return StringName(str(pick))
 	match risk:
 		1:
 			return &"ladrao_estrada" if rng.randf() > 0.5 else &"slime"

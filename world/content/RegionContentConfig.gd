@@ -68,7 +68,7 @@ var zone_profiles: Dictionary = {
 		"pve_density": 0.25,
 		"event_density": 0.3,
 		"encounter_density": 0.5,
-		"allowed_pve": ["slime", "small_beast"],
+		"allowed_pve": ["slime", "rato_gigante", "lobo_selvagem", "ladrao_estrada", "javali_selvagem"],
 		"allowed_events": ["TRAVELER", "MERCHANT", "PATROL", "BANDIT_ATTACK"]
 	},
 	ZoneRisk.MEDIUM_RISK: {
@@ -77,7 +77,7 @@ var zone_profiles: Dictionary = {
 		"pve_density": 0.7,
 		"event_density": 0.6,
 		"encounter_density": 0.6,
-		"allowed_pve": ["slime", "forest_beast", "wolf"],
+		"allowed_pve": ["fera_floresta", "lobo_padokia", "cao_cacador", "serpente_sombra", "macaco_carnivoro", "bandido_renegado"],
 		"allowed_events": ["AMBUSH", "MONSTER_GROUP", "RESCUE", "HUNTER_FIGHT"]
 	},
 	ZoneRisk.HIGH_RISK: {
@@ -86,7 +86,7 @@ var zone_profiles: Dictionary = {
 		"pve_density": 0.9,
 		"event_density": 0.8,
 		"encounter_density": 0.7,
-		"allowed_pve": ["ancient_beast", "ruins_guardian", "elite_shadow"],
+		"allowed_pve": ["sentinela_pedra", "golem_pedra", "guardiao_elite", "urso_caverna", "alfa_ninho_elite"],
 		"allowed_events": ["RARE_MONSTER", "AMBUSH", "BANDIT_ATTACK", "WORLD_EVENT"]
 	},
 	ZoneRisk.DANGER: {
@@ -95,7 +95,7 @@ var zone_profiles: Dictionary = {
 		"pve_density": 1.0,
 		"event_density": 1.0,
 		"encounter_density": 0.9,
-		"allowed_pve": ["miasma_fiend", "elite_guardian", "boss_candidate"],
+		"allowed_pve": ["predador_miasma", "guardiao_elite", "lider_matilha_quimera", "membro_trupe"],
 		"allowed_events": ["RARE_MONSTER", "AMBUSH", "WORLD_EVENT", "HUNTER_FIGHT"]
 	}
 }
