@@ -387,6 +387,31 @@ func _ready() -> void:
 	_inicializar_skill_tree()
 
 
+func _process(delta: float) -> void:
+	_tick_modificadores_temporarios(delta)
+
+
+func _tick_modificadores_temporarios(delta: float) -> void:
+	if active_modifiers.is_empty():
+		return
+	var removed := false
+	for i in range(active_modifiers.size() - 1, -1, -1):
+		var m = active_modifiers[i]
+		if m == null:
+			active_modifiers.remove_at(i)
+			removed = true
+			continue
+		# duration < 0 → permanente (equip/treino/título)
+		if float(m.duration) < 0.0:
+			continue
+		m.duration = float(m.duration) - delta
+		if float(m.duration) <= 0.0:
+			active_modifiers.remove_at(i)
+			removed = true
+	if removed:
+		recalcular_todos_atributos()
+
+
 func _inicializar_skill_tree() -> void:
 	if skill_tree == null or not is_instance_valid(skill_tree):
 		var st_script = load("res://scripts/systems/NenSkillTree.gd")
@@ -1016,6 +1041,42 @@ func remover_item(
 	)
 
 	return true
+
+
+## Usa consumível de buff (farm zones / inventário). Retorna {ok, erro?, stat?, value?, duration?}.
+func usar_item_consumivel(item_id: Variant) -> Dictionary:
+	var sid := StringName(str(item_id))
+	if sid.is_empty():
+		return {"ok": false, "erro": "item_id vazio"}
+	var BuffCatalog = load("res://resource/item/ConsumableBuffCatalog.gd")
+	if BuffCatalog == null or not BuffCatalog.eh_buff_consumivel(sid):
+		return {"ok": false, "erro": "Não é consumível de buff"}
+	if obter_item_quantidade(sid) <= 0:
+		return {"ok": false, "erro": "Sem item no inventário"}
+	if not remover_item(sid, 1):
+		return {"ok": false, "erro": "Falha ao consumir"}
+	var buff: Dictionary = BuffCatalog.obter_buff(sid)
+	var stat := str(buff.get("stat", "forca"))
+	var value := float(buff.get("value", 5.0))
+	var duration := float(buff.get("duration", 120.0))
+	var typ := int(buff.get("type", 0))
+	var mod_type = StatModifier.Type.FLAT
+	if typ == 1:
+		mod_type = StatModifier.Type.PERCENTAGE
+	elif typ == 2:
+		mod_type = StatModifier.Type.MULTIPLICATIVE
+	var mod = StatModifier.new(
+		StringName("farm_buff_%s" % str(sid)),
+		StringName(stat),
+		mod_type,
+		value,
+		duration,
+		"farm_buff"
+	)
+	adicionar_modificador(mod)
+	if EventBus != null and EventBus.has_method("emit_toast"):
+		EventBus.emit_toast("✨ Buff: +%s %s (%.0fs)" % [str(int(value)), stat, duration], Color(0.55, 0.95, 0.7))
+	return {"ok": true, "stat": stat, "value": value, "duration": duration, "item_id": str(sid)}
 
 
 # ============================================================

@@ -126,6 +126,8 @@ var xp_reward: int = 0
 
 var enemy_id: StringName = &""
 var enemy_name: String = ""
+## Zona de farming open-world (se não vazio, aplica buff_drop_table da FarmZone).
+var farm_zone_id: StringName = &""
 
 var knockback_resistance: float = 0.0
 var hit_invulnerability_time: float = 0.15
@@ -1221,7 +1223,45 @@ func _gerar_drop_loot() -> void:
 		var bonus: float = 0.05 if (enemy_data != null and enemy_data.is_boss) else 0.0
 		BiomeLootCatalogScript.tentar_drop_raro(world_parent, drop_pos, "", bonus)
 
+	_gerar_buff_drop_farm_zone(world_parent, drop_pos)
 
+
+func _gerar_buff_drop_farm_zone(world_parent: Node, drop_pos: Vector2) -> void:
+	if farm_zone_id.is_empty():
+		return
+	var FarmZoneCatalogScript = load("res://resource/world/FarmZoneCatalog.gd")
+	var FarmZoneDirectorScript = load("res://world/content/FarmZoneDirector.gd")
+	if FarmZoneCatalogScript == null:
+		return
+	var zone = FarmZoneCatalogScript.obter_por_id(farm_zone_id)
+	if zone == null or zone.buff_drop_table.is_empty():
+		return
+	var enemy_lv: int = maxi(1, enemy_data.level if enemy_data != null else 1)
+	var player_lv: int = 1
+	if PlayerData != null:
+		player_lv = int(PlayerData.attributes.get("nivel", 1))
+	var anti: float = 1.0
+	if FarmZoneDirectorScript != null and FarmZoneDirectorScript.has_method("fator_anti_farm_drop"):
+		anti = float(FarmZoneDirectorScript.fator_anti_farm_drop(player_lv, enemy_lv))
+	if anti <= 0.0:
+		return
+	var is_elite: bool = enemy_data != null and bool(enemy_data.is_elite)
+	for drop_info in zone.buff_drop_table:
+		if not (drop_info is Dictionary):
+			continue
+		var chance: float = float(drop_info.get("chance", 0.05))
+		if is_elite:
+			chance += float(drop_info.get("elite_bonus", 0.0))
+		chance *= anti
+		if randf() > chance:
+			continue
+		var item_id := str(drop_info.get("item_id", ""))
+		var qtd: int = int(drop_info.get("quantidade", 1))
+		if item_id.is_empty():
+			continue
+		for _i in range(maxi(1, qtd)):
+			LootDrop.spawn_item_drop(world_parent, drop_pos, item_id)
+		print("[EnemySystem] FARM BUFF DROP: %s x%d (zona %s)" % [item_id, qtd, String(farm_zone_id)])
 
 
 # =========================================================

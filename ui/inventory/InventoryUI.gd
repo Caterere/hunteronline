@@ -6,6 +6,7 @@ extends CanvasLayer
 # ============================================================
 
 const EquipmentCatalogScript = preload("res://resource/item/EquipmentCatalog.gd")
+const ConsumableBuffCatalogScript = preload("res://resource/item/ConsumableBuffCatalog.gd")
 const HunterUIStyle = preload("res://ui/theme/HunterUIStyle.gd")
 const ItemLoreTooltipScript = preload("res://ui/common/ItemLoreTooltip.gd")
 const ItemExplainKitScript = preload("res://ui/common/ItemExplainKit.gd")
@@ -101,6 +102,13 @@ func _construir_ui() -> void:
 	lbl_detalhes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll_det.add_child(lbl_detalhes)
 
+	var btn_usar := Button.new()
+	btn_usar.text = "Usar consumível"
+	btn_usar.add_theme_font_size_override("font_size", 8)
+	HunterUIStyle.aplicar_estilo_botao(btn_usar, HunterUIStyle.COLOR_BORDER_GREEN)
+	btn_usar.pressed.connect(_on_usar_selecionado)
+	detalhes_box.add_child(btn_usar)
+
 	var btn_equip := Button.new()
 	btn_equip.text = "Equipar / Trocar"
 	btn_equip.add_theme_font_size_override("font_size", 8)
@@ -194,12 +202,44 @@ func _atualizar_inventario() -> void:
 func _selecionar_item(item_id: String) -> void:
 	item_selecionado = item_id
 	var qtd: int = PlayerData.obter_item_quantidade(StringName(item_id))
+	if ConsumableBuffCatalogScript.eh_buff_consumivel(item_id):
+		var info: Dictionary = ConsumableBuffCatalogScript.obter(item_id)
+		var buff: Dictionary = info.get("buff", {})
+		lbl_detalhes.text = "%s x%d\n%s\nBuff: +%s %s / %.0fs\n[Usar consumível]" % [
+			str(info.get("nome", item_id)),
+			qtd,
+			str(info.get("descricao", "")),
+			str(int(buff.get("value", 0))),
+			str(buff.get("stat", "")),
+			float(buff.get("duration", 0.0)),
+		]
+		return
 	var explained: String = ItemExplainKitScript.formatar_detalhes(item_id, qtd)
 	if EquipmentCatalogScript.eh_equipamento(item_id):
 		var eq_flag: String = " [EQUIPADO]" if PlayerData.esta_equipado(item_id) else ""
 		lbl_detalhes.text = explained + eq_flag
 	else:
 		lbl_detalhes.text = explained
+
+
+func _on_usar_selecionado() -> void:
+	if item_selecionado.is_empty():
+		lbl_detalhes.text = "Selecione um consumível primeiro."
+		return
+	if not ConsumableBuffCatalogScript.eh_buff_consumivel(item_selecionado):
+		lbl_detalhes.text = "Este item não é um consumível de buff usável."
+		return
+	var res: Dictionary = PlayerData.usar_item_consumivel(item_selecionado)
+	if bool(res.get("ok", false)):
+		lbl_detalhes.text = "Usou %s → +%s %s por %.0fs." % [
+			item_selecionado,
+			str(int(res.get("value", 0))),
+			str(res.get("stat", "")),
+			float(res.get("duration", 0.0)),
+		]
+		_atualizar_inventario()
+	else:
+		lbl_detalhes.text = "Falha: %s" % str(res.get("erro", "?"))
 
 
 func _on_equipar_selecionado() -> void:

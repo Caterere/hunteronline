@@ -27,6 +27,10 @@ func _ready() -> void:
 func _carregar_dados_estaticos() -> void:
 	# 1. Carregar Itens Padrão
 	_inicializar_itens_canônicos()
+	# 1b. Consumíveis de buff das farm zones
+	var BuffCatalog = load("res://resource/item/ConsumableBuffCatalog.gd")
+	if BuffCatalog != null and BuffCatalog.has_method("registrar_em_data_manager"):
+		BuffCatalog.registrar_em_data_manager()
 	
 	# 2. Carregar Inimigos Padrão
 	_inicializar_inimigos_canônicos()
@@ -187,7 +191,15 @@ func _inicializar_inimigos_canônicos() -> void:
 		"res://resource/status/CandidatoSabotador.tres",
 		"res://resource/status/enemies/slime.tres",
 		"res://resource/status/enemies/formiga_lider.tres",
-		"res://resource/status/enemies/bomber_greed.tres"
+		"res://resource/status/enemies/bomber_greed.tres",
+		# Fillers de história reutilizados no farming open-world
+		"res://resource/status/enemies/candidato_exame.tres",
+		"res://resource/status/enemies/criatura_pantanal.tres",
+		"res://resource/status/enemies/mafioso_yorknew.tres",
+		"res://resource/status/enemies/membro_trupe.tres",
+		"res://resource/status/enemies/lutador_arena.tres",
+		"res://resource/status/enemies/monstro_greed.tres",
+		"res://resource/status/enemies/mordomo_zoldyck.tres",
 	]
 	
 	var NenKit = load("res://scripts/systems/EnemySystem/EnemyNenKit.gd")

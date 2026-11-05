@@ -71,7 +71,7 @@ func _ativar_persistencia_arma() -> void:
 	if PlayerData != null:
 		PlayerData.quest_states["crazy_slots_arma"] = numero_sorteado
 		PlayerData.quest_states["crazy_slots_arma_ate"] = Time.get_unix_time_from_system() + persist_sec
-	var nome_arma := {2: "Foice", 3: "Clava", 4: "Rifle"}.get(numero_sorteado, "Arma")
+	var nome_arma: String = str({2: "Foice", 3: "Clava", 4: "Rifle"}.get(numero_sorteado, "Arma"))
 	if EventBus != null and EventBus.has_method("emit_toast"):
 		EventBus.emit_toast("🎰 Crazy Slots — %s %.0fs" % [nome_arma, persist_sec], Color(0.95, 0.4, 0.55))
 

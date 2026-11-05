@@ -1846,8 +1846,7 @@ func _hatsu_feitan(dir: Vector2) -> void:
 		var fx := HatsuAreaExplosionNode.new()
 		fx.setup(110.0, Color(1.0, 0.3, 0.1), Color(1.0, 0.9, 0.2))
 		enemy_body.add_child(fx)
-		if HatsuProceduralFxKit != null and HatsuProceduralFxKit.has_method("impact_ring"):
-			HatsuProceduralFxKit.impact_ring(enemy_body, enemy_body.global_position, Color(1.0, 0.4, 0.1), 100.0)
+		HatsuProceduralFxKit.impact_ring(enemy_body, enemy_body.global_position, Color(1.0, 0.4, 0.1), 100.0)
 
 		var dist: float = enemy_body.global_position.distance_to(player.global_position)
 		if dist <= 110.0:
@@ -1981,8 +1980,7 @@ func _hatsu_nobunaga() -> void:
 	var fx := HatsuAreaExplosionNode.new()
 	fx.setup(raio_en, Color(0.9, 0.9, 1.0), Color.WHITE)
 	enemy_body.add_child(fx)
-	if HatsuProceduralFxKit != null and HatsuProceduralFxKit.has_method("impact_ring"):
-		HatsuProceduralFxKit.impact_ring(enemy_body, enemy_body.global_position, Color(0.75, 0.85, 1.0), raio_en)
+	HatsuProceduralFxKit.impact_ring(enemy_body, enemy_body.global_position, Color(0.75, 0.85, 1.0), raio_en)
 	enemy_body.set_meta("nobunaga_en_until", Time.get_ticks_msec() + 3000)
 	var ticks := 6
 	for i in range(ticks):
